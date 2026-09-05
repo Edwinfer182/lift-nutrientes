@@ -337,31 +337,85 @@ body.module-open #respuestaAnswerPanel{display:none}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style id="lift-supabase-direct-styles">
 #liftCloudBar{position:fixed;right:12px;bottom:12px;z-index:5000;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e8f1;border-radius:999px;padding:8px 12px;box-shadow:0 8px 24px rgba(23,43,114,.12);font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#40507c}
-@media(max-width:768px){#liftCloudBar{right:8px;bottom:160px;max-width:calc(100% - 16px)}}
+#liftCloudBar button{border:0;background:transparent;color:#102b78;font:800 11px inherit;cursor:pointer;padding:0;min-height:auto}
+#liftAuthGate{position:fixed;inset:0;z-index:9000;background:#f6f7fb;display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+#liftAuthGate[hidden]{display:none!important}
+.lift-auth-card{width:min(420px,100%);background:#fff;border:1px solid #e5e8f1;border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(23,43,114,.13)}
+.lift-auth-logo{width:48px;height:48px;border-radius:15px;background:#102b78;color:white;display:grid;place-items:center;font-weight:900;margin-bottom:14px}
+.lift-auth-card h2{margin:0;color:#102b78;font-size:24px}.lift-auth-card p{margin:7px 0 18px;color:#70778e;font-size:13px;line-height:1.45}
+.lift-auth-field{margin-bottom:11px}.lift-auth-field label{display:block;font-size:11px;font-weight:850;color:#4a5168;margin-bottom:5px}.lift-auth-field input{width:100%;height:48px;border:1px solid #dfe3ee;border-radius:13px;padding:0 13px;font:inherit;font-size:16px;outline:none;box-sizing:border-box}.lift-auth-field input:focus{border-color:#9fb0e3;box-shadow:0 0 0 3px rgba(23,58,145,.08)}
+.lift-auth-primary{width:100%;min-height:48px;border:0;border-radius:13px;background:linear-gradient(135deg,#48246f,#e53679);color:#fff;font-weight:900;font-size:14px;cursor:pointer}.lift-auth-primary:disabled{opacity:.55;cursor:default}
+.lift-auth-link{display:block;width:100%;border:0;background:transparent;color:#102b78;font-weight:800;font-size:12px;margin-top:10px;cursor:pointer;padding:8px}
+.lift-auth-message{min-height:20px;margin-top:10px;font-size:12px;font-weight:750;color:#40507c;text-align:center}.lift-auth-message.error{color:#b42318}.lift-auth-message.ok{color:#168451}
+.lift-auth-back{display:none;margin-bottom:12px;border:0;background:transparent;padding:0;color:#102b78;font-weight:850;cursor:pointer}
+@media(max-width:768px){#liftCloudBar{right:8px;bottom:160px;max-width:calc(100% - 16px)}.lift-auth-card{padding:20px;border-radius:18px}}
 </style>
-<div id="liftCloudBar"><span id="liftCloudStatus">☁️ Conectando nube...</span></div>
+<div id="liftCloudBar"><span id="liftCloudStatus">☁️ Verificando sesión...</span><button id="liftCloudLogout" type="button" hidden>Cerrar sesión</button></div>
+<div id="liftAuthGate" hidden>
+  <div class="lift-auth-card">
+    <button id="liftAuthBack" class="lift-auth-back" type="button">← Volver</button>
+    <div class="lift-auth-logo">LN</div>
+    <h2 id="liftAuthTitle">Lift Cloud</h2>
+    <p id="liftAuthText">Inicia sesión para sincronizar tus datos entre celular y computador.</p>
+
+    <form id="liftLoginForm">
+      <div class="lift-auth-field"><label for="liftAuthEmail">Correo</label><input id="liftAuthEmail" type="email" autocomplete="email" value="edwinfdo182@gmail.com" required></div>
+      <div class="lift-auth-field"><label for="liftAuthPassword">Contraseña</label><input id="liftAuthPassword" type="password" autocomplete="current-password" required></div>
+      <button id="liftLoginBtn" class="lift-auth-primary" type="submit">Iniciar sesión</button>
+      <button id="liftForgotBtn" class="lift-auth-link" type="button">Olvidé mi contraseña</button>
+    </form>
+
+    <form id="liftRecoveryRequestForm" hidden>
+      <div class="lift-auth-field"><label for="liftRecoveryEmail">Correo</label><input id="liftRecoveryEmail" type="email" autocomplete="email" value="edwinfdo182@gmail.com" required></div>
+      <button id="liftRecoveryBtn" class="lift-auth-primary" type="submit">Enviar enlace de recuperación</button>
+    </form>
+
+    <form id="liftNewPasswordForm" hidden>
+      <div class="lift-auth-field"><label for="liftNewPassword">Nueva contraseña</label><input id="liftNewPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div class="lift-auth-field"><label for="liftNewPassword2">Confirmar contraseña</label><input id="liftNewPassword2" type="password" autocomplete="new-password" minlength="8" required></div>
+      <button id="liftNewPasswordBtn" class="lift-auth-primary" type="submit">Guardar nueva contraseña</button>
+    </form>
+
+    <div id="liftAuthMessage" class="lift-auth-message"></div>
+  </div>
+</div>
 <script id="lift-supabase-core">
 (function(){
  const SUPABASE_URL='https://vdxkkntfyssjyfbdieqa.supabase.co';
  const SUPABASE_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const CLOUD_TABLE='app_state';
- const OWNER_ID='6efd60d1-cae5-459a-a3f0-c2e9543df307';
- const BOOT_FLAG='lift_cloud_bootstrapped_direct_v1';
+ const BOOT_FLAG='lift_cloud_bootstrapped_auth_v1';
  const cloudStatus=()=>document.getElementById('liftCloudStatus');
- let saveTimer=null; let cloudReady=false; let applyingCloud=false;
+ let saveTimer=null, cloudReady=false, applyingCloud=false, currentUser=null, recoveryMode=false;
  if(!window.supabase || !window.supabase.createClient){ if(cloudStatus()) cloudStatus().textContent='⚠️ No se pudo cargar Supabase'; return; }
- const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  window.liftSupabase=sb;
+
+ const $=id=>document.getElementById(id);
+ const gate=()=>$('liftAuthGate');
+ function setMsg(msg,type=''){ const el=$('liftAuthMessage'); if(!el)return; el.textContent=msg||''; el.className='lift-auth-message'+(type?' '+type:''); }
+ function showGate(){ if(gate()) gate().hidden=false; }
+ function hideGate(){ if(gate()) gate().hidden=true; }
+ function showOnly(which){
+   const login=$('liftLoginForm'), req=$('liftRecoveryRequestForm'), np=$('liftNewPasswordForm'), back=$('liftAuthBack');
+   if(login) login.hidden=which!=='login'; if(req) req.hidden=which!=='request'; if(np) np.hidden=which!=='newpass';
+   if(back) back.style.display=which==='login'?'none':'inline-block';
+   recoveryMode=which==='newpass';
+   if(which==='login'){ $('liftAuthTitle').textContent='Lift Cloud'; $('liftAuthText').textContent='Inicia sesión para sincronizar tus datos entre celular y computador.'; }
+   if(which==='request'){ $('liftAuthTitle').textContent='Recuperar contraseña'; $('liftAuthText').textContent='Te enviaré un enlace a tu correo. Ábrelo desde el dispositivo donde quieras cambiar la contraseña.'; }
+   if(which==='newpass'){ $('liftAuthTitle').textContent='Nueva contraseña'; $('liftAuthText').textContent='Escribe tu nueva contraseña para terminar la recuperación.'; }
+   setMsg(''); showGate();
+ }
  function collectLiftStorage(){
    const data={};
    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.startsWith('lift_')) data[k]=localStorage.getItem(k); }
    return data;
  }
  async function saveCloudNow(){
-   if(!cloudReady||applyingCloud)return;
+   if(!cloudReady||applyingCloud||!currentUser)return;
    try{
      if(cloudStatus()) cloudStatus().textContent='☁️ Guardando...';
-     const {error}=await sb.from(CLOUD_TABLE).upsert({user_id:OWNER_ID,data:collectLiftStorage(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+     const {error}=await sb.from(CLOUD_TABLE).upsert({user_id:currentUser.id,data:collectLiftStorage(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
      if(error) throw error;
      if(cloudStatus()) cloudStatus().textContent='☁️ Guardado en la nube';
    }catch(e){ console.error('Supabase save:',e); if(cloudStatus()) cloudStatus().textContent='⚠️ Error al guardar'; }
@@ -372,35 +426,88 @@ body.module-open #respuestaAnswerPanel{display:none}
  Storage.prototype.removeItem=function(k){ nativeRemove.call(this,k); if(this===localStorage && String(k).startsWith('lift_') && cloudReady && !applyingCloud) scheduleSave(); };
  Storage.prototype.clear=function(){ nativeClear.call(this); if(this===localStorage && cloudReady && !applyingCloud) scheduleSave(); };
  async function pullCloud(){
-   const {data,error}=await sb.from(CLOUD_TABLE).select('data').eq('user_id',OWNER_ID).maybeSingle();
+   if(!currentUser)return false;
+   const {data,error}=await sb.from(CLOUD_TABLE).select('data').eq('user_id',currentUser.id).maybeSingle();
    if(error) throw error;
    if(data && data.data && typeof data.data==='object'){
      applyingCloud=true;
      Object.entries(data.data).forEach(([k,v])=>{ if(k.startsWith('lift_') && v!==null) nativeSet.call(localStorage,k,String(v)); });
      applyingCloud=false;
-     return true;
+     return Object.keys(data.data).length>0;
    }
    return false;
  }
- async function bootstrap(){
+ async function bootstrapForUser(user){
+   currentUser=user; cloudReady=false;
    try{
-     const already=sessionStorage.getItem(BOOT_FLAG)==='1';
+     if(cloudStatus()) cloudStatus().textContent='☁️ Sincronizando...';
+     const bootKey=BOOT_FLAG+'_'+user.id;
+     const already=sessionStorage.getItem(bootKey)==='1';
      if(!already){
        const pulled=await pullCloud();
-       sessionStorage.setItem(BOOT_FLAG,'1');
+       sessionStorage.setItem(bootKey,'1');
        if(pulled){ location.reload(); return; }
      }
-     const {data,error}=await sb.from(CLOUD_TABLE).select('user_id').eq('user_id',OWNER_ID).maybeSingle();
+     const {data,error}=await sb.from(CLOUD_TABLE).select('user_id').eq('user_id',user.id).maybeSingle();
      if(error) throw error;
      if(!data){
-       const {error:upErr}=await sb.from(CLOUD_TABLE).upsert({user_id:OWNER_ID,data:collectLiftStorage(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+       const {error:upErr}=await sb.from(CLOUD_TABLE).upsert({user_id:user.id,data:collectLiftStorage(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
        if(upErr) throw upErr;
      }
-     cloudReady=true;
+     cloudReady=true; hideGate();
+     if($('liftCloudLogout')) $('liftCloudLogout').hidden=false;
      if(cloudStatus()) cloudStatus().textContent='☁️ Guardado en la nube';
-   }catch(e){ console.error('Supabase bootstrap:',e); if(cloudStatus()) cloudStatus().textContent='⚠️ Nube sin conexión'; }
+   }catch(e){ console.error('Supabase bootstrap:',e); if(cloudStatus()) cloudStatus().textContent='⚠️ Nube sin conexión'; showGate(); setMsg('La sesión funciona, pero no pude sincronizar la nube.','error'); }
  }
- document.addEventListener('DOMContentLoaded',bootstrap);
+ async function initAuth(){
+   const {data:{session}}=await sb.auth.getSession();
+   if(session?.user){ currentUser=session.user; if(!recoveryMode) await bootstrapForUser(session.user); }
+   else { if(cloudStatus()) cloudStatus().textContent='☁️ Inicia sesión'; showOnly('login'); }
+ }
+
+ document.addEventListener('DOMContentLoaded',()=>{
+   $('liftLoginForm')?.addEventListener('submit',async e=>{
+     e.preventDefault(); setMsg('Iniciando sesión...'); const btn=$('liftLoginBtn'); if(btn)btn.disabled=true;
+     try{
+       const email=$('liftAuthEmail').value.trim(), password=$('liftAuthPassword').value;
+       const {data,error}=await sb.auth.signInWithPassword({email,password}); if(error)throw error;
+       setMsg('Sesión iniciada. Sincronizando...','ok'); if(data.user) await bootstrapForUser(data.user);
+     }catch(err){ setMsg(err?.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':(err?.message||'No se pudo iniciar sesión.'),'error'); }
+     finally{ if(btn)btn.disabled=false; }
+   });
+   $('liftForgotBtn')?.addEventListener('click',()=>showOnly('request'));
+   $('liftAuthBack')?.addEventListener('click',()=>showOnly('login'));
+   $('liftRecoveryRequestForm')?.addEventListener('submit',async e=>{
+     e.preventDefault(); const btn=$('liftRecoveryBtn'); if(btn)btn.disabled=true; setMsg('Enviando correo...');
+     try{
+       const email=$('liftRecoveryEmail').value.trim();
+       const redirectTo=location.origin+location.pathname;
+       const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo}); if(error)throw error;
+       setMsg('Correo enviado. Abre el enlace de recuperación y volverás aquí para crear la nueva contraseña.','ok');
+     }catch(err){ setMsg(err?.message||'No se pudo enviar el correo.','error'); }
+     finally{ if(btn)btn.disabled=false; }
+   });
+   $('liftNewPasswordForm')?.addEventListener('submit',async e=>{
+     e.preventDefault(); const p1=$('liftNewPassword').value, p2=$('liftNewPassword2').value, btn=$('liftNewPasswordBtn');
+     if(p1.length<8){setMsg('Usa mínimo 8 caracteres.','error');return;} if(p1!==p2){setMsg('Las contraseñas no coinciden.','error');return;}
+     if(btn)btn.disabled=true; setMsg('Guardando contraseña...');
+     try{
+       const {data,error}=await sb.auth.updateUser({password:p1}); if(error)throw error;
+       setMsg('Contraseña actualizada. Entrando a Lift Cloud...','ok'); recoveryMode=false; history.replaceState({},document.title,location.pathname+location.search); if(data.user) await bootstrapForUser(data.user);
+     }catch(err){setMsg(err?.message||'No se pudo cambiar la contraseña.','error');}
+     finally{if(btn)btn.disabled=false;}
+   });
+   $('liftCloudLogout')?.addEventListener('click',async()=>{ await saveCloudNow(); await sb.auth.signOut(); currentUser=null; cloudReady=false; if($('liftCloudLogout'))$('liftCloudLogout').hidden=true; if(cloudStatus())cloudStatus().textContent='☁️ Inicia sesión'; showOnly('login'); });
+   initAuth();
+ });
+
+ sb.auth.onAuthStateChange(async(event,session)=>{
+   if(event==='PASSWORD_RECOVERY'){
+     currentUser=session?.user||null; recoveryMode=true; showOnly('newpass'); if(cloudStatus())cloudStatus().textContent='🔐 Cambia tu contraseña'; return;
+   }
+   if(event==='SIGNED_IN' && session?.user && !recoveryMode){ currentUser=session.user; }
+   if(event==='SIGNED_OUT'){ currentUser=null; cloudReady=false; }
+ });
  window.addEventListener('beforeunload',()=>{ if(cloudReady) saveCloudNow(); });
  window.liftCloudSave=saveCloudNow;
 })();
