@@ -450,17 +450,16 @@ body.module-open #respuestaAnswerPanel{display:none}
      if(cloudStatus()) cloudStatus().textContent='☁️ Guardado en la nube';
    }catch(e){ console.error('Supabase save:',e); if(cloudStatus()) cloudStatus().textContent='⚠️ Error al guardar'; }
  }
- function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveCloudNow,500); }
+ function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveCloudNow,1500); }
  const nativeSet=Storage.prototype.setItem, nativeRemove=Storage.prototype.removeItem, nativeClear=Storage.prototype.clear;
  Storage.prototype.setItem=function(k,v){ nativeSet.call(this,k,v); if(this===localStorage && String(k).startsWith('lift_') && cloudReady && !applyingCloud) scheduleSave(); };
  Storage.prototype.removeItem=function(k){ nativeRemove.call(this,k); if(this===localStorage && String(k).startsWith('lift_') && cloudReady && !applyingCloud) scheduleSave(); };
  Storage.prototype.clear=function(){ nativeClear.call(this); if(this===localStorage && cloudReady && !applyingCloud) scheduleSave(); };
- // Detecta cambios hechos por módulos embebidos/iframes que no pasan por el Storage.prototype del padre.
- setInterval(()=>{
+ // Los iframes/srcdoc comparten localStorage. Escuchamos sus cambios sin escanear cada segundo.
+ window.addEventListener('storage',(e)=>{
    if(!cloudReady||applyingCloud)return;
-   const fp=storageFingerprint();
-   if(fp!==lastStorageFingerprint){ lastStorageFingerprint=fp; scheduleSave(); }
- },1200);
+   if(e.storageArea===localStorage && e.key && String(e.key).startsWith('lift_')) scheduleSave();
+ });
  async function pullCloud(){
    if(!currentUser)return false;
    const {data,error}=await sb.from(CLOUD_TABLE).select('data,updated_at').eq('user_id',currentUser.id).maybeSingle();
@@ -487,19 +486,16 @@ body.module-open #respuestaAnswerPanel{display:none}
        applyingCloud=false;
        lastCloudUpdatedAt=data.updated_at;
        lastStorageFingerprint=storageFingerprint();
-       if(cloudStatus()) cloudStatus().textContent='☁️ Cambios recibidos';
-       const reloadKey='lift_cloud_reload_'+data.updated_at;
-       if(sessionStorage.getItem(reloadKey)!=='1'){
-         sessionStorage.setItem(reloadKey,'1');
-         setTimeout(()=>location.reload(),250);
-       }
+       if(cloudStatus()) cloudStatus().textContent='☁️ Actualizado desde la nube';
+       // No recargamos la página: así no saca al usuario del módulo actual.
+       window.dispatchEvent(new CustomEvent('liftCloudUpdated',{detail:{updated_at:data.updated_at}}));
      }else if(data?.updated_at && !lastCloudUpdatedAt){
        lastCloudUpdatedAt=data.updated_at;
      }
    }catch(e){ console.warn('Supabase poll:',e); }
    finally{ cloudPollBusy=false; }
  }
- setInterval(pollCloud,3000);
+ setInterval(pollCloud,10000);
  async function bootstrapForUser(user){
    currentUser=user; cloudReady=false;
    try{
@@ -507,9 +503,8 @@ body.module-open #respuestaAnswerPanel{display:none}
      const bootKey=BOOT_FLAG+'_'+user.id;
      const already=sessionStorage.getItem(bootKey)==='1';
      if(!already){
-       const pulled=await pullCloud();
+       await pullCloud();
        sessionStorage.setItem(bootKey,'1');
-       if(pulled){ location.reload(); return; }
      }
      const {data,error}=await sb.from(CLOUD_TABLE).select('user_id').eq('user_id',user.id).maybeSingle();
      if(error) throw error;
@@ -6180,6 +6175,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 function switchTool(tool, btn){
+ try{sessionStorage.setItem('lift_active_tool',tool);}catch(_e){}
  document.querySelectorAll('.tool-panel').forEach(p=>p.classList.remove('active'));
  document.querySelectorAll('.module-btn').forEach(b=>b.classList.remove('active'));
 
@@ -7308,6 +7304,19 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
     const cur=document.querySelector('#mobileCurrentModule span'); if(cur) cur.textContent=toolLabels[tool]||'Módulos';
     closeMobileMenu();
   };
+
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    try{
+      const saved=sessionStorage.getItem('lift_active_tool');
+      if(saved && saved!=='respuestas'){
+        const desktopBtn=document.querySelector('.module-btn[data-tool="'+saved+'"]');
+        if(desktopBtn && typeof window.switchTool==='function') window.switchTool(saved,desktopBtn);
+        document.querySelectorAll('.mobile-drawer-btn').forEach(b=>b.classList.toggle('active',b.dataset.mobileTool===saved));
+        const cur=document.querySelector('#mobileCurrentModule span'); if(cur) cur.textContent=toolLabels[saved]||'Módulos';
+      }
+    }catch(_e){}
+  });
 
   /* Refuerza la adaptación dentro de los módulos embebidos en iframe/srcdoc. */
   function applyFrameMobileFix(frame){
