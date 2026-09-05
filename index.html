@@ -426,35 +426,80 @@ body.module-open #respuestaAnswerPanel{display:none}
  }
  function collectLiftStorage(){
    const data={};
-   for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.startsWith('lift_')) data[k]=localStorage.getItem(k); }
+   for(let i=0;i<localStorage.length;i++){
+     const k=localStorage.key(i);
+     if(k && k.startsWith('lift_')) data[k]=localStorage.getItem(k);
+   }
    return data;
  }
+ function storageFingerprint(){
+   try{return JSON.stringify(collectLiftStorage());}catch(_){return String(Date.now());}
+ }
+ let lastStorageFingerprint=storageFingerprint();
+ let lastCloudUpdatedAt='';
+ let cloudPollBusy=false;
  async function saveCloudNow(){
    if(!cloudReady||applyingCloud||!currentUser)return;
    try{
      if(cloudStatus()) cloudStatus().textContent='☁️ Guardando...';
-     const {error}=await sb.from(CLOUD_TABLE).upsert({user_id:currentUser.id,data:collectLiftStorage(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+     const stamp=new Date().toISOString();
+     const {error}=await sb.from(CLOUD_TABLE).upsert({user_id:currentUser.id,data:collectLiftStorage(),updated_at:stamp},{onConflict:'user_id'});
      if(error) throw error;
+     lastCloudUpdatedAt=stamp;
+     lastStorageFingerprint=storageFingerprint();
      if(cloudStatus()) cloudStatus().textContent='☁️ Guardado en la nube';
    }catch(e){ console.error('Supabase save:',e); if(cloudStatus()) cloudStatus().textContent='⚠️ Error al guardar'; }
  }
- function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveCloudNow,700); }
+ function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveCloudNow,500); }
  const nativeSet=Storage.prototype.setItem, nativeRemove=Storage.prototype.removeItem, nativeClear=Storage.prototype.clear;
  Storage.prototype.setItem=function(k,v){ nativeSet.call(this,k,v); if(this===localStorage && String(k).startsWith('lift_') && cloudReady && !applyingCloud) scheduleSave(); };
  Storage.prototype.removeItem=function(k){ nativeRemove.call(this,k); if(this===localStorage && String(k).startsWith('lift_') && cloudReady && !applyingCloud) scheduleSave(); };
  Storage.prototype.clear=function(){ nativeClear.call(this); if(this===localStorage && cloudReady && !applyingCloud) scheduleSave(); };
+ // Detecta cambios hechos por módulos embebidos/iframes que no pasan por el Storage.prototype del padre.
+ setInterval(()=>{
+   if(!cloudReady||applyingCloud)return;
+   const fp=storageFingerprint();
+   if(fp!==lastStorageFingerprint){ lastStorageFingerprint=fp; scheduleSave(); }
+ },1200);
  async function pullCloud(){
    if(!currentUser)return false;
-   const {data,error}=await sb.from(CLOUD_TABLE).select('data').eq('user_id',currentUser.id).maybeSingle();
+   const {data,error}=await sb.from(CLOUD_TABLE).select('data,updated_at').eq('user_id',currentUser.id).maybeSingle();
    if(error) throw error;
    if(data && data.data && typeof data.data==='object'){
+     lastCloudUpdatedAt=data.updated_at||lastCloudUpdatedAt;
      applyingCloud=true;
      Object.entries(data.data).forEach(([k,v])=>{ if(k.startsWith('lift_') && v!==null) nativeSet.call(localStorage,k,String(v)); });
      applyingCloud=false;
+     lastStorageFingerprint=storageFingerprint();
      return Object.keys(data.data).length>0;
    }
    return false;
  }
+ async function pollCloud(){
+   if(!cloudReady||!currentUser||cloudPollBusy||applyingCloud)return;
+   cloudPollBusy=true;
+   try{
+     const {data,error}=await sb.from(CLOUD_TABLE).select('data,updated_at').eq('user_id',currentUser.id).maybeSingle();
+     if(error) throw error;
+     if(data?.updated_at && lastCloudUpdatedAt && data.updated_at!==lastCloudUpdatedAt){
+       applyingCloud=true;
+       Object.entries(data.data||{}).forEach(([k,v])=>{ if(k.startsWith('lift_') && v!==null) nativeSet.call(localStorage,k,String(v)); });
+       applyingCloud=false;
+       lastCloudUpdatedAt=data.updated_at;
+       lastStorageFingerprint=storageFingerprint();
+       if(cloudStatus()) cloudStatus().textContent='☁️ Cambios recibidos';
+       const reloadKey='lift_cloud_reload_'+data.updated_at;
+       if(sessionStorage.getItem(reloadKey)!=='1'){
+         sessionStorage.setItem(reloadKey,'1');
+         setTimeout(()=>location.reload(),250);
+       }
+     }else if(data?.updated_at && !lastCloudUpdatedAt){
+       lastCloudUpdatedAt=data.updated_at;
+     }
+   }catch(e){ console.warn('Supabase poll:',e); }
+   finally{ cloudPollBusy=false; }
+ }
+ setInterval(pollCloud,3000);
  async function bootstrapForUser(user){
    currentUser=user; cloudReady=false;
    try{
@@ -474,7 +519,8 @@ body.module-open #respuestaAnswerPanel{display:none}
      }
      cloudReady=true; hideGate();
      if($('liftCloudLogout')) $('liftCloudLogout').hidden=false;
-     if(cloudStatus()) cloudStatus().textContent='☁️ Guardado en la nube';
+     if(cloudStatus()) cloudStatus().textContent='☁️ Sincronización activa';
+     await saveCloudNow();
    }catch(e){ console.error('Supabase bootstrap:',e); if(cloudStatus()) cloudStatus().textContent='⚠️ Nube sin conexión'; showGate(); setMsg(errText(e,'La sesión funciona, pero no pude sincronizar la nube.'),'error'); }
  }
  async function initAuth(){
