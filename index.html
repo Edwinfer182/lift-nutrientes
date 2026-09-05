@@ -357,9 +357,9 @@ body.module-open #respuestaAnswerPanel{display:none}
     <button id="liftAuthBack" class="lift-auth-back" type="button">← Volver</button>
     <div class="lift-auth-logo">LN</div>
     <h2 id="liftAuthTitle">Lift Cloud</h2>
-    <p id="liftAuthText">Recibe un enlace seguro en tu correo y entra sin contraseña.</p>
+    <p id="liftAuthText">Recupera el acceso creando una contraseña nueva.</p>
 
-    <form id="liftMagicForm">
+    <form id="liftMagicForm" hidden>
       <div class="lift-auth-field"><label for="liftMagicEmail">Correo</label><input id="liftMagicEmail" type="email" autocomplete="email" value="edwinfdo182@gmail.com" required></div>
       <button id="liftMagicBtn" class="lift-auth-primary" type="submit">Enviar enlace de acceso</button>
       <button id="liftUsePasswordBtn" class="lift-auth-link" type="button">Usar contraseña</button>
@@ -373,9 +373,10 @@ body.module-open #respuestaAnswerPanel{display:none}
       <button id="liftForgotBtn" class="lift-auth-link" type="button">Recuperar contraseña</button>
     </form>
 
-    <form id="liftRecoveryRequestForm" hidden>
+    <form id="liftRecoveryRequestForm">
       <div class="lift-auth-field"><label for="liftRecoveryEmail">Correo</label><input id="liftRecoveryEmail" type="email" autocomplete="email" value="edwinfdo182@gmail.com" required></div>
       <button id="liftRecoveryBtn" class="lift-auth-primary" type="submit">Enviar enlace de recuperación</button>
+      <button id="liftGoMagicBtn" class="lift-auth-link" type="button">Entrar con enlace sin cambiar contraseña</button>
     </form>
 
     <form id="liftNewPasswordForm" hidden>
@@ -396,6 +397,8 @@ body.module-open #respuestaAnswerPanel{display:none}
  const BOOT_FLAG='lift_cloud_bootstrapped_magic_v1';
  const cloudStatus=()=>document.getElementById('liftCloudStatus');
  let saveTimer=null, cloudReady=false, applyingCloud=false, currentUser=null, recoveryMode=false;
+  const initialHash=new URLSearchParams(location.hash.replace(/^#/,''));
+  if(initialHash.get('type')==='recovery') recoveryMode=true;
  if(!window.supabase || !window.supabase.createClient){ if(cloudStatus()) cloudStatus().textContent='⚠️ No se pudo cargar Supabase'; return; }
  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}});
  window.liftSupabase=sb;
@@ -413,11 +416,11 @@ body.module-open #respuestaAnswerPanel{display:none}
  function showOnly(which){
    const magic=$('liftMagicForm'), login=$('liftLoginForm'), req=$('liftRecoveryRequestForm'), np=$('liftNewPasswordForm'), back=$('liftAuthBack');
    if(magic) magic.hidden=which!=='magic'; if(login) login.hidden=which!=='login'; if(req) req.hidden=which!=='request'; if(np) np.hidden=which!=='newpass';
-   if(back) back.style.display=which==='magic'?'none':'inline-block';
+   if(back) back.style.display=which==='request'?'none':'inline-block';
    recoveryMode=which==='newpass';
-   if(which==='magic'){ $('liftAuthTitle').textContent='Lift Cloud'; $('liftAuthText').textContent='Recibe un enlace seguro en tu correo y entra sin contraseña.'; }
+   if(which==='magic'){ $('liftAuthTitle').textContent='Acceso por enlace'; $('liftAuthText').textContent='Usa esta opción alternativa para entrar sin contraseña.'; }
    if(which==='login'){ $('liftAuthTitle').textContent='Entrar con contraseña'; $('liftAuthText').textContent='Usa esta opción solo si ya tienes una contraseña válida.'; }
-   if(which==='request'){ $('liftAuthTitle').textContent='Recuperar contraseña'; $('liftAuthText').textContent='Te enviaré un enlace a tu correo para crear una contraseña nueva.'; }
+   if(which==='request'){ $('liftAuthTitle').textContent='Recuperar contraseña'; $('liftAuthText').textContent='Te enviaré un enlace a tu correo para crear una contraseña nueva y volver a entrar a Lift Cloud.'; }
    if(which==='newpass'){ $('liftAuthTitle').textContent='Nueva contraseña'; $('liftAuthText').textContent='Escribe tu nueva contraseña para terminar la recuperación.'; }
    setMsg(''); showGate();
  }
@@ -478,9 +481,9 @@ body.module-open #respuestaAnswerPanel{display:none}
    try{
      const {data:{session},error}=await sb.auth.getSession();
      if(error) throw error;
-     if(session?.user){ currentUser=session.user; if(!recoveryMode) await bootstrapForUser(session.user); }
-     else { if(cloudStatus()) cloudStatus().textContent='☁️ Inicia sesión'; showOnly('magic'); }
-   }catch(e){ if(cloudStatus()) cloudStatus().textContent='⚠️ Sin conexión'; showOnly('magic'); setMsg(errText(e,'No pude verificar la sesión.'),'error'); }
+     if(session?.user){ currentUser=session.user; if(recoveryMode){ showOnly('newpass'); if(cloudStatus()) cloudStatus().textContent='🔐 Cambia tu contraseña'; } else { await bootstrapForUser(session.user); } }
+     else { if(cloudStatus()) cloudStatus().textContent=recoveryMode?'🔐 Abriendo recuperación...':'☁️ Recupera tu acceso'; showOnly(recoveryMode?'newpass':'request'); }
+   }catch(e){ if(cloudStatus()) cloudStatus().textContent='⚠️ Sin conexión'; showOnly('request'); setMsg(errText(e,'No pude verificar la sesión.'),'error'); }
  }
 
  document.addEventListener('DOMContentLoaded',()=>{
@@ -494,7 +497,8 @@ body.module-open #respuestaAnswerPanel{display:none}
      }catch(err){ setMsg(errText(err,'No se pudo enviar el enlace de acceso.'),'error'); }
      finally{ if(btn)btn.disabled=false; }
    });
-   $('liftUsePasswordBtn')?.addEventListener('click',()=>showOnly('login'));
+   $('liftGoMagicBtn')?.addEventListener('click',()=>showOnly('magic'));
+    $('liftUsePasswordBtn')?.addEventListener('click',()=>showOnly('login'));
    $('liftLoginForm')?.addEventListener('submit',async e=>{
      e.preventDefault(); setMsg('Iniciando sesión...'); const btn=$('liftLoginBtn'); if(btn)btn.disabled=true;
      try{
@@ -525,7 +529,7 @@ body.module-open #respuestaAnswerPanel{display:none}
      }catch(err){setMsg(errText(err,'No se pudo cambiar la contraseña.'),'error');}
      finally{if(btn)btn.disabled=false;}
    });
-   $('liftCloudLogout')?.addEventListener('click',async()=>{ await saveCloudNow(); await sb.auth.signOut(); currentUser=null; cloudReady=false; if($('liftCloudLogout'))$('liftCloudLogout').hidden=true; if(cloudStatus())cloudStatus().textContent='☁️ Inicia sesión'; showOnly('magic'); });
+   $('liftCloudLogout')?.addEventListener('click',async()=>{ await saveCloudNow(); await sb.auth.signOut(); currentUser=null; cloudReady=false; if($('liftCloudLogout'))$('liftCloudLogout').hidden=true; if(cloudStatus())cloudStatus().textContent='☁️ Inicia sesión'; showOnly('request'); });
    initAuth();
  });
 
