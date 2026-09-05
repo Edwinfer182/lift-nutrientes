@@ -7560,5 +7560,124 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
 })();
 </script>
 
+
+<style id="lift-quick-replies-offcanvas-v6">
+/* Categorías de Respuestas rápidas como off-canvas en móvil */
+.quickcat-toggle,.quickcat-backdrop,.quickcat-drawer{display:none}
+@media(max-width:768px){
+  .quickcat-toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    width:100%;min-height:46px;margin:8px 0 12px;padding:10px 13px;
+    border:1px solid #dfe4ef;border-radius:13px;background:#fff;color:#102b78;
+    font:900 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    box-shadow:0 6px 18px rgba(23,43,114,.07)
+  }
+  .quickcat-toggle .quickcat-current{min-width:0;flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .quickcat-toggle .quickcat-arrow{font-size:18px;color:#7a8295}
+  #respuestasPanel .section-title{display:none!important}
+  .quickcat-backdrop{
+    display:block;position:fixed;inset:0;z-index:6098;background:rgba(13,21,51,.42);
+    opacity:0;pointer-events:none;transition:opacity .2s ease
+  }
+  .quickcat-drawer{
+    display:flex;position:fixed;left:0;top:0;bottom:0;z-index:6099;width:min(88vw,360px);max-width:360px;
+    background:#fff;flex-direction:column;transform:translateX(-102%);transition:transform .22s ease;
+    box-shadow:18px 0 50px rgba(13,21,51,.2);overflow:hidden
+  }
+  body.quickcat-open{overflow:hidden!important}
+  body.quickcat-open .quickcat-drawer{transform:translateX(0)}
+  body.quickcat-open .quickcat-backdrop{opacity:1;pointer-events:auto}
+  .quickcat-head{display:flex;align-items:center;gap:10px;padding:15px;border-bottom:1px solid #e8ebf2}
+  .quickcat-head strong{flex:1;color:#102b78;font-size:17px;font-weight:900}
+  .quickcat-close{width:42px;height:42px;border:1px solid #e4e8f0;border-radius:12px;background:#fff;color:#4b5368;font-size:25px;padding:0}
+  .quickcat-body{padding:10px 12px 22px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+  .quickcat-body .category-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;margin:0!important;width:100%!important}
+  .quickcat-body .category-card{
+    min-width:0!important;min-height:96px!important;padding:10px 7px!important;border:1px solid #e6eaf2!important;
+    background:#fff!important;border-radius:14px!important;box-shadow:none!important;font-size:11px!important;
+    justify-content:center!important;text-align:center!important
+  }
+  .quickcat-body .category-card.active{background:#edf2ff!important;border-color:#cfd9f8!important;color:#102b78!important}
+  .quickcat-body .category-icon{width:48px!important;height:48px!important;font-size:21px!important;border-radius:14px!important;box-shadow:0 5px 14px rgba(31,45,92,.06)!important}
+}
+@media(min-width:769px){.quickcat-toggle,.quickcat-backdrop,.quickcat-drawer{display:none!important}}
+@media(prefers-reduced-motion:reduce){.quickcat-drawer,.quickcat-backdrop{transition:none!important}}
+</style>
+
+<script id="lift-quick-replies-offcanvas-v6">
+(function(){
+  const MOBILE=768;
+  let built=false, placeholder=null, originalParent=null;
+
+  function getGrid(){return document.getElementById('categoryGrid')}
+  function getTitle(){return document.querySelector('#respuestasPanel .section-title')}
+  function activeName(){
+    const a=getGrid()?.querySelector('.category-card.active');
+    return a ? (a.textContent||'').trim().replace(/\s+/g,' ') : 'Todas las categorías';
+  }
+  function updateToggle(){
+    const t=document.querySelector('.quickcat-current');
+    if(t) t.textContent='Categorías · '+activeName();
+  }
+  function close(){document.body.classList.remove('quickcat-open')}
+  function open(){document.body.classList.add('quickcat-open')}
+
+  function build(){
+    if(built) { updateToggle(); return; }
+    const grid=getGrid(), title=getTitle();
+    if(!grid || !title) return;
+    originalParent=grid.parentNode;
+    placeholder=document.createComment('quickcat-original-position');
+    originalParent.insertBefore(placeholder,grid);
+
+    const toggle=document.createElement('button');
+    toggle.type='button'; toggle.className='quickcat-toggle';
+    toggle.innerHTML='<span aria-hidden="true">🗂️</span><span class="quickcat-current">Categorías</span><span class="quickcat-arrow" aria-hidden="true">›</span>';
+    title.insertAdjacentElement('afterend',toggle);
+
+    const backdrop=document.createElement('button');
+    backdrop.type='button'; backdrop.className='quickcat-backdrop'; backdrop.setAttribute('aria-label','Cerrar categorías');
+
+    const drawer=document.createElement('aside');
+    drawer.className='quickcat-drawer'; drawer.setAttribute('aria-label','Categorías de respuestas rápidas');
+    drawer.innerHTML='<div class="quickcat-head"><strong>Respuestas rápidas</strong><button type="button" class="quickcat-close" aria-label="Cerrar">×</button></div><div class="quickcat-body"></div>';
+    drawer.querySelector('.quickcat-body').appendChild(grid);
+    document.body.appendChild(backdrop); document.body.appendChild(drawer);
+
+    toggle.addEventListener('click',open);
+    backdrop.addEventListener('click',close);
+    drawer.querySelector('.quickcat-close').addEventListener('click',close);
+    grid.addEventListener('click',e=>{
+      if(e.target.closest('.category-card')){
+        setTimeout(()=>{updateToggle();close()},80);
+      }
+    });
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+
+    const mo=new MutationObserver(updateToggle);
+    mo.observe(grid,{subtree:true,attributes:true,attributeFilter:['class'],childList:true});
+    built=true; updateToggle();
+  }
+
+  function restore(){
+    if(!built || !placeholder || !originalParent) return;
+    close();
+    const grid=getGrid();
+    if(grid && placeholder.parentNode) placeholder.parentNode.insertBefore(grid,placeholder.nextSibling);
+    document.querySelector('.quickcat-toggle')?.remove();
+    document.querySelector('.quickcat-backdrop')?.remove();
+    document.querySelector('.quickcat-drawer')?.remove();
+    placeholder.remove(); placeholder=null; originalParent=null; built=false;
+  }
+
+  function sync(){
+    if(window.innerWidth<=MOBILE) build(); else restore();
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,60));
+  if(document.readyState!=='loading') setTimeout(sync,60);
+  window.addEventListener('resize',sync);
+})();
+</script>
+
 </body>
 </html>
