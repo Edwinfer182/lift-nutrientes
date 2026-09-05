@@ -406,6 +406,37 @@ body.module-open #respuestaAnswerPanel{display:none}
 })();
 </script>
 
+
+<div class="mobile-module-bar" id="mobileModuleBar">
+  <button class="mobile-menu-toggle" type="button" aria-label="Abrir módulos" onclick="openMobileMenu()">☰</button>
+  <div class="mobile-current-module" id="mobileCurrentModule"><span>💬 Respuestas rápidas</span></div>
+</div>
+<div class="mobile-drawer-backdrop" onclick="closeMobileMenu()"></div>
+<aside class="mobile-drawer" id="mobileDrawer" aria-label="Módulos Lift">
+  <div class="mobile-drawer-head">
+    <div class="mobile-drawer-brand"><strong>Lift Nutrientes</strong><small>Centro de herramientas</small></div>
+    <button class="mobile-drawer-close" type="button" aria-label="Cerrar" onclick="closeMobileMenu()">×</button>
+  </div>
+  <div class="mobile-drawer-nav">
+    <div class="mobile-drawer-section">Uso diario</div>
+    <button class="mobile-drawer-btn active" data-mobile-tool="respuestas" onclick="mobileSwitchTool('respuestas',this)"><span class="ico">💬</span>Respuestas rápidas</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="pedidos" onclick="mobileSwitchTool('pedidos',this)"><span class="ico">🧾</span>Generador de pedidos</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="productos" onclick="mobileSwitchTool('productos',this)"><span class="ico">🛒</span>Selección de productos</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="proveedores" onclick="mobileSwitchTool('proveedores',this)"><span class="ico">🏪</span>Proveedores</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="cartera" onclick="mobileSwitchTool('cartera',this)"><span class="ico">💳</span>Cartera</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="clientes" onclick="mobileSwitchTool('clientes',this)"><span class="ico">🧑‍💼</span>Clientes</button>
+
+    <div class="mobile-drawer-section">Administración</div>
+    <button class="mobile-drawer-btn" data-mobile-tool="cuentasproveedores" onclick="mobileSwitchTool('cuentasproveedores',this)"><span class="ico">💼</span>Cuentas proveedores</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="liquidacion" onclick="mobileSwitchTool('liquidacion',this)"><span class="ico">💰</span>Liquidación proveedores</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="referidos" onclick="mobileSwitchTool('referidos',this)"><span class="ico">👥</span>Referidos</button>
+
+    <div class="mobile-drawer-section">Catálogos</div>
+    <button class="mobile-drawer-btn" data-mobile-tool="catalogomarcas" onclick="mobileSwitchTool('catalogomarcas',this)"><span class="ico">🏷️</span>Catálogo por marcas</button>
+    <button class="mobile-drawer-btn" data-mobile-tool="catalogo" onclick="mobileSwitchTool('catalogo',this)"><span class="ico">📦</span>Catálogo completo</button>
+  </div>
+</aside>
+
 <div class="module-shell">
  <div class="module-nav">
   <button class="module-btn active" data-tool="respuestas" onclick="switchTool('respuestas',this)">💬 Respuestas rápidas</button>
@@ -7073,6 +7104,55 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
 
  document.addEventListener('DOMContentLoaded',renderAll);
  if(document.readyState!=='loading')renderAll();
+})();
+</script>
+
+
+<script id="lift-mobile-menu-js-v2">
+(function(){
+  const toolLabels={
+    respuestas:'💬 Respuestas rápidas',pedidos:'🧾 Generador de pedidos',liquidacion:'💰 Liquidación proveedores',
+    productos:'🛒 Selección de productos',catalogomarcas:'🏷️ Catálogo por marcas',proveedores:'🏪 Proveedores',
+    cuentasproveedores:'💼 Cuentas proveedores',cartera:'💳 Cartera',clientes:'🧑‍💼 Clientes',referidos:'👥 Referidos',catalogo:'📦 Catálogo completo'
+  };
+  window.openMobileMenu=function(){document.body.classList.add('mobile-menu-open')};
+  window.closeMobileMenu=function(){document.body.classList.remove('mobile-menu-open')};
+  window.mobileSwitchTool=function(tool, mobileBtn){
+    const desktopBtn=document.querySelector('.module-btn[data-tool="'+tool+'"]');
+    if(typeof window.switchTool==='function') window.switchTool(tool,desktopBtn);
+    document.querySelectorAll('.mobile-drawer-btn').forEach(b=>b.classList.toggle('active',b.dataset.mobileTool===tool));
+    const cur=document.querySelector('#mobileCurrentModule span'); if(cur) cur.textContent=toolLabels[tool]||'Módulos';
+    closeMobileMenu();
+  };
+
+  /* Refuerza la adaptación dentro de los módulos embebidos en iframe/srcdoc. */
+  function applyFrameMobileFix(frame){
+    try{
+      const doc=frame.contentDocument;
+      if(!doc || doc.getElementById('lift-frame-mobile-fix-v2')) return;
+      const st=doc.createElement('style'); st.id='lift-frame-mobile-fix-v2';
+      st.textContent=`
+        @media(max-width:768px){
+          html,body{min-width:0!important;width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+          *{box-sizing:border-box;min-width:0}
+          img,svg,video,canvas{max-width:100%!important;height:auto!important}
+          input,textarea,select,button{max-width:100%!important;font-size:16px!important}
+          .wrap,.app,.container,.content,.main,.shell,.ref-wrap,.ch-wrap,.ca-wrap,.sp-wrap{width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important;padding-left:12px!important;padding-right:12px!important}
+          .grid,.outputs-grid,.ref-grid,.ch-grid,.ca-grid,.sp-grid,.summary,.metrics,.cards,.form-grid,.product-grid,.catalog-grid{grid-template-columns:minmax(0,1fr)!important}
+          .actions,.toolbar,.ref-toolbar,.ch-toolbar,.ca-toolbar,.sp-toolbar{max-width:100%!important;flex-wrap:wrap!important}
+          .actions>* ,.toolbar>* ,.ref-toolbar>* ,.ch-toolbar>* ,.ca-toolbar>* ,.sp-toolbar>*{min-width:0!important;max-width:100%!important}
+          .card,.customer,.cart,.metric,.product,.rules,.summary-box{max-width:100%!important}
+          .table-wrap,.ref-table-wrap,.ca-table-wrap,.sp-table-wrap,[class*="table-wrap"]{width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+          table{max-width:none!important}
+          [style*="min-width"]{min-width:0!important}
+        }`;
+      doc.head.appendChild(st);
+    }catch(e){}
+  }
+  function wireFrames(){document.querySelectorAll('iframe.tool-frame').forEach(f=>{f.addEventListener('load',()=>applyFrameMobileFix(f));applyFrameMobileFix(f);});}
+  document.addEventListener('DOMContentLoaded',wireFrames);
+  if(document.readyState!=='loading') wireFrames();
+  window.addEventListener('resize',()=>{if(innerWidth>768)closeMobileMenu();document.querySelectorAll('iframe.tool-frame').forEach(applyFrameMobileFix)});
 })();
 </script>
 
