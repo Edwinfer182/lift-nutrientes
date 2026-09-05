@@ -7157,28 +7157,75 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
 </script>
 
 
-<script id="lift-mobile-cart-drawer-v3">
+<script id="lift-mobile-cart-drawer-v4">
 (function(){
   const MQ='(max-width: 768px)';
 
+  function frameContext(frame){
+    if(frame.closest('#productosPanel')) return 'productos';
+    if(frame.closest('#catalogoMarcasPanel')) return 'catalogomarcas';
+    if(frame.closest('#proveedoresPanel')) return 'proveedores';
+    return '';
+  }
+
+  function findCartPanel(doc, context){
+    if(context==='productos'){
+      return doc.querySelector('.cart') || doc.querySelector('.grid > aside');
+    }
+    if(context==='catalogomarcas' || context==='proveedores'){
+      return doc.querySelector('.grid > aside.panel') || doc.querySelector('.grid > aside') || doc.querySelector('aside.panel');
+    }
+    return null;
+  }
+
+  function cartCountFromPanel(panel){
+    const directCount=panel.querySelector('#cartCount,#units,[id*="cartCount"],[id*="units"]');
+    if(directCount){
+      const m=String(directCount.textContent||'').match(/\d+/);
+      if(m) return Number(m[0])||0;
+    }
+
+    let total=0;
+    const qtyNodes=panel.querySelectorAll('.qty span,.quantity span,[data-qty],.cart-item .qty,.cartitem .qty');
+    qtyNodes.forEach(n=>{
+      const raw=(n.getAttribute && n.getAttribute('data-qty')) || n.textContent || '';
+      const m=String(raw).match(/\d+/);
+      if(m) total+=Number(m[0])||0;
+    });
+    if(total) return total;
+
+    const items=panel.querySelectorAll('.cart-item,.cartitem');
+    if(items.length) return items.length;
+
+    const list=panel.querySelector('#cartItems,#cartList,#cart,.cart-list,.cartlist');
+    if(list){
+      const text=(list.textContent||'').trim().toLowerCase();
+      if(!text || text.includes('todavía no') || text.includes('todavia no') || text.includes('no has seleccionado')) return 0;
+      const rows=list.querySelectorAll('.cart-item,.cartitem,[class*="cart-item"],[class*="cartitem"]');
+      return rows.length || 1;
+    }
+    return 0;
+  }
+
   function enhanceCartFrame(frame){
     try{
+      const context=frameContext(frame);
+      if(!context) return;
       const doc=frame.contentDocument;
-      if(!doc || !doc.head || !doc.body) return;
-      const cart=doc.querySelector('.cart');
-      const productArea=doc.querySelector('.products, .product, [class*="product"]');
-      if(!cart || !productArea || doc.getElementById('lift-cart-drawer-style-v3')) return;
+      if(!doc || !doc.head || !doc.body || doc.getElementById('lift-cart-drawer-style-v4')) return;
+      const cart=findCartPanel(doc,context);
+      if(!cart) return;
+      cart.classList.add('lift-cart-drawer-target');
 
       const style=doc.createElement('style');
-      style.id='lift-cart-drawer-style-v3';
+      style.id='lift-cart-drawer-style-v4';
       style.textContent=`
         @media(max-width:768px){
           html,body{overflow-x:hidden!important}
           body.lift-cart-open{overflow:hidden!important}
+          .layout,.grid{width:100%!important;max-width:100%!important}
 
-          .layout{display:block!important;width:100%!important;max-width:100%!important}
-
-          .cart{
+          .lift-cart-drawer-target{
             display:block!important;
             position:fixed!important;
             z-index:99992!important;
@@ -7203,27 +7250,21 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
             transition:transform .24s ease!important;
             visibility:hidden!important;
           }
-          body.lift-cart-open .cart{
+          body.lift-cart-open .lift-cart-drawer-target{
             transform:translateX(0)!important;
             visibility:visible!important;
           }
-          .cart h2{
-            display:block!important;
-            position:absolute!important;
-            left:16px!important;
-            top:18px!important;
-            margin:0!important;
-            padding:0!important;
-            font-size:18px!important;
-            line-height:44px!important;
-            color:#102b78!important;
+          .lift-cart-drawer-target > h2,
+          .lift-cart-drawer-target .cart-title,
+          .lift-cart-drawer-target .carttitle{
+            margin-top:0!important;
           }
           .lift-cart-close{
             display:grid!important;
             place-items:center!important;
             position:absolute!important;
-            top:14px!important;
-            right:14px!important;
+            top:12px!important;
+            right:12px!important;
             width:44px!important;
             height:44px!important;
             min-width:44px!important;
@@ -7236,6 +7277,19 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
             font-size:23px!important;
             box-shadow:none!important;
           }
+          .lift-cart-drawer-label{
+            position:absolute!important;
+            top:20px!important;
+            left:16px!important;
+            right:66px!important;
+            color:#102b78!important;
+            font-size:16px!important;
+            font-weight:900!important;
+            line-height:28px!important;
+            white-space:nowrap!important;
+            overflow:hidden!important;
+            text-overflow:ellipsis!important;
+          }
           .lift-cart-backdrop{
             display:block!important;
             position:fixed!important;
@@ -7246,64 +7300,57 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
             pointer-events:none!important;
             transition:opacity .2s ease!important;
           }
-          body.lift-cart-open .lift-cart-backdrop{
-            opacity:1!important;
-            pointer-events:auto!important;
-          }
+          body.lift-cart-open .lift-cart-backdrop{opacity:1!important;pointer-events:auto!important}
+
+          /* Carrito flotante arriba a la derecha en celular */
           .lift-cart-fab{
-            display:flex!important;
-            align-items:center!important;
-            justify-content:center!important;
-            gap:7px!important;
+            display:grid!important;
+            place-items:center!important;
             position:fixed!important;
             z-index:99980!important;
-            right:14px!important;
-            bottom:16px!important;
-            min-width:54px!important;
-            min-height:54px!important;
-            padding:0 15px!important;
+            top:10px!important;
+            right:12px!important;
+            bottom:auto!important;
+            width:48px!important;
+            height:48px!important;
+            min-width:48px!important;
+            min-height:48px!important;
+            padding:0!important;
             border:0!important;
-            border-radius:999px!important;
+            border-radius:15px!important;
             background:linear-gradient(135deg,#48246f,#e53679)!important;
             color:#fff!important;
-            box-shadow:0 12px 30px rgba(72,36,111,.28)!important;
-            font-size:13px!important;
+            box-shadow:0 10px 26px rgba(72,36,111,.26)!important;
+            font-size:22px!important;
             font-weight:900!important;
           }
-          .lift-cart-fab-icon{font-size:21px!important;line-height:1!important}
+          .lift-cart-fab-icon{font-size:22px!important;line-height:1!important}
           .lift-cart-badge{
             display:none!important;
-            min-width:20px!important;
-            height:20px!important;
+            position:absolute!important;
+            top:-5px!important;
+            right:-5px!important;
+            min-width:21px!important;
+            height:21px!important;
             padding:0 5px!important;
+            border:2px solid #fff!important;
             border-radius:999px!important;
             align-items:center!important;
             justify-content:center!important;
-            background:#fff!important;
-            color:#48246f!important;
-            font-size:11px!important;
+            background:#102b78!important;
+            color:#fff!important;
+            font-size:10px!important;
             font-weight:900!important;
           }
           .lift-cart-badge.has-items{display:inline-flex!important}
 
-          /* El contenido del carrito usa todo el ancho del drawer */
-          .cart textarea,#pedido,#pedidoTexto,#resultadoPedido,.order-output{
-            width:100%!important;
-            max-width:100%!important;
-            min-height:300px!important;
-            height:auto!important;
-            max-height:none!important;
-            font-size:12px!important;
-            line-height:1.35!important;
-          }
-          .cart button:not(.lift-cart-close){max-width:100%!important}
+          /* Reserva espacio arriba para que el botón no tape títulos o buscadores */
+          body{padding-top:60px!important}
+          .lift-cart-drawer-target textarea,#pedido,#pedidoTexto,#resultadoPedido,.order-output{max-width:100%!important}
+          .lift-cart-drawer-target button:not(.lift-cart-close){max-width:100%!important}
         }
-        @media(min-width:769px){
-          .lift-cart-fab,.lift-cart-backdrop,.lift-cart-close{display:none!important}
-        }
-        @media(prefers-reduced-motion:reduce){
-          .cart,.lift-cart-backdrop{transition:none!important}
-        }
+        @media(min-width:769px){.lift-cart-fab,.lift-cart-backdrop,.lift-cart-close,.lift-cart-drawer-label{display:none!important}}
+        @media(prefers-reduced-motion:reduce){.lift-cart-drawer-target,.lift-cart-backdrop{transition:none!important}}
       `;
       doc.head.appendChild(style);
 
@@ -7317,7 +7364,8 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
       fab.type='button';
       fab.className='lift-cart-fab';
       fab.setAttribute('aria-label','Abrir carrito');
-      fab.innerHTML='<span class="lift-cart-fab-icon">🛒</span><span>Carrito</span><span class="lift-cart-badge" aria-live="polite"></span>';
+      fab.setAttribute('title','Carrito');
+      fab.innerHTML='<span class="lift-cart-fab-icon">🛒</span><span class="lift-cart-badge" aria-live="polite"></span>';
       doc.body.appendChild(fab);
 
       const close=doc.createElement('button');
@@ -7327,42 +7375,37 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
       close.textContent='×';
       cart.appendChild(close);
 
-      function openCart(){ if(matchMedia(MQ).matches) doc.body.classList.add('lift-cart-open'); }
-      function closeCart(){ doc.body.classList.remove('lift-cart-open'); }
+      const label=doc.createElement('div');
+      label.className='lift-cart-drawer-label';
+      label.textContent=context==='proveedores' ? 'Carrito del proveedor' : 'Carrito';
+      cart.appendChild(label);
+
+      function openCart(){if(matchMedia(MQ).matches) doc.body.classList.add('lift-cart-open')}
+      function closeCart(){doc.body.classList.remove('lift-cart-open')}
       fab.addEventListener('click',openCart);
       close.addEventListener('click',closeCart);
       backdrop.addEventListener('click',closeCart);
-      doc.addEventListener('keydown',e=>{if(e.key==='Escape') closeCart();});
+      doc.addEventListener('keydown',e=>{if(e.key==='Escape') closeCart()});
 
       const badge=fab.querySelector('.lift-cart-badge');
       function updateBadge(){
-        let total=0;
-        const qtyNodes=cart.querySelectorAll('.qty span,.quantity span,[data-qty],.cart-item .qty');
-        qtyNodes.forEach(n=>{
-          const raw=(n.getAttribute && n.getAttribute('data-qty')) || n.textContent || '';
-          const m=String(raw).match(/\d+/);
-          if(m) total+=Number(m[0])||0;
-        });
-        if(!total){
-          const items=cart.querySelectorAll('.cart-item');
-          total=items.length;
-        }
-        if(total>0){badge.textContent=total>99?'99+':String(total);badge.classList.add('has-items');}
-        else{badge.textContent='';badge.classList.remove('has-items');}
+        const total=cartCountFromPanel(cart);
+        if(total>0){badge.textContent=total>99?'99+':String(total);badge.classList.add('has-items')}
+        else{badge.textContent='';badge.classList.remove('has-items')}
       }
       updateBadge();
       const observer=new MutationObserver(updateBadge);
       observer.observe(cart,{subtree:true,childList:true,characterData:true,attributes:true});
 
       const media=matchMedia(MQ);
-      const mediaHandler=()=>{ if(!media.matches) closeCart(); };
+      const mediaHandler=()=>{if(!media.matches) closeCart()};
       if(media.addEventListener) media.addEventListener('change',mediaHandler);
       else if(media.addListener) media.addListener(mediaHandler);
-    }catch(e){ console.warn('Lift cart drawer:',e); }
+    }catch(e){console.warn('Lift cart drawer:',e)}
   }
 
   function wire(){
-    document.querySelectorAll('iframe.tool-frame').forEach(frame=>{
+    document.querySelectorAll('#productosPanel iframe.tool-frame,#catalogoMarcasPanel iframe.tool-frame,#proveedoresPanel iframe.tool-frame').forEach(frame=>{
       const run=()=>enhanceCartFrame(frame);
       frame.addEventListener('load',run);
       run();
