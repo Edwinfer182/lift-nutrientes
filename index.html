@@ -7416,5 +7416,149 @@ El saldo se activa cuando el pedido de tu referido sea entregado.`;
 })();
 </script>
 
+
+
+<style id="lift-offcanvas-menu-marcas-v5">
+/* Menú principal móvil como off-canvas */
+.mobile-module-bar,.mobile-drawer,.mobile-drawer-backdrop{display:none}
+@media (max-width:768px){
+  body{overflow-x:hidden!important}
+  .module-shell{display:none!important}
+  .mobile-module-bar{
+    display:flex!important;position:sticky;top:0;z-index:5000;align-items:center;gap:10px;
+    width:100%;min-height:56px;padding:8px 10px;background:rgba(255,255,255,.98);
+    border-bottom:1px solid #e5e8f1;box-shadow:0 5px 18px rgba(23,43,114,.07);
+    backdrop-filter:blur(10px)
+  }
+  .mobile-menu-toggle{
+    flex:0 0 44px;width:44px;height:44px;border:1px solid #e1e6f0;border-radius:13px;
+    background:#fff;color:#102b78;font-size:22px;font-weight:900;display:grid;place-items:center;padding:0
+  }
+  .mobile-current-module{min-width:0;flex:1;font-size:14px;font-weight:900;color:#102b78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-drawer-backdrop{
+    display:block;position:fixed;inset:0;z-index:5998;background:rgba(13,21,51,.42);opacity:0;pointer-events:none;transition:opacity .2s ease
+  }
+  .mobile-drawer{
+    display:flex;position:fixed;left:0;top:0;bottom:0;z-index:5999;width:min(88vw,360px);max-width:360px;
+    background:#fff;flex-direction:column;transform:translateX(-102%);transition:transform .22s ease;
+    box-shadow:18px 0 50px rgba(13,21,51,.18);overflow:hidden
+  }
+  body.mobile-menu-open .mobile-drawer{transform:translateX(0)}
+  body.mobile-menu-open .mobile-drawer-backdrop{opacity:1;pointer-events:auto}
+  body.mobile-menu-open{overflow:hidden!important}
+  .mobile-drawer-head{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid #e8ebf2}
+  .mobile-drawer-brand{min-width:0;flex:1}
+  .mobile-drawer-brand strong{display:block;color:#102b78;font-size:17px}
+  .mobile-drawer-brand small{display:block;color:#7b8192;margin-top:3px;font-size:11px}
+  .mobile-drawer-close{width:42px;height:42px;border:1px solid #e4e8f0;background:#fff;border-radius:12px;font-size:25px;color:#4b5368;padding:0}
+  .mobile-drawer-nav{padding:10px 12px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .mobile-drawer-section{padding:12px 7px 7px;color:#8990a1;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+  .mobile-drawer-btn{width:100%;min-height:47px;margin:0 0 6px;border:1px solid transparent;border-radius:13px;background:transparent;color:#172036;padding:10px 11px;display:flex;align-items:center;gap:11px;text-align:left;font-size:13px;font-weight:800}
+  .mobile-drawer-btn .ico{width:25px;text-align:center;font-size:18px}
+  .mobile-drawer-btn.active{background:#edf2ff;border-color:#d9e2ff;color:#102b78}
+  .respuestas-sticky{top:56px!important}
+}
+</style>
+
+<script id="lift-brands-offcanvas-v5">
+(function(){
+  const MOBILE=768;
+  const framesState=new WeakMap();
+
+  function injectBrandsDrawer(frame){
+    try{
+      const doc=frame.contentDocument;
+      const win=frame.contentWindow;
+      if(!doc || !doc.head || !doc.body) return;
+
+      let state=framesState.get(frame);
+      if(!state){ state={}; framesState.set(frame,state); }
+
+      const findBrandBar=()=>doc.querySelector('.brandbar, #brands.brandbar, .brands-bar, .brand-tabs, .brands-tabs');
+      let bar=findBrandBar();
+      if(!bar) return;
+
+      if(!doc.getElementById('lift-brands-drawer-style-v5')){
+        const st=doc.createElement('style');
+        st.id='lift-brands-drawer-style-v5';
+        st.textContent=`
+          .lift-brands-toggle,.lift-brands-backdrop,.lift-brands-drawer{display:none}
+          @media(max-width:${MOBILE}px){
+            .lift-brands-toggle{display:flex;position:sticky;top:8px;z-index:4500;margin:0 0 10px auto;min-height:42px;padding:8px 13px;border:1px solid #dfe4ef;border-radius:12px;background:#fff;color:#102b78;font:900 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(23,43,114,.09)}
+            .lift-brands-backdrop{display:block;position:fixed;inset:0;z-index:4698;background:rgba(13,21,51,.42);opacity:0;pointer-events:none;transition:opacity .2s ease}
+            .lift-brands-drawer{display:flex;position:fixed;left:0;top:0;bottom:0;z-index:4699;width:min(88vw,350px);background:#fff;flex-direction:column;transform:translateX(-102%);transition:transform .22s ease;box-shadow:18px 0 50px rgba(13,21,51,.2)}
+            body.lift-brands-open{overflow:hidden!important}
+            body.lift-brands-open .lift-brands-drawer{transform:translateX(0)}
+            body.lift-brands-open .lift-brands-backdrop{opacity:1;pointer-events:auto}
+            .lift-brands-head{display:flex;align-items:center;gap:10px;padding:15px;border-bottom:1px solid #e8ebf2}
+            .lift-brands-head strong{flex:1;color:#102b78;font:900 17px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+            .lift-brands-close{width:42px;height:42px;border:1px solid #e4e8f0;border-radius:12px;background:#fff;color:#4b5368;font-size:25px;padding:0}
+            .lift-brands-body{padding:10px 12px 22px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+            .lift-brands-body .brandbar,.lift-brands-body #brands{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;width:100%!important;margin:0!important;padding:0!important}
+            .lift-brands-body .brand,.lift-brands-body [data-brand]{width:100%!important;min-height:44px!important;text-align:left!important;padding:10px 12px!important;border-radius:12px!important;white-space:normal!important}
+          }`;
+        doc.head.appendChild(st);
+      }
+
+      function build(){
+        if(doc.querySelector('.lift-brands-drawer')) return;
+        bar=findBrandBar(); if(!bar) return;
+        state.parent=bar.parentNode;
+        state.next=bar.nextSibling;
+        state.bar=bar;
+        state.placeholder=doc.createComment('lift-brands-original-position');
+        state.parent.insertBefore(state.placeholder,bar);
+
+        const toggle=doc.createElement('button');
+        toggle.type='button'; toggle.className='lift-brands-toggle'; toggle.innerHTML='🏷️ <span>Marcas</span>';
+        const backdrop=doc.createElement('div'); backdrop.className='lift-brands-backdrop';
+        const drawer=doc.createElement('aside'); drawer.className='lift-brands-drawer'; drawer.setAttribute('aria-label','Marcas');
+        drawer.innerHTML='<div class="lift-brands-head"><strong>Marcas</strong><button type="button" class="lift-brands-close" aria-label="Cerrar">×</button></div><div class="lift-brands-body"></div>';
+        const body=drawer.querySelector('.lift-brands-body'); body.appendChild(bar);
+        doc.body.appendChild(backdrop); doc.body.appendChild(drawer);
+        if(state.placeholder.parentNode) state.placeholder.parentNode.insertBefore(toggle,state.placeholder.nextSibling);
+        state.toggle=toggle; state.backdrop=backdrop; state.drawer=drawer;
+
+        const open=()=>doc.body.classList.add('lift-brands-open');
+        const close=()=>doc.body.classList.remove('lift-brands-open');
+        toggle.addEventListener('click',open);
+        backdrop.addEventListener('click',close);
+        drawer.querySelector('.lift-brands-close').addEventListener('click',close);
+        bar.addEventListener('click',e=>{ if(e.target.closest('.brand,[data-brand]')) setTimeout(close,80); });
+        doc.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+      }
+
+      function restore(){
+        if(!state.drawer || !state.bar || !state.placeholder) return;
+        doc.body.classList.remove('lift-brands-open');
+        if(state.placeholder.parentNode) state.placeholder.parentNode.insertBefore(state.bar,state.placeholder.nextSibling);
+        state.toggle?.remove(); state.backdrop?.remove(); state.drawer?.remove(); state.placeholder?.remove();
+        state.toggle=state.backdrop=state.drawer=state.placeholder=null;
+      }
+
+      if((win?.innerWidth||frame.clientWidth)<=MOBILE) build(); else restore();
+      if(!state.resizeWired && win){
+        state.resizeWired=true;
+        win.addEventListener('resize',()=>{const b=findBrandBar()||state.bar;if(!b)return; if(win.innerWidth<=MOBILE) build(); else restore();});
+      }
+    }catch(e){ console.warn('Marcas off-canvas:',e); }
+  }
+
+  function wire(){
+    document.querySelectorAll('iframe.tool-frame').forEach(frame=>{
+      if(!frame.dataset.liftBrandsWired){
+        frame.dataset.liftBrandsWired='1';
+        frame.addEventListener('load',()=>setTimeout(()=>injectBrandsDrawer(frame),80));
+      }
+      setTimeout(()=>injectBrandsDrawer(frame),80);
+      setTimeout(()=>injectBrandsDrawer(frame),500);
+    });
+  }
+  document.addEventListener('DOMContentLoaded',wire);
+  if(document.readyState!=='loading') wire();
+  window.addEventListener('resize',wire);
+})();
+</script>
+
 </body>
 </html>
