@@ -1,0 +1,46 @@
+name: Actualizar sabores Suplementos Colombia
+
+on:
+  schedule:
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-sabores
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Revisar sabores
+        run: python scripts/actualizar_sabores.py
+
+      - name: Guardar cambios
+        run: |
+          git config user.name "lift-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalogo/sabores.json catalogo/cambios-sabores.json
+          if git diff --cached --quiet; then
+            echo "No hubo cambios."
+            exit 0
+          fi
+          git commit -m "Actualizar sabores disponibles"
+          git push
