@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/patch-cliente-5-lineas.yml'
+      - 'scripts/patch_cliente_5_lineas.py'
 
 permissions:
   contents: write
