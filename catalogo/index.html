@@ -141,10 +141,10 @@ const WEEKLY_OFFERS={
   166:{price:79000,gift:false},                    // Simply Creatina 300 g
   123:{price:199000,gift:false,flavors:["Cocoa Pebbles"]}, // ISO 100 1.3 lb
   96:{price:225000,gift:false},                    // Cell Tech 6 lb
-  126:{price:550000,compareAt:660000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
+  126:{price:550000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
   142:{price:149000,gift:false,flavors:["Dubai Chocolate","Boston Cream Donut","Dulce de Leche"]}, // Basic Whey 2 lb
-  127:{price:250000,compareAt:335000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
-  559:{price:99000,compareAt:119000,gift:true},                     // Creatina Iron 500 g
+  127:{price:250000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
+  559:{price:99000,gift:true},                     // Creatina Iron 500 g
   101:{price:119000,gift:false},                   // Creatina Chews 90 tabs
   605:{price:55000,gift:false},                    // Protein Pancake Wakeup
   90:{price:69000,gift:false}                      // Multivitamínico Platinum 90 caps
@@ -152,7 +152,7 @@ const WEEKLY_OFFERS={
 function offerOf(p){return WEEKLY_OFFERS[p.id]||null}
 function hasOffer(p){return !!offerOf(p)}
 function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
-function compareAtOf(p){const o=offerOf(p);return o?.compareAt||p.price}
+function compareAtOf(p){return p.price}
 function savingOf(p){return Math.max(0,compareAtOf(p)-priceOf(p))}
 function offerBadges(p){const o=offerOf(p);if(!o)return '';return `<span class="saleBadge">OFERTA</span>`}
 function offerDetails(p){const o=offerOf(p);if(!o)return '';const save=savingOf(p);const flavors=o.flavors?.length?`<div class="flavorNote"><b>Sabores en promoción:</b> ${o.flavors.map(esc).join(' · ')}</div>`:'';return `${o.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}${save?`<div class="saving">Ahorras ${fmt(save)}</div>`:''}${flavors}`}
