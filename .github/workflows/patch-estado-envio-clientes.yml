@@ -1,0 +1,26 @@
+name: Estado de envio en clientes
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-estado-envio-clientes.yml'
+      - 'scripts/patch_estado_envio_clientes.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar estado de envio
+        run: python scripts/patch_estado_envio_clientes.py
+      - name: Guardar cambio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Agregar estado de envio al historial de clientes"
+          git push
