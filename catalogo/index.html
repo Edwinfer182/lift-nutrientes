@@ -73,6 +73,7 @@
 .modalOldPrice{font-size:14px;color:#888;text-decoration:line-through;margin-right:8px}
 .modalSaving{font-size:12px;color:#19713a;font-weight:500;margin:3px 0 8px}
 @media(max-width:760px){.saleBadge{left:8px;top:8px;font-size:9px;padding:4px 7px}.giftBadge{font-size:9px;padding:4px 7px}.oldPrice{font-size:11px}.saving{font-size:9px}.flavorNote{font-size:9px}}
+.flavorConfirmNote{font-size:10px;line-height:1.35;color:#8a8a8a;margin:0 0 10px}.checkoutFlavorNote{font-size:10px;line-height:1.35;color:#8a8a8a;margin-top:-2px;margin-bottom:2px}
 </style>
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
@@ -84,7 +85,7 @@
 <button class="floating" onclick="openOff('cart')">🛒 Carrito <span id="count2" class="badge">0</span></button>
 <div id="overlay" class="overlay" onclick="closeOff()"></div>
 <aside id="filters" class="off left"><div class="offhead"><h2>Marcas / categorías</h2><button class="close" onclick="closeOff()">×</button></div><div class="offbody"><div id="mobileFilters"></div></div></aside>
-<aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Comprar</button><button class="secondary" onclick="copyOrder()">Copiar pedido</button></div></aside>
+<aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div class="flavorConfirmNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Comprar</button><button class="secondary" onclick="copyOrder()">Copiar pedido</button></div></aside>
 <div id="productModal" class="modal" onclick="if(event.target===this)closeModal()"><div class="modalCard"><button class="modalClose" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
 
 <div id="checkoutModal" class="checkoutModal" onclick="if(event.target===this)closeCheckout()">
@@ -97,6 +98,7 @@
         <div class="field full"><label for="coAddress">Dirección</label><input id="coAddress" autocomplete="street-address" placeholder="Dirección de entrega"></div>
         <div class="field full"><label for="coCity">Ciudad / municipio</label><div class="cityWrap"><input id="coCity" autocomplete="off" placeholder="Busca tu ciudad o municipio"><div id="cityResults" class="cityResults"></div></div></div>
         <div class="field full"><label for="coNotes">Notas del pedido</label><textarea id="coNotes" placeholder="Ej: entregar en portería, sabor preferido, indicaciones de entrega..."></textarea></div>
+        <div class="field full checkoutFlavorNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div>
       </div>
       <div class="checkoutSummary">
         <div id="checkoutItems" class="checkoutItems"></div>
