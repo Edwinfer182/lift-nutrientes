@@ -1,6 +1,7 @@
 (() => {
   'use strict';
-  const LOGO = 'logo-lift.png.png';
+  const FAVICON = 'logo-lift.png.png';
+  const LETTERS = 'letras-lift-logo.png';
 
   function upsertLink(rel, href) {
     let el = document.querySelector(`link[rel="${rel}"]`);
@@ -12,9 +13,9 @@
     el.href = href;
   }
 
-  upsertLink('icon', LOGO);
-  upsertLink('shortcut icon', LOGO);
-  upsertLink('apple-touch-icon', LOGO);
+  upsertLink('icon', FAVICON);
+  upsertLink('shortcut icon', FAVICON);
+  upsertLink('apple-touch-icon', FAVICON);
 
   function setMeta(selector, attr, name, value) {
     let el = document.querySelector(selector);
@@ -25,44 +26,53 @@
     }
     el.content = value;
   }
-  const absoluteLogo = new URL(LOGO, location.href).href;
+  const absoluteLogo = new URL(FAVICON, location.href).href;
   setMeta('meta[property="og:image"]','property','og:image',absoluteLogo);
   setMeta('meta[name="twitter:image"]','name','twitter:image',absoluteLogo);
 
-  function installHeaderLogo() {
-    const style = document.createElement('style');
-    style.textContent = `
-      .lift-header-brand-logo{display:block;width:160px;max-width:22vw;height:44px;object-fit:contain;object-position:left center}
-      @media(max-width:700px){.lift-header-brand-logo{width:108px;max-width:30vw;height:38px}}
-    `;
-    document.head.appendChild(style);
+  function installHeaderLetters() {
+    if (!document.getElementById('lift-brand-style')) {
+      const style = document.createElement('style');
+      style.id='lift-brand-style';
+      style.textContent = `
+        .lift-brand-letters{display:block;height:31px;width:auto;max-width:145px;object-fit:contain;object-position:left center;margin-left:7px}
+        @media(max-width:700px){.lift-brand-letters{height:25px;max-width:112px;margin-left:5px}}
+      `;
+      document.head.appendChild(style);
+    }
 
-    const candidates = [...document.querySelectorAll('header *, .topbar *, .header *, nav *')];
-    const brandText = candidates.find(el => {
-      const t=(el.textContent||'').trim().replace(/\s+/g,' ').toUpperCase();
-      return t==='LIFT NUTRIENTES' || t==='L NUTRIENTES';
+    if (document.querySelector('.lift-brand-letters')) return true;
+
+    const candidates=[...document.querySelectorAll('header *, .topbar *, .header *, nav *')];
+    const lBox=candidates.find(el=>{
+      const t=(el.textContent||'').trim();
+      if(t!=='L') return false;
+      const r=el.getBoundingClientRect();
+      return r.width>=24 && r.width<=70 && r.height>=24 && r.height<=70;
     });
-    if (!brandText) return false;
+    if(!lBox) return false;
 
-    let host = brandText;
-    const parentText=(brandText.parentElement?.textContent||'').trim().replace(/\s+/g,' ').toUpperCase();
-    if (brandText.parentElement && (parentText==='LIFT NUTRIENTES' || parentText==='L NUTRIENTES')) host=brandText.parentElement;
-
-    if (host.querySelector?.('.lift-header-brand-logo')) return true;
-    host.innerHTML='';
     const img=document.createElement('img');
-    img.src=LOGO;
+    img.src=LETTERS;
     img.alt='Lift Nutrientes';
-    img.className='lift-header-brand-logo';
-    host.appendChild(img);
+    img.className='lift-brand-letters';
+
+    const parent=lBox.parentElement;
+    if(!parent) return false;
+    parent.style.display='flex';
+    parent.style.alignItems='center';
+
+    let oldText=[...parent.children].find(el=>el!==lBox && (el.textContent||'').trim().toUpperCase().includes('NUTRIENTES'));
+    if(oldText) oldText.style.display='none';
+    lBox.insertAdjacentElement('afterend',img);
     return true;
   }
 
-  if (!installHeaderLogo()) {
+  if (!installHeaderLetters()) {
     let tries=0;
     const timer=setInterval(()=>{
       tries++;
-      if (installHeaderLogo() || tries>30) clearInterval(timer);
+      if(installHeaderLetters() || tries>30) clearInterval(timer);
     },250);
   }
 })();
