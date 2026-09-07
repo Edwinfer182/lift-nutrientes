@@ -19,3 +19,5 @@ else:
     html = html.replace(marker, f'{NEW_TAG}\n{marker}', 1)
     PATH.write_text(html, encoding='utf-8')
     print('Interfaz de sabores v2 instalada en catalogo/index.html')
+
+# Cambio intencional para relanzar el workflow v2.
