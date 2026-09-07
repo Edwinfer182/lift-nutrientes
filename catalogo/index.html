@@ -59,7 +59,7 @@
 .searchAllWrap{padding:9px 12px;background:#fafafa;border-top:1px solid #eee}
 .searchAllBtn{width:100%;height:40px;border:0;border-radius:9px;background:#111;color:#fff;font-family:inherit;font-size:12px;font-weight:300;cursor:pointer}
 .searchAllBtn:hover{background:#292929}
-@media(max-width:760px){.searchResults{position:fixed;left:9px;right:9px;top:62px;max-height:72vh;border-radius:12px}.searchResult{grid-template-columns:50px minmax(0,1fr);padding:9px}.searchThumb{width:50px;height:50px}.searchActions{grid-column:1/-1;justify-content:flex-end}.searchAdd,.searchBuy{height:32px}}
+@media(max-width:760px){.searchResults{position:absolute;left:0;right:0;top:calc(100% + 6px);max-height:min(62vh,520px);border-radius:12px;z-index:500}.searchResult{grid-template-columns:50px minmax(0,1fr);padding:9px}.searchThumb{width:50px;height:50px}.searchActions{grid-column:1/-1;justify-content:flex-end}.searchAdd,.searchBuy{height:32px}}
 
 /* Ofertas semanales */
 .saleBadge{position:absolute;left:10px;top:10px;z-index:4;background:#111;color:#fff;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:500;letter-spacing:.04em}
@@ -74,6 +74,28 @@
 .modalSaving{font-size:12px;color:#19713a;font-weight:500;margin:3px 0 8px}
 @media(max-width:760px){.saleBadge{left:8px;top:8px;font-size:9px;padding:4px 7px}.giftBadge{font-size:9px;padding:4px 7px}.oldPrice{font-size:11px}.saving{font-size:9px}.flavorNote{font-size:9px}}
 .flavorConfirmNote{font-size:10px;line-height:1.35;color:#8a8a8a;margin:0 0 10px}.checkoutFlavorNote{font-size:10px;line-height:1.35;color:#8a8a8a;margin-top:-2px;margin-bottom:2px}
+.shippingProgress{margin:10px 0 12px;padding:10px 12px;border:1px solid #e7e7e7;border-radius:11px;background:#fafafa;font-size:11px;line-height:1.5;color:#444}
+.shippingProgress b{color:#111;font-weight:500}
+.relatedWrap{margin-top:14px;padding-top:12px;border-top:1px solid #ececec}
+.relatedTitle{font-size:12px;font-weight:500;margin:0 0 8px;color:#222}
+.relatedGrid{display:grid;gap:7px}
+.relatedItem{display:grid;grid-template-columns:48px 1fr auto;gap:9px;align-items:center;padding:7px;border:1px solid #ededed;border-radius:10px;background:#fff}
+.relatedItem img{width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fafafa}
+.relatedName{font-size:10px;line-height:1.25;color:#333}
+.relatedPrice{font-size:11px;font-weight:500;margin-top:3px;color:#111}
+.relatedAdd{border:1px solid #d8d8d8;background:#fff;border-radius:9px;height:32px;padding:0 9px;font-family:inherit;font-size:10px;cursor:pointer}
+.relatedAdd:hover{background:#f4f4f4}
+.couponBox{grid-column:1/-1;border:1px solid #e2e2e2;border-radius:12px;padding:12px;background:#fafafa}
+.couponTitle{font-size:12px;font-weight:500;color:#222;margin-bottom:7px}
+.couponRow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.couponRow input{height:42px;border:1px solid #d7d7d7;border-radius:10px;padding:0 12px;font-family:inherit;text-transform:uppercase;outline:none;background:#fff}
+.couponApply{height:42px;border:0;border-radius:10px;background:#111;color:#fff;padding:0 15px;font-family:inherit;font-size:12px;cursor:pointer}
+.couponApply:disabled{opacity:.45;cursor:wait}
+.couponStatus{min-height:17px;margin-top:7px;font-size:10px;line-height:1.4;color:#666}
+.couponStatus.ok{color:#168451}.couponStatus.err{color:#b42318}
+.discountLine{color:#168451}
+@media(max-width:520px){.couponRow{grid-template-columns:1fr}.couponApply{width:100%}.relatedItem{grid-template-columns:42px 1fr auto}.relatedItem img{width:42px;height:42px}}
+
 </style>
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
@@ -85,7 +107,7 @@
 <button class="floating" onclick="openOff('cart')">🛒 Carrito <span id="count2" class="badge">0</span></button>
 <div id="overlay" class="overlay" onclick="closeOff()"></div>
 <aside id="filters" class="off left"><div class="offhead"><h2>Marcas / categorías</h2><button class="close" onclick="closeOff()">×</button></div><div class="offbody"><div id="mobileFilters"></div></div></aside>
-<aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div class="flavorConfirmNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Comprar</button><button class="secondary" onclick="copyOrder()">Copiar pedido</button></div></aside>
+<aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div id="cartShippingProgress"></div><div class="flavorConfirmNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Comprar</button><button class="secondary" onclick="copyOrder()">Copiar pedido</button></div></aside>
 <div id="productModal" class="modal" onclick="if(event.target===this)closeModal()"><div class="modalCard"><button class="modalClose" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
 
 <div id="checkoutModal" class="checkoutModal" onclick="if(event.target===this)closeCheckout()">
@@ -98,11 +120,18 @@
         <div class="field full"><label for="coAddress">Dirección</label><input id="coAddress" autocomplete="street-address" placeholder="Dirección de entrega"></div>
         <div class="field full"><label for="coCity">Ciudad / municipio</label><div class="cityWrap"><input id="coCity" autocomplete="off" placeholder="Busca tu ciudad o municipio"><div id="cityResults" class="cityResults"></div></div></div>
         <div class="field full"><label for="coNotes">Notas del pedido</label><textarea id="coNotes" placeholder="Ej: entregar en portería, sabor preferido, indicaciones de entrega..."></textarea></div>
+        <div class="couponBox">
+          <div class="couponTitle">Cupón PRIME o código de referido</div>
+          <div class="couponRow"><input id="coCoupon" autocomplete="off" placeholder="Ej: PRIME10 o tu código"><button id="couponApplyBtn" type="button" class="couponApply" onclick="applyCoupon()">Aplicar</button></div>
+          <div id="couponStatus" class="couponStatus">Se valida con las reglas y códigos registrados en Centro Lift.</div>
+        </div>
         <div class="field full checkoutFlavorNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div>
       </div>
       <div class="checkoutSummary">
         <div id="checkoutItems" class="checkoutItems"></div>
+        <div id="checkoutShippingProgress"></div>
         <div class="checkoutLine"><span>Subtotal</span><strong id="coSubtotal">$0</strong></div>
+        <div id="coDiscountLine" class="checkoutLine discountLine" style="display:none"><span id="coDiscountLabel">Descuento</span><strong id="coDiscount">-$0</strong></div>
         <div class="checkoutLine"><span>Envío</span><strong id="coShipping">Selecciona ciudad</strong></div>
         <div class="checkoutLine total"><span>Total</span><span id="coTotal">$0</span></div>
         <button class="checkoutSend" onclick="finishCheckout()">Enviar pedido por WhatsApp</button>
@@ -137,19 +166,19 @@ PRODUCTS.forEach(p=>Object.assign(p,{_attr:attrs(p)}));
   archivo se ejecuta en el navegador y el cliente podría inspeccionarlos.
 */
 const WEEKLY_OFFERS={
-  618:{price:149000,gift:false,flavors:["Cherry Limeade","Green Apple Jolly Rancher"]}, // C4 Pack x12
-  166:{price:79000,gift:false},                    // Simply Creatina 300 g
-  123:{price:199000,gift:false,flavors:["Cocoa Pebbles"]}, // ISO 100 1.3 lb
-  96:{price:225000,gift:false},                    // Cell Tech 6 lb
-  126:{price:550000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
-  142:{price:149000,gift:false,flavors:["Dubai Chocolate","Boston Cream Donut","Dulce de Leche"]}, // Basic Whey 2 lb
-  127:{price:250000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
-  559:{price:99000,gift:true},                     // Creatina Iron 500 g
-  101:{price:119000,gift:false},                   // Creatina Chews 90 tabs
-  605:{price:55000,gift:false},                    // Protein Pancake Wakeup
-  90:{price:69000,gift:false}                      // Multivitamínico Platinum 90 caps
+  618:{promoUntil:"2026-09-13T23:59:59-05:00",price:149000,gift:false,flavors:["Cherry Limeade","Green Apple Jolly Rancher"]}, // C4 Pack x12
+  166:{promoUntil:"2026-09-13T23:59:59-05:00",price:79000,gift:false},                    // Simply Creatina 300 g
+  123:{promoUntil:"2026-09-13T23:59:59-05:00",price:199000,gift:false,flavors:["Cocoa Pebbles"]}, // ISO 100 1.3 lb
+  96:{promoUntil:"2026-09-13T23:59:59-05:00",price:225000,gift:false},                    // Cell Tech 6 lb
+  126:{promoUntil:"2026-09-13T23:59:59-05:00",price:550000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
+  142:{promoUntil:"2026-09-13T23:59:59-05:00",price:149000,gift:false,flavors:["Dubai Chocolate","Boston Cream Donut","Dulce de Leche"]}, // Basic Whey 2 lb
+  127:{promoUntil:"2026-09-13T23:59:59-05:00",price:250000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
+  559:{promoUntil:"2026-09-13T23:59:59-05:00",price:99000,gift:true},                     // Creatina Iron 500 g
+  101:{promoUntil:"2026-09-13T23:59:59-05:00",price:119000,gift:false},                   // Creatina Chews 90 tabs
+  605:{promoUntil:"2026-09-13T23:59:59-05:00",price:55000,gift:false},                    // Protein Pancake Wakeup
+  90:{promoUntil:"2026-09-13T23:59:59-05:00",price:69000,gift:false}                      // Multivitamínico Platinum 90 caps
 }
-function offerOf(p){return WEEKLY_OFFERS[p.id]||null}
+function offerOf(p){const o=WEEKLY_OFFERS[p.id]||null;if(!o)return null;if(o.promoUntil&&Date.now()>new Date(o.promoUntil).getTime())return null;return o}
 function hasOffer(p){return !!offerOf(p)}
 function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
 function compareAtOf(p){return p.price}
@@ -228,7 +257,45 @@ function flavorMessageFor(){return FLAVOR_CONFIRM_MSG}
 function openOff(id){document.getElementById(id).classList.add('open');document.getElementById('overlay').classList.add('show');document.body.style.overflow='hidden';if(id==='cart')renderCart()} function closeOff(){document.querySelectorAll('.off').forEach(x=>x.classList.remove('open'));document.getElementById('overlay').classList.remove('show');document.body.style.overflow=''}
 function add(id){cart[id]=(cart[id]||0)+1;saveCart();renderCart();openOff('cart')} function change(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];saveCart();renderCart()} function removeItem(id){delete cart[id];saveCart();renderCart()} function saveCart(){localStorage.setItem('liftCartV2',JSON.stringify(cart));updateCount()}
 function items(){return Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p)} function updateCount(){const n=Object.values(cart).reduce((a,b)=>a+b,0);document.getElementById('count').textContent=n;document.getElementById('count2').textContent=n}
-function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({p,q})=>`<div class="cartline"><img src="${p.image}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick="change(${p.id},-1)">−</button><b>${q}</b><button onclick="change(${p.id},1)">+</button></div></div><button class="trash" onclick="removeItem(${p.id})">×</button></div>`).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
+function shippingProgressHTML(qty,cityName=''){
+  if(!qty)return '';
+  const city=norm(cityName||'');
+  const localCities=['medellin','bello','itagui','envigado','sabaneta','la estrella'];
+  const exact=!!cityName;
+  const local=localCities.includes(city);
+  const one=(label,kind)=>{
+    if(kind==='local'){
+      if(qty===1)return `<b>${label}:</b> agrega 1 producto más y el envío baja a ${fmt(7000)}.`;
+      if(qty===2)return `<b>${label}:</b> agrega 1 producto más y obtienes envío gratis.`;
+      return `<b>${label}:</b> ya tienes envío gratis.`;
+    }
+    if(qty===1)return `<b>${label}:</b> agrega 1 producto más y el envío baja a ${fmt(12000)}.`;
+    if(qty===2)return `<b>${label}:</b> agrega 1 producto más y el envío baja a ${fmt(10000)}.`;
+    if(qty===3)return `<b>${label}:</b> agrega 1 producto más y obtienes envío gratis.`;
+    return `<b>${label}:</b> ya tienes envío gratis.`;
+  };
+  return `<div class="shippingProgress">${exact?one(local?'Tu zona':'Envío nacional',local?'local':'national'):`${one('Medellín y zona local','local')}<br>${one('Resto del país','national')}`}</div>`;
+}
+function relatedProductsFor(its,limit=3){
+  const ids=new Set(its.map(x=>x.p.id));
+  const cats=new Set(its.map(x=>x.p.category));
+  const brandsSet=new Set(its.map(x=>x.p.brand));
+  const candidates=PRODUCTS.filter(p=>!ids.has(p.id)&&!cats.has(p.category));
+  const sameBrand=candidates
+    .filter(p=>brandsSet.has(p.brand))
+    .sort((a,b)=>(hasOffer(b)?1:0)-(hasOffer(a)?1:0)||a.name.localeCompare(b.name,'es'));
+  const chosen=[...sameBrand];
+  if(chosen.length<limit){
+    const chosenIds=new Set(chosen.map(p=>p.id));
+    const fallback=candidates
+      .filter(p=>!chosenIds.has(p.id))
+      .sort((a,b)=>(hasOffer(b)?1:0)-(hasOffer(a)?1:0)||a.name.localeCompare(b.name,'es'));
+    chosen.push(...fallback);
+  }
+  return chosen.slice(0,limit);
+}
+function relatedHTML(its){const rel=relatedProductsFor(its);if(!rel.length)return '';return `<div class="relatedWrap"><div class="relatedTitle">También te puede interesar</div><div class="relatedGrid">${rel.map(p=>`<div class="relatedItem"><img src="${p.image}" alt="${esc(p.name)}"><div><div class="relatedName">${esc(p.name)} · ${esc(p.brand)}</div><div class="relatedPrice">${fmt(priceOf(p))}</div></div><button class="relatedAdd" onclick="add(${p.id})">Agregar</button></div>`).join('')}</div></div>`}
+function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({p,q})=>`<div class="cartline"><img src="${p.image}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick="change(${p.id},-1)">−</button><b>${q}</b><button onclick="change(${p.id},1)">+</button></div></div><button class="trash" onclick="removeItem(${p.id})">×</button></div>`).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
 function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div><div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(compareAtOf(p))}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('productModal').classList.remove('open');document.body.style.overflow=''}
 let checkoutMode='cart';
@@ -243,15 +310,29 @@ async function loadCities(){if(cityData.length)return;try{const [cr,dr]=await Pr
 function checkoutItemsList(){if(checkoutMode==='single'){const p=PRODUCTS.find(x=>x.id===checkoutSingleId);return p?[{p,q:1}]:[]}return items()}
 function checkoutQty(){return checkoutItemsList().reduce((n,x)=>n+x.q,0)}
 function shippingFor(cityName,qty){if(!cityName||!qty)return null;const city=norm(cityName);const localCities=['medellin','bello','itagui','envigado','sabaneta','la estrella'];const local=localCities.includes(city);if(local){if(qty===1)return 11000;if(qty===2)return 7000;return 0}if(qty===1)return 15000;if(qty===2)return 12000;if(qty===3)return 10000;return 0}
-function openCheckout(){closeOff();document.getElementById('checkoutModal').classList.add('open');document.body.style.overflow='hidden';selectedCity=null;document.getElementById('coCity').value='';loadCities();renderCheckoutSummary()}
+const LIFT_SUPABASE_URL='https://vdxkkntfyssjyfbdieqa.supabase.co';
+const LIFT_SUPABASE_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+const LIFT_OWNER_ID='6efd60d1-cae5-459a-a3f0-c2e9543df307';
+const PRIME_RULES={PRIME5:{discount:5000,min:150000},PRIME10:{discount:10000,min:250000},PRIME15:{discount:15000,min:400000},PRIME20:{discount:20000,min:550000}};
+let appliedCoupon=null,liftCloudDiscountData=null;
+function phoneDigits(v){return String(v||'').replace(/\D/g,'')}
+function parseCloudValue(v){if(v==null)return null;if(typeof v==='string'){try{return JSON.parse(v)}catch(e){return null}}return v}
+async function loadLiftDiscountData(force=false){if(liftCloudDiscountData&&!force)return liftCloudDiscountData;try{const url=`${LIFT_SUPABASE_URL}/rest/v1/app_state?select=data&user_id=eq.${encodeURIComponent(LIFT_OWNER_ID)}&limit=1`;const r=await fetch(url,{headers:{apikey:LIFT_SUPABASE_KEY,Authorization:`Bearer ${LIFT_SUPABASE_KEY}`}});if(!r.ok)throw new Error(`Supabase ${r.status}`);const rows=await r.json(),data=rows?.[0]?.data||{};liftCloudDiscountData={referrals:parseCloudValue(data.lift_referrals_v1)||{clients:[],referrals:[]},primes:parseCloudValue(data.lift_prime_benefits_v1)||null}}catch(e){console.warn('No se pudo consultar Centro Lift en la nube:',e);liftCloudDiscountData={referrals:null,primes:null,error:true}}return liftCloudDiscountData}
+function setCouponStatus(text,type=''){const el=document.getElementById('couponStatus');if(!el)return;el.textContent=text;el.className='couponStatus'+(type?' '+type:'')}
+function validatePrimeFromCloud(primes,code,phone,subtotal){if(!primes)return null;const list=Array.isArray(primes)?primes:(Array.isArray(primes.benefits)?primes.benefits:[]),now=Date.now();const row=list.find(x=>String(x.code||'').trim().toUpperCase()===code&&(!x.phone||phoneDigits(x.phone)===phone)&&String(x.status||'active').toLowerCase()==='active'&&((!x.expiresAt&&!x.expires_at)||new Date(x.expiresAt||x.expires_at).getTime()>=now));if(!row)return {valid:false,error:'Ese PRIME no está activo para este celular o ya venció.'};const min=Number(row.minSubtotal??row.min_subtotal??PRIME_RULES[code]?.min??0),discount=Number(row.discount??row.value??row.valor??PRIME_RULES[code]?.discount??0);if(subtotal<min)return {valid:false,error:`${code} requiere una compra mínima de ${fmt(min)} en productos.`};return {valid:true,code,type:'prime',discount,min,source:'centro_lift'}}
+function validateReferralFromCloud(refdb,code,phone){if(!refdb)return {valid:false,error:'No fue posible consultar los referidos de Centro Lift. Intenta nuevamente.'};const clients=Array.isArray(refdb.clients)?refdb.clients:[],refs=Array.isArray(refdb.referrals)?refdb.referrals:[],owner=clients.find(c=>String(c.code||'').trim().toUpperCase()===code);if(!owner)return null;if(phoneDigits(owner.phone)===phone)return {valid:false,error:'No puedes usar tu propio código de referido.'};if(refs.some(r=>phoneDigits(r.newPhone||r.new_phone)===phone))return {valid:false,error:'Este celular ya fue registrado anteriormente con un código de referido.'};return {valid:true,code,type:'referido',discount:10000,min:0,source:'centro_lift',referrerName:owner.name||''}}
+async function applyCoupon(){const input=document.getElementById('coCoupon'),btn=document.getElementById('couponApplyBtn'),code=String(input?.value||'').trim().toUpperCase(),phone=phoneDigits(document.getElementById('coPhone')?.value),subtotal=checkoutItemsList().reduce((s,x)=>s+priceOf(x.p)*x.q,0);if(!code){setCouponStatus('Ingresa un cupón PRIME o código de referido.','err');return}if(phone.length<7){setCouponStatus('Ingresa primero un celular válido para poder validar el código.','err');return}if(btn){btn.disabled=true;btn.textContent='Validando...'}setCouponStatus('Validando con Centro Lift...','');try{const cloud=await loadLiftDiscountData(true);let result=null;if(PRIME_RULES[code]){result=validatePrimeFromCloud(cloud.primes,code,phone,subtotal);if(result===null){const rule=PRIME_RULES[code];result=subtotal<rule.min?{valid:false,error:`${code} requiere una compra mínima de ${fmt(rule.min)} en productos.`}:{valid:true,code,type:'prime',discount:rule.discount,min:rule.min,source:'regla_centro_lift'}}else{} }else{result=validateReferralFromCloud(cloud.referrals,code,phone);if(result===null)result={valid:false,error:`El cupón o código ${code} no está registrado en Centro Lift.`}}if(!result.valid){appliedCoupon=null;setCouponStatus(result.error,'err');renderCheckoutSummary();return}appliedCoupon=result;if(input)input.value=code;setCouponStatus(`${code} aplicado: -${fmt(result.discount)}${result.type==='referido'&&result.referrerName?` · referido por ${result.referrerName}`:''}.`,'ok');renderCheckoutSummary()}catch(e){appliedCoupon=null;setCouponStatus('No se pudo validar el código en este momento.','err');renderCheckoutSummary()}finally{if(btn){btn.disabled=false;btn.textContent='Aplicar'}}}
+
+function openCheckout(){closeOff();document.getElementById('checkoutModal').classList.add('open');document.body.style.overflow='hidden';selectedCity=null;appliedCoupon=null;document.getElementById('coCity').value='';const ci=document.getElementById('coCoupon');if(ci)ci.value='';setCouponStatus('Se valida con las reglas y códigos registrados en Centro Lift.','');loadCities();renderCheckoutSummary()}
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');document.getElementById('cityResults').classList.remove('show');document.body.style.overflow=''}
 function startCartCheckout(){if(!items().length)return;checkoutMode='cart';checkoutSingleId=null;openCheckout()}
 function buyProduct(id){checkoutMode='single';checkoutSingleId=id;openCheckout()}
-function renderCheckoutSummary(){const its=checkoutItemsList();const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);const ship=shippingFor(selectedCity?.name||'',checkoutQty());const flavorMsg=flavorMessageFor(its);document.getElementById('checkoutItems').innerHTML=its.map(x=>`${x.q} × ${esc(x.p.name)} · ${fmt(priceOf(x.p)*x.q)}`).join('<br>')+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');document.getElementById('coSubtotal').textContent=fmt(sub);document.getElementById('coShipping').textContent=ship===null?'Selecciona ciudad':(ship===0?'Gratis':fmt(ship));document.getElementById('coTotal').textContent=fmt(sub+(ship||0))}
+function renderCheckoutSummary(){const its=checkoutItemsList(),sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity?.name||'',checkoutQty());if(appliedCoupon&&sub<Number(appliedCoupon.min||0)){appliedCoupon=null;setCouponStatus('El subtotal cambió y el cupón debe validarse nuevamente.','')}const discount=Math.min(sub,Number(appliedCoupon?.discount||0)),flavorMsg=flavorMessageFor(its);document.getElementById('checkoutItems').innerHTML=its.map(x=>`${x.q} × ${esc(x.p.name)} · ${fmt(priceOf(x.p)*x.q)}`).join('<br>')+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');const prog=document.getElementById('checkoutShippingProgress');if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());document.getElementById('coSubtotal').textContent=fmt(sub);const dl=document.getElementById('coDiscountLine');if(dl)dl.style.display=discount?'flex':'none';if(discount){document.getElementById('coDiscountLabel').textContent=`Cupón ${appliedCoupon.code}`;document.getElementById('coDiscount').textContent='-'+fmt(discount)}document.getElementById('coShipping').textContent=ship===null?'Selecciona ciudad':(ship===0?'Gratis':fmt(ship));document.getElementById('coTotal').textContent=fmt(Math.max(0,sub-discount)+(ship||0))}
 function showCityResults(term=''){const box=document.getElementById('cityResults');const q=norm(term);const rows=(cityData.length?cityData:fallbackCities).filter(c=>!q||norm(c.name+' '+c.department).includes(q)).slice(0,80);box.innerHTML=rows.map((c,i)=>`<button type="button" class="cityOption" data-i="${i}" data-name="${esc(c.name)}" data-dept="${esc(c.department)}"><span>${esc(c.name)}</span><small>${esc(c.department)}</small></button>`).join('')||'<div class="cityOption">No encontré esa ciudad.</div>';box.classList.add('show');box.querySelectorAll('button[data-name]').forEach(btn=>btn.addEventListener('click',()=>selectCity(btn.dataset.name,btn.dataset.dept)))}
 function selectCity(name,department){selectedCity={name,department};document.getElementById('coCity').value=department?`${name} · ${department}`:name;document.getElementById('cityResults').classList.remove('show');renderCheckoutSummary()}
 const coCity=document.getElementById('coCity');coCity.addEventListener('focus',async()=>{await loadCities();showCityResults(coCity.value)});coCity.addEventListener('input',async e=>{selectedCity=null;await loadCities();showCityResults(e.target.value);renderCheckoutSummary()});document.addEventListener('click',e=>{if(!e.target.closest('.cityWrap'))document.getElementById('cityResults').classList.remove('show')});
-function checkoutText(){const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}const its=checkoutItemsList();if(!its.length)return '';const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity.name,checkoutQty()),total=sub+(ship||0);const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));lines.push('',`💬 Si el producto maneja sabores, se confirman por WhatsApp según disponibilidad.`);lines.push('',`Subtotal: ${fmt(sub)}`,`Envío: ${ship===0?'GRATIS':fmt(ship)}`,`Total: ${fmt(total)}`);return lines.join('\n')}
+const coPhone=document.getElementById('coPhone');if(coPhone)coPhone.addEventListener('input',()=>{if(appliedCoupon){appliedCoupon=null;setCouponStatus('El celular cambió. Valida nuevamente el cupón.','');renderCheckoutSummary()}});const coCoupon=document.getElementById('coCoupon');if(coCoupon){coCoupon.addEventListener('input',()=>{if(appliedCoupon){appliedCoupon=null;setCouponStatus('El código cambió. Presiona Aplicar para validarlo de nuevo.','');renderCheckoutSummary()}});coCoupon.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyCoupon()}})};
+function checkoutText(){const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}const its=checkoutItemsList();if(!its.length)return '';const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity.name,checkoutQty()),discount=Math.min(sub,Number(appliedCoupon?.discount||0)),total=Math.max(0,sub-discount)+(ship||0);const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));lines.push('',`💬 Si el producto maneja sabores, se confirman por WhatsApp según disponibilidad.`);lines.push('',`Subtotal: ${fmt(sub)}`);if(appliedCoupon&&discount)lines.push(`Cupón ${appliedCoupon.code}: -${fmt(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);lines.push(`Envío: ${ship===0?'GRATIS':fmt(ship)}`,`Total: ${fmt(total)}`);return lines.filter(Boolean).join('\n')}
 function finishCheckout(){const t=checkoutText();if(!t)return;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
 function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
 async function copyOrder(){const t=orderText();if(!t)return;try{await navigator.clipboard.writeText(t);alert('Pedido copiado.')}catch(e){prompt('Copia el pedido:',t)}}
