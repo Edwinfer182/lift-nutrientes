@@ -1,106 +1,54 @@
 {
-  "updated_at": "2026-09-07T13:51:52.347471+00:00",
-  "matched_products": 11,
+  "updated_at": "2026-09-07T13:57:07.776227+00:00",
+  "matched_products": 7,
   "source_products_with_flavors": 40,
-  "added": [
-    {
-      "id": "84",
-      "product": "Nitro Tech 2 Lbs",
-      "flavors": [
-        "COOKIES & CREAM",
-        "CHOCOLATE",
-        "VAINILLA"
-      ]
-    },
-    {
-      "id": "85",
-      "product": "Nitro Tech 4 Lbs",
-      "flavors": [
-        "COOKIES & CREAM",
-        "CHOCOLATE",
-        "VAINILLA"
-      ]
-    },
-    {
-      "id": "86",
-      "product": "Nitro Tech Whey Gold 2 Lbs",
-      "flavors": [
-        "COOKIES & CREAM",
-        "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME"
-      ]
-    },
-    {
-      "id": "87",
-      "product": "Nitro Tech Whey Gold 5 Lbs",
-      "flavors": [
-        "COOKIES & CREAM",
-        "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME"
-      ]
-    },
+  "added_products": [],
+  "removed_products": [
     {
       "id": "88",
       "product": "Nitro Tech Ripped 4 Lbs",
-      "flavors": [
-        "COOKIES & CREAM",
-        "CHOCOLATE",
-        "VAINILLA"
-      ]
+      "reason": "ya no supera el filtro seguro"
     },
     {
       "id": "95",
       "product": "Cell Tech 3 Lbs Cretina + Carbos",
-      "flavors": [
-        "FRUIT PUNCH",
-        "TROPICAL CITRUS"
-      ]
+      "reason": "ya no supera el filtro seguro"
     },
     {
       "id": "96",
       "product": "Cell Tech 6 Lbs Cretina + Carbos",
-      "flavors": [
-        "FRUIT PUNCH",
-        "TROPICAL CITRUS"
-      ]
-    },
-    {
-      "id": "97",
-      "product": "Cell Tech Creactor 120 Serv",
-      "flavors": [
-        "FRUIT PUNCH",
-        "SIN SABOR",
-        "Seleccione Sabor"
-      ]
+      "reason": "ya no supera el filtro seguro"
     },
     {
       "id": "98",
       "product": "Amino 100% Eaa 30 Serv",
-      "flavors": [
-        "CHERRY LIMEADE",
-        "BLUERAZZ",
+      "reason": "ya no supera el filtro seguro"
+    }
+  ],
+  "changed": [
+    {
+      "id": "97",
+      "product": "Cell Tech Creactor 120 Serv",
+      "added": [],
+      "removed": [
         "Seleccione Sabor"
       ]
     },
     {
       "id": "100",
       "product": "Amino Build 40 Serv",
-      "flavors": [
-        "TROPICAL TWIST",
-        "FRESA SANDIA",
+      "added": [],
+      "removed": [
         "Seleccione Sabor"
       ]
     },
     {
       "id": "101",
       "product": "Creatina Chews 90 Tabletas",
-      "flavors": [
-        "CITRUS BURST",
+      "added": [],
+      "removed": [
         "Seleccione Sabor"
       ]
     }
-  ],
-  "removed": [],
-  "changed": [],
-  "unmatched": []
+  ]
 }

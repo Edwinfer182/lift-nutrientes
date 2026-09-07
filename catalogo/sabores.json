@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-09-07T13:51:52.347471+00:00",
+  "updated_at": "2026-09-07T13:57:07.776227+00:00",
   "source": "https://www.suplementoscolombia.co/",
-  "matched_products": 11,
+  "matched_products": 7,
   "source_products_with_flavors": 40,
   "products": {
     "84": {
@@ -68,85 +68,24 @@
       ],
       "match_score": 1.0
     },
-    "88": {
-      "name": "Nitro Tech Ripped 4 Lbs",
-      "brand": "MuscleTech",
-      "flavors": [
-        "COOKIES & CREAM",
-        "CHOCOLATE",
-        "VAINILLA"
-      ],
-      "source_name": "NITRO TECH",
-      "source_url": "https://suplementoscolombia.co/nitro-tech",
-      "source_sizes": [
-        "2 LIBRAS",
-        "4 LIBRAS"
-      ],
-      "match_score": 0.84
-    },
-    "95": {
-      "name": "Cell Tech 3 Lbs Cretina + Carbos",
-      "brand": "MuscleTech",
-      "flavors": [
-        "FRUIT PUNCH",
-        "TROPICAL CITRUS"
-      ],
-      "source_name": "CELL TECH CREATINA",
-      "source_url": "https://suplementoscolombia.co/cell-tech-creatina",
-      "source_sizes": [
-        "3 LIBRAS",
-        "6 LIBRAS"
-      ],
-      "match_score": 0.673
-    },
-    "96": {
-      "name": "Cell Tech 6 Lbs Cretina + Carbos",
-      "brand": "MuscleTech",
-      "flavors": [
-        "FRUIT PUNCH",
-        "TROPICAL CITRUS"
-      ],
-      "source_name": "CELL TECH CREATINA",
-      "source_url": "https://suplementoscolombia.co/cell-tech-creatina",
-      "source_sizes": [
-        "3 LIBRAS",
-        "6 LIBRAS"
-      ],
-      "match_score": 0.673
-    },
     "97": {
       "name": "Cell Tech Creactor 120 Serv",
       "brand": "MuscleTech",
       "flavors": [
         "FRUIT PUNCH",
-        "SIN SABOR",
-        "Seleccione Sabor"
+        "SIN SABOR"
       ],
       "source_name": "CELL TECH CREACTOR",
       "source_url": "https://suplementoscolombia.co/cell-tech-creactor",
       "source_sizes": [],
       "match_score": 0.87
     },
-    "98": {
-      "name": "Amino 100% Eaa 30 Serv",
-      "brand": "MuscleTech",
-      "flavors": [
-        "CHERRY LIMEADE",
-        "BLUERAZZ",
-        "Seleccione Sabor"
-      ],
-      "source_name": "AMINO TONE +EAA 30 SERVICIOS",
-      "source_url": "https://suplementoscolombia.co/amino-tone-eaa-30-servicios",
-      "source_sizes": [],
-      "match_score": 0.72
-    },
     "100": {
       "name": "Amino Build 40 Serv",
       "brand": "MuscleTech",
       "flavors": [
         "TROPICAL TWIST",
-        "FRESA SANDIA",
-        "Seleccione Sabor"
+        "FRESA SANDIA"
       ],
       "source_name": "AMINO BUILD",
       "source_url": "https://suplementoscolombia.co/amino-build",
@@ -157,8 +96,7 @@
       "name": "Creatina Chews 90 Tabletas",
       "brand": "MuscleTech",
       "flavors": [
-        "CITRUS BURST",
-        "Seleccione Sabor"
+        "CITRUS BURST"
       ],
       "source_name": "CREATINA CHEWS CREAPURE 90 TABLETAS",
       "source_url": "https://suplementoscolombia.co/creatina-chews-creapure-90-tabletas",
