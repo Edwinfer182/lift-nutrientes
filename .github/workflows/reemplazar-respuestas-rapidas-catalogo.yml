@@ -1,0 +1,26 @@
+name: Dejar solo respuesta del catalogo
+
+on:
+  push:
+    paths:
+      - '.github/workflows/reemplazar-respuestas-rapidas-catalogo.yml'
+      - 'scripts/reemplazar_respuestas_rapidas_catalogo.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reemplazar respuestas rapidas
+        run: python scripts/reemplazar_respuestas_rapidas_catalogo.py
+      - name: Guardar cambio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Dejar solo respuesta rapida para compartir catalogo"
+          git push
