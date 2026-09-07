@@ -19,6 +19,7 @@
       await loadScript('catalogo-mejoras-ui.js?v=20260907b');
       await loadScript('catalogo-correcciones-marcas.js?v=20260907c');
       await loadScript('carrito-descuentos-ui.js?v=20260907d');
+      await loadScript('filtro-seleccion-lift.js?v=20260907e');
     } catch (error) {
       console.error('Lift: no se pudieron cargar los módulos del catálogo', error);
     }
