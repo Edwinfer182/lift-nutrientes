@@ -1,0 +1,28 @@
+name: Cambiar precio Whey Gold 4 Lbs
+
+on:
+  push:
+    paths:
+      - '.github/workflows/cambiar-precio-whey-gold-4lb.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cambiar precio
+        run: python scripts/cambiar_precio_whey_gold_4lb.py
+      - name: Guardar cambio
+        run: |
+          git config user.name "lift-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalogo/index.html
+          git commit -m "Cambiar Whey Gold Standard 4 Lbs a 380000"
+          git push
