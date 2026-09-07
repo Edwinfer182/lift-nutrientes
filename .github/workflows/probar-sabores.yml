@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/probar-sabores.yml'
+      - 'scripts/actualizar_sabores.py'
   workflow_dispatch:
 
 permissions:
@@ -30,5 +31,5 @@ jobs:
             echo "No hubo cambios."
             exit 0
           fi
-          git commit -m "Primera sincronizacion de sabores"
+          git commit -m "Validar sincronizacion de sabores"
           git push
