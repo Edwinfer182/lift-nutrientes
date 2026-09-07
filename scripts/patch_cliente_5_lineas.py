@@ -2,23 +2,33 @@ from pathlib import Path
 
 p = Path('index.html')
 text = p.read_text(encoding='utf-8')
+changed = False
 
-old = """ const cliente =
+# Mantener el parche existente de datos del cliente.
+old_cliente = """ const cliente =
 `Nombre: ${c.nombre}
 Celular: ${c.celular}
 Dirección: ${c.direccion}
 
 Pedido:"""
-new = """ const cliente =
+new_cliente = """ const cliente =
 `${clienteTxt}
 
 Pedido:"""
 
-if new in text:
-    raise SystemExit(0)
+if new_cliente not in text and old_cliente in text:
+    text = text.replace(old_cliente, new_cliente, 1)
+    changed = True
 
-if old not in text:
-    raise SystemExit('No se encontro el bloque de formato para cliente')
+# Agregar respuesta corta para el estado del pedido.
+respuesta = '["Respuestas cortas", "Mañana te envío la guía", "Mañana te envío la guía 👍"],'
+ancla = '["Respuestas cortas", "Estamos pendientes", "Perfecto, estamos pendientes."],'
 
-text = text.replace(old, new, 1)
-p.write_text(text, encoding='utf-8')
+if respuesta not in text:
+    if ancla not in text:
+        raise SystemExit('No se encontro el bloque de Respuestas cortas')
+    text = text.replace(ancla, ancla + '\n' + respuesta, 1)
+    changed = True
+
+if changed:
+    p.write_text(text, encoding='utf-8')
