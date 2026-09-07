@@ -35,7 +35,8 @@ patch = r'''
 '''
 
 pos = text.lower().rfind('</body>')
-if pos < 0:
-    raise SystemExit('No se encontro </body>')
-text = text[:pos] + patch + text[pos:]
+if pos >= 0:
+    text = text[:pos] + patch + text[pos:]
+else:
+    text = text + '\n' + patch
 p.write_text(text, encoding='utf-8')
