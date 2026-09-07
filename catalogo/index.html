@@ -39,9 +39,27 @@
 .field textarea{min-height:92px;border:1px solid #d7d7d7;border-radius:10px;padding:11px 12px;font-family:inherit;font-size:14px;font-weight:200;line-height:1.45;outline:none;background:#fff;resize:vertical}
 .field textarea:focus{border-color:#111}
 @media(max-width:760px){.pic{height:160px;padding:18px 14px}.pic img{max-width:68%;max-height:70%}.add.topCart{top:8px;right:8px;width:36px;height:36px}.buyNow{min-width:84px;padding:0 10px}.name{font-size:13px}.price{font-size:15px}}
+
+/* Buscador rápido independiente */
+.searchResults{position:absolute;left:0;right:0;top:50px;z-index:120;background:#fff;border:1px solid #ddd;border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.16);overflow:hidden;display:none;max-height:min(70vh,620px);overflow-y:auto}
+.searchResults.show{display:block}
+.searchResult{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #eee;background:#fff}
+.searchResult:last-child{border-bottom:0}
+.searchResult:hover{background:#fafafa}
+.searchThumb{width:58px;height:58px;object-fit:contain;background:#fff;border:1px solid #eee;border-radius:9px;padding:4px}
+.searchInfo{min-width:0}
+.searchName{font-size:13px;font-weight:300;line-height:1.3;color:#111;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.searchBrand{font-size:10px;color:#777;margin-top:3px}
+.searchPrice{font-size:14px;font-weight:500;margin-top:3px}
+.searchActions{display:flex;gap:6px;align-items:center}
+.searchAdd,.searchBuy{height:34px;border-radius:8px;padding:0 10px;cursor:pointer;font-family:inherit;font-size:11px;white-space:nowrap}
+.searchAdd{border:1px solid #d5d5d5;background:#fff;color:#111}
+.searchBuy{border:0;background:#111;color:#fff}
+.searchEmpty{padding:18px;text-align:center;color:#777;font-size:13px}
+@media(max-width:760px){.searchResults{position:fixed;left:9px;right:9px;top:62px;max-height:72vh;border-radius:12px}.searchResult{grid-template-columns:50px minmax(0,1fr);padding:9px}.searchThumb{width:50px;height:50px}.searchActions{grid-column:1/-1;justify-content:flex-end}.searchAdd,.searchBuy{height:32px}}
 </style>
 </head><body>
-<header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
+<header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
 <aside class="sidebar"><div id="desktopFilters"></div></aside>
 <section class="content">
@@ -95,7 +113,7 @@ let state={q:'',cat:'Todos',brand:'Todas',filterView:'brands'};
 let cart=JSON.parse(localStorage.getItem('liftCartV2')||localStorage.getItem('liftCartV1')||'{}');
 const cats=['Todos',...Array.from(new Set(PRODUCTS.map(p=>p.category))).sort((a,b)=>a.localeCompare(b,'es'))];
 const brands=['Todas',...Array.from(new Set(PRODUCTS.map(p=>p.brand))).sort((a,b)=>a.localeCompare(b,'es'))];
-function filtered(){const q=norm(state.q);return PRODUCTS.filter(p=>{const hay=norm(p.name+' '+p.category+' '+p.brand);if(q)return hay.includes(q);return(state.cat==='Todos'||p.category===state.cat)&&(state.brand==='Todas'||p.brand===state.brand)})}
+function filtered(){return PRODUCTS.filter(p=>(state.cat==='Todos'||p.category===state.cat)&&(state.brand==='Todas'||p.brand===state.brand))}
 function render(){const arr=filtered();document.getElementById('status').textContent=`${arr.length} productos encontrados`;document.getElementById('grid').innerHTML=arr.map(p=>`<article class="card"><div class="pic"><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><img loading="lazy" src="${p.image}" alt="${esc(p.name)}"></div><div class="body"><div class="name">${esc(p.name)}</div><div class="productBottom"><div class="price">${fmt(p.price)}</div><div class="actions"><button class="buyNow" onclick="buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||'<div class="empty">No encontré productos con esos filtros.</div>';renderFilters()}
 function renderChips(){}
 function filterHTML(){const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRODUCTS.length:PRODUCTS.filter(p=>p.category===c).length]));const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?PRODUCTS.length:PRODUCTS.filter(p=>p.brand===b).length]));const isBrands=state.filterView==='brands';return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Marcas</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
@@ -105,7 +123,35 @@ function renderFilters(){const h=filterHTML();document.getElementById('desktopFi
 function setFilterView(view){state.filterView=view;renderFilters()}
 function setCat(c){state.cat=c;state.brand='Todas';render();if(innerWidth<=760)closeOff()}
 function setBrand(b){state.brand=b;state.cat='Todos';render();if(innerWidth<=760)closeOff()}
-document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;render()});
+function quickSearchProducts(value){
+  const q=norm(value).trim();
+  if(!q)return [];
+  const words=q.split(/\s+/).filter(Boolean);
+  return PRODUCTS.map(p=>{
+    const name=norm(p.name), brand=norm(p.brand), category=norm(p.category), hay=name+' '+brand+' '+category;
+    if(!words.every(w=>hay.includes(w)))return null;
+    let score=0;
+    if(name.startsWith(q))score+=100;
+    if(name.includes(q))score+=60;
+    if(brand.includes(q))score+=30;
+    if(category.includes(q))score+=20;
+    score+=words.reduce((a,w)=>a+(name.includes(w)?8:0)+(brand.includes(w)?3:0),0);
+    return {p,score};
+  }).filter(Boolean).sort((a,b)=>b.score-a.score||a.p.name.localeCompare(b.p.name)).slice(0,7).map(x=>x.p);
+}
+function renderQuickSearch(value){
+  const box=document.getElementById('searchResults');
+  const q=value.trim();
+  if(!q){box.classList.remove('show');box.innerHTML='';return;}
+  const results=quickSearchProducts(value);
+  box.innerHTML=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" src="${p.image}" alt="${esc(p.name)}"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(p.price)}</div></div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos.</div>';
+  box.classList.add('show');
+}
+function closeQuickSearch(){document.getElementById('searchResults').classList.remove('show')}
+const searchInput=document.getElementById('q');
+searchInput.addEventListener('input',e=>renderQuickSearch(e.target.value));
+searchInput.addEventListener('focus',e=>{if(e.target.value.trim())renderQuickSearch(e.target.value)});
+document.addEventListener('click',e=>{if(!e.target.closest('.search'))closeQuickSearch()});
 function openOff(id){document.getElementById(id).classList.add('open');document.getElementById('overlay').classList.add('show');document.body.style.overflow='hidden';if(id==='cart')renderCart()} function closeOff(){document.querySelectorAll('.off').forEach(x=>x.classList.remove('open'));document.getElementById('overlay').classList.remove('show');document.body.style.overflow=''}
 function add(id){cart[id]=(cart[id]||0)+1;saveCart();renderCart();openOff('cart')} function change(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];saveCart();renderCart()} function removeItem(id){delete cart[id];saveCart();renderCart()} function saveCart(){localStorage.setItem('liftCartV2',JSON.stringify(cart));updateCount()}
 function items(){return Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p)} function updateCount(){const n=Object.values(cart).reduce((a,b)=>a+b,0);document.getElementById('count').textContent=n;document.getElementById('count2').textContent=n}
