@@ -12,8 +12,19 @@ BASE = "https://www.suplementoscolombia.co/"
 CATALOG_PATH = Path("catalogo/index.html")
 FLAVORS_PATH = Path("catalogo/sabores.json")
 CHANGES_PATH = Path("catalogo/cambios-sabores.json")
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LiftCatalogBot/1.0; +https://lift-nutrientes.vercel.app/)"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LiftCatalogBot/1.1; +https://lift-nutrientes.vercel.app/)"}
 TIMEOUT = 20
+MIN_MATCH_SCORE = 0.68
+MIN_MATCH_GAP = 0.10
+
+# Palabras que distinguen familias parecidas. Si aparecen solo en uno de los
+# dos nombres, no permitimos la asociación automática.
+DISTINCTIVE = {
+    "ripped", "gold", "whey", "creactor", "build", "tone", "chews",
+    "isolate", "isopure", "mass", "gainer", "hardcore", "platinum",
+    "serious", "hydro", "elite", "performance", "original", "black",
+    "xtreme", "psychotic", "psychopath", "nitro", "cell"
+}
 
 
 def normalize(value: str) -> str:
@@ -84,8 +95,7 @@ def looks_like_product_url(url: str) -> bool:
 def text_between(lines: list[str], start_names: tuple[str, ...], end_names: tuple[str, ...]) -> list[str]:
     start = None
     for i, line in enumerate(lines):
-        n = normalize(line).rstrip(":")
-        if n in start_names:
+        if normalize(line).rstrip(":") in start_names:
             start = i + 1
             break
     if start is None:
@@ -101,14 +111,22 @@ def text_between(lines: list[str], start_names: tuple[str, ...], end_names: tupl
 
 
 def clean_values(values: list[str]) -> list[str]:
-    bad = {
-        "selecciona sabor y tamano", "selecciona sabor", "selecciona tamano", "ver", "comprar",
-        "medellin", "nacional", "devolucion", "descripcion", "como tomar", "calificaciones"
-    }
     cleaned = []
     for v in values:
         n = normalize(v)
-        if not n or n in bad:
+        if not n:
+            continue
+        # El sitio inserta placeholders como "Seleccione Sabor" dentro de
+        # algunos selectores. Nunca deben llegar al catálogo.
+        if any(x in n for x in (
+            "selecciona sabor", "seleccione sabor", "seleccionar sabor",
+            "escoge sabor", "elige sabor", "selecciona tamano", "seleccione tamano"
+        )):
+            continue
+        if n in {
+            "ver", "comprar", "medellin", "nacional", "devolucion", "descripcion",
+            "como tomar", "calificaciones", "sabor", "sabores", "tamano"
+        }:
             continue
         if len(v) > 80:
             continue
@@ -168,22 +186,15 @@ def parse_product(url: str) -> dict | None:
     if not flavors:
         return None
 
-    return {
-        "name": name,
-        "brand": brand,
-        "flavors": flavors,
-        "sizes": sizes,
-        "source_url": url,
-    }
+    return {"name": name, "brand": brand, "flavors": flavors, "sizes": sizes, "source_url": url}
 
 
 def load_catalog() -> list[dict]:
     html = CATALOG_PATH.read_text(encoding="utf-8")
-    patterns = [
+    for pattern in (
         r"const\s+PRODUCTS\s*=\s*(\[.*?\])\s*;\s*const\s+fmt",
         r"const\s+PRODUCTS\s*=\s*(\[.*?\])\s*;",
-    ]
-    for pattern in patterns:
+    ):
         m = re.search(pattern, html, re.S)
         if m:
             return json.loads(m.group(1))
@@ -197,81 +208,98 @@ def token_set(value: str) -> set[str]:
 
 def size_tokens(value: str) -> set[str]:
     n = normalize(value)
-    found = set()
-    for m in re.finditer(r"\b\d+(?:[\.,]\d+)?\s*(?:lb|kg|gr|g|ml|oz|serv|caps|cap|tabletas|tabs)\b", n):
-        found.add(m.group(0).replace(",", "."))
-    return found
+    return {
+        m.group(0).replace(",", ".")
+        for m in re.finditer(r"\b\d+(?:[\.,]\d+)?\s*(?:lb|kg|gr|g|ml|oz|serv|caps|cap|tabletas|tabs)\b", n)
+    }
 
 
 def catalog_fields(p: dict) -> tuple[str, str, str]:
-    name = str(p.get("name") or p.get("nombre") or p.get("title") or "")
-    brand = str(p.get("brand") or p.get("marca") or "")
-    presentation = str(p.get("presentation") or p.get("presentacion") or p.get("size") or "")
-    return name, brand, presentation
+    return (
+        str(p.get("name") or p.get("nombre") or p.get("title") or ""),
+        str(p.get("brand") or p.get("marca") or ""),
+        str(p.get("presentation") or p.get("presentacion") or p.get("size") or ""),
+    )
+
+
+def distinctive_tokens(value: str) -> set[str]:
+    return token_set(value) & DISTINCTIVE
 
 
 def score_match(local: dict, remote: dict) -> float:
     lname, lbrand, lpresentation = catalog_fields(local)
     rname, rbrand = remote["name"], remote.get("brand", "")
 
+    # Marca diferente = jamás asociar automáticamente.
     if lbrand and rbrand and normalize(lbrand) != normalize(rbrand):
+        return 0.0
+
+    # Evita casos como Nitro Tech Ripped -> Nitro Tech normal o Amino EAA -> Amino Tone.
+    if distinctive_tokens(lname) != distinctive_tokens(rname):
         return 0.0
 
     a, b = token_set(lname), token_set(rname)
     if not a or not b:
         return 0.0
-    jaccard = len(a & b) / max(1, len(a | b))
+    overlap = len(a & b)
+    if overlap < 2:
+        return 0.0
+    jaccard = overlap / max(1, len(a | b))
 
     lsize = size_tokens(" ".join([lname, lpresentation]))
     rsize = set()
     for s in remote.get("sizes", []):
         rsize |= size_tokens(s)
-    size_bonus = 0.0
-    if lsize and rsize:
-        size_bonus = 0.22 if lsize & rsize else -0.25
 
+    # Si ambos lados exponen tamaño y no coincide, se rechaza. No queremos
+    # que 2 lb herede variantes de una presentación distinta por accidente.
+    if lsize and rsize and not (lsize & rsize):
+        return 0.0
+
+    size_bonus = 0.22 if lsize and rsize and (lsize & rsize) else 0.0
     brand_bonus = 0.12 if lbrand and rbrand and normalize(lbrand) == normalize(rbrand) else 0.0
     return max(0.0, min(1.0, jaccard + size_bonus + brand_bonus))
 
 
 def best_match(local: dict, remotes: list[dict]) -> tuple[dict | None, float]:
     ranked = sorted(((score_match(local, r), r) for r in remotes), key=lambda x: x[0], reverse=True)
+    ranked = [x for x in ranked if x[0] > 0]
     if not ranked:
         return None, 0.0
     best_score, best = ranked[0]
     second = ranked[1][0] if len(ranked) > 1 else 0.0
-    if best_score < 0.60 or (best_score - second) < 0.08:
+    if best_score < MIN_MATCH_SCORE or (best_score - second) < MIN_MATCH_GAP:
         return None, best_score
     return best, best_score
 
 
 def main() -> None:
     all_urls = discover_sitemaps()
-    product_urls = [u for u in all_urls if looks_like_product_url(u)]
-    if not product_urls:
-        product_urls = fallback_product_links()
+    product_urls = [u for u in all_urls if looks_like_product_url(u)] or fallback_product_links()
 
     remotes = []
     for url in product_urls:
         item = parse_product(url)
         if item:
             remotes.append(item)
-
     if not remotes:
         raise RuntimeError("No se pudo extraer ningún producto con sabores. Se conserva la información anterior.")
 
     local_products = load_catalog()
-    previous = {"updated_at": None, "source": BASE, "products": {}}
+    previous = {"products": {}}
     if FLAVORS_PATH.exists():
         try:
             previous = json.loads(FLAVORS_PATH.read_text(encoding="utf-8"))
         except Exception:
             pass
-
     prev_products = previous.get("products", {}) if isinstance(previous, dict) else {}
-    current = dict(prev_products)
-    changes = {"added": [], "removed": [], "changed": [], "unmatched": []}
-    matched_count = 0
+
+    # Se reconstruye desde cero en cada ejecución. Así una asociación que ya no
+    # supera las reglas nuevas desaparece en vez de quedarse eternamente.
+    current = {}
+    changed = []
+    added_products = []
+    removed_products = []
 
     for p in local_products:
         pid = str(p.get("id", "")).strip()
@@ -281,16 +309,11 @@ def main() -> None:
         if not remote:
             continue
 
-        matched_count += 1
         lname, lbrand, _ = catalog_fields(p)
-        old = current.get(pid, {})
-        old_flavors = old.get("flavors", []) if isinstance(old, dict) else []
-        new_flavors = remote["flavors"]
-
         entry = {
             "name": lname,
             "brand": lbrand,
-            "flavors": new_flavors,
+            "flavors": remote["flavors"],
             "source_name": remote["name"],
             "source_url": remote["source_url"],
             "source_sizes": remote.get("sizes", []),
@@ -298,32 +321,43 @@ def main() -> None:
         }
         current[pid] = entry
 
-        added = [x for x in new_flavors if x not in old_flavors]
-        removed = [x for x in old_flavors if x not in new_flavors]
-        if not old and new_flavors:
-            changes["added"].append({"id": pid, "product": lname, "flavors": new_flavors})
-        elif added or removed:
-            changes["changed"].append({"id": pid, "product": lname, "added": added, "removed": removed})
+        old = prev_products.get(pid)
+        if not old:
+            added_products.append({"id": pid, "product": lname, "flavors": entry["flavors"]})
+        else:
+            old_flavors = old.get("flavors", [])
+            new_flavors = entry["flavors"]
+            added = [x for x in new_flavors if x not in old_flavors]
+            removed = [x for x in old_flavors if x not in new_flavors]
+            if added or removed:
+                changed.append({"id": pid, "product": lname, "added": added, "removed": removed})
+
+    for pid, old in prev_products.items():
+        if pid not in current:
+            removed_products.append({"id": pid, "product": old.get("name", ""), "reason": "ya no supera el filtro seguro"})
 
     now = datetime.now(timezone.utc).isoformat()
     payload = {
         "updated_at": now,
         "source": BASE,
-        "matched_products": matched_count,
+        "matched_products": len(current),
         "source_products_with_flavors": len(remotes),
         "products": current,
     }
     report = {
         "updated_at": now,
-        "matched_products": matched_count,
+        "matched_products": len(current),
         "source_products_with_flavors": len(remotes),
-        **changes,
+        "added_products": added_products,
+        "removed_products": removed_products,
+        "changed": changed,
     }
 
     FLAVORS_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     CHANGES_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Productos fuente con sabores: {len(remotes)}")
-    print(f"Productos del catálogo asociados: {matched_count}")
+    print(f"Productos del catálogo asociados con filtro seguro: {len(current)}")
+    print(f"Asociaciones retiradas por seguridad: {len(removed_products)}")
 
 
 if __name__ == "__main__":
