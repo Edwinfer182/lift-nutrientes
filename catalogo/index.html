@@ -141,10 +141,10 @@ const WEEKLY_OFFERS={
   166:{price:79000,gift:false},                    // Simply Creatina 300 g
   123:{price:199000,gift:false,flavors:["Cocoa Pebbles"]}, // ISO 100 1.3 lb
   96:{price:225000,gift:false},                    // Cell Tech 6 lb
-  126:{price:550000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
+  126:{price:550000,compareAt:660000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
   142:{price:149000,gift:false,flavors:["Dubai Chocolate","Boston Cream Donut","Dulce de Leche"]}, // Basic Whey 2 lb
-  127:{price:250000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
-  559:{price:99000,gift:true},                     // Creatina Iron 500 g
+  127:{price:250000,compareAt:335000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
+  559:{price:99000,compareAt:119000,gift:true},                     // Creatina Iron 500 g
   101:{price:119000,gift:false},                   // Creatina Chews 90 tabs
   605:{price:55000,gift:false},                    // Protein Pancake Wakeup
   90:{price:69000,gift:false}                      // Multivitamínico Platinum 90 caps
@@ -152,10 +152,11 @@ const WEEKLY_OFFERS={
 function offerOf(p){return WEEKLY_OFFERS[p.id]||null}
 function hasOffer(p){return !!offerOf(p)}
 function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
-function savingOf(p){return Math.max(0,p.price-priceOf(p))}
+function compareAtOf(p){const o=offerOf(p);return o?.compareAt||p.price}
+function savingOf(p){return Math.max(0,compareAtOf(p)-priceOf(p))}
 function offerBadges(p){const o=offerOf(p);if(!o)return '';return `<span class="saleBadge">OFERTA</span>`}
 function offerDetails(p){const o=offerOf(p);if(!o)return '';const save=savingOf(p);const flavors=o.flavors?.length?`<div class="flavorNote"><b>Sabores en promoción:</b> ${o.flavors.map(esc).join(' · ')}</div>`:'';return `${o.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}${save?`<div class="saving">Ahorras ${fmt(save)}</div>`:''}${flavors}`}
-function priceHTML(p){const current=priceOf(p),save=savingOf(p);return `<div class="offerPrices">${save?`<span class="oldPrice">${fmt(p.price)}</span>`:''}<span class="price">${fmt(current)}</span></div>${offerDetails(p)}`}
+function priceHTML(p){const current=priceOf(p),save=savingOf(p);return `<div class="offerPrices">${save?`<span class="oldPrice">${fmt(compareAtOf(p))}</span>`:''}<span class="price">${fmt(current)}</span></div>${offerDetails(p)}`}
 
 let state={q:'',cat:'Todos',brand:'Todas',filterView:'brands',offerOnly:false};
 let cart=JSON.parse(localStorage.getItem('liftCartV2')||localStorage.getItem('liftCartV1')||'{}');
@@ -211,7 +212,7 @@ function renderQuickSearch(value){
   if(!q){box.classList.remove('show');box.innerHTML='';if(fullSearchActive){fullSearchActive=false;render()}return;}
   const all=searchProductsAll(value);
   const results=all.slice(0,7);
-  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" src="${p.image}" alt="${esc(p.name)}"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(p.price)}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
+  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" src="${p.image}" alt="${esc(p.name)}"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
   const allButton=`<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los resultados${all.length?` (${all.length})`:''}</button></div>`;
   box.innerHTML=rows+allButton;
   box.classList.add('show');
@@ -228,7 +229,7 @@ function openOff(id){document.getElementById(id).classList.add('open');document.
 function add(id){cart[id]=(cart[id]||0)+1;saveCart();renderCart();openOff('cart')} function change(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];saveCart();renderCart()} function removeItem(id){delete cart[id];saveCart();renderCart()} function saveCart(){localStorage.setItem('liftCartV2',JSON.stringify(cart));updateCount()}
 function items(){return Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p)} function updateCount(){const n=Object.values(cart).reduce((a,b)=>a+b,0);document.getElementById('count').textContent=n;document.getElementById('count2').textContent=n}
 function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({p,q})=>`<div class="cartline"><img src="${p.image}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick="change(${p.id},-1)">−</button><b>${q}</b><button onclick="change(${p.id},1)">+</button></div></div><button class="trash" onclick="removeItem(${p.id})">×</button></div>`).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
-function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div><div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(p.price)}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
+function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div><div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(compareAtOf(p))}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('productModal').classList.remove('open');document.body.style.overflow=''}
 let checkoutMode='cart';
 let checkoutSingleId=null;
