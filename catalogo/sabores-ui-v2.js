@@ -16,6 +16,7 @@
     try {
       await loadScript('sabores-ui-v2-original.js?v=20260907');
       await loadScript('cupones-ui.js?v=20260907');
+      await loadScript('catalogo-mejoras-ui.js?v=20260907b');
     } catch (error) {
       console.error('Lift: no se pudieron cargar los módulos del catálogo', error);
     }
