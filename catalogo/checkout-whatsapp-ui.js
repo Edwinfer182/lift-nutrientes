@@ -107,7 +107,7 @@
       ];
 
       rows.forEach(({ p, q, flavor }) => {
-        lines.push(`⚡ ${q} ${p.name} – ${p.brand}${flavor ? ' · Sabor: ' + flavor : ''} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift ? ' · 🎁 Incluye regalo' : ''}`);
+        lines.push(`\u26A1 ${q} ${p.name} – ${p.brand}${flavor ? ' · Sabor: ' + flavor : ''} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift ? ' · Incluye regalo' : ''}`);
       });
 
       lines.push('', `Subtotal: ${fmt(subtotal)}`);
@@ -115,11 +115,11 @@
         lines.push(`Cupón ${appliedCoupon.code}: -${fmt(discount)}`);
       }
       lines.push(
-        `Envío: ${shipping === 0 ? 'GRATIS 🚚' : fmt(shipping) + ' 🚚'}`,
+        `Envío: ${shipping === 0 ? 'GRATIS' : fmt(shipping)}`,
         `Total del pedido: ${fmt(total)}`
       );
 
-      return lines.filter(Boolean).join('\n');
+      return lines.join('\n');
     };
 
     finishCheckout = function () {
