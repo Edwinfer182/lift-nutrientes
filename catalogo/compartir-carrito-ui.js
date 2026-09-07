@@ -47,6 +47,7 @@
     const rows = items();
     if(!rows.length) return '';
     const url = new URL('share.html', location.href);
+    url.searchParams.set('v', Date.now().toString(36));
     url.searchParams.set(SHARE_PARAM, encodePayload(rows));
     return url.toString();
   }
