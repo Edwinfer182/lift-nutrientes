@@ -106,7 +106,7 @@
         <div class="checkoutLine"><span>Envío</span><strong id="coShipping">Selecciona ciudad</strong></div>
         <div class="checkoutLine total"><span>Total</span><span id="coTotal">$0</span></div>
         <button class="checkoutSend" onclick="finishCheckout()">Enviar pedido por WhatsApp</button>
-        <div class="checkoutHint">El envío se calcula por ciudad y cantidad de productos. Medellín usa la tarifa local; las demás ciudades usan la tarifa nacional.</div>
+        <div class="checkoutHint">El envío se calcula por ciudad y cantidad de productos. Medellín, Bello, Itagüí, Envigado, Sabaneta y La Estrella usan la tarifa local; las demás ciudades usan la tarifa nacional.</div>
       </div>
     </div>
   </div>
@@ -242,7 +242,7 @@ const fallbackCities=[
 async function loadCities(){if(cityData.length)return;try{const [cr,dr]=await Promise.all([fetch(CITY_URL),fetch(DEPT_URL)]);if(!cr.ok||!dr.ok)throw new Error('city fetch');const cj=await cr.json(),dj=await dr.json();const dm=Object.fromEntries(dj.data.map(d=>[d.id,d.name]));cityData=cj.data.map(c=>({name:c.name,department:dm[c.departmentId]||''})).sort((a,b)=>a.name.localeCompare(b.name,'es'));}catch(e){cityData=fallbackCities}}
 function checkoutItemsList(){if(checkoutMode==='single'){const p=PRODUCTS.find(x=>x.id===checkoutSingleId);return p?[{p,q:1}]:[]}return items()}
 function checkoutQty(){return checkoutItemsList().reduce((n,x)=>n+x.q,0)}
-function shippingFor(cityName,qty){if(!cityName||!qty)return null;const med=norm(cityName)==='medellin';if(med){if(qty===1)return 11000;if(qty===2)return 7000;return 0}if(qty===1)return 15000;if(qty===2)return 12000;if(qty===3)return 10000;return 0}
+function shippingFor(cityName,qty){if(!cityName||!qty)return null;const city=norm(cityName);const localCities=['medellin','bello','itagui','envigado','sabaneta','la estrella'];const local=localCities.includes(city);if(local){if(qty===1)return 11000;if(qty===2)return 7000;return 0}if(qty===1)return 15000;if(qty===2)return 12000;if(qty===3)return 10000;return 0}
 function openCheckout(){closeOff();document.getElementById('checkoutModal').classList.add('open');document.body.style.overflow='hidden';selectedCity=null;document.getElementById('coCity').value='';loadCities();renderCheckoutSummary()}
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');document.getElementById('cityResults').classList.remove('show');document.body.style.overflow=''}
 function startCartCheckout(){if(!items().length)return;checkoutMode='cart';checkoutSingleId=null;openCheckout()}
