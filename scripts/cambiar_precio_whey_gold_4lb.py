@@ -4,17 +4,22 @@ import re
 path = Path('catalogo/index.html')
 html = path.read_text(encoding='utf-8')
 
-# Busca el objeto del producto por nombre y cambia solo su campo price.
-pattern = re.compile(r'({[^{}]*?name\s*:\s*["\']100% Whey Gold Standard 4 Lbs["\'][^{}]*?price\s*:\s*)\d+', re.I | re.S)
-new_html, count = pattern.subn(r'\g<1>380000', html, count=1)
+name_pat = r'100%\s*Whey\s*Gold\s*Standard\s*4\s*Lbs'
+match = re.search(name_pat, html, re.I)
+if not match:
+    raise RuntimeError('No encontré el producto 100% Whey Gold Standard 4 Lbs.')
 
-if count == 0:
-    # Variante tolerante por si el nombre contiene espacios o texto adicional.
-    pattern = re.compile(r'({[^{}]*?name\s*:\s*["\'][^"\']*Whey Gold Standard 4\s*Lbs[^"\']*["\'][^{}]*?price\s*:\s*)\d+', re.I | re.S)
-    new_html, count = pattern.subn(r'\g<1>380000', html, count=1)
+start = max(0, match.start() - 1200)
+end = min(len(html), match.end() + 1200)
+chunk = html[start:end]
 
-if count != 1:
-    raise RuntimeError(f'Se esperaba cambiar 1 producto y se encontraron {count}. No se modifica el catálogo.')
+price_pat = re.compile(r'(["\']?price["\']?\s*:\s*)335000\b', re.I)
+price_matches = list(price_pat.finditer(chunk))
+if len(price_matches) != 1:
+    raise RuntimeError(f'Encontré {len(price_matches)} precios 335000 cerca del producto; no hago un cambio ambiguo.')
 
+pm = price_matches[0]
+chunk2 = chunk[:pm.start()] + pm.group(1) + '380000' + chunk[pm.end():]
+new_html = html[:start] + chunk2 + html[end:]
 path.write_text(new_html, encoding='utf-8')
-print('Precio actualizado a $380.000')
+print('Precio de 100% Whey Gold Standard 4 Lbs actualizado: $335.000 -> $380.000')
