@@ -39,37 +39,14 @@
     });
   }
 
-  function hideSeleccionLiftSearchResults(){
-    const searchWrap = document.querySelector('.search');
-    if(!searchWrap) return;
-
-    const candidates = [...searchWrap.querySelectorAll('button,a,li,[class*="result"],[class*="suggest"],[class*="option"],div')];
-    candidates.forEach(el => {
-      if(el.id === 'liftSearchKinds' || el.closest('#liftSearchKinds')) return;
-      const txt = norm(el.textContent || '');
-      if(!txt.includes('seleccion lift')) return;
-
-      const row = el.closest('button,a,li,[class*="result"],[class*="suggest"],[class*="option"]') || el;
-      if(row && row !== searchWrap && !row.querySelector('input')) row.remove();
-    });
-  }
-
-  function removeSeleccionLiftFromKinds(){
-    document.querySelectorAll('#liftSearchKinds .liftSearchKind').forEach(btn => {
-      if(norm(btn.textContent).includes('seleccion lift')) btn.remove();
-    });
-  }
-
   function run(){
     fixSupremacyBrand();
-    hideSeleccionLiftSearchResults();
-    removeSeleccionLiftFromKinds();
     refreshVisibleMeta();
   }
 
   const observer = new MutationObserver(() => {
     clearTimeout(window.__liftBrandFixTimer);
-    window.__liftBrandFixTimer = setTimeout(run, 25);
+    window.__liftBrandFixTimer = setTimeout(run, 60);
   });
   observer.observe(document.documentElement,{childList:true,subtree:true});
 
