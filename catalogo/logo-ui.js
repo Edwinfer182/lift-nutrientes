@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const FAVICON = 'logo-lift.png.png';
+  const LOGO = 'logo-lift.png.png';
   const LETTERS = 'letras-lift-logo.png';
 
   function upsertLink(rel, href) {
@@ -12,67 +12,62 @@
     }
     el.href = href;
   }
+  upsertLink('icon', LOGO);
+  upsertLink('shortcut icon', LOGO);
+  upsertLink('apple-touch-icon', LOGO);
 
-  upsertLink('icon', FAVICON);
-  upsertLink('shortcut icon', FAVICON);
-  upsertLink('apple-touch-icon', FAVICON);
-
-  function setMeta(selector, attr, name, value) {
-    let el = document.querySelector(selector);
-    if (!el) {
-      el = document.createElement('meta');
-      el.setAttribute(attr, name);
-      document.head.appendChild(el);
-    }
-    el.content = value;
-  }
-  const absoluteLogo = new URL(FAVICON, location.href).href;
-  setMeta('meta[property="og:image"]','property','og:image',absoluteLogo);
-  setMeta('meta[name="twitter:image"]','name','twitter:image',absoluteLogo);
-
-  function installHeaderLetters() {
+  function installBrand() {
     if (!document.getElementById('lift-brand-style')) {
-      const style = document.createElement('style');
+      const style=document.createElement('style');
       style.id='lift-brand-style';
-      style.textContent = `
-        .lift-brand-letters{display:block;height:31px;width:auto;max-width:145px;object-fit:contain;object-position:left center;margin-left:7px}
-        @media(max-width:700px){.lift-brand-letters{height:25px;max-width:112px;margin-left:5px}}
+      style.textContent=`
+        .lift-brand-complete{display:flex!important;align-items:center!important;gap:7px!important;white-space:nowrap}
+        .lift-brand-symbol{display:block;width:42px;height:42px;object-fit:contain}
+        .lift-brand-letters{display:block;height:30px;width:auto;max-width:145px;object-fit:contain}
+        @media(max-width:700px){
+          .lift-brand-complete{gap:5px!important}
+          .lift-brand-symbol{width:36px;height:36px}
+          .lift-brand-letters{height:24px;max-width:105px}
+        }
       `;
       document.head.appendChild(style);
     }
 
-    if (document.querySelector('.lift-brand-letters')) return true;
-
+    if(document.querySelector('.lift-brand-complete')) return true;
     const candidates=[...document.querySelectorAll('header *, .topbar *, .header *, nav *')];
     const lBox=candidates.find(el=>{
       const t=(el.textContent||'').trim();
       if(t!=='L') return false;
       const r=el.getBoundingClientRect();
-      return r.width>=24 && r.width<=70 && r.height>=24 && r.height<=70;
+      return r.width>=24&&r.width<=70&&r.height>=24&&r.height<=70;
     });
-    if(!lBox) return false;
-
-    const img=document.createElement('img');
-    img.src=LETTERS;
-    img.alt='Lift Nutrientes';
-    img.className='lift-brand-letters';
+    if(!lBox||!lBox.parentElement) return false;
 
     const parent=lBox.parentElement;
-    if(!parent) return false;
-    parent.style.display='flex';
-    parent.style.alignItems='center';
+    const oldText=[...parent.children].find(el=>el!==lBox&&(el.textContent||'').trim().toUpperCase().includes('NUTRIENTES'));
 
-    let oldText=[...parent.children].find(el=>el!==lBox && (el.textContent||'').trim().toUpperCase().includes('NUTRIENTES'));
+    const brand=document.createElement('span');
+    brand.className='lift-brand-complete';
+    const symbol=document.createElement('img');
+    symbol.src=LOGO;
+    symbol.alt='Lift';
+    symbol.className='lift-brand-symbol';
+    const letters=document.createElement('img');
+    letters.src=LETTERS;
+    letters.alt='Lift Nutrientes';
+    letters.className='lift-brand-letters';
+    brand.append(symbol,letters);
+
+    lBox.replaceWith(brand);
     if(oldText) oldText.style.display='none';
-    lBox.insertAdjacentElement('afterend',img);
     return true;
   }
 
-  if (!installHeaderLetters()) {
+  if(!installBrand()){
     let tries=0;
     const timer=setInterval(()=>{
       tries++;
-      if(installHeaderLetters() || tries>30) clearInterval(timer);
+      if(installBrand()||tries>30)clearInterval(timer);
     },250);
   }
 })();
