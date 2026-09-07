@@ -3,7 +3,7 @@ name: Instalar interfaz de sabores
 on:
   push:
     paths:
-      - 'catalogo/sabores-ui.js'
+      - 'catalogo/sabores-ui-v2.js'
       - 'scripts/instalar_interfaz_sabores.py'
   workflow_dispatch:
 
@@ -22,15 +22,15 @@ jobs:
       - name: Instalar interfaz en el catálogo
         run: python scripts/instalar_interfaz_sabores.py
       - name: Validar referencia
-        run: grep -q 'sabores-ui.js?v=1' catalogo/index.html
+        run: grep -q 'sabores-ui-v2.js?v=2' catalogo/index.html
       - name: Guardar cambio
         run: |
           git config user.name "lift-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add catalogo/index.html
           if git diff --cached --quiet; then
-            echo "La interfaz ya estaba instalada."
+            echo "La interfaz v2 ya estaba instalada."
             exit 0
           fi
-          git commit -m "Conectar interfaz de sabores al catálogo"
+          git commit -m "Corregir interfaz de sabores v2"
           git push
