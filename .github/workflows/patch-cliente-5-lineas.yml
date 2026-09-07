@@ -13,67 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Actualizar parser de cliente
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          p = Path('index.html')
-          text = p.read_text(encoding='utf-8')
-
-          new_func = r'''function parseCliente(texto){
- let nombre = obtenerCampo(texto,['nombre']);
- let celular = obtenerCampo(texto,['celular','tel[eé]fono','telefono','whatsapp','wp']);
- let direccion = obtenerCampo(texto,['direcci[oó]n','direccion']);
-
- const lineas = texto.split(/\r?\n/).map(x => x.trim()).filter(Boolean).slice(0,5);
-
- if(!celular){
-  const m = texto.match(/\b3\d{9}\b/);
-  if(m) celular = m[0];
- }
-
- if(!nombre && lineas.length){
-  const candidata = lineas.find(x =>
-   !/\b3\d{9}\b/.test(x) &&
-   !/direcci[oó]n|calle|carrera|cra\.?|cl\.?|transversal|diagonal|avenida|barrio|apto|apartamento|torre|#/i.test(x)
-  );
-  if(candidata) nombre = candidata.replace(/^nombre\s*[:\-]?\s*/i,'').trim();
- }
-
- const idxDireccion = lineas.findIndex(x =>
-  /direcci[oó]n|calle|carrera|cra\.?|cl\.?|transversal|diagonal|avenida|barrio|apto|apartamento|torre|#/i.test(x)
- );
-
- if(idxDireccion >= 0){
-  const partes = [];
-  const primera = lineas[idxDireccion].replace(/^direcci[oó]n\s*[:\-]?\s*/i,'').trim();
-  if(primera) partes.push(primera);
-
-  for(let i = idxDireccion + 1; i < lineas.length; i++){
-   const extra = lineas[i].trim();
-   if(!extra) continue;
-   if(/\b3\d{9}\b/.test(extra)) continue;
-   if(/^nombre\s*[:\-]?/i.test(extra)) continue;
-   if(/^(celular|tel[eé]fono|telefono|whatsapp|wp)\s*[:\-]?/i.test(extra)) continue;
-   partes.push(extra.replace(/^direcci[oó]n\s*[:\-]?\s*/i,'').trim());
-  }
-
-  if(partes.length) direccion = partes.join(' - ');
- }
-
- return {nombre, celular, direccion};
-}'''
-
-          pattern = re.compile(r"function parseCliente\(texto\)\{.*?\n\}\n\nfunction parseProducto", re.S)
-          m = pattern.search(text)
-          if not m:
-              raise SystemExit('No se encontro parseCliente')
-
-          text = text[:m.start()] + new_func + '\n\nfunction parseProducto' + text[m.end():]
-          p.write_text(text, encoding='utf-8')
-          PY
+      - name: Aplicar parche
+        run: python scripts/patch_cliente_5_lineas.py
       - name: Guardar cambio
         run: |
           git config user.name "github-actions[bot]"
