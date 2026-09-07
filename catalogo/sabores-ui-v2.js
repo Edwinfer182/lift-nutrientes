@@ -23,6 +23,7 @@
       await loadScript('imagenes-tarjetas-ui.js?v=20260907f');
       await loadScript('compartir-carrito-ui.js?v=20260907g');
       await loadScript('logo-ui.js?v=20260907h');
+      await loadScript('checkout-whatsapp-ui.js?v=20260907i');
     } catch (error) {
       console.error('Lift: no se pudieron cargar los módulos del catálogo', error);
     }
