@@ -29,7 +29,7 @@
       const total = Math.max(0, subtotal - discount) + (shipping || 0);
 
       const lines = [
-        'Hola Fer quiero realizar el siguiente producto',
+        'Hola Fer, quiero realizar el siguiente pedido:',
         '',
         `Nombre: ${name}`,
         `Celular: ${phone}`,
