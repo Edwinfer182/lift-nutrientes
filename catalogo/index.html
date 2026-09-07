@@ -137,5 +137,5 @@ function finishCheckout(){const t=checkoutText();if(!t)return;window.open('https
 function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(p.price)} c/u`));const sub=its.reduce((s,x)=>s+x.p.price*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
 async function copyOrder(){const t=orderText();if(!t)return;try{await navigator.clipboard.writeText(t);alert('Pedido copiado.')}catch(e){prompt('Copia el pedido:',t)}}
 updateCount();render();renderCart();
-</script><script src="sabores-ui.js?v=1"></script>
+</script><script src="sabores-ui-v2.js?v=2"></script>
 </body></html>
