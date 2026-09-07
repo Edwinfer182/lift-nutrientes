@@ -46,9 +46,8 @@
     if(typeof items !== 'function') return '';
     const rows = items();
     if(!rows.length) return '';
-    const url = new URL(location.href);
+    const url = new URL('share.html', location.href);
     url.searchParams.set(SHARE_PARAM, encodePayload(rows));
-    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k=>url.searchParams.delete(k));
     return url.toString();
   }
 
