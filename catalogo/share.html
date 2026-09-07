@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carrito Lift Nutrientes</title>
+<meta name="description" content="Te compartieron un carrito de Lift Nutrientes.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Carrito Lift Nutrientes">
+<meta property="og:description" content="Te compartieron una selección de productos de Lift Nutrientes.">
+<meta property="og:image" content="https://lift-nutrientes.vercel.app/catalogo/logo-lift.png.png">
+<meta property="og:image:alt" content="Lift Nutrientes">
+<meta property="og:url" content="https://lift-nutrientes.vercel.app/catalogo/share.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Carrito Lift Nutrientes">
+<meta name="twitter:description" content="Te compartieron una selección de productos de Lift Nutrientes.">
+<meta name="twitter:image" content="https://lift-nutrientes.vercel.app/catalogo/logo-lift.png.png">
+<link rel="icon" href="logo-lift.png.png">
+<style>body{font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#fff;color:#111}.box{text-align:center;padding:24px}.box img{width:min(280px,75vw);height:auto}.box p{margin-top:14px;color:#666}</style>
+</head>
+<body>
+<div class="box"><img src="logo-lift.png.png" alt="Lift Nutrientes"><p>Abriendo tu carrito compartido…</p></div>
+<script>
+(() => {
+  const current = new URL(location.href);
+  const cart = current.searchParams.get('cart');
+  const target = new URL('./', location.href);
+  if (cart) target.searchParams.set('cart', cart);
+  location.replace(target.toString());
+})();
+</script>
+</body>
+</html>
