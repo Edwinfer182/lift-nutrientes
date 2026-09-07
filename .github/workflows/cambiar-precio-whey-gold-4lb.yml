@@ -26,3 +26,4 @@ jobs:
           git add catalogo/index.html
           git commit -m "Cambiar Whey Gold Standard 4 Lbs a 380000"
           git push
+# retry v2
