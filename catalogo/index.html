@@ -18,7 +18,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
     const doc = frame.contentDocument;
     if (!doc || doc.querySelector('script[data-lift-protein-subcategories]')) return;
     const script = doc.createElement('script');
-    script.src = './proteinas-subcategorias.js?v=11';
+    script.src = './proteinas-subcategorias.js?v=12';
     script.dataset.liftProteinSubcategories = '1';
     doc.body.appendChild(script);
   });
