@@ -259,6 +259,201 @@
 }
 
 </style>
+<style>
+/* ===== Corrección definitiva del detalle de producto en celular ===== */
+@media (max-width:760px){
+  #liftMonoOff{
+    box-sizing:border-box!important;
+    width:calc(100vw - 20px)!important;
+    max-width:calc(100vw - 20px)!important;
+    max-height:calc(100dvh - 24px)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    border-radius:16px!important;
+  }
+
+  #liftMonoBody{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+
+  #liftMonoOff .liftMonoBody{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:12px!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    padding:18px 16px 22px!important;
+    box-sizing:border-box!important;
+  }
+
+  #liftMonoOff .liftMonoImg{
+    position:relative!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:270px!important;
+    max-height:36dvh!important;
+    min-height:190px!important;
+    padding:8px 6px!important;
+    margin:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+
+  #liftMonoOff .liftMonoImg img{
+    position:static!important;
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    max-width:100%!important;
+    max-height:100%!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    transform:none!important;
+    margin:auto!important;
+  }
+
+  #liftMonoOff .liftMonoBody > div:last-child{
+    position:relative!important;
+    z-index:2!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    padding:0!important;
+    margin:0!important;
+    background:#fff!important;
+    box-sizing:border-box!important;
+  }
+
+  #liftMonoOff .liftMonoBrand{
+    margin:0 0 5px!important;
+    font-size:11px!important;
+    line-height:1.25!important;
+  }
+
+  #liftMonoOff .liftMonoTitle{
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 0 6px!important;
+    padding-right:38px!important;
+    font-size:22px!important;
+    line-height:1.18!important;
+    overflow-wrap:anywhere!important;
+    word-break:normal!important;
+    box-sizing:border-box!important;
+  }
+
+  #liftMonoOff .liftMonoPrice{
+    margin:10px 0 16px!important;
+    font-size:27px!important;
+    line-height:1.1!important;
+  }
+
+  #liftMonoOff .liftMonoBtns{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  #liftMonoOff .liftMonoBtns button{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:50px!important;
+    box-sizing:border-box!important;
+  }
+
+  #liftMonoOff .liftMonoMeta{
+    width:100%!important;
+    max-width:100%!important;
+    margin:18px 0 0!important;
+    padding:14px 0 0!important;
+    font-size:12px!important;
+    line-height:1.5!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  #liftMonoClose{
+    position:sticky!important;
+    float:right!important;
+    top:10px!important;
+    right:10px!important;
+    margin:10px 10px -52px auto!important;
+    width:42px!important;
+    height:42px!important;
+    z-index:20!important;
+    background:rgba(255,255,255,.96)!important;
+    backdrop-filter:blur(6px)!important;
+  }
+}
+
+@media (max-width:390px){
+  #liftMonoOff{
+    width:calc(100vw - 12px)!important;
+    max-width:calc(100vw - 12px)!important;
+    max-height:calc(100dvh - 16px)!important;
+  }
+
+  #liftMonoOff .liftMonoBody{
+    padding:15px 13px 19px!important;
+    gap:10px!important;
+  }
+
+  #liftMonoOff .liftMonoImg{
+    height:235px!important;
+    max-height:34dvh!important;
+    min-height:170px!important;
+  }
+
+  #liftMonoOff .liftMonoTitle{
+    font-size:20px!important;
+  }
+
+  #liftMonoOff .liftMonoPrice{
+    font-size:25px!important;
+  }
+}
+
+/* Entrada más limpia del detalle */
+#liftMonoOff{
+  transform-origin:center center!important;
+}
+#liftMonoOff.open{
+  animation:liftMonoEnter .34s cubic-bezier(.2,.8,.2,1) both!important;
+}
+@keyframes liftMonoEnter{
+  0%{opacity:0;transform:translate(-50%,-47%) scale(.88)}
+  65%{opacity:1;transform:translate(-50%,-50%) scale(1.015)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+
+/* Hover más notorio solo donde realmente existe mouse */
+@media (hover:hover) and (pointer:fine){
+  .card{
+    transition:transform .24s ease,box-shadow .24s ease!important;
+  }
+  .card .pic img{
+    transition:transform .32s cubic-bezier(.2,.7,.2,1)!important;
+  }
+  .card:hover{
+    transform:translateY(-6px)!important;
+    box-shadow:0 16px 34px rgba(0,0,0,.14)!important;
+  }
+  .card:hover .pic img{
+    transform:scale(1.08)!important;
+  }
+}
+</style>
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
