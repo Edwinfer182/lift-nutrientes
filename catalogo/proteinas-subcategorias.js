@@ -8,11 +8,29 @@
     { name: 'Proteína Whey', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
   ];
 
-  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','mass','serious mass','true mass','bulk','super mass','pro gainer'];
+  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','ganador de masa','ganadores de masa','mass gainer','mega mass','mass evolution','titan beef','titan army','serious mass','true mass','super mass','pro gainer','bulk'];
   const EXCLUDED_FROM_PROTEINS = ['amino build','creatine chews','maca root','nac 600','ultimate pre workout','protein bar','protein bars','barra de proteina','barras de proteina','crispy bar','integralmedica crispy'];
   const PROTEIN_CATEGORY_TERMS = ['protein','proteina','proteinas'];
   const AMINO_CATEGORY_TERMS = ['aminoacidos','aminoácidos','bcaa / eaa','bcaa/eaa','bcaa','eaa'];
   const EAA_TERMS = [' eaa ',' eaa+ ',' eaa+','eaa ','eaas','aminoacidos esenciales','aminoácidos esenciales','essential amino'];
+
+  const OTHER_RULES = [
+    { category: 'Ganador de masa', terms: MASS_TERMS },
+    { category: 'Pre entreno', terms: ['pre entreno','pre-entreno','pre workout','pre-workout','paranoia','psychotic','mesomorph','total war','c4 original','c4 ultimate','mr hyde','woke af','gorilla mode'] },
+    { category: 'Creatina', terms: ['creatine','creatina','creapure'] },
+    { category: 'Glutamina', terms: ['glutamine','glutamina'] },
+    { category: 'Magnesio', terms: ['magnesium','magnesio'] },
+    { category: 'Omega 3', terms: ['omega 3','omega-3','fish oil','aceite de pescado'] },
+    { category: 'Colágeno', terms: ['collagen','colageno','colágeno'] },
+    { category: 'Cafeína', terms: ['caffeine','cafeina','cafeína'] },
+    { category: 'Ashwagandha', terms: ['ashwagandha','ksm-66','ksm 66'] },
+    { category: 'Probióticos', terms: ['probiotic','probiotico','probiótico','probiotics','probioticos','probióticos'] },
+    { category: 'Enzimas digestivas', terms: ['digestive enzyme','digestive enzymes','enzima digestiva','enzimas digestivas'] },
+    { category: 'Electrolitos', terms: ['electrolyte','electrolytes','electrolito','electrolitos'] },
+    { category: 'Antioxidantes', terms: ['turmeric','curcuma','cúrcuma','resveratrol','alpha lipoic','acido alfa lipoico','ácido alfa lipoico','coq10','coenzyme q10'] },
+    { category: 'Control de peso', terms: ['fat burner','quemador','thermo','thermogenic','l-carnitine','carnitina','cla ','cla 1000','hydroxycut','lipodrene','yohimbine','yohimbina','synephrine','sinefrina'] },
+    { category: 'Salud', terms: ['green mix','super alimentos','superalimentos','multivitamin','multivitaminico','multivitamínico','vitamin d','vitamina d','vitamin c','vitamina c','zinc','turmeric ginger'] }
+  ];
 
   const normalize = value => String(value ?? '')
     .toLowerCase()
@@ -23,20 +41,26 @@
     .trim();
 
   const textOf = product => normalize(`${product?.name || ''} ${product?.brand || ''} ${product?.category || ''} ${Array.isArray(product?.tags) ? product.tags.join(' ') : (product?.tags || '')}`);
+  const nameOf = product => normalize(`${product?.name || product?.title || ''} ${product?.brand || ''}`);
   const includesAny = (value, terms) => terms.some(term => normalize(value).includes(normalize(term)));
   const isMassGainer = product => includesAny(textOf(product), MASS_TERMS);
   const isExcludedFromProteins = product => includesAny(textOf(product), EXCLUDED_FROM_PROTEINS);
-  const looksLikeProteinCategory = category => {
-    const value = normalize(category);
-    return PROTEIN_CATEGORY_TERMS.some(term => value.includes(normalize(term)));
-  };
-  const looksLikeAminoCategory = category => {
-    const value = normalize(category);
-    return AMINO_CATEGORY_TERMS.some(term => value === normalize(term));
-  };
+  const looksLikeProteinCategory = category => PROTEIN_CATEGORY_TERMS.some(term => normalize(category).includes(normalize(term)));
+  const looksLikeAminoCategory = category => AMINO_CATEGORY_TERMS.some(term => normalize(category) === normalize(term));
+  const isOtherCategory = category => ['otros','otros suplementos'].includes(normalize(category));
   const isEAA = product => {
     const name = ` ${normalize(product?.name || product?.title || '')} `;
     return EAA_TERMS.some(term => name.includes(` ${normalize(term)} `) || name.includes(normalize(term)));
+  };
+
+  const classifyOther = product => {
+    const haystack = nameOf(product);
+    if (isEAA(product)) return 'EAA';
+    if (includesAny(haystack, ['bcaa','leucine','leucina','arginine','arginina','citrulline','citrulina','amino energy','amino x','amino build'])) return 'Aminoácidos';
+    for (const rule of OTHER_RULES) {
+      if (includesAny(haystack, rule.terms)) return rule.category;
+    }
+    return null;
   };
 
   const classifyProduct = product => {
@@ -66,7 +90,7 @@
   };
 
   window.LIFT_PROTEIN_SUBCATEGORIES = SUBCATEGORIES.map(group => group.name);
-  window.LIFT_PROTEIN_CLASSIFIER = { normalize, isMassGainer, isExcludedFromProteins, looksLikeProteinCategory, classifyProduct };
+  window.LIFT_PROTEIN_CLASSIFIER = { normalize, isMassGainer, isExcludedFromProteins, looksLikeProteinCategory, classifyProduct, classifyOther };
 
   function applyToCatalog() {
     try {
@@ -75,8 +99,19 @@
       const duplicatesRemoved = dedupeProducts(PRODUCTS);
       const oldProteinCategories = new Set();
       let changed = 0;
+      let othersMoved = 0;
 
       for (const product of PRODUCTS) {
+        if (isOtherCategory(product?.category)) {
+          const destination = classifyOther(product);
+          if (destination && product.category !== destination) {
+            product.category = destination;
+            changed++;
+            othersMoved++;
+          }
+          continue;
+        }
+
         if (looksLikeAminoCategory(product?.category)) {
           const nextAminoCategory = isEAA(product) ? 'EAA' : 'Aminoácidos';
           if (product.category !== nextAminoCategory) {
@@ -87,9 +122,14 @@
         }
 
         if (!looksLikeProteinCategory(product?.category)) continue;
-        if (isMassGainer(product)) continue;
+        if (isMassGainer(product)) {
+          product.category = 'Ganador de masa';
+          changed++;
+          continue;
+        }
         if (isExcludedFromProteins(product)) {
-          product.category = 'Otros suplementos';
+          const destination = classifyOther(product) || 'Otros suplementos';
+          product.category = destination;
           changed++;
           continue;
         }
@@ -112,10 +152,8 @@
         });
 
         nextCats.push('Aminoácidos', 'EAA');
-        for (const group of SUBCATEGORIES) {
-          if (!nextCats.includes(group.name)) nextCats.push(group.name);
-        }
-        if (PRODUCTS.some(product => product.category === 'Otros suplementos') && !nextCats.includes('Otros suplementos')) nextCats.push('Otros suplementos');
+        for (const group of SUBCATEGORIES) if (!nextCats.includes(group.name)) nextCats.push(group.name);
+        for (const product of PRODUCTS) if (product?.category && !nextCats.includes(product.category)) nextCats.push(product.category);
         nextCats.sort((a, b) => String(a).localeCompare(String(b), 'es', { sensitivity: 'base' }));
         cats.splice(0, cats.length, ...new Set(nextCats));
       }
@@ -129,7 +167,7 @@
       if (typeof render === 'function') render();
 
       document.documentElement.dataset.liftProteinSubcategories = 'ready';
-      console.info(`[Lift] Catálogo reclasificado: ${changed}; duplicados eliminados: ${duplicatesRemoved}`);
+      console.info(`[Lift] Catálogo reclasificado: ${changed}; movidos desde Otros: ${othersMoved}; duplicados eliminados: ${duplicatesRemoved}`);
       return true;
     } catch (error) {
       console.error('[Lift] No se pudieron aplicar las clasificaciones del catálogo', error);
@@ -138,10 +176,7 @@
   }
 
   if (!applyToCatalog()) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', applyToCatalog, { once: true });
-    } else {
-      setTimeout(applyToCatalog, 0);
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyToCatalog, { once: true });
+    else setTimeout(applyToCatalog, 0);
   }
 })();
