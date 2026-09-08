@@ -13,7 +13,6 @@
     { aliases:['creatina 1200 gr 240 serv micronizada','1200 gr 240 serv micronizada','creatina on 240','creatine on 240','optimum nutrition 240','creatina optimum 240'], id:'15Se4597oGm8jWGpKMDkYOgx45h4P68ff' },
     { aliases:['creatina platinum 450 gr 90 serv micronizada','creatina platinum 90 serv 450 gr micronizada','creatina platinum 90','creatine platinum 90','platinum 90 serv','platinum creatina 60 serv 300 gr creapure'], id:'1jEUIurIkIP0eNAxAxd28hWtLspMezTFn' },
     { aliases:['simply creatina 300gr 60 serv','simply creatina 300 gr 60 serv','creatina simply 300','creatine simply 300','simply 300'], id:'1SOvlTG1-OG2DBtersnefTbk-NHAwuww8' },
-    { aliases:['basic creatina 300 gr 60 serv','basic creatina 300gr 60 serv','creatine basic 300','creatina basic 300','basic 300'], id:'1DbWHPWzi2DgEbvkkPl9Rhjn1pAJ-1vwR' },
     { aliases:['simply creatina 3 1 kg 200 serv','simply creatina 1 kg 200 serv','creatine simply 1 kg','creatina simply 1 kg','simply 1 kg','simply 1000'], id:'1LHbMA2OJ8SO7kQWNAeecfJyNyEV8z7i-' },
     { aliases:['legacy 50 serv','legacy 50','legacy creatine','creatina legacy'], id:'1CtXgrkeOHQCrXNjnbOQJLAcOip_WvGTP' }
   ];
@@ -24,40 +23,29 @@
     const t = norm(text);
     let best = null;
     let bestLen = 0;
-    for (const item of images) {
-      for (const alias of item.aliases) {
-        const a = norm(alias);
-        if (a && t.includes(a) && a.length > bestLen) {
-          best = item;
-          bestLen = a.length;
-        }
-      }
+    for (const item of images) for (const alias of item.aliases) {
+      const a = norm(alias);
+      if (a && t.includes(a) && a.length > bestLen) { best=item; bestLen=a.length; }
     }
     return best;
   }
 
   function apply(){
-    document.querySelectorAll('.card, [class*="product"], article').forEach(card => {
+    document.querySelectorAll('.card, [class*="product-card"], article').forEach(card => {
+      if (card.closest('#liftProductOffcanvas')) return;
       const text = card.innerText || card.textContent || '';
       const match = findImage(text);
       if (!match) return;
       const img = card.querySelector('.pic img, img');
       if (!img || img.dataset.liftDriveId === match.id) return;
       img.dataset.liftDriveId = match.id;
-      img.loading = 'lazy';
-      img.decoding = 'async';
-      img.referrerPolicy = 'no-referrer';
+      img.loading='lazy'; img.decoding='async'; img.referrerPolicy='no-referrer';
       img.src = DRIVE + match.id + '&sz=w800';
     });
   }
 
-  let queued = false;
-  const queueApply = () => {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => { queued = false; apply(); });
-  };
-
+  let queued=false;
+  const queueApply=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply();});};
   apply();
   new MutationObserver(queueApply).observe(document.documentElement,{childList:true,subtree:true});
   window.addEventListener('hashchange',queueApply);
