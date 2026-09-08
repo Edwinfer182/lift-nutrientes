@@ -8,7 +8,8 @@
     { aliases:['vegan protein 2 lb','vegan protein','healthy sports vegan protein'], id:'1FRzZhDFbXc1lHHGdIqI3JKaXyOy90E8p' },
     { aliases:['turmeric 60 gomas','tumeric 60 gomas'], id:'1UDrn_ltFF-4BSno6X9NLEmEB42UYpYeu' },
     { aliases:['citrato de magnesio gomitas 30 serv','citrato de magnesio en gomas 30 serv','citrato de magnesio'], id:'1LnuXSNCv2sE8OeZSGs2cY-pOPn_MPyac' },
-    { aliases:['complejo b gomitas 30 serv','complejo b gomas 30 serv','complejo b'], id:'1oFtujnApUojGJHKaiKJJY2tnKJPLMzrj' }
+    { aliases:['complejo b gomitas 30 serv','complejo b gomas 30 serv','complejo b'], id:'1oFtujnApUojGJHKaiKJJY2tnKJPLMzrj' },
+    { aliases:['probiotics 60 gomitas','probiotics 60 gomas','probiotics'], id:'1wolpo6OYKQagrcwIfNXYcbuiDbgjWQeb' }
   ];
 
   const norm = s => String(s || '')
