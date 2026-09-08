@@ -327,12 +327,17 @@ function checkoutText(){const name=document.getElementById('coName').value.trim(
 function finishCheckout(){const t=checkoutText();if(!t)return;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
 function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
 async function copyOrder(){const t=orderText();if(!t)return;try{await navigator.clipboard.writeText(t);alert('Pedido copiado.')}catch(e){prompt('Copia el pedido:',t)}}
-updateCount();render();renderCart();
-</script><script src="sabores-ui-v2.js?v=2"></script>
 
-<script src="proteinas-subcategorias.js?v=13"></script>
-<script src="imagenes-tarjetas-ui.js?v=2"></script>
-<script src="imagenes-productos.js?v=1"></script>
-<script src="producto-offcanvas-ui.js?v=5"></script>
+// Base principal disponible para los módulos externos del catálogo.
+window.PRODUCTS = PRODUCTS;
+window.LIFT_PRODUCTS = PRODUCTS;
+
+updateCount();render();renderCart();
+</script>
+<script src="./sabores-ui-v2.js?v=3"></script>
+<script src="./proteinas-subcategorias.js?v=14"></script>
+<script src="./imagenes-tarjetas-ui.js?v=3"></script>
+<script src="./imagenes-productos.js?v=2"></script>
+<script src="./producto-offcanvas-ui.js?v=6"></script>
 
 </body></html>
