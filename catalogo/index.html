@@ -24,6 +24,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
       script.setAttribute(attr, '1');
       doc.body.appendChild(script);
     };
+    inject('./imagenes-asociacion-segura.js?v=1', 'data-lift-safe-image-groups');
     inject('./proteinas-subcategorias.js?v=13', 'data-lift-protein-subcategories');
     inject('./imagenes-tarjetas-ui.js?v=2', 'data-lift-card-image-size');
     inject('./creatinas-imagenes-drive.js?v=4', 'data-lift-creatine-drive-images');
