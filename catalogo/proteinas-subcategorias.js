@@ -1,10 +1,10 @@
 (() => {
   const SUBCATEGORIES = [
-    { name: 'Proteína hidrolizada', keywords: ['hydrolyzed','hydrolysed','hydro whey','hydro','iso100','iso 100'] },
+    { name: 'Proteína hidrolizada', keywords: ['hydrolyzed','hydrolysed','hydro whey','hydro'] },
     { name: 'Proteína vegana', keywords: ['vegan','plant protein','plant-based','pea','arveja','rice protein','proteina de arroz','soya','soy','vegetal'] },
     { name: 'Proteína de carne', keywords: ['beef','carnivor','carne'] },
     { name: 'Proteína de otras fuentes', keywords: ['casein','caseina','micellar','egg','huevo','albumin','albumina'] },
-    { name: 'Proteína aislada / limpia', keywords: ['isolate','isolated','isolation','isopure','iso whey','whey iso','isolate 100','zero carb','low carb'] },
+    { name: 'Proteína aislada / limpia', keywords: ['iso triple zero','triple zero','iso100','iso 100','isolate','isolated','isolation','isopure','iso whey','whey iso','isolate 100','zero carb','low carb'] },
     { name: 'Proteína Whey', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
   ];
 
