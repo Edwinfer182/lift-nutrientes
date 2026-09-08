@@ -9,7 +9,7 @@
   ];
 
   const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','mass','serious mass','true mass','bulk','super mass','pro gainer'];
-  const EXCLUDED_FROM_PROTEINS = ['amino build','creatine chews','maca root','nac 600','ultimate pre workout','protein bar','protein bars','barra de proteina','barras de proteina'];
+  const EXCLUDED_FROM_PROTEINS = ['amino build','creatine chews','maca root','nac 600','ultimate pre workout','protein bar','protein bars','barra de proteina','barras de proteina','crispy bar','integralmedica crispy'];
   const PROTEIN_CATEGORY_TERMS = ['protein','proteina','proteinas'];
 
   const normalize = value => String(value ?? '')
