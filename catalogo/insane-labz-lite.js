@@ -5,7 +5,7 @@
   const SPECS = [
     {id:'insane-psychotic-black-60',name:'Psychotic Black',presentation:'60 Serv',brand:'Insane Labz',category:'Pre Entreno',price:165000,file:'1d6EpnMoclTqlZug_2XPEWpdNRCC3tQVQ'},
     {id:'insane-psychotic-gold-60',name:'Psychotic Gold',presentation:'60 Serv',brand:'Insane Labz',category:'Pre Entreno',price:195000,file:'1TUVGfgkV2URDzwNH18hzdebNVha6WKL9'},
-    {id:'insane-psychotic-rojo-60',name:'Psychotic Rojo',presentation:'60 Serv',brand:'Insane Labz',category:'Pre Entreno',price:160000,image:'https://insanelabz.com/cdn/shop/files/Psychotic-60-Serving-Watermelon-Front.png?v=1774454161&width=1946'},
+    {id:'insane-psychotic-rojo-60',name:'Psychotic Rojo',presentation:'60 Serv',brand:'Insane Labz',category:'Pre Entreno',price:199000,image:'https://musclestmx.com/cdn/shop/files/Psychoticwatermelon60s_480x480_8b7fdfcb-6e7b-4887-9d79-bb393a46297c.webp?v=1695672329'},
     {id:'insane-psychotic-xtreme-30',name:'Psychotic Xtreme',presentation:'30 Serv',brand:'Insane Labz',category:'Pre Entreno',price:155000,file:'1yThfnm6QS1sQlC1ZVTf1Ek2uYa3xYFai'},
     {id:'insane-psychopath-30',name:'Psychopath',presentation:'30 Serv',brand:'Insane Labz',category:'Pre Entreno',price:150000,file:'1a3Rn_rUNed_-HXh8m7Il8t-w1LUDWonk'}
   ];
