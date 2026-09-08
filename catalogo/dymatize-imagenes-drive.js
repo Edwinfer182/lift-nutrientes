@@ -10,9 +10,9 @@
     { aliases:['super mass gainer 12 lbs','super mass 12 lbs'], id:'135QeLTYS4QyGpxf9dUPFc7PR4FD4Eudk' },
     { aliases:['elite whey 2 lbs','whey elite 2 lbs'], id:'1uy1E8XoiIPAc9T97Ys8cC8QFBRj1NXT_' },
     { aliases:['elite whey 5 lbs','whey elite 5 lbs','whey elite 100%'], id:'1SqKAg0VHMqbb5Vku0ocUNj6D878v_oyr' },
-    { aliases:['creatina dymatize 300 gr 88 serv 3 gr','creatina 300 gr 88 serv 3 gr'], id:'1wqXm26uMqFL4odl3EtSp0FE7nYC_iMxf' },
-    { aliases:['creatina dymatize 500 gr 147 serv 3 gr','creatina 500 gr 147 serv 3 gr'], id:'1EheZUWD7-eks3btcS-ldzXmlhyLwrrHx' },
-    { aliases:['creatina dymatize 300 gr 60 serv','creatina 300 gr 60 serv','creatina dymatize 60 serv'], id:'13-ANgE3a10jy0nZ7IJpQ1cSRNNTr1zfX' },
+    { aliases:['creatina dymatize 300 gr 88 serv 3 gr','creatina dymatyze 300 gr 88 serv 3 gr','creatina 300 gr 88 serv 3 gr'], id:'1wqXm26uMqFL4odl3EtSp0FE7nYC_iMxf' },
+    { aliases:['creatina dymatize 500 gr 147 serv 3 gr','creatina dymatyze 500 gr 147 serv 3 gr','creatina 500 gr 147 serv 3 gr'], id:'1EheZUWD7-eks3btcS-ldzXmlhyLwrrHx' },
+    { aliases:['creatina dymatize 300 gr 60 serv','creatina dymatyze 300 gr 60 serv','creatina 300 gr 60 serv','creatina dymatize 60 serv','creatina dymatyze 60 serv'], id:'13-ANgE3a10jy0nZ7IJpQ1cSRNNTr1zfX' },
     { aliases:['dymatize protein shake','protein shake'], id:'15KDUdpx3CgUZVaIg61IvxXhzNSz3xPS3' }
   ];
 
