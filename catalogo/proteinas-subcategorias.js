@@ -84,11 +84,13 @@
       }
 
       if (typeof cats !== 'undefined' && Array.isArray(cats)) {
-        const nextCats = cats.filter(category => !oldProteinCategories.has(category));
+        const proteinNames = new Set(SUBCATEGORIES.map(group => group.name));
+        const nextCats = cats.filter(category => !oldProteinCategories.has(category) && !proteinNames.has(category));
         for (const group of SUBCATEGORIES) {
           if (!nextCats.includes(group.name)) nextCats.push(group.name);
         }
         if (PRODUCTS.some(product => product.category === 'Otros suplementos') && !nextCats.includes('Otros suplementos')) nextCats.push('Otros suplementos');
+        nextCats.sort((a, b) => String(a).localeCompare(String(b), 'es', { sensitivity: 'base' }));
         cats.splice(0, cats.length, ...nextCats);
       }
 
