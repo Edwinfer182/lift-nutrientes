@@ -8,7 +8,8 @@
     { name: 'Proteína Whey', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
   ];
 
-  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','ganador de masa','ganadores de masa','ganadore de masa','mass gainer','mega mass','mass evolution','titan beef','titan army','serious mass','true mass','super mass','pro gainer','bulk','whey pure 5lb','whey pure 2lb','carnivor mass'];
+  const FORCE_WHEY_TERMS = ['whey pure 5lb','whey pure 5 lb','whey pure 2lb','whey pure 2 lb'];
+  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','ganador de masa','ganadores de masa','ganadore de masa','mass gainer','mega mass','mass evolution','titan beef','titan army','serious mass','true mass','super mass','pro gainer','bulk','carnivor mass'];
   const EXCLUDED_FROM_PROTEINS = ['amino build','creatine chews','maca root','nac 600','ultimate pre workout','protein bar','protein bars','barra de proteina','barras de proteina','crispy bar','integralmedica crispy'];
   const PROTEIN_CATEGORY_TERMS = ['protein','proteina','proteinas'];
   const AMINO_CATEGORY_TERMS = ['aminoacidos','aminoácidos','bcaa / eaa','bcaa/eaa','bcaa','eaa'];
@@ -43,7 +44,8 @@
   const textOf = product => normalize(`${product?.name || ''} ${product?.brand || ''} ${product?.category || ''} ${Array.isArray(product?.tags) ? product.tags.join(' ') : (product?.tags || '')}`);
   const nameOf = product => normalize(`${product?.name || product?.title || ''} ${product?.brand || ''}`);
   const includesAny = (value, terms) => terms.some(term => normalize(value).includes(normalize(term)));
-  const isMassGainer = product => includesAny(textOf(product), MASS_TERMS);
+  const isForcedWhey = product => includesAny(nameOf(product), FORCE_WHEY_TERMS);
+  const isMassGainer = product => !isForcedWhey(product) && includesAny(textOf(product), MASS_TERMS);
   const isExcludedFromProteins = product => includesAny(textOf(product), EXCLUDED_FROM_PROTEINS);
   const looksLikeProteinCategory = category => PROTEIN_CATEGORY_TERMS.some(term => normalize(category).includes(normalize(term)));
   const looksLikeAminoCategory = category => AMINO_CATEGORY_TERMS.some(term => normalize(category) === normalize(term));
@@ -55,6 +57,7 @@
 
   const classifyOther = product => {
     const haystack = nameOf(product);
+    if (isForcedWhey(product)) return 'Proteína Whey';
     if (isEAA(product)) return 'EAA';
     if (includesAny(haystack, ['bcaa','leucine','leucina','arginine','arginina','citrulline','citrulina','amino energy','amino x','amino build'])) return 'Aminoácidos';
     for (const rule of OTHER_RULES) {
@@ -64,6 +67,7 @@
   };
 
   const classifyProduct = product => {
+    if (isForcedWhey(product)) return 'Proteína Whey';
     if (isMassGainer(product) || isExcludedFromProteins(product)) return null;
     const haystack = textOf(product);
     for (const group of SUBCATEGORIES) {
@@ -102,6 +106,14 @@
       let othersMoved = 0;
 
       for (const product of PRODUCTS) {
+        if (isForcedWhey(product)) {
+          if (product.category !== 'Proteína Whey') {
+            product.category = 'Proteína Whey';
+            changed++;
+          }
+          continue;
+        }
+
         if (isOtherCategory(product?.category)) {
           const destination = classifyOther(product);
           if (destination && product.category !== destination) {
