@@ -6,11 +6,11 @@
     { aliases:['lipodrene hardcore'], id:'1Z37dxhu_f02ydYD2yAlV5yD6azIsImpU' },
     { aliases:['lipodrene xtreme'], id:'1I5wyjmNF_WL2zzj6uL10N2hCUsGlH2lO' },
     { aliases:['lipodrene'], id:'1xyWPMwGOBhWCdXCUF_lcZBucyRWjLW5N' },
-    { aliases:['creatina hi tech 400 gr 80 serv','creatina hitech 400 gr 80 serv','creatina hi tech 400 g 80 serv'], id:'1VZ0zmLXIGCB6yZgc7-UWfABCAcpRvH0X' },
+    { aliases:['creatina hi tech 400 gr 80 serv'], id:'1VZ0zmLXIGCB6yZgc7-UWfABCAcpRvH0X' },
     { aliases:['cafeina 100 caps'], id:'1KWBwdsuVk_LUyB81_HqETJW3HoymVtEI' },
     { aliases:['magnesium glycinate 120 caps 500 mg'], id:'1VQS3qtHNgtyBHYFeODJjRsC-vvuILUfL' },
     { aliases:['resveratrol 90 caps 500 mg'], id:'12A_H86wFkWU8_8xZTwSyilQdL8Ap8HCO' },
-    { aliases:['nac 100 serv 600 mg','nac protector hepatico 100 porciones 600 mg','noc protector hepatico 100 porciones 600 mg'], id:'16vuDT1cGZQH4kfhPg7izQ6cLHUdI7wzK' }
+    { aliases:['nac 100 serv 600 mg'], id:'16vuDT1cGZQH4kfhPg7izQ6cLHUdI7wzK' }
   ];
 
   const norm = s => String(s || '')
