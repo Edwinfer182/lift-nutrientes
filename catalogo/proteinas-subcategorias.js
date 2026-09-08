@@ -1,6 +1,6 @@
 (() => {
   const SUBCATEGORIES = [
-    { name: 'Proteína hidrolizada', keywords: ['hydrolyzed','hydrolysed','hydro whey','hydro'] },
+    { name: 'Proteína hidrolizada', keywords: ['sascha','sasha','sascha fitness','hydrolyzed','hydrolysed','hydro whey','hydro'] },
     { name: 'Proteína vegana', keywords: ['vegan','plant protein','plant-based','pea','arveja','rice protein','proteina de arroz','soya','soy','vegetal'] },
     { name: 'Proteína de carne', keywords: ['beef','carnivor','carne'] },
     { name: 'Proteína de otras fuentes', keywords: ['casein','caseina','micellar','egg','huevo','albumin','albumina'] },
