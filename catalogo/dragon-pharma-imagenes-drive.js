@@ -1,0 +1,84 @@
+(() => {
+  'use strict';
+
+  const DRIVE = 'https://drive.google.com/thumbnail?id=';
+  const images = [
+    { aliases:['venom inferno 30 serv','venom inferno'], id:'1iuMXhcmz5KniY0xNpXshQnxAngQ-VUvJ' },
+    { aliases:['venom essential 30 serv','venom essential'], id:'1aSEFshUDnDpyebVbpiEOwQpj4_oIa5FD' },
+    { aliases:['venom fully loaded 20 serv','venom fully loaded'], id:'1J89dGAaIdGkFlTdALdrRsA5Vjds-F1aG' },
+    { aliases:['crema de arroz'], id:'1beeBFOUageu7Oel_e0g1-IZLK3BKt9XJ' },
+    { aliases:['black viper 90 caps','black viper'], id:'1LmPK1Ti2Aizk0762ALrdMpX9TPR4_4q8' },
+    { aliases:['beta alanina venom 60 serv','betalalina venom 60serv','beta alanina venom'], id:'1a5vY5OVHQ3K2YCBiRUZgnD20zX6FqCfP' },
+    { aliases:['creatina monohidratada 60 serv','creatina monohidrata 60serv','creatina monohidratada 60serv'], id:'1hnjakdAhpdMKeIk6EAOFOrXJ5gKl910p' },
+    { aliases:['creatina monohidratada 200 serv','creatina monohidratada 200serv'], id:'1VwlVjRxK7AfL2v6GEpX_xg8EtN4eXXuN' },
+    { aliases:['fematrope'], id:'15yzRqHGoKHL3_lxAGefAo3UaoOGw_7Bh' },
+    { aliases:['hydra'], id:'14QU4DSucVazSnTtMbcXuxoypMkdPm3V2' },
+    { aliases:['dry up'], id:'1jrIyHa0JTdHwfyzbrwRBsldDoIYRmdkm' },
+    { aliases:['dr fear'], id:'1n7PUXdOYuvwrISP8cEv2f3RdARhqQthg' },
+    { aliases:['whey phorm 2 lbs','whey phorm 2 libras','whey phorm 2 lb'], id:'12E0cJf1KoGd5Ke7DRdWAdISwgU7T7K-2' },
+    { aliases:['whey phorm 5 lbs','whey phorm 5 libras','whey phorm 5 lb'], id:'1-p647ZzzoVjEB5kTHhU_tH4vF7d599gY' },
+    { aliases:['omega 3 dragon pharma','omega 3'], id:'1LyUy6CVaCpZfmhyzxaLwfo5VK8KSFX-M' },
+    { aliases:['vitamina d3+k2','vitamina d3 k2','d3+k2'], id:'1bguPTo8UCeHhvruKru7OxvV4uIjTJR2D' },
+    { aliases:['citrulina','l citrulina','l-citrulline'], id:'1PS9ux-SGUGFMfBMN7utrrJJ_jI8aAYE2' },
+    { aliases:['salsa dragon','salsad dragon'], id:'1CWUF2jLwadQuDvu2bbUpF2vJYKQ2is0i' }
+  ];
+
+  const norm = s => String(s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9+]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  function findImage(text){
+    const t = norm(text);
+    let best = null;
+    let bestLen = 0;
+    for (const item of images) {
+      for (const alias of item.aliases) {
+        const a = norm(alias);
+        if (a && t.includes(a) && a.length > bestLen) {
+          best = item;
+          bestLen = a.length;
+        }
+      }
+    }
+    return best;
+  }
+
+  function apply(){
+    document.querySelectorAll('.card, [class*="product-card"], [class*="product"], article').forEach(card => {
+      const text = card.innerText || card.textContent || '';
+      const match = findImage(text);
+      if (!match) return;
+      const img = card.querySelector('.pic img, img');
+      if (!img || img.dataset.liftDragonPharmaDriveId === match.id) return;
+      img.dataset.liftDragonPharmaDriveId = match.id;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.src = DRIVE + match.id + '&sz=w800';
+      img.style.width = 'auto';
+      img.style.height = 'auto';
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '100%';
+      img.style.objectFit = 'contain';
+      img.style.objectPosition = 'center';
+    });
+  }
+
+  let queued = false;
+  const queueApply = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      apply();
+    });
+  };
+
+  apply();
+  new MutationObserver(queueApply).observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('hashchange',queueApply);
+})();
