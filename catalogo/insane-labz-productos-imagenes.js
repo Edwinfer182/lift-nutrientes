@@ -3,93 +3,101 @@
 
   const DRIVE = 'https://drive.google.com/thumbnail?id=';
   const PRODUCTS = [
-    { name:'Psychotic Black', presentation:'35 Serv', brand:'Insane Labz', category:'Pre Entreno', price:130000, id:'1ACva2ZaAdxgkiS9ZEd0MUUSkG5h5BT9e', aliases:['psychotic black 35 serv','psychotic black 35'] },
-    { name:'Psychotic Black', presentation:'60 Serv', brand:'Insane Labz', category:'Pre Entreno', price:165000, id:'1d6EpnMoclTqlZug_2XPEWpdNRCC3tQVQ', aliases:['psychotic black 60 serv','psychotic black 60'] },
-    { name:'Psychotic Gold', presentation:'35 Serv', brand:'Insane Labz', category:'Pre Entreno', price:160000, id:'15K-BQ8e0W3DTxh6ifeCEEXdoHmFszT7x', aliases:['psychotic gold 35 serv','psychotic gold 35'] },
-    { name:'Psychotic Gold', presentation:'60 Serv', brand:'Insane Labz', category:'Pre Entreno', price:195000, id:'1TUVGfgkV2URDzwNH18hzdebNVha6WKL9', aliases:['psychotic gold 60 serv','psychotic gold 60'] },
-    { name:'Psychotic Rojo', presentation:'35 Serv', brand:'Insane Labz', category:'Pre Entreno', price:160000, id:'1Dn5XYdDLLt23lWt8joqb82S_24Soao2d', aliases:['psychotic rojo 35 serv','psychotic rojo 35'] },
-    { name:'Psychotic Rojo', presentation:'60 Serv', brand:'Insane Labz', category:'Pre Entreno', price:199000, id:'1wShnIid5p0V1Yx9PSSv6MgNFOUVmP6tS', aliases:['psychotic rojo 60 serv','psychotic rojo 60','psycho rojo 60 serv'] },
-    { name:'Psychotic Saw', presentation:'30 Serv', brand:'Insane Labz', category:'Pre Entreno', price:166000, id:'1Qv2fYGpGEfUysMI_htcrCnD6Nb3EM8xV', aliases:['psychotic saw 30 serv','psychotic saw 30','psychotic saw 35 serv'] },
-    { name:'Psychotic Xtreme', presentation:'30 Serv', brand:'Insane Labz', category:'Pre Entreno', price:155000, id:'1yThfnm6QS1sQlC1ZVTf1Ek2uYa3xYFai', aliases:['psychotic xtreme 30 serv','psychotic xtreme 30','psychotic extreme 30 serv'] },
-    { name:'Psychopath', presentation:'30 Serv', brand:'Insane Labz', category:'Pre Entreno', price:150000, id:'1a3Rn_rUNed_-HXh8m7Il8t-w1LUDWonk', aliases:['psychopath 30 serv','psychopath 30'] }
+    { name:'Psychotic Black', presentation:'35 Serv', brand:'Insane Labz', category:'Pre Entreno', price:130000, id:'1ACva2ZaAdxgkiS9ZEd0MUUSkG5h5BT9e' },
+    { name:'Psychotic Black', presentation:'60 Serv', brand:'Insane Labz', category:'Pre Entreno', price:165000, id:'1d6EpnMoclTqlZug_2XPEWpdNRCC3tQVQ' },
+    { name:'Psychotic Gold', presentation:'35 Serv', brand:'Insane Labz', category:'Pre Entreno', price:160000, id:'15K-BQ8e0W3DTxh6ifeCEEXdoHmFszT7x' },
+    { name:'Psychotic Gold', presentation:'60 Serv', brand:'Insane Labz', category:'Pre Entreno', price:195000, id:'1TUVGfgkV2URDzwNH18hzdebNVha6WKL9' },
+    { name:'Psychotic Rojo', presentation:'35 Serv', brand:'Insane Labz', category:'Pre Entreno', price:160000, id:'1Dn5XYdDLLt23lWt8joqb82S_24Soao2d' },
+    { name:'Psychotic Rojo', presentation:'60 Serv', brand:'Insane Labz', category:'Pre Entreno', price:199000, id:'1wShnIid5p0V1Yx9PSSv6MgNFOUVmP6tS' },
+    { name:'Psychotic Saw', presentation:'30 Serv', brand:'Insane Labz', category:'Pre Entreno', price:166000, id:'1Qv2fYGpGEfUysMI_htcrCnD6Nb3EM8xV' },
+    { name:'Psychotic Xtreme', presentation:'30 Serv', brand:'Insane Labz', category:'Pre Entreno', price:155000, id:'1yThfnm6QS1sQlC1ZVTf1Ek2uYa3xYFai' },
+    { name:'Psychopath', presentation:'30 Serv', brand:'Insane Labz', category:'Pre Entreno', price:150000, id:'1a3Rn_rUNed_-HXh8m7Il8t-w1LUDWonk' }
   ];
 
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
-  const money = n => '$' + Number(n || 0).toLocaleString('es-CO');
-  const imageUrl = p => DRIVE + p.id + '&sz=w800';
+  const money = n => '$' + Number(n).toLocaleString('es-CO');
+  const imgUrl = id => DRIVE + id + '&sz=w800';
+  const key = p => norm(`${p.name} ${p.presentation}`);
 
-  function findExistingCard(p){
-    const aliases = p.aliases.map(norm);
-    return [...document.querySelectorAll('.card, [class*="product-card"], article')].find(card => {
-      const t = norm(card.innerText || card.textContent || '');
-      return aliases.some(a => t.includes(a));
-    }) || null;
+  function cards(){
+    return [...document.querySelectorAll('.card,[class*="product-card"],article')];
   }
 
-  function applyImagesAndPrices(){
-    PRODUCTS.forEach(p => {
-      const card = findExistingCard(p);
-      if (!card) return;
-      const img = card.querySelector('.pic img, img');
-      if (img) {
-        img.src = imageUrl(p);
-        img.loading='lazy';
-        img.decoding='async';
-        img.referrerPolicy='no-referrer';
-        img.style.objectFit='contain';
-      }
-      const textNodes = [...card.querySelectorAll('*')];
-      const priceNode = textNodes.find(el => /^\$\s?[\d.]+$/.test((el.textContent || '').trim()));
-      if (priceNode) priceNode.textContent = money(p.price);
+  function findCard(p){
+    const k = key(p);
+    return cards().find(c => norm(c.innerText || c.textContent || '').includes(k)) || null;
+  }
+
+  function patchCard(card,p){
+    card.dataset.brand = p.brand;
+    card.dataset.category = p.category;
+    card.dataset.name = p.name;
+    card.dataset.presentation = p.presentation;
+    card.dataset.price = String(p.price);
+    card.dataset.liftManualInsane = '1';
+
+    const img = card.querySelector('.pic img,img');
+    if(img){
+      img.src = imgUrl(p.id);
+      img.alt = `${p.name} ${p.presentation} ${p.brand}`;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.style.objectFit = 'contain';
+    }
+
+    const leaves = [...card.querySelectorAll('*')].filter(el => el.children.length === 0);
+    const title = leaves.find(el => /psychotic|psychopath/i.test(el.textContent || ''));
+    if(title) title.textContent = `${p.name} ${p.presentation}`;
+
+    const cat = leaves.find(el => /pre\s*entreno/i.test(el.textContent || ''));
+    if(cat) cat.textContent = 'PRE ENTRENO';
+
+    const price = leaves.find(el => /^\$\s?[\d.]+$/.test((el.textContent || '').trim()));
+    if(price) price.textContent = money(p.price);
+
+    card.querySelectorAll('[data-name],[data-product],[data-product-name]').forEach(el => {
+      if(el.hasAttribute('data-name')) el.setAttribute('data-name',p.name);
+      if(el.hasAttribute('data-product')) el.setAttribute('data-product',`${p.name} ${p.presentation}`);
+      if(el.hasAttribute('data-product-name')) el.setAttribute('data-product-name',`${p.name} ${p.presentation}`);
     });
   }
 
-  function createMissingCards(){
-    const template = document.querySelector('.card, [class*="product-card"], article');
-    const grid = template && template.parentElement;
-    if (!template || !grid) return;
-
-    PRODUCTS.forEach(p => {
-      if (findExistingCard(p)) return;
-      const card = template.cloneNode(true);
-      card.removeAttribute('data-id');
-      card.dataset.liftManualInsane = '1';
-
-      const img = card.querySelector('.pic img, img');
-      if (img) {
-        img.src = imageUrl(p);
-        img.alt = `${p.name} ${p.presentation} ${p.brand}`;
-        img.loading='lazy';
-        img.decoding='async';
-        img.referrerPolicy='no-referrer';
-        img.style.objectFit='contain';
-      }
-
-      const all = [...card.querySelectorAll('*')];
-      const titleNode = all.find(el => /psychotic|creatina|pre|protein|caps|serv/i.test(el.textContent || '') && el.children.length===0);
-      if (titleNode) titleNode.textContent = `${p.name} ${p.presentation}`;
-
-      const priceNode = all.find(el => /^\$\s?[\d.]+$/.test((el.textContent || '').trim()));
-      if (priceNode) priceNode.textContent = money(p.price);
-
-      card.setAttribute('data-brand', p.brand);
-      card.setAttribute('data-category', p.category);
-      card.setAttribute('data-name', p.name);
-      card.setAttribute('data-presentation', p.presentation);
-      card.setAttribute('data-price', String(p.price));
-      grid.appendChild(card);
-    });
+  function getInsaneTemplate(){
+    return cards().find(c => /psychotic|psychopath/i.test(c.innerText || c.textContent || '')) || null;
   }
 
   function run(){
-    applyImagesAndPrices();
-    createMissingCards();
-    applyImagesAndPrices();
+    PRODUCTS.forEach(p => {
+      const existing = findCard(p);
+      if(existing) patchCard(existing,p);
+    });
+
+    const template = getInsaneTemplate();
+    if(!template || !template.parentElement) return;
+    const grid = template.parentElement;
+
+    PRODUCTS.forEach(p => {
+      if(findCard(p)) return;
+      const clone = template.cloneNode(true);
+      clone.removeAttribute('id');
+      patchCard(clone,p);
+      grid.appendChild(clone);
+    });
   }
 
-  let queued=false;
-  const queue=()=>{ if(queued) return; queued=true; requestAnimationFrame(()=>{queued=false;run();}); };
+  let busy = false;
+  const queue = () => {
+    if(busy) return;
+    busy = true;
+    requestAnimationFrame(() => {
+      busy = false;
+      run();
+    });
+  };
+
   run();
   new MutationObserver(queue).observe(document.documentElement,{childList:true,subtree:true});
-  window.addEventListener('hashchange',queue);
+  document.addEventListener('click',()=>setTimeout(run,80),true);
+  window.addEventListener('hashchange',()=>setTimeout(run,80));
 })();
