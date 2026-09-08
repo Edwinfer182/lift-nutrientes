@@ -30,14 +30,19 @@
     .replace(/\s+/g,' ')
     .trim();
 
+  function containsPhrase(text, alias){
+    const t = ` ${norm(text)} `;
+    const a = ` ${norm(alias)} `;
+    return a.trim() && t.includes(a);
+  }
+
   function findImage(text){
-    const t = norm(text);
     let best = null;
     let bestLen = 0;
     for (const item of images) {
       for (const alias of item.aliases) {
         const a = norm(alias);
-        if (a && t.includes(a) && a.length > bestLen) {
+        if (a && containsPhrase(text, alias) && a.length > bestLen) {
           best = item;
           bestLen = a.length;
         }
@@ -47,7 +52,8 @@
   }
 
   function apply(){
-    document.querySelectorAll('.card, [class*="product-card"], [class*="product"], article').forEach(card => {
+    document.querySelectorAll('.card, [class*="product-card"], article').forEach(card => {
+      if (card.closest('#liftProductOffcanvas')) return;
       const text = card.innerText || card.textContent || '';
       const match = findImage(text);
       if (!match) return;
