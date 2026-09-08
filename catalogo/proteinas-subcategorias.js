@@ -1,54 +1,91 @@
-/* Lift Nutrientes - Subcategorías automáticas de Proteínas
-   Mantiene Ganadores de peso fuera de esta clasificación.
-*/
-(function () {
-  'use strict';
-
-  const SUBCATS = [
-    { id: 'whey', label: 'Whey Protein' },
-    { id: 'isolate', label: 'Isolate / Proteína limpia' },
-    { id: 'hydrolyzed', label: 'Hydrolyzed' },
-    { id: 'vegan', label: 'Veganas' },
-    { id: 'beef', label: 'Proteína de carne' },
-    { id: 'other', label: 'Otras fuentes' }
+(() => {
+  const SUBCATEGORIES = [
+    { name: 'Hydrolyzed', keywords: ['hydrolyzed','hydrolysed','hydro whey','hydro','iso100','iso 100'] },
+    { name: 'Veganas', keywords: ['vegan','plant protein','plant-based','pea','arveja','rice protein','proteina de arroz','soya','soy','vegetal'] },
+    { name: 'Proteína de carne', keywords: ['beef','carnivor','carne'] },
+    { name: 'Otras fuentes', keywords: ['casein','caseina','micellar','egg','huevo','albumin','albumina'] },
+    { name: 'Isolate / Proteína limpia', keywords: ['isolate','isolated','isolation','isopure','iso whey','whey iso','isolate 100','zero carb','low carb'] },
+    { name: 'Whey Protein', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
   ];
 
-  function norm(v) {
-    return String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  }
+  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','mass','serious mass','true mass','bulk','super mass','pro gainer'];
+  const PROTEIN_CATEGORY_TERMS = ['protein','proteina','proteinas'];
 
-  function proteinSubtype(product) {
-    const text = norm([
-      product && product.name,
-      product && product.nombre,
-      product && product.title,
-      product && product.producto,
-      product && product.presentation,
-      product && product.presentacion,
-      product && product.brand,
-      product && product.marca,
-      product && product.category,
-      product && product.categoria
-    ].filter(Boolean).join(' '));
+  const normalize = value => String(value ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-    // Ganadores ya tienen categoría propia y no se reclasifican aquí.
-    if (/mass|gainer|ganador|weight gain|serious mass|super mass|true mass|mutant mass|mass tech|carnivor mass/.test(text)) return null;
-
-    if (/vegan|vegana|plant protein|plant based|pea protein|rice protein|proteina vegetal|arveja|guisante/.test(text)) return 'vegan';
-    if (/beef|carne|carnivor(?! mass)|hydrobeef/.test(text)) return 'beef';
-    if (/hydroly|hidroliz|iso100|hydro whey|platinum hydro/.test(text)) return 'hydrolyzed';
-    if (/isolate|isolat|aislad|isopure|iso whey|iso-whey|iso hd|iso sensation|iso surge|r1 protein/.test(text)) return 'isolate';
-    if (/egg|huevo|casein|caseina|albumin|albumina/.test(text)) return 'other';
-    return 'whey';
-  }
-
-  // API global para que el catálogo pueda usar la misma clasificación en filtros,
-  // tarjetas y futuras automatizaciones sin duplicar reglas.
-  window.LiftProteinCategories = {
-    categories: SUBCATS,
-    classify: proteinSubtype,
-    classifyAll(products) {
-      return (products || []).map(p => Object.assign({}, p, { proteinSubtype: proteinSubtype(p) }));
-    }
+  const textOf = product => normalize(`${product?.name || ''} ${product?.brand || ''} ${product?.category || ''} ${Array.isArray(product?.tags) ? product.tags.join(' ') : (product?.tags || '')}`);
+  const includesAny = (value, terms) => terms.some(term => normalize(value).includes(normalize(term)));
+  const isMassGainer = product => includesAny(textOf(product), MASS_TERMS);
+  const looksLikeProteinCategory = category => {
+    const value = normalize(category);
+    return PROTEIN_CATEGORY_TERMS.some(term => value.includes(term));
   };
+
+  const classifyProduct = product => {
+    if (isMassGainer(product)) return null;
+    const haystack = textOf(product);
+    for (const group of SUBCATEGORIES) {
+      if (group.keywords.some(keyword => haystack.includes(normalize(keyword)))) return group.name;
+    }
+    return 'Whey Protein';
+  };
+
+  window.LIFT_PROTEIN_SUBCATEGORIES = SUBCATEGORIES.map(group => group.name);
+  window.LIFT_PROTEIN_CLASSIFIER = { normalize, isMassGainer, looksLikeProteinCategory, classifyProduct };
+
+  function applyToCatalog() {
+    try {
+      if (typeof PRODUCTS === 'undefined' || !Array.isArray(PRODUCTS)) return false;
+
+      const oldProteinCategories = new Set();
+      let changed = 0;
+
+      for (const product of PRODUCTS) {
+        if (!looksLikeProteinCategory(product?.category)) continue;
+        if (isMassGainer(product)) continue;
+
+        oldProteinCategories.add(product.category);
+        const nextCategory = classifyProduct(product);
+        if (nextCategory && product.category !== nextCategory) {
+          product.category = nextCategory;
+          changed++;
+        }
+      }
+
+      if (typeof cats !== 'undefined' && Array.isArray(cats)) {
+        const nextCats = cats.filter(category => !oldProteinCategories.has(category));
+        for (const group of SUBCATEGORIES) {
+          if (!nextCats.includes(group.name)) nextCats.push(group.name);
+        }
+        cats.splice(0, cats.length, ...nextCats);
+      }
+
+      if (typeof F !== 'undefined' && F?.cats instanceof Set) {
+        for (const oldCategory of oldProteinCategories) F.cats.delete(oldCategory);
+      }
+
+      if (typeof renderFilters === 'function') renderFilters();
+      if (typeof render === 'function') render();
+
+      document.documentElement.dataset.liftProteinSubcategories = 'ready';
+      console.info(`[Lift] Proteínas reclasificadas: ${changed}`);
+      return true;
+    } catch (error) {
+      console.error('[Lift] No se pudieron aplicar las subcategorías de proteína', error);
+      return false;
+    }
+  }
+
+  if (!applyToCatalog()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', applyToCatalog, { once: true });
+    } else {
+      setTimeout(applyToCatalog, 0);
+    }
+  }
 })();
