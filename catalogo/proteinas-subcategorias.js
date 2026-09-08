@@ -9,6 +9,7 @@
   ];
 
   const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','mass','serious mass','true mass','bulk','super mass','pro gainer'];
+  const EXCLUDED_FROM_PROTEINS = ['amino build','creatine chews','maca root','nac 600','ultimate pre workout','protein bar','protein bars','barra de proteina','barras de proteina'];
   const PROTEIN_CATEGORY_TERMS = ['protein','proteina','proteinas'];
 
   const normalize = value => String(value ?? '')
@@ -21,13 +22,14 @@
   const textOf = product => normalize(`${product?.name || ''} ${product?.brand || ''} ${product?.category || ''} ${Array.isArray(product?.tags) ? product.tags.join(' ') : (product?.tags || '')}`);
   const includesAny = (value, terms) => terms.some(term => normalize(value).includes(normalize(term)));
   const isMassGainer = product => includesAny(textOf(product), MASS_TERMS);
+  const isExcludedFromProteins = product => includesAny(textOf(product), EXCLUDED_FROM_PROTEINS);
   const looksLikeProteinCategory = category => {
     const value = normalize(category);
     return PROTEIN_CATEGORY_TERMS.some(term => value.includes(term));
   };
 
   const classifyProduct = product => {
-    if (isMassGainer(product)) return null;
+    if (isMassGainer(product) || isExcludedFromProteins(product)) return null;
     const haystack = textOf(product);
     for (const group of SUBCATEGORIES) {
       if (group.keywords.some(keyword => haystack.includes(normalize(keyword)))) return group.name;
@@ -36,7 +38,7 @@
   };
 
   window.LIFT_PROTEIN_SUBCATEGORIES = SUBCATEGORIES.map(group => group.name);
-  window.LIFT_PROTEIN_CLASSIFIER = { normalize, isMassGainer, looksLikeProteinCategory, classifyProduct };
+  window.LIFT_PROTEIN_CLASSIFIER = { normalize, isMassGainer, isExcludedFromProteins, looksLikeProteinCategory, classifyProduct };
 
   function applyToCatalog() {
     try {
@@ -48,6 +50,11 @@
       for (const product of PRODUCTS) {
         if (!looksLikeProteinCategory(product?.category)) continue;
         if (isMassGainer(product)) continue;
+        if (isExcludedFromProteins(product)) {
+          product.category = 'Otros suplementos';
+          changed++;
+          continue;
+        }
 
         oldProteinCategories.add(product.category);
         const nextCategory = classifyProduct(product);
@@ -62,6 +69,7 @@
         for (const group of SUBCATEGORIES) {
           if (!nextCats.includes(group.name)) nextCats.push(group.name);
         }
+        if (PRODUCTS.some(product => product.category === 'Otros suplementos') && !nextCats.includes('Otros suplementos')) nextCats.push('Otros suplementos');
         cats.splice(0, cats.length, ...nextCats);
       }
 
