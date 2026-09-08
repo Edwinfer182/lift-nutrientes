@@ -3,7 +3,7 @@
 
   const DRIVE = 'https://drive.google.com/thumbnail?id=';
   const images = [
-    { aliases:['syntha 6 10 lbs','syntha 6 10 lb'], url:'https://www.bsncolombia.com.co/wp-content/uploads/2018/10/syntha-6-10-lb.webp' },
+    { aliases:['syntha 6 10 lbs','syntha 6 10 lb'], id:'1ICGqpvXh3HYqoyQqzQ3pUUHT9gX4xGFp' },
     { aliases:['syntha 6 5 lbs','syntha 6 5 lb'], id:'13AH4sX3CA-nhu3kVhUpnwkn02-X-Qa1x' },
     { aliases:['amino x 30 serv','amino x 30 servicios'], id:'1JT3c3GTCJb0JRwO1tc4FnQ248-QwP9kM' },
     { aliases:['amino x 70 serv','amino x 70 servicios'], id:'187Lk4ELQR11BiAGEbmyV-p0PuuJn9Sax' },
