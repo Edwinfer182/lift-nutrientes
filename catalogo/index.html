@@ -17,7 +17,6 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
   frame.addEventListener('load', () => {
     const doc = frame.contentDocument;
     if (!doc) return;
-
     const inject = (src, attr) => {
       if (doc.querySelector(`script[${attr}]`)) return;
       const script = doc.createElement('script');
@@ -25,12 +24,11 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
       script.setAttribute(attr, '1');
       doc.body.appendChild(script);
     };
-
     inject('./proteinas-subcategorias.js?v=13', 'data-lift-protein-subcategories');
     inject('./imagenes-tarjetas-ui.js?v=2', 'data-lift-card-image-size');
     inject('./creatinas-imagenes-drive.js?v=3', 'data-lift-creatine-drive-images');
     inject('./applied-nutrition-imagenes-drive.js?v=2', 'data-lift-applied-nutrition-drive-images');
-    inject('./producto-offcanvas-ui.js?v=2', 'data-lift-product-offcanvas');
+    inject('./producto-offcanvas-ui.js?v=3', 'data-lift-product-offcanvas');
   });
 })();
 </script>
