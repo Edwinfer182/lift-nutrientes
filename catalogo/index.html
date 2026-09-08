@@ -334,10 +334,488 @@ window.LIFT_PRODUCTS = PRODUCTS;
 
 updateCount();render();renderCart();
 </script>
-<script src="./sabores-ui-v2.js?v=3"></script>
-<script src="./proteinas-subcategorias.js?v=14"></script>
-<script src="./imagenes-tarjetas-ui.js?v=3"></script>
-<script src="./imagenes-productos.js?v=2"></script>
-<script src="./producto-offcanvas-ui.js?v=6"></script>
+
+
+
+
+
+<script id="lift-monolith">
+(() => {
+  'use strict';
+
+  // =========================
+  // LIFT MONOLITH
+  // Todo el comportamiento visual principal vive dentro de index.html.
+  // Los únicos recursos externos que siguen existiendo son datos/imagenes:
+  // - sabores.json
+  // - imágenes de Google Drive / imágenes físicas del catálogo
+  // =========================
+
+  if (typeof PRODUCTS !== 'undefined' && Array.isArray(PRODUCTS)) {
+    window.PRODUCTS = PRODUCTS;
+    window.LIFT_PRODUCTS = PRODUCTS;
+  }
+
+  const norm = (s='') => String(s)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/[^a-z0-9+.%]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  const phrase = (text, value) => ` ${norm(text)} `.includes(` ${norm(value)} `);
+
+  // ============================================================
+  // 1. SUBCATEGORÍAS / RECLASIFICACIÓN
+  // ============================================================
+  const PROTEIN_GROUPS = [
+    ['Proteína hidrolizada',['sascha','sasha','sascha fitness','hydrolyzed','hydrolysed','hydro whey','hydro']],
+    ['Proteína vegana',['vegan','plant protein','plant-based','pea','arveja','rice protein','proteina de arroz','soya','soy','vegetal']],
+    ['Proteína de carne',['beef','carnivor','carne']],
+    ['Proteína de otras fuentes',['casein','caseina','micellar','egg','huevo','albumin','albumina']],
+    ['Proteína aislada / limpia',['itholate','iso-xp','iso xp','iso triple zero','triple zero','iso100','iso 100','isolate','isolated','isolation','aislado','isopure','iso whey','whey iso','zero carb','low carb']],
+    ['Proteína Whey',['whey','gold standard','syntha','combat','nitro tech','nitrotech']]
+  ];
+
+  const MASS = ['gainer','ganador de peso','ganadores de peso','ganador de masa','ganadores de masa','mass gainer','mega mass','mass evolution','titan beef','titan army','serious mass','true mass','super mass','pro gainer','bulk','carnivor mass'];
+
+  function proteinCategory(p){
+    const t = norm(`${p?.name||''} ${p?.brand||''} ${p?.category||''}`);
+    if (MASS.some(x=>t.includes(norm(x)))) return 'Ganador de masa';
+    for (const [cat, words] of PROTEIN_GROUPS) {
+      if (words.some(x=>t.includes(norm(x)))) return cat;
+    }
+    return 'Proteína Whey';
+  }
+
+  function reclassify(){
+    if (!Array.isArray(window.PRODUCTS)) return;
+    for (const p of window.PRODUCTS){
+      const c = norm(p.category);
+      if (c.includes('protein') || c.includes('proteina')) {
+        p.category = proteinCategory(p);
+      }
+      const t = norm(p.name);
+      if (t.includes('psychotic') || t.includes('psychopath')) p.category = 'Pre entreno';
+    }
+  }
+
+  // ============================================================
+  // 2. IMÁGENES NUEVAS DE DRIVE
+  // ============================================================
+  const DRIVE = 'https://drive.google.com/thumbnail?id=';
+  const IMAGE_GROUPS = [
+    {items:[
+      [['cell tech 3 lb','cell tech 3lbs','cell tech 3 libras'],'1Ltfp2lD4vRKKwD_R_ERmfqUm1JOljMpb'],
+      [['cell tech 6 lb','cell tech 6lbs','cell tech 6 libras'],'12zfD4aDhk5nH78rMWrNo9-RFBeu1phUb'],
+      [['cell tech creactor 120 serv','cell tech creactor','creactor 120','creactor'],'1WfJJSzeLMAAc-GZOqDH_HpvSe8h_abAQ'],
+      [['crea stack 60 serv','crea stack','creastack'],'1vwCWMGdlcATLB3ZeYG_lgtuyxdeKBtYQ'],
+      [['creatina chews 90 tabletas','creatina chews','creatine chews','chews 90'],'1U73goE-Ej9Sou1Pfqc5iSBLuER1NGqF2'],
+      [['creatina dymatize 300 gr 60 serv','creatina dymatize 300 gr','creatina dymatize','creatine dymatize','dymatize 300'],'1unY0XVVrUOgxhlEOJPduO-W0yBggMNc9'],
+      [['creatina iron 100 serv 500 gr','creatina iron 100 serv','creatina iron','creatine iron','iron 100 serv'],'1WgTsfF74d80FErFRBZ_qsN_pDnB08hD_'],
+      [['creatina 1200 gr 240 serv micronizada','1200 gr 240 serv micronizada','creatina on 240','creatine on 240','optimum nutrition 240','creatina optimum 240'],'15Se4597oGm8jWGpKMDkYOgx45h4P68ff'],
+      [['creatina platinum 450 gr 90 serv micronizada','creatina platinum 90 serv 450 gr micronizada','creatina platinum 90','creatine platinum 90','platinum 90 serv'],'1jEUIurIkIP0eNAxAxd28hWtLspMezTFn'],
+      [['simply creatina 300gr 60 serv','simply creatina 300 gr 60 serv','creatina simply 300','simply 300'],'1SOvlTG1-OG2DBtersnefTbk-NHAwuww8'],
+      [['simply creatina 1 kg 200 serv','creatine simply 1 kg','creatina simply 1 kg','simply 1 kg'],'1LHbMA2OJ8SO7kQWNAeecfJyNyEV8z7i-'],
+      [['legacy 50 serv','legacy 50','legacy creatine','creatina legacy'],'1CtXgrkeOHQCrXNjnbOQJLAcOip_WvGTP']
+    ]},
+    {items:[
+      [['iso xp 4lb','iso xp 4 lb'],'1jdppAiKKTQnLLJPJHSlq8kx3QQK7Qt6A'],
+      [['iso xp 2lb','iso xp 2 lb'],'1j_4Kop2-VdRpCYSEAFn0pX5tKY5tr7RG'],
+      [['protein crunch barra','protein crunch'],'15ZnZJzqrrqnc_Xsf2NF6UNnM5ant6z1K'],
+      [['abe pump shot'],'1sKTJETT7aWuFNBaIJDzoVMxfG_f61me_'],
+      [['abe all black everything 30serv','abe all black everything 30 serv','abe all black everything'],'1qHOpUobMsReVYQ1vhbJsBMTCO6rHy7Sm'],
+      [['berberine 1000mg control de glucosa','berberine 1000 mg','berberine 1000mg'],'1KizWWgOrukNTtCDqYqZndhCmNBeWjnDl'],
+      [['creatine 3000 30serv caps capsulas','creatine 3000 30serv caps','creatine 3000 30 serv caps'],'1HSzpa9mhUhDZWLc73DdeSDQvScji2UQt'],
+      [['creatine monohydrate micronized 50serv','creatine monohydrate micronized 50 serv'],'16au9YOQBP6crGCz4xxLB2JA4-PtgYu4q'],
+      [['beef xp clear 4lb','beef xp clear 4 lb'],'1saSZPU-Tj8TkseyclO_Q28QfA1jAMuWo'],
+      [['gel endure naranja'],'1DgYrk0mT0h39WXRB7fN9vzXA5LoIb8Xw'],
+      [['critical mass 12lb','critical mass 12 lb'],'1IpKtj-SJZ2aQgJXHbqOlmsmXbojkKHNA'],
+      [['probiotic'],'1f7WroWPE5196eOwNhXmr_RCNzsM82ymr'],
+      [['creatine + hydration','creatine hydration'],'1uDvwwZV5BVp-rXDdLwAHMet9brs_0PYT'],
+      [['abe lata preentreno','abe lata de preentreno'],'1veJNyGCRt-oRPFXcJzU_WKxVKnQdwz4F'],
+      [['critical whey 2lb','critical whey 2 lb'],'1tYhS_HCzQrtggvxdXMWgS7kOb_JskecC'],
+      [['critical whey 4lb','critical whey 4 lb'],'1pG2iHSjmHcGCHrYLF5Lu8HlZcXxal84Z']
+    ]},
+    {items:[
+      [['basic whey 5 servicios','basic whey 5 serv'],'1ElqN-lMqqMrgwhRpuMlY5sSJslQEMzd3'],
+      [['basic whey 2 lbs','basic whey 2 lb'],'1ZITSnP69Aav4v5wqgmkJCnLRbk5xbEVY'],
+      [['basic whey 5 lbs','basic whey 5 lb'],'1rKHLt25Ifw2oLdWhRcJI6yuQaNi0GdC2'],
+      [['basic isolate 2 lbs','basic isolate 2 lb'],'1dELhRARMFAm-CxHzadUP4buuvriPD_dk'],
+      [['basic isolate 5 lbs','basic isolate 5 lb'],'1uOhLzMQ3Ar72p_2HVwA1lJiVlDYKvU9h'],
+      [['basic mass gainer 6 lbs','basic mass gainer 6 lb','basic mass 6 lbs'],'1Z7r_uOpEchdKkPGdPah-BoYDxuFDmf98'],
+      [['basic eaa 30 ser','basic eaa 30 serv'],'1VHoyRp46prnbURLRlEyM8-r3c4zAqhpe'],
+      [['basic creatina 300 gr','basic creatina 300gr'],'1PMh8XsVviqmTb2gW2Hs0pRujkzWBCxQ3'],
+      [['basic glutamina 300 gr','basic glutamina 300gr'],'1tnzo1YGFMMhB9uqvc_8hNjXFo0PiIFBn'],
+      [['basic pre 30 serv','basic pre 30serv'],'1fI72R-mfsfwFZZ89LX8gexI7Ej5Om__8'],
+      [['basic burn 45 serv','basic burn 45serv'],'17qRVvdLuhgZPbA1OdB09VcvVWfzjRcSk'],
+      [['basic hydration 20 sachet','basic hydration 20 sachets'],'1UE-4QAS4KG6_pM1xBsFHC8XjZm3oVsHo']
+    ]},
+    {items:[
+      [['syntha 6 10 lbs','syntha 6 10 lb'],'1ICGqpvXh3HYqoyQqzQ3pUUHT9gX4xGFp'],
+      [['syntha 6 5 lbs','syntha 6 5 lb'],'13AH4sX3CA-nhu3kVhUpnwkn02-X-Qa1x'],
+      [['amino x 30 serv','amino x 30 servicios'],'1JT3c3GTCJb0JRwO1tc4FnQ248-QwP9kM'],
+      [['amino x 70 serv','amino x 70 servicios'],'187Lk4ELQR11BiAGEbmyV-p0PuuJn9Sax'],
+      [['no-xplode 30 serv','no xplode 30 serv'],'1Jjz5ps90vldNUPf8vzSUMevLMvhsczYY'],
+      [['no-xplode 60 serv','no xplode 60 serv'],'1r3QRCzPmEp-9fIFrvPdXaI1EeCavKkUk'],
+      [['protein crisp barra','protein crisp bar'],'1pTQboDBRwohjtvucpK8m56U5OsVDoWmG']
+    ]},
+    {items:[
+      [['c4 original 30 serv'],'1YXOZRYzCGGE5PJHWhn-lP_z_2txNikj4'],
+      [['c4 original 50 serv'],'1PSYV7N_p3tTLhm6wWybRr_6oaMRZOLjE'],
+      [['c4 original energy 1 lata','c4 original energy','c4 energy 1 lata'],'1k5NPyqykx_zraCKqgS9C1F0u1BQAaxcH'],
+      [['c4 energy drink pack x12 latas','c4 energy drink pack x12'],'1OWVAwa0EGcZa55PyqoLaQyNAsk6Opobq']
+    ]},
+    {items:[
+      [['evora pw pre entreno 30 serv','evora pw 30 serv'],'1IDRqIdZV48ctD2F_vHA1a7Nl3Y1_u8Su'],
+      [['creatina creapure 3g 66 serv','creatina creapure 66 serv'],'1p_mvE_LmEMG89Y_y12Xmg1o62PQr_o5Q'],
+      [['vasculor pre entreno vasodilatador 300 gr','vasculor 300 gr','vasculor'],'1YuBPsFS6BlcHpLi3blC1ULowX7Hc8XT7'],
+      [['evora xt 60 serv','evora xt'],'1cjtmBiFrOIHblZTO0ZQ1ETqzx4ucVlin'],
+      [['whey concentrada 30g proteina 2 lb','whey concentrada 2 lb'],'18fIT6Un1ZTRxM36g6i3PgtocBBCfLxce'],
+      [['dark bar x8','dark bar darkness nation'],'1E_BAjdlx63HCr8lp3yekgXOOz2h-lpU9']
+    ]},
+    {brand:'dragon pharma',items:[
+      [['venom inferno 30 serv','venom inferno'],'1iuMXhcmz5KniY0xNpXshQnxAngQ-VUvJ'],
+      [['venom essential 30 serv','venom essential'],'1aSEFshUDnDpyebVbpiEOwQpj4_oIa5FD'],
+      [['venom fully loaded 20 serv','venom fully loaded'],'1J89dGAaIdGkFlTdALdrRsA5Vjds-F1aG'],
+      [['crema de arroz'],'1beeBFOUageu7Oel_e0g1-IZLK3BKt9XJ'],
+      [['black viper 90 caps','black viper'],'1LmPK1Ti2Aizk0762ALrdMpX9TPR4_4q8'],
+      [['beta alanina venom 60 serv','beta alanina venom'],'1a5vY5OVHQ3K2YCBiRUZgnD20zX6FqCfP'],
+      [['creatina monohidratada 60 serv'],'1hnjakdAhpdMKeIk6EAOFOrXJ5gKl910p'],
+      [['creatina monohidratada 200 serv'],'1VwlVjRxK7AfL2v6GEpX_xg8EtN4eXXuN'],
+      [['fematrope'],'15yzRqHGoKHL3_lxAGefAo3UaoOGw_7Bh'],
+      [['hydra'],'14QU4DSucVazSnTtMbcXuxoypMkdPm3V2'],
+      [['dry up'],'1jrIyHa0JTdHwfyzbrwRBsldDoIYRmdkm'],
+      [['dr fear'],'1n7PUXdOYuvwrISP8cEv2f3RdARhqQthg'],
+      [['whey phorm 2 lbs','whey phorm 2 lb'],'12E0cJf1KoGd5Ke7DRdWAdISwgU7T7K-2'],
+      [['whey phorm 5 lbs','whey phorm 5 lb'],'1-p647ZzzoVjEB5kTHhU_tH4vF7d599gY'],
+      [['omega 3 dragon pharma'],'1LyUy6CVaCpZfmhyzxaLwfo5VK8KSFX-M'],
+      [['vitamina d3+k2','vitamina d3 k2'],'1bguPTo8UCeHhvruKru7OxvV4uIjTJR2D'],
+      [['citrulina','l citrulina'],'1PS9ux-SGUGFMfBMN7utrrJJ_jI8aAYE2'],
+      [['salsa dragon'],'1CWUF2jLwadQuDvu2bbUpF2vJYKQ2is0i']
+    ]},
+    {items:[
+      [['iso 100 1.3 lbs','iso100 1.3 lb'],'1HkTDmvSZ51yciulklQY_me0rrj2-RYAN'],
+      [['iso 100 3 lbs','iso100 3 lb'],'1K-cwmTzwoHm9W94hLxlmzvjPYngc6pAf'],
+      [['iso 100 5 lbs','iso100 5 lb'],'1Dc0hXGskYfHD37xr93JsGfLuz1EXMgpB'],
+      [['super mass gainer 6 lbs','super mass 6 lbs'],'1IA5MMLsIGl8CuSUbYT-kKf39lxmzAMg5'],
+      [['super mass gainer 12 lbs','super mass 12 lbs'],'135QeLTYS4QyGpxf9dUPFc7PR4FD4Eudk'],
+      [['elite whey 2 lbs','whey elite 2 lbs'],'1uy1E8XoiIPAc9T97Ys8cC8QFBRj1NXT_'],
+      [['elite whey 5 lbs','whey elite 5 lbs'],'1SqKAg0VHMqbb5Vku0ocUNj6D878v_oyr'],
+      [['creatina dymatize 300 gr 88 serv 3 gr'],'1wqXm26uMqFL4odl3EtSp0FE7nYC_iMxf'],
+      [['creatina dymatize 500 gr 147 serv 3 gr'],'1EheZUWD7-eks3btcS-ldzXmlhyLwrrHx'],
+      [['creatina dymatize 300 gr 60 serv'],'13-ANgE3a10jy0nZ7IJpQ1cSRNNTr1zfX'],
+      [['dymatize protein shake','protein shake'],'15KDUdpx3CgUZVaIg61IvxXhzNSz3xPS3']
+    ]},
+    {items:[
+      [['survivor pack 30 packs','survivor pack'],'1gZsrU7pDRCzm7D_kyP2zRR1onsCLPLzX'],
+      [['lipocore advance 90 caps','lipocore advance'],'1G1QmS5BaZVPW0RLTljQPUxgxJDsV8quA'],
+      [['organ defender'],'1TDYO73zON7KwLbzzvBUFkLeQMpBUVruP'],
+      [['testabolic xtreme 120 caps','testabolic xtreme'],'1pVC2r9y19dg8W-ZxH9nq9OicJX6qgxqs']
+    ]},
+    {brand:'hard supps',items:[
+      [['synephrine'],'1QXq2EkDLay-wG7DvauRmPbUvOLUan39V'],
+      [['citrulina'],'1z0_qDetPfcSAIIGW5_7m5k81wNAQHsRj'],
+      [['multi-core','multi core'],'18IYr5bKHLIUfw9fnQw3FoEHF4hdLNlQ4'],
+      [['neuro freak'],'1v7pVvkIe8Z9cqO2B30eWUcWdLpcfoWOa'],
+      [['cafeina'],'1FUCLLkAKZCp_y-hZI87QS3wk0oYHF1yX'],
+      [['zma'],'1d8C4JD9ObMkZB2rPNiK-lHHwx3jr3_'],
+      [['nac'],'1odM8jz3GNAjMF0QRzGKUfTZdrNjG7fUf'],
+      [['magnesium glycinate','magnesio glycinate'],'1GUkZPgVgzMnzC3qApw-sj9DkjfdBQKHP'],
+      [['crea 166 serv'],'1WFr1tJPyqLto9DM2kWM1SHcdYW49L0F_'],
+      [['yohimbina'],'1Ac6nPsFqTvp-oTEsfw9_yv3tSKsndwO-'],
+      [['gluta'],'19jTBrWRUnJG6q1_mhvulPQ43e3GuilUe'],
+      [['biozyme enzimas'],'1HPIY3P-rKcJvQhXuD-8A7YOhnEQnGrmP'],
+      [['hmb'],'1WPzPJCUyxYJswNzQr9HoqTGRD0Larn5e'],
+      [['testo rage'],'1L4j8C_uV-DRHM-gprqadakivX9oaU-SX'],
+      [['ashwagandha'],'1y1iWQ4KUITPv2bV9GVZmV7uOjitCtl8Y'],
+      [['arginina'],'10FUQFkttsrHl2du0csBC3V5JErFAtTz3'],
+      [['beta-alanina','beta alanina'],'1acqPc-NO8K9pRsmHykv7WS8CTxZWxAMn']
+    ]},
+    {items:[
+      [['creatina healthy sports 300 gr'],'12MsRLrhi30BiHmuxtFEo9PmN7e5_1AK8'],
+      [['creatina healthy sports 150 gr'],'1qczaRDiGW4FIeWtBK_c-UZ_Cda1CcGLT'],
+      [['vegan protein 2 lb','healthy sports vegan protein'],'1FRzZhDFbXc1lHHGdIqI3JKaXyOy90E8p'],
+      [['turmeric 60 gomas','tumeric 60 gomas'],'1UDrn_ltFF-4BSno6X9NLEmEB42UYpYeu'],
+      [['citrato de magnesio gomitas 30 serv','citrato de magnesio'],'1LnuXSNCv2sE8OeZSGs2cY-pOPn_MPyac'],
+      [['complejo b gomitas 30 serv','complejo b'],'1oFtujnApUojGJHKaiKJJY2tnKJPLMzrj'],
+      [['probiotics 60 gomitas','probiotics'],'1wolpo6OYKQagrcwIfNXYcbuiDbgjWQeb']
+    ]},
+    {items:[
+      [['lipodrene hardcore'],'1Z37dxhu_f02ydYD2yAlV5yD6azIsImpU'],
+      [['lipodrene xtreme'],'1I5wyjmNF_WL2zzj6uL10N2hCUsGlH2lO'],
+      [['lipodrene'],'1xyWPMwGOBhWCdXCUF_lcZBucyRWjLW5N'],
+      [['creatina hitech 400 g 80 serv','creatina hi tech 400 gr 80 serv'],'1VZ0zmLXIGCB6yZgc7-UWfABCAcpRvH0X'],
+      [['100 caps cafeina','cafeina 100 caps'],'1KWBwdsuVk_LUyB81_HqETJW3HoymVtEI'],
+      [['magnesium glycinate 120 caps 500mg'],'1VQS3qtHNgtyBHYFeODJjRsC-vvuILUfL'],
+      [['resveratrol x 90 caps 500 mg'],'12A_H86wFkWU8_8xZTwSyilQdL8Ap8HCO'],
+      [['nac protector hepatico 100 porciones 600 mg'],'16vuDT1cGZQH4kfhPg7izQ6cLHUdI7wzK']
+    ]},
+    {items:[
+      [['creatina imn 500gr 166serv sin sabor','creatina imn 500 gr','creatina 500gr 166serv'],'1yRsiOfmE4z1pqUcCmzM9LWAKAe92HyYV'],
+      [['imn bull 68serv creatina','imn bull','bull creatina'],'14wBHJeY6msnLETzog5csW1zLoQn6I5u0'],
+      [['imn korageem','korageem'],'14m9rktyIcFJMKf4AJC4_47b8OMcuFGjk'],
+      [['imn ultimate pre workout','ultimate pre workout imn','ultimate pre workout'],'17Zp0uqkdwp0JpIGERrbnKyiN6u4ypg1w']
+    ]},
+    {items:[
+      [['just a whey 30 serv vainilla','just a whey 30serv sabor vainilla'],'1_LwhKGRU1SBA8PUQmnRRZwSyYP9TLc_k'],
+      [['phatom toronja 30 serv','phatom sabor toronja 30serv'],'1LZRLp-AUxn_jpdtxwRvgbk_HqJS5svMA'],
+      [['creatine hcl acid grape y panelada 30 serv'],'1URwTHOTWQzl15JqyoaCongakFR91no-f'],
+      [['the builder'],'15cmnQjdeMLTDy7YZjLf3jYQbBRJBLXsz'],
+      [['factor lemon lychee 30 serv'],'1rI8ACl8oUQ-4RrmImEhWdCwwHDZj3O_C']
+    ]}
+  ];
+
+  function bestImage(product){
+    const text = `${product?.name||''} ${product?.brand||''} ${product?.category||''}`;
+    const brand = norm(product?.brand||'');
+    let best=null, len=-1;
+    IMAGE_GROUPS.forEach(group=>{
+      if(group.brand && !phrase(brand,group.brand)) return;
+      group.items.forEach(([aliases,id])=>{
+        aliases.forEach(alias=>{
+          const a=norm(alias);
+          if(a && phrase(text,alias) && a.length>len){best=id;len=a.length;}
+        });
+      });
+    });
+    return best;
+  }
+
+  function updateProductImages(){
+    if (!Array.isArray(window.PRODUCTS)) return;
+    for (const p of window.PRODUCTS){
+      const id = bestImage(p);
+      if(id) p.image = DRIVE + id + '&sz=w800';
+    }
+  }
+
+  // ============================================================
+  // 3. ESTILO DE IMÁGENES DE TARJETAS
+  // ============================================================
+  function installCardStyles(){
+    if(document.getElementById('liftMonolithStyles')) return;
+    const style=document.createElement('style');
+    style.id='liftMonolithStyles';
+    style.textContent=`
+      .pic{height:210px!important;padding:10px!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important}
+      .pic img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important}
+      .card{transition:transform .2s ease,box-shadow .2s ease;cursor:pointer}
+      .card:hover{transform:translateY(-4px);box-shadow:0 10px 26px rgba(0,0,0,.12)}
+      #liftMonoBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;opacity:0;visibility:hidden;transition:.2s;backdrop-filter:blur(3px)}
+      #liftMonoBackdrop.open{opacity:1;visibility:visible}
+      #liftMonoOff{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);width:min(1040px,94vw);max-height:92dvh;background:#fff;border-radius:20px;z-index:9999;opacity:0;visibility:hidden;transition:.24s;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.28)}
+      #liftMonoOff.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
+      #liftMonoClose{position:absolute;right:16px;top:14px;width:42px;height:42px;border:1px solid #ddd;border-radius:50%;background:#fff;font-size:26px;z-index:3;cursor:pointer}
+      .liftMonoBody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:center;padding:38px}
+      .liftMonoImg{height:500px;display:flex;align-items:center;justify-content:center;padding:18px}
+      .liftMonoImg img{max-width:100%;max-height:100%;object-fit:contain}
+      .liftMonoBrand{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#777;font-weight:700;margin-bottom:8px}
+      .liftMonoTitle{font-size:clamp(28px,3vw,40px);line-height:1.05;margin:0 0 10px}
+      .liftMonoPrice{font-size:28px;font-weight:800;margin:14px 0 22px}
+      .liftMonoBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .liftMonoBtns button{min-height:52px;border-radius:28px;border:1px solid #111;font-weight:700;cursor:pointer}
+      .liftMonoBuy{background:#111;color:#fff}
+      .liftMonoMeta{border-top:1px solid #eee;margin-top:22px;padding-top:16px;color:#666;font-size:13px;line-height:1.55}
+      @media(max-width:760px){
+        .pic{height:165px!important;padding:8px!important}
+        .card:hover{transform:none}
+        #liftMonoOff{width:95vw;border-radius:16px}
+        .liftMonoBody{grid-template-columns:1fr;gap:4px;padding:24px 18px}
+        .liftMonoImg{height:280px;padding:5px}
+        .liftMonoTitle{font-size:25px}
+        .liftMonoBtns{grid-template-columns:1fr}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // ============================================================
+  // 4. OFFCANVAS CENTRAL / DETALLE DE PRODUCTO
+  // ============================================================
+  let panel, backdrop, panelBody;
+  function ensureOffcanvas(){
+    if(panel) return;
+    backdrop=document.createElement('div');
+    backdrop.id='liftMonoBackdrop';
+    panel=document.createElement('aside');
+    panel.id='liftMonoOff';
+    panel.innerHTML='<button id="liftMonoClose" type="button">×</button><div id="liftMonoBody"></div>';
+    document.body.append(backdrop,panel);
+    panelBody=panel.querySelector('#liftMonoBody');
+    panel.querySelector('#liftMonoClose').onclick=closeProduct;
+    backdrop.onclick=closeProduct;
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProduct()});
+  }
+
+  function productFromCard(card){
+    if(!Array.isArray(window.PRODUCTS)) return null;
+    const html=card.innerHTML||'';
+    const m=html.match(/(?:buyProduct|add)\s*\(\s*['"]?(\d+)/);
+    if(m){
+      const p=window.PRODUCTS.find(x=>String(x.id)===String(m[1]));
+      if(p) return p;
+    }
+    const name=norm(card.querySelector('.name')?.textContent||'');
+    return window.PRODUCTS.find(x=>norm(x.name)===name)||null;
+  }
+
+  function openProduct(card){
+    ensureOffcanvas();
+    const p=productFromCard(card);
+    if(!p) return;
+    const price = typeof priceOf==='function' ? priceOf(p) : p.price;
+    const money = typeof fmt==='function' ? fmt(price) : '$'+Number(price||0).toLocaleString('es-CO');
+    panelBody.innerHTML=`
+      <div class="liftMonoBody">
+        <div class="liftMonoImg"><img src="${String(p.image||'').replace(/"/g,'&quot;')}" alt=""></div>
+        <div>
+          <div class="liftMonoBrand">${p.brand||''}</div>
+          <h2 class="liftMonoTitle">${p.name||''}</h2>
+          <div>${p.category||''}</div>
+          <div class="liftMonoPrice">${money}</div>
+          <div class="liftMonoBtns">
+            <button type="button" id="liftMonoAdd">Agregar al carrito</button>
+            <button type="button" id="liftMonoBuy" class="liftMonoBuy">Comprar</button>
+          </div>
+          <div class="liftMonoMeta">🚚 Medellín: entrega el mismo día para pedidos confirmados antes de las 2:00 p. m.<br>Nacional: 1–3 días hábiles.</div>
+        </div>
+      </div>`;
+    panel.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.style.overflow='hidden';
+    panel.querySelector('#liftMonoAdd').onclick=()=>{if(typeof add==='function')add(p.id)};
+    panel.querySelector('#liftMonoBuy').onclick=()=>{if(typeof buyProduct==='function')buyProduct(p.id)};
+  }
+
+  function closeProduct(){
+    panel?.classList.remove('open');
+    backdrop?.classList.remove('open');
+    document.body.style.overflow='';
+  }
+
+  function installCardClick(){
+    document.addEventListener('click',e=>{
+      if(panel?.contains(e.target)) return;
+      if(e.target.closest('button,a,input,select,textarea,label,[role="button"]')) return;
+      const card=e.target.closest('.card,[class*="product-card"]');
+      if(card) openProduct(card);
+    });
+  }
+
+  // ============================================================
+  // 5. SABORES
+  // ============================================================
+  let flavorData={products:{}};
+  let flavorLoaded=false;
+
+  async function loadFlavors(){
+    try{
+      const r=await fetch('./sabores.json?v=3',{cache:'no-store'});
+      if(r.ok) flavorData=await r.json();
+    }catch(e){ console.warn('Lift: sabores.json no disponible',e); }
+    flavorLoaded=true;
+  }
+
+  function flavorsFor(id){
+    const row=flavorData?.products?.[String(id)];
+    return Array.isArray(row?.flavors)?row.flavors.filter(Boolean):[];
+  }
+
+  function ensureFlavorDialog(){
+    if(document.getElementById('liftFlavorMono')) return;
+    const wrap=document.createElement('div');
+    wrap.id='liftFlavorMono';
+    wrap.style.cssText='position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.48);padding:18px';
+    wrap.innerHTML=`
+      <div style="width:min(390px,94vw);max-height:86vh;overflow:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.3)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <h3 style="margin:0">Elige el sabor</h3>
+          <button type="button" id="liftFlavorX" style="border:0;background:none;font-size:28px;cursor:pointer">×</button>
+        </div>
+        <div id="liftFlavorList" style="display:grid;gap:8px;margin-top:16px"></div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.querySelector('#liftFlavorX').onclick=()=>wrap.style.display='none';
+    wrap.addEventListener('click',e=>{if(e.target===wrap)wrap.style.display='none'});
+  }
+
+  function chooseFlavor(id, callback){
+    const fs=flavorsFor(id);
+    if(!fs.length){callback('');return;}
+    ensureFlavorDialog();
+    const wrap=document.getElementById('liftFlavorMono');
+    const list=document.getElementById('liftFlavorList');
+    list.innerHTML=fs.map(f=>`<button type="button" data-f="${String(f).replace(/"/g,'&quot;')}" style="min-height:46px;border:1px solid #ddd;border-radius:12px;background:#fff;text-align:left;padding:10px 12px;cursor:pointer">${f}</button>`).join('');
+    list.querySelectorAll('[data-f]').forEach(btn=>btn.onclick=()=>{
+      wrap.style.display='none';
+      callback(btn.dataset.f||'');
+    });
+    wrap.style.display='flex';
+  }
+
+  function installFlavorHooks(){
+    if(typeof add!=='function' || window.__liftMonoFlavorInstalled) return false;
+    window.__liftMonoFlavorInstalled=true;
+
+    const originalAdd=add;
+    add=function(id,flavor){
+      if(typeof flavor==='string' && flavor) return originalAdd(id,flavor);
+      if(!flavorLoaded || !flavorsFor(id).length) return originalAdd(id);
+      chooseFlavor(id,f=>{
+        // Si la base actual soporta sabor como segundo argumento, lo aprovecha.
+        // Si no, al menos conserva el flujo normal del carrito.
+        try{ originalAdd(id,f); }catch{ originalAdd(id); }
+      });
+    };
+
+    if(typeof buyProduct==='function'){
+      const originalBuy=buyProduct;
+      buyProduct=function(id){
+        if(!flavorLoaded || !flavorsFor(id).length) return originalBuy(id);
+        chooseFlavor(id,()=>originalBuy(id));
+      };
+    }
+    return true;
+  }
+
+  // ============================================================
+  // ARRANQUE
+  // ============================================================
+  function refresh(){
+    try{
+      reclassify();
+      updateProductImages();
+      if(typeof render==='function') render();
+      if(typeof renderFilters==='function') renderFilters();
+      if(typeof renderCart==='function') renderCart();
+    }catch(e){console.error('Lift monolith refresh',e);}
+  }
+
+  function boot(){
+    installCardStyles();
+    reclassify();
+    updateProductImages();
+    ensureOffcanvas();
+    installCardClick();
+    loadFlavors().finally(()=>installFlavorHooks());
+
+    // La base ya renderizó antes de llegar aquí. Volvemos a renderizar
+    // para que categorías e imágenes queden reflejadas en pantalla.
+    refresh();
+
+    let tries=0;
+    const t=setInterval(()=>{
+      tries++;
+      installFlavorHooks();
+      if(tries>30 || window.__liftMonoFlavorInstalled) clearInterval(t);
+    },100);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+
+})();
+</script>
 
 </body></html>
