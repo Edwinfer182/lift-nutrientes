@@ -6,20 +6,26 @@
   style.textContent=`
     .pic{
       height:210px !important;
-      padding:10px 10px !important;
+      padding:10px !important;
+      overflow:hidden !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      box-sizing:border-box !important;
     }
     .pic img{
-      max-width:94% !important;
-      max-height:94% !important;
+      display:block !important;
+      width:auto !important;
+      height:auto !important;
+      max-width:100% !important;
+      max-height:100% !important;
+      object-fit:contain !important;
+      object-position:center !important;
     }
     @media(max-width:760px){
       .pic{
         height:165px !important;
-        padding:8px 8px !important;
-      }
-      .pic img{
-        max-width:96% !important;
-        max-height:96% !important;
+        padding:8px !important;
       }
     }
     @media(max-width:390px){
