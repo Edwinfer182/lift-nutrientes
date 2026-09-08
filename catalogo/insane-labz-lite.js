@@ -18,50 +18,113 @@
     .replace(/\s+/g,' ')
     .trim();
 
-  const list = [window.PRODUCTS, window.products, window.catalogProducts, window.CATALOG_PRODUCTS].find(Array.isArray);
-  if (!list) return;
+  function getList() {
+    const windowLists = [window.PRODUCTS, window.products, window.catalogProducts, window.CATALOG_PRODUCTS].filter(Array.isArray);
+    if (windowLists.length) return windowLists[0];
 
-  let changed = false;
-  for (const s of SPECS) {
-    const name = norm(s.name);
-    const presentation = norm(s.presentation);
-    let p = list.find(x => {
-      const brand = norm(x.brand || x.marca || '');
-      const text = norm(`${x.name || x.nombre || ''} ${x.presentation || x.presentacion || ''}`);
-      return brand.includes('insane labz') && text.includes(name) && text.includes(presentation);
+    // catalogo-base.html usa scripts clásicos. Las variables declaradas con
+    // const/let no siempre aparecen en window, pero sí son accesibles desde
+    // otro script clásico cargado en el mismo documento.
+    try { if (typeof products !== 'undefined' && Array.isArray(products)) return products; } catch (_) {}
+    try { if (typeof PRODUCTS !== 'undefined' && Array.isArray(PRODUCTS)) return PRODUCTS; } catch (_) {}
+    try { if (typeof catalogProducts !== 'undefined' && Array.isArray(catalogProducts)) return catalogProducts; } catch (_) {}
+    try { if (typeof CATALOG_PRODUCTS !== 'undefined' && Array.isArray(CATALOG_PRODUCTS)) return CATALOG_PRODUCTS; } catch (_) {}
+    try { if (typeof productos !== 'undefined' && Array.isArray(productos)) return productos; } catch (_) {}
+    return null;
+  }
+
+  function upsert(list) {
+    let changed = false;
+    for (const s of SPECS) {
+      const name = norm(s.name);
+      const presentation = norm(s.presentation);
+      let p = list.find(x => {
+        const brand = norm(x.brand || x.marca || '');
+        const text = norm(`${x.name || x.nombre || ''} ${x.presentation || x.presentacion || ''}`);
+        return brand.includes('insane labz') && text.includes(name) && text.includes(presentation);
+      });
+
+      const image = s.image || `${DRIVE}${s.file}&sz=w800`;
+      if (!p) {
+        p = {};
+        list.push(p);
+        changed = true;
+      }
+
+      const next = {
+        id:s.id,
+        name:s.name,
+        nombre:s.name,
+        presentation:s.presentation,
+        presentacion:s.presentation,
+        brand:s.brand,
+        marca:s.brand,
+        category:s.category,
+        categoria:s.category,
+        price:s.price,
+        precio:s.price,
+        image,
+        imagen:image
+      };
+
+      for (const [key,value] of Object.entries(next)) {
+        if (p[key] !== value) {
+          p[key] = value;
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  function forceRender(list) {
+    // Primero usamos el mismo flujo de filtros del catálogo. Esto evita crear
+    // tarjetas paralelas que luego no funcionan con carrito/búsqueda.
+    const controls = document.querySelectorAll(
+      'input[type="search"], input[type="text"], select, [data-filter], [data-category], [data-brand]'
+    );
+    controls.forEach(el => {
+      try { el.dispatchEvent(new Event('input', {bubbles:true})); } catch (_) {}
+      try { el.dispatchEvent(new Event('change', {bubbles:true})); } catch (_) {}
     });
 
-    const image = s.image || `${DRIVE}${s.file}&sz=w800`;
-    if (!p) {
-      p = {};
-      list.push(p);
-      changed = true;
-    }
+    // Compatibilidad con los nombres habituales de render usado en versiones
+    // anteriores del catálogo. Se ejecuta solo el primero que exista.
+    const renderers = [];
+    try { if (typeof renderProducts === 'function') renderers.push(renderProducts); } catch (_) {}
+    try { if (typeof renderCatalog === 'function') renderers.push(renderCatalog); } catch (_) {}
+    try { if (typeof displayProducts === 'function') renderers.push(displayProducts); } catch (_) {}
+    try { if (typeof mostrarProductos === 'function') renderers.push(mostrarProductos); } catch (_) {}
+    try { if (typeof renderProductos === 'function') renderers.push(renderProductos); } catch (_) {}
+    try { if (typeof applyFilters === 'function') renderers.push(applyFilters); } catch (_) {}
+    try { if (typeof filtrarProductos === 'function') renderers.push(filtrarProductos); } catch (_) {}
 
-    const next = {
-      id:s.id,
-      name:s.name,
-      nombre:s.name,
-      presentation:s.presentation,
-      presentacion:s.presentation,
-      brand:s.brand,
-      marca:s.brand,
-      category:s.category,
-      categoria:s.category,
-      price:s.price,
-      precio:s.price,
-      image,
-      imagen:image
-    };
-
-    for (const [key,value] of Object.entries(next)) {
-      if (p[key] !== value) {
-        p[key] = value;
-        changed = true;
+    if (renderers.length) {
+      const fn = renderers[0];
+      try {
+        if (fn.length > 0) fn(list);
+        else fn();
+      } catch (_) {
+        try { fn(); } catch (__) {}
       }
     }
   }
 
-  document.documentElement.dataset.liftInsaneLite = 'ready';
-  if (changed) console.info('[Lift] Productos Insane Labz cargados.');
+  let attempts = 0;
+  const boot = () => {
+    attempts += 1;
+    const list = getList();
+    if (!list) {
+      if (attempts < 40) setTimeout(boot, 100);
+      else document.documentElement.dataset.liftInsaneLite = 'list-not-found';
+      return;
+    }
+
+    const changed = upsert(list);
+    forceRender(list);
+    document.documentElement.dataset.liftInsaneLite = 'ready';
+    console.info(`[Lift] Insane Labz listo: ${SPECS.length} productos. Cambios: ${changed ? 'sí' : 'no'}.`);
+  };
+
+  boot();
 })();
