@@ -42,13 +42,19 @@
       const text = card.innerText || card.textContent || '';
       const match = findImage(text);
       if (!match) return;
+
       const img = card.querySelector('.pic img, img');
-      if (!img || img.dataset.liftHiTechDriveId === match.id) return;
+      if (!img) return;
+
+      const wanted = DRIVE + match.id + '&sz=w800';
+      if (!String(img.src || '').includes(match.id)) {
+        img.src = wanted;
+      }
+
       img.dataset.liftHiTechDriveId = match.id;
       img.loading = 'lazy';
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
-      img.src = DRIVE + match.id + '&sz=w800';
       img.style.width = 'auto';
       img.style.height = 'auto';
       img.style.maxWidth = '100%';
@@ -69,6 +75,9 @@
   };
 
   apply();
-  new MutationObserver(queueApply).observe(document.documentElement,{childList:true,subtree:true});
+  new MutationObserver(queueApply).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
   window.addEventListener('hashchange',queueApply);
+  window.addEventListener('load',queueApply);
+  setTimeout(apply,300);
+  setTimeout(apply,1000);
 })();
