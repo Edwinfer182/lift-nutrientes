@@ -8,7 +8,7 @@
     { name: 'Proteína Whey', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
   ];
 
-  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','ganador de masa','ganadores de masa','mass gainer','mega mass','mass evolution','titan beef','titan army','serious mass','true mass','super mass','pro gainer','bulk'];
+  const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','ganador de masa','ganadores de masa','ganadore de masa','mass gainer','mega mass','mass evolution','titan beef','titan army','serious mass','true mass','super mass','pro gainer','bulk','whey pure 5lb','whey pure 2lb','carnivor mass'];
   const EXCLUDED_FROM_PROTEINS = ['amino build','creatine chews','maca root','nac 600','ultimate pre workout','protein bar','protein bars','barra de proteina','barras de proteina','crispy bar','integralmedica crispy'];
   const PROTEIN_CATEGORY_TERMS = ['protein','proteina','proteinas'];
   const AMINO_CATEGORY_TERMS = ['aminoacidos','aminoácidos','bcaa / eaa','bcaa/eaa','bcaa','eaa'];
