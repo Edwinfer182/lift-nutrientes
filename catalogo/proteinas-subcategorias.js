@@ -16,6 +16,7 @@
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -37,6 +38,23 @@
     return 'Proteína Whey';
   };
 
+  const dedupeProducts = products => {
+    const seen = new Set();
+    let removed = 0;
+    for (let i = products.length - 1; i >= 0; i--) {
+      const product = products[i];
+      const key = normalize(product?.name || product?.title || '');
+      if (!key) continue;
+      if (seen.has(key)) {
+        products.splice(i, 1);
+        removed++;
+      } else {
+        seen.add(key);
+      }
+    }
+    return removed;
+  };
+
   window.LIFT_PROTEIN_SUBCATEGORIES = SUBCATEGORIES.map(group => group.name);
   window.LIFT_PROTEIN_CLASSIFIER = { normalize, isMassGainer, isExcludedFromProteins, looksLikeProteinCategory, classifyProduct };
 
@@ -44,6 +62,7 @@
     try {
       if (typeof PRODUCTS === 'undefined' || !Array.isArray(PRODUCTS)) return false;
 
+      const duplicatesRemoved = dedupeProducts(PRODUCTS);
       const oldProteinCategories = new Set();
       let changed = 0;
 
@@ -81,7 +100,7 @@
       if (typeof render === 'function') render();
 
       document.documentElement.dataset.liftProteinSubcategories = 'ready';
-      console.info(`[Lift] Proteínas reclasificadas: ${changed}`);
+      console.info(`[Lift] Proteínas reclasificadas: ${changed}; duplicados eliminados: ${duplicatesRemoved}`);
       return true;
     } catch (error) {
       console.error('[Lift] No se pudieron aplicar las subcategorías de proteína', error);
