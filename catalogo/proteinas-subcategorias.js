@@ -1,11 +1,11 @@
 (() => {
   const SUBCATEGORIES = [
-    { name: 'Hydrolyzed', keywords: ['hydrolyzed','hydrolysed','hydro whey','hydro','iso100','iso 100'] },
-    { name: 'Veganas', keywords: ['vegan','plant protein','plant-based','pea','arveja','rice protein','proteina de arroz','soya','soy','vegetal'] },
+    { name: 'Proteína hidrolizada', keywords: ['hydrolyzed','hydrolysed','hydro whey','hydro','iso100','iso 100'] },
+    { name: 'Proteína vegana', keywords: ['vegan','plant protein','plant-based','pea','arveja','rice protein','proteina de arroz','soya','soy','vegetal'] },
     { name: 'Proteína de carne', keywords: ['beef','carnivor','carne'] },
-    { name: 'Otras fuentes', keywords: ['casein','caseina','micellar','egg','huevo','albumin','albumina'] },
-    { name: 'Isolate / Proteína limpia', keywords: ['isolate','isolated','isolation','isopure','iso whey','whey iso','isolate 100','zero carb','low carb'] },
-    { name: 'Whey Protein', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
+    { name: 'Proteína de otras fuentes', keywords: ['casein','caseina','micellar','egg','huevo','albumin','albumina'] },
+    { name: 'Proteína aislada / limpia', keywords: ['isolate','isolated','isolation','isopure','iso whey','whey iso','isolate 100','zero carb','low carb'] },
+    { name: 'Proteína Whey', keywords: ['whey','gold standard','syntha','combat','nitro tech','nitrotech'] }
   ];
 
   const MASS_TERMS = ['gainer','ganador de peso','ganadores de peso','mass','serious mass','true mass','bulk','super mass','pro gainer'];
@@ -32,7 +32,7 @@
     for (const group of SUBCATEGORIES) {
       if (group.keywords.some(keyword => haystack.includes(normalize(keyword)))) return group.name;
     }
-    return 'Whey Protein';
+    return 'Proteína Whey';
   };
 
   window.LIFT_PROTEIN_SUBCATEGORIES = SUBCATEGORIES.map(group => group.name);
