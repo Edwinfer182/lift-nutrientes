@@ -216,6 +216,20 @@
 }
 </style>
 
+
+<style id="lift-search-offcanvas-offers-v2">
+.searchThumb[data-lift-product]{cursor:pointer}
+.liftMonoPriceArea .offerPrices{margin-top:10px}
+.liftMonoPriceArea .oldPrice{font-size:14px}
+.liftMonoPriceArea .price{font-size:30px;font-weight:600}
+.liftMonoPriceArea .giftBadge,
+.liftMonoPriceArea .saving,
+.liftMonoPriceArea .flavorNote{margin-top:7px}
+@media(max-width:640px){
+  .liftMonoPriceArea .price{font-size:26px}
+}
+</style>
+
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
@@ -477,7 +491,7 @@ function renderQuickSearch(value){
   if(!q){box.classList.remove('show');box.innerHTML='';if(fullSearchActive){fullSearchActive=false;render()}return;}
   const all=searchProductsAll(value);
   const results=all.slice(0,7);
-  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" src="${p.image}" alt="${esc(p.name)}"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
+  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" data-lift-product="${p.id}" src="${p.image}" alt="${esc(p.name)}" title="Ver producto"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
   const allButton=`<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los resultados${all.length?` (${all.length})`:''}</button></div>`;
   box.innerHTML=rows+allButton;
   box.classList.add('show');
@@ -1108,7 +1122,7 @@ function renderProductDetail(p){
           <div class="liftMonoBrand">${p.brand||''}</div>
           <h2 class="liftMonoTitle">${p.name||''}</h2>
           <div>${p.category||''}</div>
-          <div class="liftMonoPrice">${money}</div>
+          <div class="liftMonoPriceArea">${typeof priceHTML==='function' ? priceHTML(p) : `<div class="liftMonoPrice">${money}</div>`}</div>
           ${iso100FlavorStrip(p)}
           <div class="liftMonoBtns">
             <button type="button" id="liftMonoAdd">Agregar al carrito</button>
@@ -1154,6 +1168,16 @@ function renderProductDetail(p){
     document.body.style.overflow='hidden';
   }
 
+  window.openLiftProductById=function(id){
+    ensureOffcanvas();
+    const p=PRODUCTS.find(x=>String(x.id)===String(id));
+    if(!p) return;
+    renderProductDetail(p);
+    panel.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.style.overflow='hidden';
+  };
+
   function closeProduct(){
     panel?.classList.remove('open');
     backdrop?.classList.remove('open');
@@ -1162,6 +1186,15 @@ function renderProductDetail(p){
 
   function installCardClick(){
     document.addEventListener('click',e=>{
+      const searchImg=e.target.closest('.searchThumb[data-lift-product]');
+      if(searchImg){
+        e.preventDefault();
+        e.stopPropagation();
+        if(typeof closeQuickSearch==='function') closeQuickSearch();
+        window.openLiftProductById(searchImg.dataset.liftProduct);
+        return;
+      }
+
       if(panel?.contains(e.target)) return;
       if(e.target.closest('button,a,input,select,textarea,label,[role="button"]')) return;
       const card=e.target.closest('.card,[class*="product-card"]');
