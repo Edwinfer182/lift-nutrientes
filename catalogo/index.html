@@ -335,6 +335,33 @@
   .grid{background:#fff!important;}
 }
 </style>
+
+<style id="lift-card-offer-inspect-fix-v1">
+/* Tarjetas: lupa discreta y ofertas sin solapamientos */
+.grid{align-items:start!important;}
+.inspectBtn{
+  width:28px!important;
+  height:28px!important;
+  left:8px!important;
+  top:8px!important;
+  box-shadow:0 2px 7px rgba(0,0,0,.10)!important;
+}
+.inspectBtn svg{width:13px!important;height:13px!important;}
+/* Cuando hay etiqueta OFERTA, la lupa baja para no taparla */
+.card:has(.saleBadge) .inspectBtn{top:38px!important;}
+/* Deja respirar precios, regalo y ahorro sin cortar la tarjeta */
+.card:has(.saleBadge) .body{min-height:132px!important;}
+.card:has(.saleBadge) .productBottom{align-items:flex-end!important;}
+.card:has(.saleBadge) .offerPrices{row-gap:2px;}
+@media(max-width:760px){
+  .inspectBtn{width:26px!important;height:26px!important;left:7px!important;top:7px!important;}
+  .inspectBtn svg{width:12px!important;height:12px!important;}
+  .card:has(.saleBadge) .inspectBtn{top:34px!important;}
+  .card:has(.saleBadge) .body{min-height:142px!important;}
+  .giftBadge{white-space:nowrap;max-width:100%;}
+  .productBottom{align-items:flex-end!important;}
+}
+</style>
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1jnpfEyTWRSHOuPUQDLMXsdhP_H1-V6WM&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
