@@ -1886,4 +1886,520 @@ function renderProductDetail(p){
 })();
 </script>
 
+
+<!-- LIFT SEARCH: marcas + categorías + botón VER -->
+<style id="lift-search-entities-v1">
+.searchResult.liftEntityResult{
+  grid-template-columns:58px minmax(0,1fr) auto;
+  background:#fff;
+}
+.searchResult.liftEntityResult .searchThumb{
+  object-fit:contain;
+  padding:7px;
+}
+.liftEntityType{
+  display:inline-flex;
+  align-items:center;
+  min-height:18px;
+  padding:2px 7px;
+  border-radius:999px;
+  background:#f1f1f1;
+  color:#666;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.searchView{
+  height:34px;
+  border:0;
+  border-radius:8px;
+  padding:0 13px;
+  background:#111;
+  color:#fff;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:11px;
+  white-space:nowrap;
+}
+.searchView:hover{background:#292929}
+.searchEntityFallback{
+  width:58px;height:58px;border:1px solid #eee;border-radius:9px;
+  display:grid;place-items:center;background:#fafafa;color:#111;
+  font-size:18px;font-weight:800;
+}
+@media(max-width:760px){
+  .searchResult.liftEntityResult{grid-template-columns:50px minmax(0,1fr) auto!important}
+  .searchResult.liftEntityResult .searchThumb,.searchEntityFallback{width:50px;height:50px}
+  .searchView{height:32px;padding:0 11px}
+}
+</style>
+
+<script id="lift-search-entities-v1-script">
+(function(){
+  const BRAND_LOGOS = {
+    "Applied Nutrition":"14H3Df3FxRg2HCAyKqbZKneB5S2MqwQVv",
+    "Basic Supplements":"18kW7yFLqrrz5ryt1qmcMY5uXjHt2xiI8",
+    "BSN":"1bNij0QT4liD7z4nsia047m3QBol_Fb0R",
+    "Cellucor":"1mTW35C79ccl7WYboxiVH0JJ9Q4TBKWQf",
+    "Darkness":"1zQL_883QRx_0Dqz-J6_vSJLkgcLCCjBb",
+    "Dragon Pharma":"1B1oou8b3p_gqyuQu4Nzt5o_W1HkRq2lK",
+    "Dymatize":"1jDshoTb_5CUjaGhcDVPLtNsSKC_SNSy5",
+    "Elite Pharma":"1HlvaXRU_q8sLHMowLTrM96R84cX3faP3",
+    "Enhanced Athlete":"1dOjLGGWGulPw6vUUdU9CxszfjN2pmEoE",
+    "Hard Supps":"1k4-Gh-txSeS8wp2lHZD-dXGI60Ui63oF",
+    "Healthy Sports":"10tbmt0DmxmxoJDfmnMqCjkxcXrRlQFEP",
+    "Hi-Tech Pharma":"1arA9OTT1UqtKBTUFnuW9an6nNw-kq5yc",
+    "Hyper":"1-w7zbU8y24hb1t-T3C11x-fwXtd6jH4h",
+    "IMN Nutrition":"1ED2q6DxsYWpBSgba99MOiVr_5gBjhuLd",
+    "Insane Labz":"1fdSLVRXqqDmyxDSr6tLrrCxGpN-rWxib",
+    "Integralmedica":"1Dx2pQsBQImvEnh1gqHo3wjqXdvojMPWx",
+    "Isopure":"1tj22DLfSlqA3hmePjg2UusWzx-_tMGBO",
+    "Kirkland":"1A4FeH4-GNql4gePlvW3w_vk76oIEhSFA",
+    "Macroblends":"1KJfUhkO0JEvlyW-quq_fr-kWBORsjLLN",
+    "Metabolic Nutrition":"1RapZUTVIVLVO-lxpkLeUccBrMc_Mk2q3",
+    "Monster Test":"1YF_EhY_Q9gh_cNlvhDWfqC00QNN4DnwG",
+    "MuscleMeds":"1O2Tc2MKuZGJQz0xnVIvdZGoWSlCOQz0B",
+    "MuscleTech":"1WLM_frMq-oLlCF0BB4hnY9gYQhkdnwAg",
+    "Nutrex":"1VC0OdGtBixvDBjAsTp6UV6-UpsdfRBH2",
+    "Nutricost":"1CtTzrwO-KEKtvslVGbjbg-fSgxedLXyh",
+    "Optimum Nutrition":"1Sz3XoqfAtme2sxE37zDphFB397SEScyS",
+    "Primaforce":"1PQwdoRdIfehaUBYoE-6gZ2lbbAjJDel3",
+    "ProScience":"1lBg5nUqLYKaz-hF3H3wE4x6GgfPk411o",
+    "RAW Nutrition":"1SxXu7LbqYudY1NIF29rZ4TsnwNAvkPW_",
+    "Revive":"18-mbgmcoDYcZdDrE7aKCzH-weHMu7Hgq",
+    "Savage":"1ufMmQ0RoDoID3FKeWRCflhwBd7HQV2Fp",
+    "Simply Vitamins":"1HQFvNbOjxcZDiVkGsXI2bmy2ANrDRp1G",
+    "Smart Nutrition":"1dBxrB5awvEotL4g5xlXCMcTvHHu_fGYK",
+    "SmartMuscle":"1fyO4YxWYLGmQgGacGjnoguClrcSoS57C",
+    "Universal":"1f5PQfhzVZkcyoc2wPBYNXfCO7QPd7uJY",
+    "Vitanas":"1sTA6JUPNeH_MsLSshDu9XOiB_GLMeCtc"
+  };
+
+  window.LIFT_BRAND_LOGOS = BRAND_LOGOS;
+
+  function logoUrl(brand){
+    const id=BRAND_LOGOS[brand];
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w300` : "";
+  }
+
+  function entityMatches(value){
+    const q=norm(value).trim();
+    if(!q) return {brands:[],categories:[]};
+
+    const realBrands=[...new Set(PRODUCTS.map(p=>p.brand))]
+      .filter(b=>b && !["Destacados Lift","Selección Lift","Varias marcas"].includes(b));
+
+    const matchedBrands=realBrands
+      .filter(b=>{
+        const n=norm(b);
+        return n.includes(q) || q.includes(n);
+      })
+      .sort((a,b)=>{
+        const na=norm(a), nb=norm(b);
+        return (na===q?-100:0)-(nb===q?-100:0) || a.localeCompare(b);
+      });
+
+    const realCats=[...new Set(PRODUCTS.map(p=>p.category))].filter(Boolean);
+    const matchedCats=realCats
+      .filter(c=>{
+        const n=norm(c);
+        const aliases=[n,n+"s",n.replace(/a$/,"as"),n.replace(/o$/,"os")];
+        return aliases.some(x=>x.includes(q) || q.includes(x));
+      })
+      .sort((a,b)=>{
+        const na=norm(a), nb=norm(b);
+        return (na===q?-100:0)-(nb===q?-100:0) || a.localeCompare(b);
+      });
+
+    return {brands:matchedBrands.slice(0,3),categories:matchedCats.slice(0,3)};
+  }
+
+  function brandRow(brand){
+    const count=PRODUCTS.filter(p=>p.brand===brand).length;
+    const logo=logoUrl(brand);
+    const visual=logo
+      ? `<img class="searchThumb" loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(brand)}">`
+      : `<div class="searchEntityFallback">${esc(brand.charAt(0))}</div>`;
+    return `<div class="searchResult liftEntityResult">
+      ${visual}
+      <div class="searchInfo">
+        <div class="liftEntityType">Marca</div>
+        <div class="searchName">${esc(brand)}</div>
+        <div class="searchBrand">${count} producto${count===1?'':'s'}</div>
+      </div>
+      <div class="searchActions"><button class="searchView" onclick='liftViewBrand(${JSON.stringify(brand)})'>Ver</button></div>
+    </div>`;
+  }
+
+  function categoryRow(cat){
+    const arr=PRODUCTS.filter(p=>p.category===cat);
+    const representative=arr.find(p=>p.image)||arr[0];
+    const img=representative?.image
+      ? String(representative.image).replace(/&sz=w\d+/i,'&sz=w240')
+      : "";
+    const visual=img
+      ? `<img class="searchThumb" loading="lazy" decoding="async" src="${img}" alt="${esc(cat)}">`
+      : `<div class="searchEntityFallback">${esc(cat.charAt(0))}</div>`;
+    return `<div class="searchResult liftEntityResult">
+      ${visual}
+      <div class="searchInfo">
+        <div class="liftEntityType">Categoría</div>
+        <div class="searchName">${esc(cat)}</div>
+        <div class="searchBrand">${arr.length} producto${arr.length===1?'':'s'}</div>
+      </div>
+      <div class="searchActions"><button class="searchView" onclick='liftViewCategory(${JSON.stringify(cat)})'>Ver</button></div>
+    </div>`;
+  }
+
+  window.liftViewBrand=function(brand){
+    closeQuickSearch();
+    document.getElementById('q').value=brand;
+    state.offerOnly=false;
+    fullSearchActive=false;
+    setBrand(brand);
+    setTimeout(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}),40);
+  };
+
+  window.liftViewCategory=function(cat){
+    closeQuickSearch();
+    document.getElementById('q').value=cat;
+    state.offerOnly=false;
+    fullSearchActive=false;
+    setCat(cat);
+    setTimeout(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}),40);
+  };
+
+  window.renderQuickSearch=function(value){
+    const box=document.getElementById('searchResults');
+    const q=value.trim();
+    if(!q){
+      box.classList.remove('show');
+      box.innerHTML='';
+      if(fullSearchActive){fullSearchActive=false;render()}
+      return;
+    }
+
+    const entities=entityMatches(value);
+    const all=searchProductsAll(value);
+    const productLimit=Math.max(2,7-entities.brands.length-entities.categories.length);
+    const products=all.slice(0,productLimit);
+
+    let rows='';
+    rows+=entities.brands.map(brandRow).join('');
+    rows+=entities.categories.map(categoryRow).join('');
+    rows+=products.map(p=>`<div class="searchResult">
+      <img class="searchThumb" loading="lazy" decoding="async" fetchpriority="low"
+        data-lift-product="${p.id}"
+        src="${String(p.image).includes('drive.google.com/thumbnail')?String(p.image).replace(/&sz=w\d+/i,'&sz=w240'):p.image}"
+        alt="${esc(p.name)}" title="Ver producto">
+      <div class="searchInfo">
+        <div class="searchName">${esc(p.name)}</div>
+        <div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div>
+        <div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>
+        ${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}
+        ${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}
+        ${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}
+      </div>
+      <div class="searchActions"><button class="searchView" onclick="openLiftProductById(${p.id});closeQuickSearch()">Ver</button></div>
+    </div>`).join('');
+
+    if(!rows) rows='<div class="searchEmpty">No encontré coincidencias.</div>';
+
+    const totalEntities=entities.brands.length+entities.categories.length;
+    const allButton=`<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los productos${all.length?` (${all.length})`:''}</button></div>`;
+    box.innerHTML=rows+(all.length?allButton:'');
+    box.classList.add('show');
+  };
+})();
+</script>
+
+
+<!-- LIFT SEARCH UX v2: productos primero, acciones originales, fila completa abre offcanvas -->
+<style id="lift-search-ux-v2">
+#searchResults .searchResult.liftProductSearchRow{cursor:pointer}
+#searchResults .searchResult.liftProductSearchRow:hover{background:#fafafa}
+#searchResults .liftProductSearchRow .searchThumb{cursor:pointer}
+#searchResults .liftEntitySectionTitle{
+  padding:12px 12px 6px;
+  color:#777;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border-top:1px solid #eee;
+  background:#fff;
+}
+#searchResults .liftEntityResult{cursor:default}
+#searchResults .searchActions{position:relative;z-index:3}
+</style>
+
+<script id="lift-search-ux-v2-script">
+(function(){
+  function getEntityMatches(value){
+    const q=norm(value).trim();
+    if(!q) return {brands:[],categories:[]};
+
+    const realBrands=[...new Set(PRODUCTS.map(p=>p.brand))]
+      .filter(b=>b && !["Destacados Lift","Selección Lift","Varias marcas"].includes(b));
+    const brands=realBrands.filter(b=>{
+      const n=norm(b); return n.includes(q)||q.includes(n);
+    }).sort((a,b)=>(norm(a)===q?-1:0)-(norm(b)===q?-1:0)||a.localeCompare(b)).slice(0,3);
+
+    const cats=[...new Set(PRODUCTS.map(p=>p.category))].filter(Boolean);
+    const categories=cats.filter(c=>{
+      const n=norm(c);
+      const aliases=[n,n+"s",n.replace(/a$/,"as"),n.replace(/o$/,"os")];
+      return aliases.some(x=>x.includes(q)||q.includes(x));
+    }).sort((a,b)=>(norm(a)===q?-1:0)-(norm(b)===q?-1:0)||a.localeCompare(b)).slice(0,3);
+
+    return {brands,categories};
+  }
+
+  function logoUrlV2(brand){
+    const id=window.LIFT_BRAND_LOGOS?.[brand];
+    return id?`https://drive.google.com/thumbnail?id=${id}&sz=w300`:"";
+  }
+
+  function brandRowV2(brand){
+    const count=PRODUCTS.filter(p=>p.brand===brand).length;
+    const logo=logoUrlV2(brand);
+    return `<div class="searchResult liftEntityResult">
+      ${logo?`<img class="searchThumb" loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(brand)}">`:`<div class="searchEntityFallback">${esc(brand.charAt(0))}</div>`}
+      <div class="searchInfo">
+        <div class="liftEntityType">Marca</div>
+        <div class="searchName">${esc(brand)}</div>
+        <div class="searchBrand">${count} producto${count===1?'':'s'}</div>
+      </div>
+      <div class="searchActions"><button class="searchView" onclick='event.stopPropagation();liftViewBrand(${JSON.stringify(brand)})'>Ver</button></div>
+    </div>`;
+  }
+
+  function categoryRowV2(cat){
+    const arr=PRODUCTS.filter(p=>p.category===cat);
+    const representative=arr.find(p=>p.image)||arr[0];
+    const img=representative?.image?String(representative.image).replace(/&sz=w\d+/i,'&sz=w240'):"";
+    return `<div class="searchResult liftEntityResult">
+      ${img?`<img class="searchThumb" loading="lazy" decoding="async" src="${img}" alt="${esc(cat)}">`:`<div class="searchEntityFallback">${esc(cat.charAt(0))}</div>`}
+      <div class="searchInfo">
+        <div class="liftEntityType">Categoría</div>
+        <div class="searchName">${esc(cat)}</div>
+        <div class="searchBrand">${arr.length} producto${arr.length===1?'':'s'}</div>
+      </div>
+      <div class="searchActions"><button class="searchView" onclick='event.stopPropagation();liftViewCategory(${JSON.stringify(cat)})'>Ver</button></div>
+    </div>`;
+  }
+
+  function productActionsV2(p){
+    const hasVariants = typeof getFlavorOptions==="function" && getFlavorOptions(p)?.length;
+    if(hasVariants){
+      return `<button class="searchView" onclick="event.stopPropagation();openLiftProductById(${p.id});closeQuickSearch()">Ver</button>`;
+    }
+    return `<button class="searchAdd" onclick="event.stopPropagation();add(${p.id})">Agregar</button>
+            <button class="searchBuy" onclick="event.stopPropagation();buyNow(${p.id})">Comprar</button>`;
+  }
+
+  function productRowV2(p){
+    const img=String(p.image).includes('drive.google.com/thumbnail')
+      ? String(p.image).replace(/&sz=w\d+/i,'&sz=w240') : p.image;
+    return `<div class="searchResult liftProductSearchRow" role="button" tabindex="0"
+      onclick="if(!event.target.closest('button')){openLiftProductById(${p.id});closeQuickSearch()}"
+      onkeydown="if(event.key==='Enter'&&!event.target.closest('button')){openLiftProductById(${p.id});closeQuickSearch()}">
+      <img class="searchThumb" loading="lazy" decoding="async" fetchpriority="low" src="${img}" alt="${esc(p.name)}">
+      <div class="searchInfo">
+        <div class="searchName">${esc(p.name)}</div>
+        <div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div>
+        <div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>
+        ${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}
+        ${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}
+        ${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}
+      </div>
+      <div class="searchActions">${productActionsV2(p)}</div>
+    </div>`;
+  }
+
+  window.renderQuickSearch=function(value){
+    const box=document.getElementById('searchResults');
+    const q=value.trim();
+    if(!q){
+      box.classList.remove('show'); box.innerHTML='';
+      if(fullSearchActive){fullSearchActive=false;render()}
+      return;
+    }
+
+    const all=searchProductsAll(value);
+    const entities=getEntityMatches(value);
+    const products=all.slice(0,7);
+
+    let rows=products.map(productRowV2).join('');
+
+    if(entities.categories.length || entities.brands.length){
+      rows+=`<div class="liftEntitySectionTitle">Categorías y marcas</div>`;
+      rows+=entities.categories.map(categoryRowV2).join('');
+      rows+=entities.brands.map(brandRowV2).join('');
+    }
+
+    if(!rows) rows='<div class="searchEmpty">No encontré coincidencias.</div>';
+
+    const allButton=all.length
+      ? `<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los productos (${all.length})</button></div>` : '';
+    box.innerHTML=rows+allButton;
+    box.classList.add('show');
+  };
+})();
+</script>
+
+
+<!-- LIFT SEARCH UX v3: máximo 6 productos + categoría visible -->
+<style id="lift-search-ux-v3">
+#searchResults .liftEntitySectionTitle{
+  padding:14px 14px 8px;
+  color:#555;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border-top:2px solid #e8e8e8;
+  background:#f8f8f8;
+}
+#searchResults .liftEntityResult{
+  background:#f7f7f7;
+}
+#searchResults .liftEntityResult .searchName{
+  font-size:14px;
+  font-weight:800;
+  color:#111;
+}
+#searchResults .liftEntityResult .searchBrand{
+  font-size:11px;
+  color:#666;
+}
+#searchResults .liftEntityResult .liftEntityType{
+  background:#111;
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+}
+#searchResults .liftEntityResult .searchView{
+  min-width:58px;
+  font-weight:700;
+}
+@media(max-width:760px){
+  #searchResults .liftEntitySectionTitle{font-size:10px;padding:12px 11px 7px}
+}
+</style>
+
+<script id="lift-search-ux-v3-script">
+(function(){
+  const prevRender = window.renderQuickSearch;
+  window.renderQuickSearch = function(value){
+    const box=document.getElementById('searchResults');
+    const q=value.trim();
+    if(!q){
+      box.classList.remove('show'); box.innerHTML='';
+      if(fullSearchActive){fullSearchActive=false;render()}
+      return;
+    }
+
+    const all=searchProductsAll(value);
+    const products=all.slice(0,6);
+
+    const nq=norm(value).trim();
+    const cats=[...new Set(PRODUCTS.map(p=>p.category))].filter(Boolean);
+    const categories=cats.filter(c=>{
+      const n=norm(c);
+      const aliases=[n,n+"s",n.replace(/a$/,"as"),n.replace(/o$/,"os")];
+      return aliases.some(x=>x.includes(nq)||nq.includes(x));
+    }).sort((a,b)=>(norm(a)===nq?-1:0)-(norm(b)===nq?-1:0)||a.localeCompare(b)).slice(0,3);
+
+    const realBrands=[...new Set(PRODUCTS.map(p=>p.brand))]
+      .filter(b=>b && !["Destacados Lift","Selección Lift","Varias marcas"].includes(b));
+    const brands=realBrands.filter(b=>{
+      const n=norm(b); return n.includes(nq)||nq.includes(n);
+    }).sort((a,b)=>(norm(a)===nq?-1:0)-(norm(b)===nq?-1:0)||a.localeCompare(b)).slice(0,3);
+
+    function logoUrlV3(brand){
+      const id=window.LIFT_BRAND_LOGOS?.[brand];
+      return id?`https://drive.google.com/thumbnail?id=${id}&sz=w300`:"";
+    }
+
+    function productActionsV3(p){
+      const hasVariants = typeof getFlavorOptions==="function" && getFlavorOptions(p)?.length;
+      if(hasVariants){
+        return `<button class="searchView" onclick="event.stopPropagation();openLiftProductById(${p.id});closeQuickSearch()">Ver</button>`;
+      }
+      return `<button class="searchAdd" onclick="event.stopPropagation();add(${p.id})">Agregar</button>
+              <button class="searchBuy" onclick="event.stopPropagation();buyNow(${p.id})">Comprar</button>`;
+    }
+
+    function productRowV3(p){
+      const img=String(p.image).includes('drive.google.com/thumbnail')
+        ? String(p.image).replace(/&sz=w\d+/i,'&sz=w240') : p.image;
+      return `<div class="searchResult liftProductSearchRow" role="button" tabindex="0"
+        onclick="if(!event.target.closest('button')){openLiftProductById(${p.id});closeQuickSearch()}"
+        onkeydown="if(event.key==='Enter'&&!event.target.closest('button')){openLiftProductById(${p.id});closeQuickSearch()}">
+        <img class="searchThumb" loading="lazy" decoding="async" src="${img}" alt="${esc(p.name)}">
+        <div class="searchInfo">
+          <div class="searchName">${esc(p.name)}</div>
+          <div class="searchBrand">${esc(p.brand)} · <strong>${esc(p.category)}</strong></div>
+          <div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>
+          ${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}
+          ${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}
+        </div>
+        <div class="searchActions">${productActionsV3(p)}</div>
+      </div>`;
+    }
+
+    function categoryRowV3(cat){
+      const arr=PRODUCTS.filter(p=>p.category===cat);
+      const representative=arr.find(p=>p.image)||arr[0];
+      const img=representative?.image?String(representative.image).replace(/&sz=w\d+/i,'&sz=w240'):"";
+      return `<div class="searchResult liftEntityResult">
+        ${img?`<img class="searchThumb" loading="lazy" decoding="async" src="${img}" alt="${esc(cat)}">`:`<div class="searchEntityFallback">${esc(cat.charAt(0))}</div>`}
+        <div class="searchInfo">
+          <div class="liftEntityType">Categoría</div>
+          <div class="searchName">${esc(cat)}</div>
+          <div class="searchBrand">Ver los ${arr.length} productos de esta categoría</div>
+        </div>
+        <div class="searchActions"><button class="searchView" onclick='event.stopPropagation();liftViewCategory(${JSON.stringify(cat)})'>Ver</button></div>
+      </div>`;
+    }
+
+    function brandRowV3(brand){
+      const count=PRODUCTS.filter(p=>p.brand===brand).length;
+      const logo=logoUrlV3(brand);
+      return `<div class="searchResult liftEntityResult">
+        ${logo?`<img class="searchThumb" loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(brand)}">`:`<div class="searchEntityFallback">${esc(brand.charAt(0))}</div>`}
+        <div class="searchInfo">
+          <div class="liftEntityType">Marca</div>
+          <div class="searchName">${esc(brand)}</div>
+          <div class="searchBrand">Ver los ${count} productos de esta marca</div>
+        </div>
+        <div class="searchActions"><button class="searchView" onclick='event.stopPropagation();liftViewBrand(${JSON.stringify(brand)})'>Ver</button></div>
+      </div>`;
+    }
+
+    let rows=products.map(productRowV3).join('');
+
+    if(categories.length){
+      rows+=`<div class="liftEntitySectionTitle">Categorías relacionadas</div>`;
+      rows+=categories.map(categoryRowV3).join('');
+    }
+    if(brands.length){
+      rows+=`<div class="liftEntitySectionTitle">Marcas relacionadas</div>`;
+      rows+=brands.map(brandRowV3).join('');
+    }
+
+    if(!rows) rows='<div class="searchEmpty">No encontré coincidencias.</div>';
+
+    const allButton=all.length
+      ? `<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los productos (${all.length})</button></div>`:'';
+
+    box.innerHTML=rows+allButton;
+    box.classList.add('show');
+  };
+})();
+</script>
+
 </body></html>
