@@ -648,8 +648,15 @@ function render(){
   updateOffersButton()
 }
 function renderChips(){}
-function filterHTML(){const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRODUCTS.length:categoryProducts(c).length]));const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?PRODUCTS.length:PRODUCTS.filter(p=>p.brand===b).length]));const isBrands=state.filterView==='brands';return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Marcas</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
-<section class="filterPanel" ${isBrands?'':'hidden'}>${brands.map(b=>`<button class="filterItem ${state.brand===b?'on':''}" onclick='setBrand(${JSON.stringify(b)})'><span>${esc(b)}</span><small>${bc[b]}</small></button>`).join('')}</section>
+function filterHTML(){const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRODUCTS.length:categoryProducts(c).length]));const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?PRODUCTS.length:PRODUCTS.filter(p=>p.brand===b).length]));const isBrands=state.filterView==='brands';return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
+<section class="filterPanel" ${isBrands?'':'hidden'}>
+  <div class="labVisualWrap">
+    <div class="labVisualSearchWrap">
+      <input id="labVisualSearch" class="labVisualSearch" type="search" placeholder="Buscar laboratorio..." autocomplete="off" oninput="renderLaboratoryVisualGrid(this.value)">
+    </div>
+    <div id="labVisualGrid" class="labVisualGrid"></div>
+  </div>
+</section>
 <section class="filterPanel" ${!isBrands?'':'hidden'}>${cats.map(c=>`<button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button>`).join('')}</section>`}
 function renderFilters(){const h=filterHTML();document.getElementById('desktopFilters').innerHTML=h;document.getElementById('mobileFilters').innerHTML=h}
 function setFilterView(view){state.filterView=view;renderFilters()}
@@ -1962,6 +1969,8 @@ function renderProductDetail(p){
     "Monster Test":"1YF_EhY_Q9gh_cNlvhDWfqC00QNN4DnwG",
     "MuscleMeds":"1O2Tc2MKuZGJQz0xnVIvdZGoWSlCOQz0B",
     "MuscleTech":"1WLM_frMq-oLlCF0BB4hnY9gYQhkdnwAg",
+    "Nutramerican / Megaplex":"1ooEQmYh1ciVyzydF5n3o9U_bN7fxuhNr",
+    "Nutramerican":"1ooEQmYh1ciVyzydF5n3o9U_bN7fxuhNr",
     "Nutrex":"1VC0OdGtBixvDBjAsTp6UV6-UpsdfRBH2",
     "Nutricost":"1CtTzrwO-KEKtvslVGbjbg-fSgxedLXyh",
     "Optimum Nutrition":"1Sz3XoqfAtme2sxE37zDphFB397SEScyS",
@@ -1973,6 +1982,7 @@ function renderProductDetail(p){
     "Simply Vitamins":"1HQFvNbOjxcZDiVkGsXI2bmy2ANrDRp1G",
     "Smart Nutrition":"1dBxrB5awvEotL4g5xlXCMcTvHHu_fGYK",
     "SmartMuscle":"1fyO4YxWYLGmQgGacGjnoguClrcSoS57C",
+    "TNT Super Nutrition":"1Jr7hrYZlQRJIQWEmNuJ0NEaRrreCT1e3",
     "Universal":"1f5PQfhzVZkcyoc2wPBYNXfCO7QPd7uJY",
     "Vitanas":"1sTA6JUPNeH_MsLSshDu9XOiB_GLMeCtc"
   };
@@ -2025,7 +2035,7 @@ function renderProductDetail(p){
     return `<div class="searchResult liftEntityResult">
       ${visual}
       <div class="searchInfo">
-        <div class="liftEntityType">Marca</div>
+        <div class="liftEntityType">Laboratorio</div>
         <div class="searchName">${esc(brand)}</div>
         <div class="searchBrand">${count} producto${count===1?'':'s'}</div>
       </div>
@@ -2168,7 +2178,7 @@ function renderProductDetail(p){
     return `<div class="searchResult liftEntityResult">
       ${logo?`<img class="searchThumb" loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(brand)}">`:`<div class="searchEntityFallback">${esc(brand.charAt(0))}</div>`}
       <div class="searchInfo">
-        <div class="liftEntityType">Marca</div>
+        <div class="liftEntityType">Laboratorio</div>
         <div class="searchName">${esc(brand)}</div>
         <div class="searchBrand">${count} producto${count===1?'':'s'}</div>
       </div>
@@ -2372,9 +2382,9 @@ function renderProductDetail(p){
       return `<div class="searchResult liftEntityResult">
         ${logo?`<img class="searchThumb" loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(brand)}">`:`<div class="searchEntityFallback">${esc(brand.charAt(0))}</div>`}
         <div class="searchInfo">
-          <div class="liftEntityType">Marca</div>
+          <div class="liftEntityType">Laboratorio</div>
           <div class="searchName">${esc(brand)}</div>
-          <div class="searchBrand">Ver los ${count} productos de esta marca</div>
+          <div class="searchBrand">Ver los ${count} productos de este laboratorio</div>
         </div>
         <div class="searchActions"><button class="searchView" onclick='event.stopPropagation();liftViewBrand(${JSON.stringify(brand)})'>Ver</button></div>
       </div>`;
@@ -2387,7 +2397,7 @@ function renderProductDetail(p){
       rows+=categories.map(categoryRowV3).join('');
     }
     if(brands.length){
-      rows+=`<div class="liftEntitySectionTitle">Marcas relacionadas</div>`;
+      rows+=`<div class="liftEntitySectionTitle">Laboratorios relacionados</div>`;
       rows+=brands.map(brandRowV3).join('');
     }
 
@@ -2781,6 +2791,235 @@ function renderProductDetail(p){
   }else{
     setTimeout(rebuildCategoryOnlyFilters,180);
   }
+})();
+</script>
+
+
+
+
+
+<!-- LIFT LABORATORIOS VISUALES INTEGRADOS -->
+<style id="lift-laboratorios-integrados-style">
+.labVisualWrap{
+  padding:0 2px 10px;
+}
+.labVisualSearchWrap{
+  padding:0 0 10px;
+}
+.labVisualSearch{
+  width:100%;
+  height:40px;
+  border:1px solid #d9d9d9;
+  border-radius:12px;
+  padding:0 12px;
+  font:inherit;
+  font-size:13px;
+  background:#fafafa;
+  outline:none;
+}
+.labVisualSearch:focus{
+  background:#fff;
+  border-color:#111;
+}
+.labVisualGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+.labVisualCard{
+  appearance:none;
+  border:1px solid #e3e3e3;
+  background:#fff;
+  border-radius:13px;
+  min-height:104px;
+  padding:9px 7px 8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  cursor:pointer;
+  text-align:center;
+  transition:.16s ease;
+}
+.labVisualCard:hover{
+  border-color:#b7b7b7;
+  transform:translateY(-1px);
+  box-shadow:0 5px 15px rgba(0,0,0,.05);
+}
+.labVisualCard.on{
+  border-color:#111;
+  box-shadow:0 0 0 1px #111 inset;
+}
+.labVisualLogoBox{
+  width:100%;
+  height:46px;
+  display:grid;
+  place-items:center;
+}
+.labVisualLogoBox img{
+  display:block;
+  max-width:90%;
+  max-height:43px;
+  object-fit:contain;
+}
+.labVisualInitial{
+  width:42px;
+  height:42px;
+  border-radius:11px;
+  background:#111;
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-size:16px;
+  font-weight:800;
+}
+.labVisualName{
+  font-size:10.5px;
+  font-weight:700;
+  line-height:1.15;
+  color:#111;
+}
+.labVisualCount{
+  font-size:9px;
+  color:#8a8a8a;
+}
+.labVisualEmpty{
+  grid-column:1/-1;
+  padding:26px 6px;
+  text-align:center;
+  color:#888;
+  font-size:12px;
+}
+@media(max-width:760px){
+  .labVisualGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .labVisualCard{
+    min-height:100px;
+  }
+}
+</style>
+
+<script id="lift-laboratorios-integrados-script">
+(function(){
+  const LOGOS = Object.assign({}, window.LIFT_BRAND_LOGOS || {}, {
+    "Applied Nutrition":"14H3Df3FxRg2HCAyKqbZKneB5S2MqwQVv",
+    "Basic Supplements":"18kW7yFLqrrz5ryt1qmcMY5uXjHt2xiI8",
+    "BSN":"1bNij0QT4liD7z4nsia047m3QBol_Fb0R",
+    "Cellucor":"1mTW35C79ccl7WYboxiVH0JJ9Q4TBKWQf",
+    "Darkness":"1zQL_883QRx_0Dqz-J6_vSJLkgcLCCjBb",
+    "Dragon Pharma":"1B1oou8b3p_gqyuQu4Nzt5o_W1HkRq2lK",
+    "Dymatize":"1jDshoTb_5CUjaGhcDVPLtNsSKC_SNSy5",
+    "Elite Pharma":"1HlvaXRU_q8sLHMowLTrM96R84cX3faP3",
+    "Enhanced Athlete":"1dOjLGGWGulPw6vUUdU9CxszfjN2pmEoE",
+    "Hard Supps":"1k4-Gh-txSeS8wp2lHZD-dXGI60Ui63oF",
+    "Healthy Sports":"10tbmt0DmxmxoJDfmnMqCjkxcXrRlQFEP",
+    "Hi-Tech Pharma":"1arA9OTT1UqtKBTUFnuW9an6nNw-kq5yc",
+    "Hyper":"1-w7zbU8y24hb1t-T3C11x-fwXtd6jH4h",
+    "IMN Nutrition":"1ED2q6DxsYWpBSgba99MOiVr_5gBjhuLd",
+    "Insane Labz":"1fdSLVRXqqDmyxDSr6tLrrCxGpN-rWxib",
+    "Integralmedica":"1Dx2pQsBQImvEnh1gqHo3wjqXdvojMPWx",
+    "Isopure":"1tj22DLfSlqA3hmePjg2UusWzx-_tMGBO",
+    "Kirkland":"1A4FeH4-GNql4gePlvW3w_vk76oIEhSFA",
+    "Macroblends":"1KJfUhkO0JEvlyW-quq_fr-kWBORsjLLN",
+    "Metabolic Nutrition":"1RapZUTVIVLVO-lxpkLeUccBrMc_Mk2q3",
+    "Monster Test":"1YF_EhY_Q9gh_cNlvhDWfqC00QNN4DnwG",
+    "MuscleMeds":"1O2Tc2MKuZGJQz0xnVIvdZGoWSlCOQz0B",
+    "MuscleTech":"1WLM_frMq-oLlCF0BB4hnY9gYQhkdnwAg",
+    "Nutrex":"1VC0OdGtBixvDBjAsTp6UV6-UpsdfRBH2",
+    "Nutricost":"1CtTzrwO-KEKtvslVGbjbg-fSgxedLXyh",
+    "Optimum Nutrition":"1Sz3XoqfAtme2sxE37zDphFB397SEScyS",
+    "Primaforce":"1PQwdoRdIfehaUBYoE-6gZ2lbbAjJDel3",
+    "ProScience":"1lBg5nUqLYKaz-hF3H3wE4x6GgfPk411o",
+    "RAW Nutrition":"1SxXu7LbqYudY1NIF29rZ4TsnwNAvkPW_",
+    "Revive":"18-mbgmcoDYcZdDrE7aKCzH-weHMu7Hgq",
+    "Savage":"1ufMmQ0RoDoID3FKeWRCflhwBd7HQV2Fp",
+    "Simply Vitamins":"1HQFvNbOjxcZDiVkGsXI2bmy2ANrDRp1G",
+    "Smart Nutrition":"1dBxrB5awvEotL4g5xlXCMcTvHHu_fGYK",
+    "SmartMuscle":"1fyO4YxWYLGmQgGacGjnoguClrcSoS57C",
+    "Universal":"1f5PQfhzVZkcyoc2wPBYNXfCO7QPd7uJY",
+    "Vitanas":"1sTA6JUPNeH_MsLSshDu9XOiB_GLMeCtc"
+  });
+  window.LIFT_BRAND_LOGOS = LOGOS;
+
+  const generic = new Set(["Destacados Lift","Selección Lift","Varias marcas"]);
+
+  function getLabs(){
+    const counts = new Map();
+    (window.PRODUCTS||[]).forEach(p=>{
+      const b=(p.brand||'').trim();
+      if(!b || generic.has(b)) return;
+      counts.set(b,(counts.get(b)||0)+1);
+    });
+    return [...counts.entries()]
+      .map(([name,count])=>({name,count}))
+      .sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
+  }
+
+  function logoUrl(name){
+    const id=LOGOS[name];
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w260` : '';
+  }
+
+  window.renderLaboratoryVisualGrid = function(query=''){
+    const grid=document.getElementById('labVisualGrid');
+    if(!grid) return;
+
+    const q=(query||'').trim().toLowerCase();
+    const labs=getLabs().filter(l=>!q || l.name.toLowerCase().includes(q));
+
+    if(!labs.length){
+      grid.innerHTML='<div class="labVisualEmpty">No encontré ese laboratorio.</div>';
+      return;
+    }
+
+    grid.innerHTML=labs.map(l=>{
+      const logo=logoUrl(l.name);
+      const visual=logo
+        ? `<img loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(l.name)}">`
+        : `<span class="labVisualInitial">${esc(l.name.charAt(0))}</span>`;
+      const active=state.brand===l.name ? ' on' : '';
+      return `<button type="button" class="labVisualCard${active}" onclick='selectLaboratoryVisual(${JSON.stringify(l.name)})'>
+        <span class="labVisualLogoBox">${visual}</span>
+        <span class="labVisualName">${esc(l.name)}</span>
+        <span class="labVisualCount">${l.count} producto${l.count===1?'':'s'}</span>
+      </button>`;
+    }).join('');
+  };
+
+  window.selectLaboratoryVisual = function(name){
+    state.offerOnly=false;
+    state.cat='Todas';
+    state.brand=name;
+    try{
+      const q=document.getElementById('q');
+      if(q) q.value='';
+      fullSearchActive=false;
+    }catch(e){}
+    render();
+    setTimeout(()=>{
+      renderLaboratoryVisualGrid(document.getElementById('labVisualSearch')?.value||'');
+    },0);
+  };
+
+  function refreshWhenVisible(){
+    const grid=document.getElementById('labVisualGrid');
+    if(grid) renderLaboratoryVisualGrid(document.getElementById('labVisualSearch')?.value||'');
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshWhenVisible,120));
+  }else{
+    setTimeout(refreshWhenVisible,120);
+  }
+
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('.filterTab');
+    if(btn && /Laboratorios/i.test(btn.textContent||'')){
+      setTimeout(refreshWhenVisible,0);
+    }
+  });
 })();
 </script>
 
