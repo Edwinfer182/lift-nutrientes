@@ -1763,4 +1763,127 @@ function renderProductDetail(p){
 })();
 </script>
 
+
+<!-- LIFT FOOTER / LEGAL -->
+<footer class="lift-footer" id="liftFooter">
+  <div class="lift-footer-inner">
+    <div class="lift-footer-brand">
+      <img src="https://drive.google.com/thumbnail?id=1SkY-E2RfkPfN73zqyUUuawiDkIMBiF3R&sz=w1200" alt="" style="display:none">
+      <div class="lift-footer-name">LIFT NUTRIENTES</div>
+      <p>Suplementación deportiva • Medellín • Envíos nacionales</p>
+    </div>
+    <nav class="lift-footer-links" aria-label="Información">
+      <button data-lift-legal="envios">Envíos</button>
+      <button data-lift-legal="pagos">Medios de pago</button>
+      <button data-lift-legal="cambios">Cambios y devoluciones</button>
+      <button data-lift-legal="privacidad">Privacidad y datos</button>
+      <button data-lift-legal="cookies">Cookies</button>
+      <button data-lift-legal="terminos">Términos y condiciones</button>
+    </nav>
+    <div class="lift-footer-bottom">
+      <span>© 2026 LIFT NUTRIENTES. Todos los derechos reservados.</span>
+      <span>Atención y pedidos por WhatsApp</span>
+    </div>
+  </div>
+</footer>
+
+<div class="lift-legal-modal" id="liftLegalModal" aria-hidden="true">
+  <div class="lift-legal-backdrop" data-lift-legal-close></div>
+  <section class="lift-legal-panel" role="dialog" aria-modal="true" aria-labelledby="liftLegalTitle">
+    <button class="lift-legal-close" type="button" data-lift-legal-close aria-label="Cerrar">×</button>
+    <h2 id="liftLegalTitle"></h2>
+    <div id="liftLegalBody"></div>
+  </section>
+</div>
+
+<style>
+.lift-footer{background:#080808;color:#fff;margin-top:44px;border-top:1px solid #202020;font-family:inherit}
+.lift-footer-inner{max-width:1500px;margin:auto;padding:38px 28px 20px}
+.lift-footer-brand{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:24px}
+.lift-footer-name{font-size:22px;font-weight:800;letter-spacing:.04em}
+.lift-footer-brand p{margin:0;color:#aaa;font-size:14px}
+.lift-footer-links{display:flex;gap:8px 22px;flex-wrap:wrap;padding:20px 0;border-top:1px solid #202020;border-bottom:1px solid #202020}
+.lift-footer-links button{appearance:none;border:0;background:none;color:#c9c9c9;font:inherit;font-size:14px;cursor:pointer;padding:7px 0}
+.lift-footer-links button:hover{color:#fff}
+.lift-footer-bottom{display:flex;justify-content:space-between;gap:16px;color:#777;font-size:12px;padding-top:18px}
+.lift-legal-modal{position:fixed;inset:0;z-index:100000;display:none}
+.lift-legal-modal.is-open{display:block}
+.lift-legal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(3px)}
+.lift-legal-panel{position:absolute;right:0;top:0;height:100%;width:min(560px,92vw);background:#fff;color:#151515;padding:38px 34px;overflow:auto;box-shadow:-20px 0 60px rgba(0,0,0,.18)}
+.lift-legal-panel h2{font-size:27px;margin:8px 42px 24px 0}
+.lift-legal-panel h3{font-size:16px;margin:25px 0 8px}
+.lift-legal-panel p,.lift-legal-panel li{font-size:14px;line-height:1.65;color:#555}
+.lift-legal-panel ul{padding-left:20px}
+.lift-legal-close{position:absolute;right:18px;top:16px;width:42px;height:42px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:26px;cursor:pointer}
+@media(max-width:700px){
+ .lift-footer{margin-top:28px}
+ .lift-footer-inner{padding:30px 18px 18px}
+ .lift-footer-brand{display:block}
+ .lift-footer-name{font-size:20px;margin-bottom:8px}
+ .lift-footer-links{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+ .lift-footer-links button{text-align:left;border-bottom:1px solid #181818;padding:13px 0;font-size:13px}
+ .lift-footer-bottom{display:block;line-height:1.8}
+ .lift-legal-panel{width:100%;padding:32px 22px}
+}
+</style>
+
+<script>
+(function(){
+ const DATA={
+  envios:{
+   title:'Envíos',
+   html:`<p>Realizamos entregas en Medellín y envíos a nivel nacional.</p>
+   <h3>Medellín y área metropolitana</h3><p>Los pedidos pueden programarse en ruta. La ruta incluye varios pedidos, por lo que no se maneja una hora exacta de entrega.</p>
+   <h3>Envíos nacionales</h3><p>Realizamos despachos a ciudades y municipios de Colombia. Los tiempos pueden variar según destino, transportadora y generación de la guía. En ciudades principales la entrega puede realizarse desde 1 día hábil después de generada la guía.</p>`},
+  pagos:{
+   title:'Medios de pago',
+   html:`<p>Los medios de pago disponibles actualmente son:</p><ul>
+   <li><strong>Bancolombia</strong>.</li>
+   <li><strong>Llave Bre-B</strong>.</li>
+   <li><strong>Efectivo</strong> para entregas habilitadas en Medellín y área metropolitana.</li>
+   <li><strong>Tarjetas de crédito</strong> mediante link de pago Bold.</li></ul>
+   <p>Los pagos mediante tarjeta pueden generar un costo adicional correspondiente al servicio de la pasarela de pago. El valor aplicable se informa antes de confirmar la operación.</p>`},
+  cambios:{
+   title:'Cambios y devoluciones',
+   html:`<p>Si recibes un producto incorrecto, con daño visible o con una novedad atribuible al despacho, comunícate con nosotros lo antes posible por WhatsApp y conserva el producto, empaque y evidencia de la novedad.</p>
+   <p>Las solicitudes de cambio o devolución se revisan según el estado del producto, la naturaleza de la novedad y las condiciones aplicables a la compra. Por razones de seguridad e integridad, los productos abiertos, usados o manipulados pueden estar sujetos a restricciones de cambio.</p>
+   <p>Esta información no limita los derechos que correspondan al consumidor conforme a la legislación aplicable.</p>`},
+  privacidad:{
+   title:'Privacidad y datos',
+   html:`<p>Los datos que el cliente proporciona durante una consulta o pedido se utilizan para gestionar la compra, coordinar el despacho, prestar atención relacionada con el pedido y mantener la comunicación necesaria para el servicio.</p>
+   <p>No publicamos datos personales del cliente en el catálogo. Evita enviar contraseñas, claves bancarias u otra información que no sea necesaria para procesar tu pedido.</p>
+   <p>Cuando el pedido continúa mediante WhatsApp o un proveedor de pagos, también pueden aplicar las políticas de privacidad de dichos servicios.</p>`},
+  cookies:{
+   title:'Cookies y almacenamiento local',
+   html:`<p>Este catálogo puede utilizar almacenamiento local del navegador y tecnologías similares para recordar productos del carrito, preferencias y facilitar la navegación.</p>
+   <p>Estas funciones permiten, por ejemplo, conservar temporalmente el contenido del carrito mientras recorres el catálogo.</p>
+   <p>Si en el futuro se incorporan herramientas de analítica, publicidad o seguimiento que utilicen cookies no esenciales, esta información deberá actualizarse y se implementarán los controles de consentimiento que correspondan.</p>`},
+  terminos:{
+   title:'Términos y condiciones',
+   html:`<p>La disponibilidad, presentación, sabor y precio de los productos pueden cambiar. La disponibilidad definitiva se confirma al momento de gestionar el pedido.</p>
+   <p>Las imágenes son de referencia y pueden existir cambios de presentación realizados por el fabricante. Los tiempos de transporte son estimados y pueden variar por destino, transportadora u otras circunstancias logísticas.</p>
+   <p>Antes de confirmar el pedido, el cliente puede revisar productos, cantidades, forma de pago, datos de entrega y costos aplicables.</p>
+   <p>La información del catálogo es comercial e informativa y no sustituye asesoría médica profesional.</p>`}
+ };
+ const modal=document.getElementById('liftLegalModal'), title=document.getElementById('liftLegalTitle'), body=document.getElementById('liftLegalBody');
+ if(!modal) return;
+ function openLegal(key){
+   const d=DATA[key]; if(!d)return;
+   title.textContent=d.title; body.innerHTML=d.html;
+   modal.classList.add('is-open'); modal.setAttribute('aria-hidden','false');
+   document.body.style.overflow='hidden';
+ }
+ function closeLegal(){
+   modal.classList.remove('is-open'); modal.setAttribute('aria-hidden','true');
+   document.body.style.overflow='';
+ }
+ document.addEventListener('click',e=>{
+   const b=e.target.closest('[data-lift-legal]');
+   if(b) openLegal(b.dataset.liftLegal);
+   if(e.target.closest('[data-lift-legal-close]')) closeLegal();
+ });
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLegal()});
+})();
+</script>
+
 </body></html>
