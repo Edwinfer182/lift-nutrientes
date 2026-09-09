@@ -246,11 +246,71 @@
 }
 </style>
 
+
+<style id="lift-banners-v1">
+.liftBanners{padding:14px 18px 4px;max-width:1240px;margin:0 auto;width:100%}
+.liftBannerViewport{position:relative;overflow:hidden;border-radius:18px;background:#0b0b0b;box-shadow:0 10px 32px rgba(0,0,0,.12);aspect-ratio:1920/700;touch-action:pan-y;isolation:isolate}
+.liftBannerTrack{height:100%;position:relative}
+.liftBannerSlide{position:absolute;inset:0;opacity:0;transform:translateX(3.5%);transition:opacity .72s ease,transform .72s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.liftBannerSlide.active{opacity:1;transform:translateX(0);pointer-events:auto;z-index:2}
+.liftBannerSlide.leaving{opacity:0;transform:translateX(-3.5%);z-index:1}
+.liftBannerSlide picture,.liftBannerSlide img{display:block;width:100%;height:100%}
+.liftBannerSlide img{object-fit:cover;object-position:center;background:#0b0b0b}
+.liftBannerSlide[data-action]{cursor:pointer}
+.liftBannerArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;font-size:25px;line-height:1;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(5px);transition:background .2s ease,transform .2s ease}
+.liftBannerArrow:hover{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(1.05)}
+.liftBannerPrev{left:14px}.liftBannerNext{right:14px}
+.liftBannerDots{display:flex;justify-content:center;gap:7px;padding:10px 4px 2px}
+.liftBannerDot{width:7px;height:7px;border:0;border-radius:50%;padding:0;background:#c9c9c9;cursor:pointer;transition:width .25s ease,background .25s ease,border-radius .25s ease}
+.liftBannerDot.active{width:24px;border-radius:999px;background:#111}
+.liftBannerProgress{position:absolute;left:0;bottom:0;height:3px;width:100%;z-index:6;background:rgba(255,255,255,.18);overflow:hidden}
+.liftBannerProgressBar{height:100%;width:0;background:rgba(255,255,255,.92)}
+.liftBannerProgressBar.running{animation:liftBannerProgress 7s linear forwards}
+@keyframes liftBannerProgress{from{width:0}to{width:100%}}
+@media(max-width:760px){
+ .liftBanners{padding:10px 9px 2px}
+ .liftBannerViewport{aspect-ratio:1080/1350;border-radius:15px;box-shadow:0 7px 22px rgba(0,0,0,.12)}
+ .liftBannerArrow{display:none}
+ .liftBannerDots{padding-top:8px;gap:6px}
+ .liftBannerDot{width:6px;height:6px}.liftBannerDot.active{width:20px}
+ .liftBannerSlide{transform:translateX(5%)}.liftBannerSlide.leaving{transform:translateX(-5%)}
+}
+@media(prefers-reduced-motion:reduce){
+ .liftBannerSlide{transition:none}.liftBannerProgressBar.running{animation:none}
+}
+
+/* LIFT header negro + logo oficial Drive */
+.top{background:#090909!important;border-bottom:1px solid #242424!important;backdrop-filter:blur(14px);box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.bar{min-height:70px}
+.brand{height:64px;min-width:220px;display:flex;align-items:center;padding:0 2px;overflow:hidden}
+.liftHeaderLogo{display:block;width:auto;height:60px;max-width:220px;object-fit:contain;object-position:left center;border-radius:0}
+.search input{background:#181818!important;border-color:#3b3b3b!important;color:#fff!important}
+.search input::placeholder{color:#aaa}
+.search input:focus{background:#202020!important;border-color:#777!important}
+.iconbtn.cartDesktop{background:#111!important;color:#fff!important;border-color:#444!important}
+@media(max-width:700px){
+ .top .bar{padding:6px 10px;gap:7px;min-height:64px}
+ .brand{min-width:0;height:54px;flex:0 0 auto}
+ .liftHeaderLogo{height:50px;max-width:155px}
+ .offersBtn{padding-left:10px;padding-right:10px}
+}
+</style>
+
 </head><body>
-<header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
+<header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1jnpfEyTWRSHOuPUQDLMXsdhP_H1-V6WM&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
 <aside class="sidebar"><div id="desktopFilters"></div></aside>
 <section class="content">
+
+<div class="liftBanners" id="liftBanners" aria-label="Promociones e información de Lift Nutrientes">
+  <div class="liftBannerViewport" id="liftBannerViewport">
+    <div class="liftBannerTrack" id="liftBannerTrack"></div>
+    <button class="liftBannerArrow liftBannerPrev" type="button" aria-label="Banner anterior" onclick="liftBannerPrev()">‹</button>
+    <button class="liftBannerArrow liftBannerNext" type="button" aria-label="Banner siguiente" onclick="liftBannerNext()">›</button>
+    <div class="liftBannerProgress" aria-hidden="true"><div class="liftBannerProgressBar" id="liftBannerProgressBar"></div></div>
+  </div>
+  <div class="liftBannerDots" id="liftBannerDots" aria-label="Seleccionar banner"></div>
+</div>
 <div id="status" class="status"></div><main id="grid" class="grid"></main>
 </section></div>
 <button class="floating" onclick="openOff('cart')">🛒 Carrito <span id="count2" class="badge">0</span></button>
@@ -534,7 +594,7 @@ function searchProductsAll(value){
 function quickSearchProducts(value){return searchProductsAll(value).slice(0,7)}
 let fullSearchActive=false;
 function productCards(arr,emptyText='No encontré productos.'){
-  return arr.map(p=>`<article class="card"><div class="pic">${offerBadges(p)}<button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" alt="${esc(p.name)}"></div><div class="body"><div class="name">${esc(p.name)}</div><div class="productBottom"><div>${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
+  return arr.map(p=>`<article class="card"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Ver producto" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" alt="${esc(p.name)}"></div><div class="body"><div class="name">${esc(p.name)}</div><div class="productBottom"><div>${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
 }
 function showAllSearchResults(value){
   const term=(value??document.getElementById('q').value).trim();
@@ -1039,6 +1099,17 @@ updateCount();render();renderCart();
       .pic img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important}
       .card{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease;cursor:pointer;will-change:transform}
       .card .pic img{transition:transform .28s ease}
+      .inspectBtn{position:absolute;left:10px;top:10px;z-index:4;width:38px;height:38px;border:1px solid rgba(0,0,0,.12);border-radius:50%;background:rgba(255,255,255,.96);color:#111;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.08);transition:transform .18s ease,background .18s ease,color .18s ease,opacity .18s ease}
+      .inspectBtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+      .inspectBtn:hover{background:#111;color:#fff;transform:scale(1.06)}
+      .liftMonoImg{cursor:zoom-in;touch-action:none}
+      .liftMonoImg.zoomed{cursor:grab}
+      .liftMonoImg.dragging{cursor:grabbing}
+      .liftMonoImg img{transition:transform .22s ease;transform-origin:center center;user-select:none;-webkit-user-drag:none;will-change:transform}
+      .liftZoomTools{display:none!important;position:absolute;right:12px;bottom:12px;z-index:5;display:flex;gap:7px;padding:6px;border-radius:999px;background:rgba(17,17,17,.78);backdrop-filter:blur(6px);box-shadow:0 5px 18px rgba(0,0,0,.16)}
+      .liftZoomTools button{width:34px;height:34px;border:0;border-radius:50%;background:#fff;color:#111;font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer;font-weight:700}
+      .liftZoomTools button:hover{background:#f0f0f0}
+      .liftZoomHint{display:none!important;position:absolute;left:12px;bottom:12px;z-index:4;background:rgba(17,17,17,.72);color:#fff;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:600;pointer-events:none}
       @media (hover:hover) and (pointer:fine){
         .card:hover{transform:translateY(-6px) scale(1.018);box-shadow:0 16px 34px rgba(0,0,0,.14);border-color:#d8d8d8}
         .card:hover .pic img{transform:scale(1.06)}
@@ -1064,6 +1135,11 @@ updateCount();render();renderCart();
       .liftMonoMeta{border-top:1px solid #eee;margin-top:22px;padding-top:16px;color:#666;font-size:13px;line-height:1.55}
       @media(max-width:760px){
         .pic{height:165px!important;padding:8px!important}
+        .inspectBtn{left:8px;top:8px;width:36px;height:36px}
+        .inspectBtn svg{width:18px;height:18px}
+        .liftZoomTools{right:8px;bottom:8px;gap:5px;padding:5px}
+        .liftZoomTools button{width:32px;height:32px;font-size:18px}
+        .liftZoomHint{left:8px;bottom:8px;font-size:9px;padding:5px 8px}
         #liftMonoOff{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:88dvh;border-radius:16px}
         #liftMonoBody,.liftMonoBody,.liftMonoBody>*{min-width:0;max-width:100%;box-sizing:border-box}
         .liftMonoBody{grid-template-columns:minmax(0,1fr);gap:8px;padding:22px 16px 18px;overflow:hidden}
@@ -1175,8 +1251,8 @@ function renderProductDetail(p){
     panelBody.innerHTML=`
       <div class="liftMonoBody">
         <button type="button" class="liftMonoNav liftMonoPrev" id="liftMonoPrev" aria-label="Producto anterior" title="Producto anterior">‹</button>
-        <div class="liftMonoImg">
-          <img src="${String(p.image||'').replace(/"/g,'&quot;')}" alt="${String(p.name||'').replace(/"/g,'&quot;')}">
+        <div class="liftMonoImg" id="liftMonoZoomArea" title="Haz clic o doble clic para ampliar">
+          <img id="liftMonoMainImg" draggable="false" src="${String(p.image||'').replace(/"/g,'&quot;')}" alt="${String(p.name||'').replace(/"/g,'&quot;')}">
           <div class="liftMonoCounter">${idx+1} / ${list.length}</div>
         </div>
         <button type="button" class="liftMonoNav liftMonoNext" id="liftMonoNext" aria-label="Producto siguiente" title="Producto siguiente">›</button>
@@ -1194,6 +1270,7 @@ function renderProductDetail(p){
         </div>
       </div>`;
     bindIso100Flavors(p);
+    bindProductZoom();
     panel.querySelector('#liftMonoPrev').onclick=e=>{e.stopPropagation();navigateProduct(-1)};
     panel.querySelector('#liftMonoNext').onclick=e=>{e.stopPropagation();navigateProduct(1)};
     panel.querySelector('#liftMonoAdd').onclick=()=>{
@@ -1209,6 +1286,72 @@ function renderProductDetail(p){
       window.LIFT_SINGLE_META=f?{id:p.id,flavor:f.name,image:f.image}:null;
       if(typeof buyProduct==='function')buyProduct(p.id);
     };
+  }
+
+  function bindProductZoom(){
+    const area=panel?.querySelector('#liftMonoZoomArea');
+    const img=panel?.querySelector('#liftMonoMainImg');
+    const zin=panel?.querySelector('#liftZoomIn');
+    const zout=panel?.querySelector('#liftZoomOut');
+    const zreset=panel?.querySelector('#liftZoomReset');
+    if(!area||!img) return;
+
+    let scale=1, x=0, y=0, dragging=false, sx=0, sy=0, ox=0, oy=0;
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const apply=()=>{
+      scale=clamp(scale,1,4);
+      if(scale===1){x=0;y=0;area.classList.remove('zoomed');}
+      else area.classList.add('zoomed');
+      img.style.transform=`translate(${x}px,${y}px) scale(${scale})`;
+      if(zreset) zreset.textContent=(Math.round(scale*10)/10)+'×';
+    };
+    const setScale=(next,cx,cy)=>{
+      const prev=scale;
+      scale=clamp(next,1,4);
+      if(cx!=null && cy!=null && prev!==scale){
+        const r=area.getBoundingClientRect();
+        const px=cx-r.left-r.width/2;
+        const py=cy-r.top-r.height/2;
+        const ratio=scale/prev;
+        x=(x-px)*ratio+px;
+        y=(y-py)*ratio+py;
+      }
+      const maxX=(area.clientWidth*(scale-1))/2;
+      const maxY=(area.clientHeight*(scale-1))/2;
+      x=clamp(x,-maxX,maxX); y=clamp(y,-maxY,maxY);
+      apply();
+    };
+    zin?.addEventListener('click',e=>{e.stopPropagation();setScale(scale+.5)});
+    zout?.addEventListener('click',e=>{e.stopPropagation();setScale(scale-.5)});
+    zreset?.addEventListener('click',e=>{e.stopPropagation();scale=1;x=0;y=0;apply()});
+    area.addEventListener('click',e=>{
+      if(e.target.closest('.liftZoomTools,.liftMonoCounter')) return;
+      if(scale===1) setScale(2,e.clientX,e.clientY); else {scale=1;x=0;y=0;apply();}
+    });
+    area.addEventListener('dblclick',e=>{
+      e.preventDefault();
+      if(scale<3) setScale(3,e.clientX,e.clientY); else {scale=1;x=0;y=0;apply();}
+    });
+    area.addEventListener('wheel',e=>{
+      e.preventDefault();
+      setScale(scale+(e.deltaY<0?.35:-.35),e.clientX,e.clientY);
+    },{passive:false});
+    area.addEventListener('pointerdown',e=>{
+      if(scale<=1 || e.target.closest('.liftZoomTools')) return;
+      dragging=true; sx=e.clientX; sy=e.clientY; ox=x; oy=y;
+      area.setPointerCapture?.(e.pointerId); area.classList.add('dragging');
+    });
+    area.addEventListener('pointermove',e=>{
+      if(!dragging) return;
+      const maxX=(area.clientWidth*(scale-1))/2;
+      const maxY=(area.clientHeight*(scale-1))/2;
+      x=clamp(ox+(e.clientX-sx),-maxX,maxX);
+      y=clamp(oy+(e.clientY-sy),-maxY,maxY);
+      apply();
+    });
+    const endDrag=()=>{dragging=false;area.classList.remove('dragging')};
+    area.addEventListener('pointerup',endDrag); area.addEventListener('pointercancel',endDrag);
+    apply();
   }
 
   function navigateProduct(step){
@@ -1383,4 +1526,100 @@ function renderProductDetail(p){
 
 
 <!-- LIFT_DRIVE_URLS_ASOCIADAS: 140 productos -->
+
+<script id="lift-banners-script-v1">
+(() => {
+  const BANNERS = [
+    {
+      name:'Ofertas de la semana',
+      desktop:'https://drive.google.com/thumbnail?id=1wc7UJfLCsnVtZBipTmmnfZjGb-zfN6Zg&sz=w1920',
+      mobile:'https://drive.google.com/thumbnail?id=1ROs6zmz1bGQLqVivOwvJ-uct8SKWMQWJ&sz=w1200',
+      action:'offers'
+    },
+    {
+      name:'Encuentra tu proteína ideal',
+      desktop:'https://drive.google.com/thumbnail?id=1hOxO1L2jzFfxFjF0ddRhtj-G71J2eTOu&sz=w1920',
+      mobile:'https://drive.google.com/thumbnail?id=1W_065duG_YKiSFrGcoF5FccQreXwbGiG&sz=w1200',
+      action:'proteins'
+    },
+    {
+      name:'Todo lo que necesitas',
+      desktop:'https://drive.google.com/thumbnail?id=1UH2MrBWOEndtiiV4grmDBXRlzqIviQ-P&sz=w1920',
+      mobile:'https://drive.google.com/thumbnail?id=1bM8sFgRNxHBOv4OnZC47KBoTnXkdAC9d&sz=w1200',
+      action:'catalog'
+    },
+    {
+      name:'Recibe tu pedido donde estés',
+      desktop:'https://drive.google.com/thumbnail?id=1Y8r0quBCKawlh6BRp0HgdbDjROKfeMNR&sz=w1920',
+      mobile:'https://drive.google.com/thumbnail?id=1jKvUlmlyCe5STuFe2coO5yBryhgfrxdj&sz=w1200'
+    }
+  ];
+  const DISPLAY_MS = 7000;
+  const viewport = document.getElementById('liftBannerViewport');
+  const track = document.getElementById('liftBannerTrack');
+  const dots = document.getElementById('liftBannerDots');
+  const progress = document.getElementById('liftBannerProgressBar');
+  if(!viewport || !track || !dots || !BANNERS.length) return;
+
+  track.innerHTML = BANNERS.map((b,i)=>`<div class="liftBannerSlide${i===0?' active':''}" data-index="${i}" ${b.action?`data-action="${b.action}" role="button" tabindex="0"`:''} aria-label="${b.name}"><picture><source media="(max-width:760px)" srcset="${b.mobile}"><img src="${b.desktop}" alt="${b.name}" ${i===0?'fetchpriority="high"':'loading="lazy" fetchpriority="low"'} decoding="async"></picture></div>`).join('');
+  dots.innerHTML = BANNERS.map((b,i)=>`<button type="button" class="liftBannerDot${i===0?' active':''}" aria-label="Mostrar banner ${i+1}: ${b.name}" onclick="liftBannerGo(${i},true)"></button>`).join('');
+
+  let current=0, timer=null, paused=false, touchX=0, touchY=0;
+  const slides=[...track.querySelectorAll('.liftBannerSlide')];
+  const dotEls=[...dots.querySelectorAll('.liftBannerDot')];
+
+  function restartProgress(){
+    if(!progress) return;
+    progress.classList.remove('running');
+    progress.style.width='0';
+    void progress.offsetWidth;
+    if(!paused && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) progress.classList.add('running');
+  }
+  function schedule(){
+    clearTimeout(timer);
+    restartProgress();
+    if(!paused) timer=setTimeout(()=>go(current+1,false),DISPLAY_MS);
+  }
+  function go(index,userInitiated=false){
+    const next=(index+BANNERS.length)%BANNERS.length;
+    if(next===current){ if(userInitiated)schedule(); return; }
+    const old=slides[current], incoming=slides[next];
+    old.classList.remove('active'); old.classList.add('leaving');
+    incoming.classList.remove('leaving'); incoming.classList.add('active');
+    dotEls[current]?.classList.remove('active'); dotEls[next]?.classList.add('active');
+    setTimeout(()=>old.classList.remove('leaving'),760);
+    current=next;
+    schedule();
+  }
+  window.liftBannerGo=go;
+  window.liftBannerPrev=()=>go(current-1,true);
+  window.liftBannerNext=()=>go(current+1,true);
+
+  function runAction(action){
+    if(action==='offers' && typeof showOffers==='function'){
+      if(!state.offerOnly) showOffers(); else document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'});
+    } else if(action==='proteins' && typeof setCat==='function'){
+      setCat('Proteína'); document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'});
+    } else if(action==='catalog' && typeof setCat==='function'){
+      setCat('Todos'); document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  }
+  slides.forEach(slide=>{
+    slide.addEventListener('click',()=>runAction(slide.dataset.action));
+    slide.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&slide.dataset.action){e.preventDefault();runAction(slide.dataset.action)}});
+  });
+
+  const pause=()=>{paused=true;clearTimeout(timer);progress?.classList.remove('running')};
+  const resume=()=>{paused=false;schedule()};
+  viewport.addEventListener('mouseenter',pause);
+  viewport.addEventListener('mouseleave',resume);
+  viewport.addEventListener('focusin',pause);
+  viewport.addEventListener('focusout',resume);
+  document.addEventListener('visibilitychange',()=>document.hidden?pause():resume());
+  viewport.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;pause()},{passive:true});
+  viewport.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.2)go(current+(dx<0?1:-1),true);else resume()},{passive:true});
+  schedule();
+})();
+</script>
+
 </body></html>
