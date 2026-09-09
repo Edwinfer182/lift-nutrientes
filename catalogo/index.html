@@ -3023,4 +3023,93 @@ function renderProductDetail(p){
 })();
 </script>
 
+
+<!-- LIFT LABORATORIOS MOBILE FIX -->
+<style id="lift-laboratorios-mobile-fix-style">
+@media(max-width:760px){
+  .labVisualWrap{
+    padding:2px 0 14px!important;
+    width:100%!important;
+  }
+  .labVisualSearchWrap{
+    position:sticky;
+    top:0;
+    z-index:3;
+    background:#fff;
+    padding:4px 0 10px!important;
+  }
+  .labVisualSearch{
+    width:100%!important;
+    min-width:0!important;
+    height:42px!important;
+  }
+  .labVisualGrid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  .labVisualCard{
+    width:100%!important;
+    min-width:0!important;
+    min-height:106px!important;
+  }
+}
+</style>
+
+<script id="lift-laboratorios-mobile-fix-script">
+(function(){
+  function refreshLabsSoon(){
+    setTimeout(()=>{
+      try{
+        const grid=document.getElementById('labVisualGrid');
+        if(grid && typeof window.renderLaboratoryVisualGrid==='function'){
+          const input=document.getElementById('labVisualSearch');
+          window.renderLaboratoryVisualGrid(input ? input.value : '');
+        }
+      }catch(e){}
+    },30);
+  }
+
+  // El panel de filtros se vuelve a crear varias veces al renderizar.
+  // Si aparece un nuevo labVisualGrid, lo rellenamos de inmediato.
+  const obs = new MutationObserver(mutations=>{
+    for(const m of mutations){
+      for(const node of m.addedNodes||[]){
+        if(!(node instanceof HTMLElement)) continue;
+        if(node.id==='labVisualGrid' || node.querySelector?.('#labVisualGrid')){
+          refreshLabsSoon();
+          return;
+        }
+      }
+    }
+  });
+
+  function boot(){
+    obs.observe(document.body,{childList:true,subtree:true});
+    refreshLabsSoon();
+
+    // En móvil, tocar la pestaña Laboratorios debe forzar el repintado
+    // después de que el panel haya cambiado de contenido.
+    document.addEventListener('click',e=>{
+      const tab=e.target.closest('button');
+      if(tab && /Laboratorios/i.test(tab.textContent||'')){
+        refreshLabsSoon();
+        setTimeout(refreshLabsSoon,120);
+      }
+    },true);
+
+    window.addEventListener('resize',refreshLabsSoon);
+    window.addEventListener('orientationchange',()=>setTimeout(refreshLabsSoon,150));
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot);
+  }else{
+    boot();
+  }
+})();
+</script>
+
 </body></html>
