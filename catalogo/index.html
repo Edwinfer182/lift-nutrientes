@@ -296,6 +296,45 @@
 }
 </style>
 
+
+<style id="lift-mobile-banner-clean-v2">
+/* Ajuste móvil: banner completo, sin franjas grises ni recortes */
+@media(max-width:760px){
+  html,body,.layout,.content{background:#fff!important;}
+  .content{padding-top:0!important;}
+  .liftBanners{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+  .liftBannerViewport{
+    width:100%!important;
+    aspect-ratio:1080/1350!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:#000!important;
+  }
+  .liftBannerSlide picture,
+  .liftBannerSlide img{
+    width:100%!important;
+    height:100%!important;
+  }
+  .liftBannerSlide img{
+    object-fit:contain!important;
+    object-position:center center!important;
+    background:#000!important;
+  }
+  .liftBannerDots{
+    margin:0!important;
+    padding:8px 0 6px!important;
+    background:#fff!important;
+  }
+  .status{background:#fff!important;padding-top:8px!important;}
+  .grid{background:#fff!important;}
+}
+</style>
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1jnpfEyTWRSHOuPUQDLMXsdhP_H1-V6WM&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
