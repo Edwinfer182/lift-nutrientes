@@ -1946,10 +1946,10 @@ function renderProductDetail(p){
 <script id="lift-search-entities-v1-script">
 (function(){
   const BRAND_LOGOS = {
-    "Applied Nutrition":"14H3Df3FxRg2HCAyKqbZKneB5S2MqwQVv",
+    "Applied Nutrition":"1kilvw5vQu1wgTb55h2oY-Q5Vr9exnXC4",
     "Basic Supplements":"18kW7yFLqrrz5ryt1qmcMY5uXjHt2xiI8",
     "BSN":"1bNij0QT4liD7z4nsia047m3QBol_Fb0R",
-    "Cellucor":"1mTW35C79ccl7WYboxiVH0JJ9Q4TBKWQf",
+    "Cellucor":"1cOiQitS392NPpXaXxVFARCLc0EB0DlMl",
     "Darkness":"1zQL_883QRx_0Dqz-J6_vSJLkgcLCCjBb",
     "Dragon Pharma":"1B1oou8b3p_gqyuQu4Nzt5o_W1HkRq2lK",
     "Dymatize":"1jDshoTb_5CUjaGhcDVPLtNsSKC_SNSy5",
@@ -2526,7 +2526,7 @@ function renderProductDetail(p){
 
     const all=makeBtn('Todos',()=>{
       state.offerOnly=false;
-      state.cat='Todas';
+      state.cat='Todos';
       state.brand='Todas';
       render();
     },'active');
@@ -2543,7 +2543,7 @@ function renderProductDetail(p){
 
     wrap.appendChild(makeBtn('🔥 Ofertas',()=>{
       state.offerOnly=true;
-      state.cat='Todas';
+      state.cat='Todos';
       state.brand='Todas';
       render();
     }));
@@ -2565,7 +2565,7 @@ function renderProductDetail(p){
 (function(){
   function resetAllLiftFilters(){
     try{
-      state.cat='Todas';
+      state.cat='Todos';
       state.brand='Todas';
       state.offerOnly=false;
       if('sort' in state) state.sort='recommended';
@@ -2764,7 +2764,7 @@ function renderProductDetail(p){
 
         // Si se pulsa el mismo filtro activo, vuelve a catálogo completo.
         if(state.cat===c.name && state.brand==='Todas' && !state.offerOnly){
-          state.cat='Todas';
+          state.cat='Todos';
           state.brand='Todas';
           state.offerOnly=false;
           const q=document.getElementById('q'); if(q) q.value='';
@@ -2774,7 +2774,7 @@ function renderProductDetail(p){
         }
 
         b.classList.add('active');
-        state.cat='Todas';
+        state.cat='Todos';
         state.brand='Todas';
         state.offerOnly=false;
         const q=document.getElementById('q'); if(q) q.value='';
@@ -2904,10 +2904,10 @@ function renderProductDetail(p){
 <script id="lift-laboratorios-integrados-script">
 (function(){
   const LOGOS = Object.assign({}, window.LIFT_BRAND_LOGOS || {}, {
-    "Applied Nutrition":"14H3Df3FxRg2HCAyKqbZKneB5S2MqwQVv",
+    "Applied Nutrition":"1kilvw5vQu1wgTb55h2oY-Q5Vr9exnXC4",
     "Basic Supplements":"18kW7yFLqrrz5ryt1qmcMY5uXjHt2xiI8",
     "BSN":"1bNij0QT4liD7z4nsia047m3QBol_Fb0R",
-    "Cellucor":"1mTW35C79ccl7WYboxiVH0JJ9Q4TBKWQf",
+    "Cellucor":"1cOiQitS392NPpXaXxVFARCLc0EB0DlMl",
     "Darkness":"1zQL_883QRx_0Dqz-J6_vSJLkgcLCCjBb",
     "Dragon Pharma":"1B1oou8b3p_gqyuQu4Nzt5o_W1HkRq2lK",
     "Dymatize":"1jDshoTb_5CUjaGhcDVPLtNsSKC_SNSy5",
@@ -2990,7 +2990,7 @@ function renderProductDetail(p){
 
   window.selectLaboratoryVisual = function(name){
     state.offerOnly=false;
-    state.cat='Todas';
+    state.cat='Todos';
     state.brand=name;
     try{
       const q=document.getElementById('q');
@@ -3206,6 +3206,55 @@ function renderProductDetail(p){
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
   else boot();
+})();
+</script>
+
+
+<!-- LIFT LABORATORIOS: PRESERVAR SCROLL DEL PANEL -->
+<script id="lift-laboratorios-scroll-preservado-script">
+(function(){
+  window.selectLaboratoryVisual = function(name){
+    const mobileBody = document.querySelector('#filters .offbody');
+    const desktopSidebar = document.querySelector('.sidebar');
+
+    const mobileScroll = mobileBody ? mobileBody.scrollTop : 0;
+    const desktopScroll = desktopSidebar ? desktopSidebar.scrollTop : 0;
+
+    state.offerOnly = false;
+    state.cat = 'Todos';
+    state.brand = name;
+
+    try{
+      const q = document.getElementById('q');
+      if(q) q.value = '';
+      fullSearchActive = false;
+    }catch(e){}
+
+    render();
+
+    const restore = ()=>{
+      try{
+        if(mobileBody) mobileBody.scrollTop = mobileScroll;
+        if(desktopSidebar) desktopSidebar.scrollTop = desktopScroll;
+
+        const visibleInput = [...document.querySelectorAll('#labVisualSearch')]
+          .find(x => x.offsetParent !== null);
+
+        if(typeof window.renderLaboratoryVisualGrid === 'function'){
+          window.renderLaboratoryVisualGrid(visibleInput?.value || '');
+        }
+
+        if(mobileBody) mobileBody.scrollTop = mobileScroll;
+        if(desktopSidebar) desktopSidebar.scrollTop = desktopScroll;
+      }catch(e){}
+    };
+
+    requestAnimationFrame(()=>{
+      restore();
+      requestAnimationFrame(restore);
+      setTimeout(restore,80);
+    });
+  };
 })();
 </script>
 
