@@ -216,43 +216,6 @@
 }
 </style>
 
-
-<style id="lift-offcanvas-offer-search-style">
-.searchThumb[role="button"]{cursor:pointer}
-.liftMonoOfferBox{
-  margin:10px 0 14px;
-  padding:11px 12px;
-  border:1px solid #e3e3e3;
-  border-radius:12px;
-  background:#fafafa;
-}
-.liftMonoOfferLabel{
-  display:inline-block;
-  margin-bottom:7px;
-  padding:4px 8px;
-  border-radius:999px;
-  background:#111;
-  color:#fff;
-  font-size:10px;
-  font-weight:800;
-  letter-spacing:.05em;
-}
-.liftMonoOldPrice{
-  display:inline-block;
-  margin-right:8px;
-  color:#888;
-  text-decoration:line-through;
-  font-size:14px;
-}
-.liftMonoSaving{font-size:13px;font-weight:700;margin-top:4px}
-.liftMonoGift{font-size:13px;font-weight:700;margin-top:6px}
-.liftMonoOfferFlavors{font-size:12px;line-height:1.35;margin-top:6px;color:#555}
-@media(max-width:640px){
-  .liftMonoOfferBox{padding:9px 10px;margin:8px 0 10px}
-  .liftMonoOfferFlavors{font-size:11px}
-}
-</style>
-
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
@@ -514,7 +477,7 @@ function renderQuickSearch(value){
   if(!q){box.classList.remove('show');box.innerHTML='';if(fullSearchActive){fullSearchActive=false;render()}return;}
   const all=searchProductsAll(value);
   const results=all.slice(0,7);
-  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" src="${p.image}" alt="${esc(p.name)}" role="button" tabindex="0" title="Ver producto" onclick="openLiftProduct(${p.id});closeQuickSearch()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openLiftProduct(${p.id});closeQuickSearch()}"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
+  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" src="${p.image}" alt="${esc(p.name)}"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
   const allButton=`<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los resultados${all.length?` (${all.length})`:''}</button></div>`;
   box.innerHTML=rows+allButton;
   box.classList.add('show');
@@ -1126,23 +1089,6 @@ updateCount();render();renderCart();
     });
   }
 
-
-  function liftOfferBlock(p){
-    if(typeof offerOf!=='function') return '';
-    const o=offerOf(p);
-    if(!o) return '';
-    const compare = typeof compareAtOf==='function' ? compareAtOf(p) : p.price;
-    const save = typeof savingOf==='function' ? savingOf(p) : Math.max(0,Number(compare||0)-Number(o.price||0));
-    const oldPrice = save>0 ? `<span class="liftMonoOldPrice">${typeof fmt==='function'?fmt(compare):compare}</span>` : '';
-    const saving = save>0 ? `<div class="liftMonoSaving">Ahorras ${typeof fmt==='function'?fmt(save):save}</div>` : '';
-    const gift = o.gift ? `<div class="liftMonoGift">🎁 Incluye regalo</div>` : '';
-    const flavors = o.flavors?.length ? `<div class="liftMonoOfferFlavors"><b>Sabores en promoción:</b> ${o.flavors.map(x=>typeof esc==='function'?esc(x):x).join(' · ')}</div>` : '';
-    return `<div class="liftMonoOfferBox">
-      <div class="liftMonoOfferLabel">OFERTA</div>
-      ${oldPrice}${saving}${gift}${flavors}
-    </div>`;
-  }
-
 function renderProductDetail(p){
     if(!p) return;
     currentProductId=p.id;
@@ -1163,7 +1109,6 @@ function renderProductDetail(p){
           <h2 class="liftMonoTitle">${p.name||''}</h2>
           <div>${p.category||''}</div>
           <div class="liftMonoPrice">${money}</div>
-          ${liftOfferBlock(p)}
           ${iso100FlavorStrip(p)}
           <div class="liftMonoBtns">
             <button type="button" id="liftMonoAdd">Agregar al carrito</button>
@@ -1208,16 +1153,6 @@ function renderProductDetail(p){
     backdrop.classList.add('open');
     document.body.style.overflow='hidden';
   }
-
-  window.openLiftProduct=function(id){
-    ensureOffcanvas();
-    const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
-    if(!p) return;
-    renderProductDetail(p);
-    panel.classList.add('open');
-    backdrop.classList.add('open');
-    document.body.style.overflow='hidden';
-  };
 
   function closeProduct(){
     panel?.classList.remove('open');
