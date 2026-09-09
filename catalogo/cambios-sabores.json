@@ -1,53 +1,24 @@
 {
-  "updated_at": "2026-09-07T13:57:07.776227+00:00",
+  "updated_at": "2026-09-09T16:39:09.334332+00:00",
   "matched_products": 7,
   "source_products_with_flavors": 40,
   "added_products": [],
-  "removed_products": [
-    {
-      "id": "88",
-      "product": "Nitro Tech Ripped 4 Lbs",
-      "reason": "ya no supera el filtro seguro"
-    },
-    {
-      "id": "95",
-      "product": "Cell Tech 3 Lbs Cretina + Carbos",
-      "reason": "ya no supera el filtro seguro"
-    },
-    {
-      "id": "96",
-      "product": "Cell Tech 6 Lbs Cretina + Carbos",
-      "reason": "ya no supera el filtro seguro"
-    },
-    {
-      "id": "98",
-      "product": "Amino 100% Eaa 30 Serv",
-      "reason": "ya no supera el filtro seguro"
-    }
-  ],
+  "removed_products": [],
   "changed": [
     {
-      "id": "97",
-      "product": "Cell Tech Creactor 120 Serv",
+      "id": "86",
+      "product": "Nitro Tech Whey Gold 2 Lbs",
       "added": [],
       "removed": [
-        "Seleccione Sabor"
+        "COOKIES & CREAM"
       ]
     },
     {
-      "id": "100",
-      "product": "Amino Build 40 Serv",
+      "id": "87",
+      "product": "Nitro Tech Whey Gold 5 Lbs",
       "added": [],
       "removed": [
-        "Seleccione Sabor"
-      ]
-    },
-    {
-      "id": "101",
-      "product": "Creatina Chews 90 Tabletas",
-      "added": [],
-      "removed": [
-        "Seleccione Sabor"
+        "COOKIES & CREAM"
       ]
     }
   ]
