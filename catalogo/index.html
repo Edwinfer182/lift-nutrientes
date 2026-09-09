@@ -97,6 +97,43 @@
 @media(max-width:520px){.couponRow{grid-template-columns:1fr}.couponApply{width:100%}.relatedItem{grid-template-columns:42px 1fr auto}.relatedItem img{width:42px;height:42px}}
 
 </style>
+
+<style id="iso100-flavor-style">
+.isoFlavorBlock{margin:16px 0 4px}
+.isoFlavorHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;font-size:14px}
+.isoFlavorHead span{font-size:12px;color:#666;text-align:right}
+.isoFlavorStrip{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 9px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.isoFlavorStrip::-webkit-scrollbar{height:5px}.isoFlavorStrip::-webkit-scrollbar-thumb{background:#ccc;border-radius:10px}
+.isoFlavorChip{flex:0 0 92px;border:1px solid #ddd;border-radius:12px;background:#fff;padding:7px;cursor:pointer;scroll-snap-align:start;transition:.18s ease}
+.isoFlavorChip:hover,.isoFlavorChip.active{border-color:#111;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.isoFlavorChip img{display:block;width:100%;height:72px;object-fit:contain;margin:auto;background:#fff;border-radius:8px}
+.isoFlavorChip span{display:block;font-size:10px;line-height:1.15;margin-top:6px;min-height:23px;text-align:center;color:#222}
+@media(max-width:640px){
+ .isoFlavorBlock{margin-top:12px}
+ .isoFlavorChip{flex-basis:78px;padding:5px}
+ .isoFlavorChip img{height:60px}
+ .isoFlavorChip span{font-size:9px}
+}
+</style>
+
+
+<style id="iso100-cart-flavor-style">
+.cartFlavor{margin-top:4px;font-size:11px;color:#666;line-height:1.25}
+.cartFlavor b{color:#111;font-weight:600}
+</style>
+
+
+<style id="variant-cart-style">
+.cartline:has(.cartFlavor){background:#fff}
+.cartFlavor{display:block}
+#checkoutItems b{font-weight:700;color:#111}
+</style>
+
+
+<style id="variant-v3-style">
+.cartFlavor:before{content:"✓ ";font-weight:700}
+</style>
+
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><div class="brandmark">L</div><span><b>LIFT</b> NUTRIENTES</span></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
@@ -189,6 +226,24 @@ function priceHTML(p){const current=priceOf(p),save=savingOf(p);return `<div cla
 
 let state={q:'',cat:'Todos',brand:'Todas',filterView:'brands',offerOnly:false};
 let cart=JSON.parse(localStorage.getItem('liftCartV2')||localStorage.getItem('liftCartV1')||'{}');
+let cartMeta=JSON.parse(localStorage.getItem('liftCartMetaV1')||'{}');
+
+// Migración: si una versión anterior guardó un sabor usando solo el ID,
+// lo convertimos a una línea independiente "producto::sabor".
+for(const oldKey of Object.keys(cartMeta)){
+  const meta=cartMeta[oldKey];
+  if(meta&&meta.flavor&&cart[oldKey] && !String(oldKey).includes('::')){
+    const variantKey=`${oldKey}::${meta.flavor}`;
+    if(!cart[variantKey]){
+      cart[variantKey]=cart[oldKey];
+      cartMeta[variantKey]=meta;
+    }
+    delete cart[oldKey];
+    delete cartMeta[oldKey];
+  }
+}
+window.LIFT_CART_META=cartMeta;
+window.LIFT_SINGLE_META=null;
 const cats=['Todos',...Array.from(new Set(PRODUCTS.map(p=>p.category).filter(c=>c!=='Ofertas'))).sort((a,b)=>a.localeCompare(b,'es'))];
 const brands=['Todas',...Array.from(new Set(PRODUCTS.map(p=>p.brand))).sort((a,b)=>a.localeCompare(b,'es'))];
 
@@ -346,8 +401,78 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search'))closeQuick
 const FLAVOR_CONFIRM_MSG='💬 Si el producto maneja sabores, se confirman por WhatsApp según disponibilidad.';
 function flavorMessageFor(){return FLAVOR_CONFIRM_MSG}
 function openOff(id){document.getElementById(id).classList.add('open');document.getElementById('overlay').classList.add('show');document.body.style.overflow='hidden';if(id==='cart')renderCart()} function closeOff(){document.querySelectorAll('.off').forEach(x=>x.classList.remove('open'));document.getElementById('overlay').classList.remove('show');document.body.style.overflow=''}
-function add(id){cart[id]=(cart[id]||0)+1;saveCart();renderCart();openOff('cart')} function change(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];saveCart();renderCart()} function removeItem(id){delete cart[id];saveCart();renderCart()} function saveCart(){localStorage.setItem('liftCartV2',JSON.stringify(cart));updateCount()}
-function items(){return Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p)} function updateCount(){const n=Object.values(cart).reduce((a,b)=>a+b,0);document.getElementById('count').textContent=n;document.getElementById('count2').textContent=n}
+function cartKeyFor(id,meta=null){
+  return meta&&meta.flavor ? `${id}::${meta.flavor}` : String(id);
+}
+function addVariant(id,flavor,image){
+  const cleanFlavor=String(flavor||'').trim();
+  if(!cleanFlavor){add(id);return}
+  const legacyKey=String(id);
+  if(cart[legacyKey]){
+    delete cart[legacyKey];
+    delete cartMeta[legacyKey];
+  }
+  const key=`${id}::${cleanFlavor}`;
+  cart[key]=(cart[key]||0)+1;
+  cartMeta[key]={flavor:cleanFlavor,image:image||resolveVariantImage(id,cleanFlavor,'')};
+  window.LIFT_CART_META=cartMeta;
+  saveCart();
+  renderCart();
+  openOff('cart');
+}
+function productIdFromCartKey(key){
+  return String(key).split('::')[0];
+}
+function add(id,meta=null){
+  const key=cartKeyFor(id,meta);
+  cart[key]=(cart[key]||0)+1;
+  if(meta&&meta.flavor){
+    cartMeta[key]={flavor:meta.flavor,image:meta.image||''};
+    window.LIFT_CART_META=cartMeta;
+  }
+  saveCart();renderCart();openOff('cart')
+}
+function change(key,d){
+  key=String(key);
+  cart[key]=(cart[key]||0)+d;
+  if(cart[key]<=0){delete cart[key];delete cartMeta[key]}
+  saveCart();renderCart()
+}
+function removeItem(key){
+  key=String(key);
+  delete cart[key];
+  delete cartMeta[key];
+  saveCart();renderCart()
+}
+function saveCart(){
+  localStorage.setItem('liftCartV2',JSON.stringify(cart));
+  localStorage.setItem('liftCartMetaV1',JSON.stringify(cartMeta));
+  updateCount()
+}
+function flavorFromCartKey(key){
+  const parts=String(key).split('::');
+  return parts.length>1 ? parts.slice(1).join('::') : '';
+}
+function resolveVariantImage(id,flavor,fallback=''){
+  try{
+    const list=(typeof ISO100_FLAVOR_IMAGES!=='undefined' && ISO100_FLAVOR_IMAGES[String(id)])||[];
+    const hit=list.find(x=>x.name===flavor);
+    return hit?.image||fallback;
+  }catch(e){return fallback}
+}
+function items(){
+  return Object.entries(cart).map(([key,q])=>{
+    const id=productIdFromCartKey(key);
+    const base=PRODUCTS.find(x=>x.id==id);
+    if(!base)return null;
+    const parsedFlavor=flavorFromCartKey(key);
+    const stored=cartMeta[key]||{};
+    const flavor=stored.flavor||parsedFlavor;
+    const image=stored.image||resolveVariantImage(id,flavor,base.image)||base.image;
+    const p=flavor?{...base,image,_cartFlavor:flavor}:base;
+    return {key,p,q};
+  }).filter(Boolean)
+} function updateCount(){const n=Object.values(cart).reduce((a,b)=>a+b,0);document.getElementById('count').textContent=n;document.getElementById('count2').textContent=n}
 function shippingProgressHTML(qty,cityName=''){
   if(!qty)return '';
   const city=norm(cityName||'');
@@ -386,7 +511,7 @@ function relatedProductsFor(its,limit=3){
   return chosen.slice(0,limit);
 }
 function relatedHTML(its){const rel=relatedProductsFor(its);if(!rel.length)return '';return `<div class="relatedWrap"><div class="relatedTitle">También te puede interesar</div><div class="relatedGrid">${rel.map(p=>`<div class="relatedItem"><img src="${p.image}" alt="${esc(p.name)}"><div><div class="relatedName">${esc(p.name)} · ${esc(p.brand)}</div><div class="relatedPrice">${fmt(priceOf(p))}</div></div><button class="relatedAdd" onclick="add(${p.id})">Agregar</button></div>`).join('')}</div></div>`}
-function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({p,q})=>`<div class="cartline"><img src="${p.image}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick="change(${p.id},-1)">−</button><b>${q}</b><button onclick="change(${p.id},1)">+</button></div></div><button class="trash" onclick="removeItem(${p.id})">×</button></div>`).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
+function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({key,p,q})=>{const k=JSON.stringify(String(key));return `<div class="cartline"><img src="${p.image}" alt="${esc(p.name)}${p._cartFlavor?' - '+esc(p._cartFlavor):''}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}${p._cartFlavor?`<div class="cartFlavor">Sabor: <b>${esc(p._cartFlavor)}</b></div>`:''}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick='change(${k},-1)'>−</button><b>${q}</b><button onclick='change(${k},1)'>+</button></div></div><button class="trash" onclick='removeItem(${k})'>×</button></div>`}).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
 function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div><div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(compareAtOf(p))}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('productModal').classList.remove('open');document.body.style.overflow=''}
 let checkoutMode='cart';
@@ -398,7 +523,16 @@ const DEPT_URL='https://raw.githubusercontent.com/proyecto26/colombia/master/dep
 const fallbackCities=[
 {name:'Medellín',department:'Antioquia'},{name:'Bogotá D.C.',department:'Bogotá D.C.'},{name:'Cali',department:'Valle del Cauca'},{name:'Barranquilla',department:'Atlántico'},{name:'Cartagena',department:'Bolívar'},{name:'Bucaramanga',department:'Santander'},{name:'Pereira',department:'Risaralda'},{name:'Manizales',department:'Caldas'},{name:'Armenia',department:'Quindío'},{name:'Santa Marta',department:'Magdalena'},{name:'Cúcuta',department:'Norte de Santander'},{name:'Villavicencio',department:'Meta'},{name:'Ibagué',department:'Tolima'},{name:'Montería',department:'Córdoba'},{name:'Neiva',department:'Huila'},{name:'Pasto',department:'Nariño'},{name:'Bello',department:'Antioquia'},{name:'Envigado',department:'Antioquia'},{name:'Itagüí',department:'Antioquia'},{name:'Sabaneta',department:'Antioquia'}];
 async function loadCities(){if(cityData.length)return;try{const [cr,dr]=await Promise.all([fetch(CITY_URL),fetch(DEPT_URL)]);if(!cr.ok||!dr.ok)throw new Error('city fetch');const cj=await cr.json(),dj=await dr.json();const dm=Object.fromEntries(dj.data.map(d=>[d.id,d.name]));cityData=cj.data.map(c=>({name:c.name,department:dm[c.departmentId]||''})).sort((a,b)=>a.name.localeCompare(b.name,'es'));}catch(e){cityData=fallbackCities}}
-function checkoutItemsList(){if(checkoutMode==='single'){const p=PRODUCTS.find(x=>x.id===checkoutSingleId);return p?[{p,q:1}]:[]}return items()}
+function checkoutItemsList(){
+  if(checkoutMode==='single'){
+    const base=PRODUCTS.find(x=>x.id===checkoutSingleId);
+    if(!base)return [];
+    const meta=window.LIFT_SINGLE_META;
+    const p=meta&&String(meta.id)===String(base.id)?{...base,image:meta.image||base.image,_cartFlavor:meta.flavor||''}:base;
+    return [{p,q:1}]
+  }
+  return items()
+}
 function checkoutQty(){return checkoutItemsList().reduce((n,x)=>n+x.q,0)}
 function shippingFor(cityName,qty){if(!cityName||!qty)return null;const city=norm(cityName);const localCities=['medellin','bello','itagui','envigado','sabaneta','la estrella'];const local=localCities.includes(city);if(local){if(qty===1)return 11000;if(qty===2)return 7000;return 0}if(qty===1)return 15000;if(qty===2)return 12000;if(qty===3)return 10000;return 0}
 let appliedCoupon=null;
@@ -407,16 +541,23 @@ function applyCoupon(){appliedCoupon=null;setCouponStatus('El sistema de benefic
 
 function openCheckout(){closeOff();document.getElementById('checkoutModal').classList.add('open');document.body.style.overflow='hidden';selectedCity=null;appliedCoupon=null;document.getElementById('coCity').value='';const ci=document.getElementById('coCoupon');if(ci)ci.value='';setCouponStatus('El sistema de beneficios está en actualización.','');loadCities();renderCheckoutSummary()}
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');document.getElementById('cityResults').classList.remove('show');document.body.style.overflow=''}
-function startCartCheckout(){if(!items().length)return;checkoutMode='cart';checkoutSingleId=null;openCheckout()}
+function startCartCheckout(){
+  if(!items().length)return;
+  checkoutMode='cart';
+  checkoutSingleId=null;
+  saveCart();
+  openCheckout();
+  renderCheckoutSummary();
+}
 function buyProduct(id){checkoutMode='single';checkoutSingleId=id;openCheckout()}
-function renderCheckoutSummary(){const its=checkoutItemsList(),sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity?.name||'',checkoutQty());if(appliedCoupon&&sub<Number(appliedCoupon.min||0)){appliedCoupon=null;setCouponStatus('El subtotal cambió y el cupón debe validarse nuevamente.','')}const discount=Math.min(sub,Number(appliedCoupon?.discount||0)),flavorMsg=flavorMessageFor(its);document.getElementById('checkoutItems').innerHTML=its.map(x=>`${x.q} × ${esc(x.p.name)} · ${fmt(priceOf(x.p)*x.q)}`).join('<br>')+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');const prog=document.getElementById('checkoutShippingProgress');if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());document.getElementById('coSubtotal').textContent=fmt(sub);const dl=document.getElementById('coDiscountLine');if(dl)dl.style.display=discount?'flex':'none';if(discount){document.getElementById('coDiscountLabel').textContent=`Cupón ${appliedCoupon.code}`;document.getElementById('coDiscount').textContent='-'+fmt(discount)}document.getElementById('coShipping').textContent=ship===null?'Selecciona ciudad':(ship===0?'Gratis':fmt(ship));document.getElementById('coTotal').textContent=fmt(Math.max(0,sub-discount)+(ship||0))}
+function renderCheckoutSummary(){const its=checkoutItemsList(),sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity?.name||'',checkoutQty());if(appliedCoupon&&sub<Number(appliedCoupon.min||0)){appliedCoupon=null;setCouponStatus('El subtotal cambió y el cupón debe validarse nuevamente.','')}const discount=Math.min(sub,Number(appliedCoupon?.discount||0)),flavorMsg=flavorMessageFor(its);document.getElementById('checkoutItems').innerHTML=its.map(x=>`${x.q} × ${esc(x.p.name)}${x.p._cartFlavor?` · <b>${esc(x.p._cartFlavor)}</b>`:''} · ${fmt(priceOf(x.p)*x.q)}`).join('<br>')+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');const prog=document.getElementById('checkoutShippingProgress');if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());document.getElementById('coSubtotal').textContent=fmt(sub);const dl=document.getElementById('coDiscountLine');if(dl)dl.style.display=discount?'flex':'none';if(discount){document.getElementById('coDiscountLabel').textContent=`Cupón ${appliedCoupon.code}`;document.getElementById('coDiscount').textContent='-'+fmt(discount)}document.getElementById('coShipping').textContent=ship===null?'Selecciona ciudad':(ship===0?'Gratis':fmt(ship));document.getElementById('coTotal').textContent=fmt(Math.max(0,sub-discount)+(ship||0))}
 function showCityResults(term=''){const box=document.getElementById('cityResults');const q=norm(term);const rows=(cityData.length?cityData:fallbackCities).filter(c=>!q||norm(c.name+' '+c.department).includes(q)).slice(0,80);box.innerHTML=rows.map((c,i)=>`<button type="button" class="cityOption" data-i="${i}" data-name="${esc(c.name)}" data-dept="${esc(c.department)}"><span>${esc(c.name)}</span><small>${esc(c.department)}</small></button>`).join('')||'<div class="cityOption">No encontré esa ciudad.</div>';box.classList.add('show');box.querySelectorAll('button[data-name]').forEach(btn=>btn.addEventListener('click',()=>selectCity(btn.dataset.name,btn.dataset.dept)))}
 function selectCity(name,department){selectedCity={name,department};document.getElementById('coCity').value=department?`${name} · ${department}`:name;document.getElementById('cityResults').classList.remove('show');renderCheckoutSummary()}
 const coCity=document.getElementById('coCity');coCity.addEventListener('focus',async()=>{await loadCities();showCityResults(coCity.value)});coCity.addEventListener('input',async e=>{selectedCity=null;await loadCities();showCityResults(e.target.value);renderCheckoutSummary()});document.addEventListener('click',e=>{if(!e.target.closest('.cityWrap'))document.getElementById('cityResults').classList.remove('show')});
 const coPhone=document.getElementById('coPhone');if(coPhone)coPhone.addEventListener('input',()=>{if(appliedCoupon){appliedCoupon=null;setCouponStatus('El celular cambió. Valida nuevamente el cupón.','');renderCheckoutSummary()}});const coCoupon=document.getElementById('coCoupon');if(coCoupon){coCoupon.addEventListener('input',()=>{if(appliedCoupon){appliedCoupon=null;setCouponStatus('El código cambió. Presiona Aplicar para validarlo de nuevo.','');renderCheckoutSummary()}});coCoupon.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyCoupon()}})};
-function checkoutText(){const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}const its=checkoutItemsList();if(!its.length)return '';const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity.name,checkoutQty()),discount=Math.min(sub,Number(appliedCoupon?.discount||0)),total=Math.max(0,sub-discount)+(ship||0);const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));lines.push('',`💬 Si el producto maneja sabores, se confirman por WhatsApp según disponibilidad.`);lines.push('',`Subtotal: ${fmt(sub)}`);if(appliedCoupon&&discount)lines.push(`Cupón ${appliedCoupon.code}: -${fmt(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);lines.push(`Envío: ${ship===0?'GRATIS':fmt(ship)}`,`Total: ${fmt(total)}`);return lines.filter(Boolean).join('\n')}
+function checkoutText(){const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}const its=checkoutItemsList();if(!its.length)return '';const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0),ship=shippingFor(selectedCity.name,checkoutQty()),discount=Math.min(sub,Number(appliedCoupon?.discount||0)),total=Math.max(0,sub-discount)+(ship||0);const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name}${p._cartFlavor?' · Sabor: '+p._cartFlavor:''} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));lines.push('',`💬 Si el producto maneja sabores, se confirman por WhatsApp según disponibilidad.`);lines.push('',`Subtotal: ${fmt(sub)}`);if(appliedCoupon&&discount)lines.push(`Cupón ${appliedCoupon.code}: -${fmt(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);lines.push(`Envío: ${ship===0?'GRATIS':fmt(ship)}`,`Total: ${fmt(total)}`);return lines.filter(Boolean).join('\n')}
 function finishCheckout(){const t=checkoutText();if(!t)return;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
-function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
+function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name}${p._cartFlavor?' · Sabor: '+p._cartFlavor:''} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
 async function copyOrder(){const t=orderText();if(!t)return;try{await navigator.clipboard.writeText(t);alert('Pedido copiado.')}catch(e){prompt('Copia el pedido:',t)}}
 
 // Base principal disponible para los módulos externos del catálogo.
@@ -819,7 +960,46 @@ updateCount();render();renderCart();
     return window.PRODUCTS.find(x=>norm(x.name)===name)||null;
   }
 
-  function renderProductDetail(p){
+  
+  const ISO100_FLAVOR_IMAGES={"16":[{"name":"Fruity Pebbles","image":"https://drive.google.com/thumbnail?id=1DkwIrBnXXlgyrD0WKeydyxDFk2RANsvk&sz=w1200"},{"name":"Gourmet Vanilla","image":"https://drive.google.com/thumbnail?id=1D1z0ccTplDjZK43VDtf06zm7ChR2eikp&sz=w1200"},{"name":"Gourmet Chocolate","image":"https://drive.google.com/thumbnail?id=10KSVrbCu8ujPLDsfwvOJjH3QpcOPZMM5&sz=w1200"},{"name":"Cookies & Cream","image":"https://drive.google.com/thumbnail?id=1taoNqqPzQxOBg_4uGkUVoX25j55mm2dw&sz=w1200"},{"name":"Chocolate Peanut Butter","image":"https://drive.google.com/thumbnail?id=1Y7n3nKv_81d746TeEvQmzdoWykmVYFYd&sz=w1200"},{"name":"Strawberry","image":"https://drive.google.com/thumbnail?id=1B6KMqnDo6JvVOXSjvxitwsrJOaGAU7w6&sz=w1200"},{"name":"Cinnamon Churro","image":"https://drive.google.com/thumbnail?id=1Zz22v4pLFD1xkJDk261yX79HSCGqEE-6&sz=w1200"},{"name":"Cocoa Pebbles","image":"https://drive.google.com/thumbnail?id=1TkyClYZWIGUvP9jY7zQdpxGqkim_-4RP&sz=w1200"},{"name":"Fudge Brownie","image":"https://drive.google.com/thumbnail?id=1S0F0sNLIYus62NtBXsMkdq1_QK2eWB7h&sz=w1200"},{"name":"Birthday Cake Pebbles","image":"https://drive.google.com/thumbnail?id=1x8y-Kt8GZT_HgLOY0mh_eLEHGXhMP3KU&sz=w1200"}],"126":[{"name":"Fruity Pebbles","image":"https://drive.google.com/thumbnail?id=1DkwIrBnXXlgyrD0WKeydyxDFk2RANsvk&sz=w1200"},{"name":"Gourmet Vanilla","image":"https://drive.google.com/thumbnail?id=1D1z0ccTplDjZK43VDtf06zm7ChR2eikp&sz=w1200"},{"name":"Gourmet Chocolate","image":"https://drive.google.com/thumbnail?id=10KSVrbCu8ujPLDsfwvOJjH3QpcOPZMM5&sz=w1200"},{"name":"Cookies & Cream","image":"https://drive.google.com/thumbnail?id=1taoNqqPzQxOBg_4uGkUVoX25j55mm2dw&sz=w1200"},{"name":"Chocolate Peanut Butter","image":"https://drive.google.com/thumbnail?id=1Y7n3nKv_81d746TeEvQmzdoWykmVYFYd&sz=w1200"},{"name":"Strawberry","image":"https://drive.google.com/thumbnail?id=1B6KMqnDo6JvVOXSjvxitwsrJOaGAU7w6&sz=w1200"},{"name":"Cinnamon Churro","image":"https://drive.google.com/thumbnail?id=1Zz22v4pLFD1xkJDk261yX79HSCGqEE-6&sz=w1200"},{"name":"Cocoa Pebbles","image":"https://drive.google.com/thumbnail?id=1TkyClYZWIGUvP9jY7zQdpxGqkim_-4RP&sz=w1200"},{"name":"Fudge Brownie","image":"https://drive.google.com/thumbnail?id=1S0F0sNLIYus62NtBXsMkdq1_QK2eWB7h&sz=w1200"},{"name":"Birthday Cake Pebbles","image":"https://drive.google.com/thumbnail?id=1x8y-Kt8GZT_HgLOY0mh_eLEHGXhMP3KU&sz=w1200"}],"125":[{"name":"Gourmet Vanilla","image":"https://drive.google.com/thumbnail?id=1EEuPSEd-H9dKYPGjtEirq6o1RGtKfj0R&sz=w1200"},{"name":"Gourmet Chocolate","image":"https://drive.google.com/thumbnail?id=1ttVv1yrhGuT4wv5-rN1PT2zXsTOswhXb&sz=w1200"},{"name":"Cocoa Pebbles","image":"https://drive.google.com/thumbnail?id=1hKKhbyCv1YGDq-lM3PZECZRCSVTnqbjU&sz=w1200"},{"name":"Fudge Brownie","image":"https://drive.google.com/thumbnail?id=15fM53-2CrL3oYa-kJO9QXvAjbG5d7LgU&sz=w1200"},{"name":"Fruity Pebbles","image":"https://drive.google.com/thumbnail?id=19-PlcG4HnvTWMO4zy-QJ2toseTW9_92j&sz=w1200"}],"123":[{"name":"Fruity Pebbles","image":"https://drive.google.com/thumbnail?id=1cDcAN8Xuuw3t3RmxuI093HXpQ-jOmaoV&sz=w1200"},{"name":"Gourmet Vanilla","image":"https://drive.google.com/thumbnail?id=1GLLsuPheltDH2UHtewRCnZO6YE2IJw6j&sz=w1200"},{"name":"Gourmet Chocolate","image":"https://drive.google.com/thumbnail?id=1CQ1R7qLc5nD_pN0wc_RzJTP0RepK2fgl&sz=w1200"},{"name":"Cookies & Cream","image":"https://drive.google.com/thumbnail?id=10OC5NaO_hSRTf05AKtnrfX5E1PPxZphv&sz=w1200"},{"name":"Fudge Brownie","image":"https://drive.google.com/thumbnail?id=1Jg71W1MXlamD5SG9KYFLl1v6lGR2MWYS&sz=w1200"},{"name":"Strawberry","image":"https://drive.google.com/thumbnail?id=1S-SXI9G5qYAyYe4wPbn-sXih33FH_WW8&sz=w1200"},{"name":"Chocolate Peanut Butter","image":"https://drive.google.com/thumbnail?id=1wekI5w1a4fI6r1C5cj6h1yE9XSl3ana1&sz=w1200"},{"name":"Cocoa Pebbles","image":"https://drive.google.com/thumbnail?id=1WYbtVxmXBIazasGkEj83IB67fJ8NIGct&sz=w1200"},{"name":"Birthday Cake Pebbles","image":"https://drive.google.com/thumbnail?id=17f8tay_6IO1x0Xh3AI2dDGVI-UkGwTXk&sz=w1200"},{"name":"Caramelo Salado","image":"https://drive.google.com/thumbnail?id=1uUujyhYdTSFjo9dtvVMrFIF63bZpQFs2&sz=w1200"},{"name":"Dunkin Cappuccino","image":"https://drive.google.com/thumbnail?id=1t2G_hv_moFMmywgvoDZS10WHoc3oZf_1&sz=w1200"},{"name":"Dunkin Mocha Latte","image":"https://drive.google.com/thumbnail?id=1FPRfovO2guXBs2LwGj8Id89YemkxQEpy&sz=w1200"},{"name":"Dunkin Glazed","image":"https://drive.google.com/thumbnail?id=1xQY2ZZp34ZY4lWehnyihXRo-oU5RG8jQ&sz=w1200"}]};
+  const ISO100_SELECTED={};
+
+  function iso100FlavorsFor(p){
+    return ISO100_FLAVOR_IMAGES[String(p?.id)]||[];
+  }
+
+  function iso100FlavorStrip(p){
+    const fs=iso100FlavorsFor(p);
+    if(!fs.length) return '';
+    return `<div class="isoFlavorBlock">
+      <div class="isoFlavorHead"><b>Selecciona sabor</b><span id="isoFlavorSelected">${fs[0].name}</span></div>
+      <div class="isoFlavorStrip">
+        ${fs.map((f,i)=>`<button type="button" class="isoFlavorChip${i===0?' active':''}" data-iso-index="${i}" title="${f.name.replace(/"/g,'&quot;')}">
+          <img src="${f.image}" alt="${f.name.replace(/"/g,'&quot;')}">
+          <span>${f.name}</span>
+        </button>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  function bindIso100Flavors(p){
+    const fs=iso100FlavorsFor(p);
+    if(!fs.length) return;
+    ISO100_SELECTED[String(p.id)]=fs[0];
+    const main=panel.querySelector('.liftMonoImg img');
+    const label=panel.querySelector('#isoFlavorSelected');
+    panel.querySelectorAll('.isoFlavorChip').forEach(btn=>btn.onclick=e=>{
+      e.stopPropagation();
+      const f=fs[Number(btn.dataset.isoIndex)||0];
+      ISO100_SELECTED[String(p.id)]=f;
+      if(main){main.src=f.image;main.alt=`${p.name} - ${f.name}`;}
+      if(label)label.textContent=f.name;
+      panel.querySelectorAll('.isoFlavorChip').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  }
+
+function renderProductDetail(p){
     if(!p) return;
     currentProductId=p.id;
     const list=navProducts();
@@ -839,6 +1019,7 @@ updateCount();render();renderCart();
           <h2 class="liftMonoTitle">${p.name||''}</h2>
           <div>${p.category||''}</div>
           <div class="liftMonoPrice">${money}</div>
+          ${iso100FlavorStrip(p)}
           <div class="liftMonoBtns">
             <button type="button" id="liftMonoAdd">Agregar al carrito</button>
             <button type="button" id="liftMonoBuy" class="liftMonoBuy">Comprar</button>
@@ -846,10 +1027,22 @@ updateCount();render();renderCart();
           <div class="liftMonoMeta">🚚 Medellín: entrega el mismo día para pedidos confirmados antes de las 2:00 p. m.<br>Nacional: 1–3 días hábiles.</div>
         </div>
       </div>`;
+    bindIso100Flavors(p);
     panel.querySelector('#liftMonoPrev').onclick=e=>{e.stopPropagation();navigateProduct(-1)};
     panel.querySelector('#liftMonoNext').onclick=e=>{e.stopPropagation();navigateProduct(1)};
-    panel.querySelector('#liftMonoAdd').onclick=()=>{if(typeof add==='function')add(p.id)};
-    panel.querySelector('#liftMonoBuy').onclick=()=>{if(typeof buyProduct==='function')buyProduct(p.id)};
+    panel.querySelector('#liftMonoAdd').onclick=()=>{
+      const f=ISO100_SELECTED[String(p.id)];
+      if(f && typeof addVariant==='function'){
+        addVariant(p.id,f.name,f.image);
+      }else if(typeof add==='function'){
+        add(p.id);
+      }
+    };
+    panel.querySelector('#liftMonoBuy').onclick=()=>{
+      const f=ISO100_SELECTED[String(p.id)];
+      window.LIFT_SINGLE_META=f?{id:p.id,flavor:f.name,image:f.image}:null;
+      if(typeof buyProduct==='function')buyProduct(p.id);
+    };
   }
 
   function navigateProduct(step){
