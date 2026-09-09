@@ -200,7 +200,33 @@ function categoryKey(p){
   return k;
 }
 function categoryProducts(cat){
-  const raw=PRODUCTS.filter(p=>p.category===cat);
+  const wanted=norm(cat);
+
+  // "Proteína" funciona como categoría madre.
+  // Incluye todas las subcategorías de proteína sin borrar la clasificación actual.
+  const proteinChildren = new Set([
+    'proteina whey',
+    'proteina aislada / limpia',
+    'proteina hidrolizada',
+    'proteina vegana',
+    'proteina de carne',
+    'proteina de otras fuentes'
+  ]);
+
+  const proteinExclusions = new Set([
+    'maca root 750mg/180 cap',
+    'maca root 750mg 180 cap',
+    'nac 600 mg.120 tab',
+    'nac 600 mg 120 tab',
+    'ultimate pre workout 30 serv'
+  ]);
+
+  const raw = wanted==='proteina'
+    ? PRODUCTS.filter(p=>
+        proteinChildren.has(norm(p.category||'')) &&
+        !proteinExclusions.has(norm(p.name||''))
+      )
+    : PRODUCTS.filter(p=>norm(p.category||'')===wanted);
   const groups=new Map();
   for(const p of raw){
     const k=categoryKey(p);
@@ -227,7 +253,30 @@ function filtered(){
   if(state.cat!=='Todos' && state.brand==='Todas'){
     base=categoryProducts(state.cat);
   }else{
-    base=PRODUCTS.filter(p=>(state.cat==='Todos'||p.category===state.cat)&&(state.brand==='Todas'||p.brand===state.brand));
+    if(state.cat!=='Todos' && norm(state.cat)==='proteina'){
+      const proteinChildren = new Set([
+        'proteina whey',
+        'proteina aislada / limpia',
+        'proteina hidrolizada',
+        'proteina vegana',
+        'proteina de carne',
+        'proteina de otras fuentes'
+      ]);
+      const proteinExclusions = new Set([
+        'maca root 750mg/180 cap',
+        'maca root 750mg 180 cap',
+        'nac 600 mg.120 tab',
+        'nac 600 mg 120 tab',
+        'ultimate pre workout 30 serv'
+      ]);
+      base=PRODUCTS.filter(p=>
+        proteinChildren.has(norm(p.category||'')) &&
+        !proteinExclusions.has(norm(p.name||'')) &&
+        (state.brand==='Todas'||p.brand===state.brand)
+      );
+    }else{
+      base=PRODUCTS.filter(p=>(state.cat==='Todos'||norm(p.category||'')===norm(state.cat))&&(state.brand==='Todas'||p.brand===state.brand));
+    }
   }
   return base.filter(p=>!state.offerOnly||hasOffer(p));
 }
