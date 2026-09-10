@@ -257,6 +257,31 @@ body{background:#f5f6f7!important}
 .pageCartBuy{width:100%;height:48px;border:0;border-radius:13px;background:#111;color:#fff;font-weight:500;cursor:pointer}
 .pageCartSecondary{width:100%;height:42px;border:1px solid #ddd;background:#fff;border-radius:12px;font-weight:400;margin-top:8px;cursor:pointer}
 </style>
+<style id="lift-iso-flavors-page-v1">
+.isoFlavorBlock{margin:14px 0 16px}
+.isoFlavorHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:14px}
+.isoFlavorHead b{font-weight:650}
+#isoFlavorSelected{font-size:12px;color:#666;text-align:right}
+.isoFlavorStrip{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+}
+.isoFlavorChip{
+  appearance:none;border:1px solid #dcdcdc;border-radius:12px;background:#fff;color:#111;
+  padding:7px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;
+  min-width:0;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease
+}
+.isoFlavorChip:hover{border-color:#999;transform:translateY(-1px)}
+.isoFlavorChip.active{border-color:#111;box-shadow:0 0 0 1px #111 inset}
+.isoFlavorChip img{width:100%;height:62px;object-fit:contain;display:block}
+.isoFlavorChip span{font-size:9px;line-height:1.2;text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:760px){
+  .isoFlavorStrip{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .isoFlavorChip img{height:72px}
+  .isoFlavorChip span{font-size:10px}
+}
+</style>
 </head>
 <body>
 
@@ -291,11 +316,40 @@ body{background:#f5f6f7!important}
       <div class="liftPdfInfo"><div class="liftPdfDetails"><span class="liftPdfChip">5 Lbs</span><span class="liftPdfChip">Nuevo</span></div></div>
       <div class="liftMonoPrice">$550.000</div>
 
-      <div class="pdfFlavorBlock">
-        <div class="pdfFlavorHead"><b>Selecciona sabor</b><span id="selectedFlavor" class="pdfFlavorSelected">Fruity Pebbles</span></div>
-        <div class="pdfFlavorStrip"><button type="button" class="pdfFlavorChip active" data-flavor="Fruity Pebbles" onclick="selectFlavor(this)">Fruity Pebbles</button><button type="button" class="pdfFlavorChip" data-flavor="Gourmet Vanilla" onclick="selectFlavor(this)">Gourmet Vanilla</button><button type="button" class="pdfFlavorChip" data-flavor="Gourmet Chocolate" onclick="selectFlavor(this)">Gourmet Chocolate</button><button type="button" class="pdfFlavorChip" data-flavor="Cookies &amp; Cream" onclick="selectFlavor(this)">Cookies &amp; Cream</button><button type="button" class="pdfFlavorChip" data-flavor="Chocolate Peanut Butter" onclick="selectFlavor(this)">Chocolate Peanut Butter</button></div>
+      <div class="isoFlavorBlock">
+        <div class="isoFlavorHead"><b>Selecciona sabor</b><span id="isoFlavorSelected">Fruity Pebbles</span></div>
+        <div class="isoFlavorStrip"><button type="button" class="isoFlavorChip active" data-name="Fruity Pebbles" data-image="https://drive.google.com/thumbnail?id=1DkwIrBnXXlgyrD0WKeydyxDFk2RANsvk&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1DkwIrBnXXlgyrD0WKeydyxDFk2RANsvk&sz=w180" loading="lazy" decoding="async" alt="Fruity Pebbles">
+        <span>Fruity Pebbles</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Gourmet Vanilla" data-image="https://drive.google.com/thumbnail?id=1D1z0ccTplDjZK43VDtf06zm7ChR2eikp&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1D1z0ccTplDjZK43VDtf06zm7ChR2eikp&sz=w180" loading="lazy" decoding="async" alt="Gourmet Vanilla">
+        <span>Gourmet Vanilla</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Gourmet Chocolate" data-image="https://drive.google.com/thumbnail?id=10KSVrbCu8ujPLDsfwvOJjH3QpcOPZMM5&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=10KSVrbCu8ujPLDsfwvOJjH3QpcOPZMM5&sz=w180" loading="lazy" decoding="async" alt="Gourmet Chocolate">
+        <span>Gourmet Chocolate</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Cookies & Cream" data-image="https://drive.google.com/thumbnail?id=1taoNqqPzQxOBg_4uGkUVoX25j55mm2dw&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1taoNqqPzQxOBg_4uGkUVoX25j55mm2dw&sz=w180" loading="lazy" decoding="async" alt="Cookies & Cream">
+        <span>Cookies & Cream</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Chocolate Peanut Butter" data-image="https://drive.google.com/thumbnail?id=1Y7n3nKv_81d746TeEvQmzdoWykmVYFYd&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1Y7n3nKv_81d746TeEvQmzdoWykmVYFYd&sz=w180" loading="lazy" decoding="async" alt="Chocolate Peanut Butter">
+        <span>Chocolate Peanut Butter</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Strawberry" data-image="https://drive.google.com/thumbnail?id=1B6KMqnDo6JvVOXSjvxitwsrJOaGAU7w6&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1B6KMqnDo6JvVOXSjvxitwsrJOaGAU7w6&sz=w180" loading="lazy" decoding="async" alt="Strawberry">
+        <span>Strawberry</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Cinnamon Churro" data-image="https://drive.google.com/thumbnail?id=1Zz22v4pLFD1xkJDk261yX79HSCGqEE-6&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1Zz22v4pLFD1xkJDk261yX79HSCGqEE-6&sz=w180" loading="lazy" decoding="async" alt="Cinnamon Churro">
+        <span>Cinnamon Churro</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Cocoa Pebbles" data-image="https://drive.google.com/thumbnail?id=1TkyClYZWIGUvP9jY7zQdpxGqkim_-4RP&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1TkyClYZWIGUvP9jY7zQdpxGqkim_-4RP&sz=w180" loading="lazy" decoding="async" alt="Cocoa Pebbles">
+        <span>Cocoa Pebbles</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Fudge Brownie" data-image="https://drive.google.com/thumbnail?id=1S0F0sNLIYus62NtBXsMkdq1_QK2eWB7h&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1S0F0sNLIYus62NtBXsMkdq1_QK2eWB7h&sz=w180" loading="lazy" decoding="async" alt="Fudge Brownie">
+        <span>Fudge Brownie</span>
+    </button><button type="button" class="isoFlavorChip" data-name="Birthday Cake Pebbles" data-image="https://drive.google.com/thumbnail?id=1x8y-Kt8GZT_HgLOY0mh_eLEHGXhMP3KU&sz=w1200" onclick="selectIsoFlavor(this)">
+        <img src="https://drive.google.com/thumbnail?id=1x8y-Kt8GZT_HgLOY0mh_eLEHGXhMP3KU&sz=w180" loading="lazy" decoding="async" alt="Birthday Cake Pebbles">
+        <span>Birthday Cake Pebbles</span>
+    </button></div>
       </div>
-
       <div class="liftMonoBtns">
         <button type="button" onclick="addMain()">Agregar al carrito</button>
         <button type="button" class="liftMonoBuy" onclick="buyMain()">Comprar</button>
@@ -315,7 +369,7 @@ body{background:#f5f6f7!important}
 <div>Categoría</div><div>Proteína</div>
 <div>Condición</div><div>Nuevo</div>
 <div>Referencia interna</div><div>LIFT-16</div>
-<div>Sabores disponibles</div><div>Fruity Pebbles, Gourmet Vanilla, Gourmet Chocolate, Cookies & Cream, Chocolate Peanut Butter</div>
+<div>Sabores disponibles</div><div>Fruity Pebbles, Gourmet Vanilla, Gourmet Chocolate, Cookies & Cream, Chocolate Peanut Butter, Strawberry, Cinnamon Churro, Cocoa Pebbles, Fudge Brownie, Birthday Cake Pebbles</div>
 </div>
 </section>
 
@@ -448,12 +502,6 @@ body{background:#f5f6f7!important}
 const RELATED=[{"id": 123, "name": "Iso 100 1.3 Lbs", "price": 240000, "image": "https://drive.google.com/thumbnail?id=1HkTDmvSZ51yciulklQY_me0rrj2-RYAN&sz=w1200"}, {"id": 125, "name": "Iso 100 3 Lbs", "price": 417000, "image": "https://drive.google.com/thumbnail?id=1K-cwmTzwoHm9W94hLxlmzvjPYngc6pAf&sz=w1200"}, {"id": 128, "name": "Elite Whey 2 Lbs", "price": 220000, "image": "https://drive.google.com/thumbnail?id=1uy1E8XoiIPAc9T97Ys8cC8QFBRj1NXT_&sz=w1200"}, {"id": 129, "name": "Elite Whey 5 Lbs", "price": 410000, "image": "https://drive.google.com/thumbnail?id=1SqKAg0VHMqbb5Vku0ocUNj6D878v_oyr&sz=w1200"}, {"id": 84, "name": "Nitro Tech 2 Lbs", "price": 190000, "image": "https://drive.google.com/thumbnail?id=1cGPVtpEUCzPTpK3aXgiim6WYjDXs74_U&sz=w1000"}, {"id": 85, "name": "Nitro Tech 4 Lbs", "price": 320000, "image": "https://drive.google.com/thumbnail?id=1MFKC1xNH8oyAUFoBVxEQtno8hhXei5XS&sz=w1000"}, {"id": 86, "name": "Nitro Tech Whey Gold 2 Lbs", "price": 180000, "image": "https://drive.google.com/thumbnail?id=1jT0tTqisq6p0tCwftVr3gguQINNU8zPl&sz=w1000"}, {"id": 87, "name": "Nitro Tech Whey Gold 5 Lbs", "price": 350000, "image": "https://drive.google.com/thumbnail?id=1psESUjMWE-VAaobKe760ebNQZu1cPCph&sz=w1000"}, {"id": 104, "name": "100% Whey Gold Standard 10 Serv", "price": 127000, "image": "https://drive.google.com/thumbnail?id=1AuEY_Is8lXLO7-2d7yHmEr5xLXByGCBz&sz=w1200"}, {"id": 105, "name": "100% Whey Gold Standard 2 Lbs", "price": 250000, "image": "https://drive.google.com/thumbnail?id=1zdvsUEDl5tOWHYUEZN4SnRJAD6O5WYx3&sz=w1200"}, {"id": 106, "name": "100% Whey Gold Standard 4 Lbs", "price": 380000, "image": "https://drive.google.com/thumbnail?id=1X01efatsRSSvkCPZBfZCtfqiwzL_fQ3n&sz=w1200"}, {"id": 107, "name": "100% Whey Gold Standard 5 Lbs", "price": 450000, "image": "https://drive.google.com/thumbnail?id=1smL5y2fUKhZMBI_Boq3wEE_yQApcX5Qa&sz=w1200"}];
 let selectedFlavor="Fruity Pebbles";
 
-function selectFlavor(btn){
-  document.querySelectorAll('.pdfFlavorChip').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  selectedFlavor=btn.dataset.flavor;
-  document.getElementById('selectedFlavor').textContent=selectedFlavor;
-}
 document.getElementById('zoomArea').onclick=function(){this.classList.toggle('zoomed')};
 
 function showToast(msg){
@@ -685,6 +733,23 @@ function buyPageCart(){
   window.open('https://wa.me/573137380766?text='+encodeURIComponent(msg),'_blank','noopener');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePageCart()});
+</script>
+
+
+<script id="lift-iso-flavors-page-v1">
+const ISO_PAGE_FLAVORS=[{"name": "Fruity Pebbles", "image": "https://drive.google.com/thumbnail?id=1DkwIrBnXXlgyrD0WKeydyxDFk2RANsvk&sz=w1200"}, {"name": "Gourmet Vanilla", "image": "https://drive.google.com/thumbnail?id=1D1z0ccTplDjZK43VDtf06zm7ChR2eikp&sz=w1200"}, {"name": "Gourmet Chocolate", "image": "https://drive.google.com/thumbnail?id=10KSVrbCu8ujPLDsfwvOJjH3QpcOPZMM5&sz=w1200"}, {"name": "Cookies & Cream", "image": "https://drive.google.com/thumbnail?id=1taoNqqPzQxOBg_4uGkUVoX25j55mm2dw&sz=w1200"}, {"name": "Chocolate Peanut Butter", "image": "https://drive.google.com/thumbnail?id=1Y7n3nKv_81d746TeEvQmzdoWykmVYFYd&sz=w1200"}, {"name": "Strawberry", "image": "https://drive.google.com/thumbnail?id=1B6KMqnDo6JvVOXSjvxitwsrJOaGAU7w6&sz=w1200"}, {"name": "Cinnamon Churro", "image": "https://drive.google.com/thumbnail?id=1Zz22v4pLFD1xkJDk261yX79HSCGqEE-6&sz=w1200"}, {"name": "Cocoa Pebbles", "image": "https://drive.google.com/thumbnail?id=1TkyClYZWIGUvP9jY7zQdpxGqkim_-4RP&sz=w1200"}, {"name": "Fudge Brownie", "image": "https://drive.google.com/thumbnail?id=1S0F0sNLIYus62NtBXsMkdq1_QK2eWB7h&sz=w1200"}, {"name": "Birthday Cake Pebbles", "image": "https://drive.google.com/thumbnail?id=1x8y-Kt8GZT_HgLOY0mh_eLEHGXhMP3KU&sz=w1200"}];
+function selectIsoFlavor(btn){
+  document.querySelectorAll('.isoFlavorChip').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  selectedFlavor=btn.dataset.name;
+  const label=document.getElementById('isoFlavorSelected');
+  if(label) label.textContent=selectedFlavor;
+  const main=document.getElementById('mainImg');
+  if(main){
+    main.src=btn.dataset.image;
+    main.alt='ISO100 Dymatize 5 Lbs - '+selectedFlavor;
+  }
+}
 </script>
 
 </body>
