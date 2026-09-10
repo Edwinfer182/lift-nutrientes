@@ -1,24 +1,32 @@
 {
-  "updated_at": "2026-09-09T16:39:09.334332+00:00",
+  "updated_at": "2026-09-10T16:24:17.200723+00:00",
   "matched_products": 7,
-  "source_products_with_flavors": 40,
+  "source_products_with_flavors": 39,
   "added_products": [],
   "removed_products": [],
   "changed": [
     {
       "id": "86",
       "product": "Nitro Tech Whey Gold 2 Lbs",
-      "added": [],
-      "removed": [
+      "added": [
         "COOKIES & CREAM"
-      ]
+      ],
+      "removed": []
     },
     {
       "id": "87",
       "product": "Nitro Tech Whey Gold 5 Lbs",
+      "added": [
+        "COOKIES & CREAM"
+      ],
+      "removed": []
+    },
+    {
+      "id": "97",
+      "product": "Cell Tech Creactor 120 Serv",
       "added": [],
       "removed": [
-        "COOKIES & CREAM"
+        "FRUIT PUNCH"
       ]
     }
   ]
