@@ -60,12 +60,12 @@
 
 <section class="liftMonoPage">
   <div class="liftMonoBody">
-    <button type="button" class="liftMonoNav liftMonoPrev" aria-label="Producto anterior">‹</button>
+    <button type="button" class="liftMonoNav liftMonoPrev" aria-label="Producto anterior" onclick="location.href='../?producto=15'">‹</button>
     <div class="liftMonoImg" id="zoomArea" title="Haz clic para ampliar">
       <img id="mainImg" draggable="false" src="https://drive.google.com/thumbnail?id=1Dc0hXGskYfHD37xr93JsGfLuz1EXMgpB&amp;sz=w1200" alt="Iso 100 5 Lbs">
       <div class="liftMonoCounter">16 / 949</div>
     </div>
-    <button type="button" class="liftMonoNav liftMonoNext" aria-label="Producto siguiente">›</button>
+    <button type="button" class="liftMonoNav liftMonoNext" aria-label="Producto siguiente" onclick="location.href='../?producto=17'">›</button>
 
     <div>
       <div class="liftMonoBrand">Destacados Lift</div>
@@ -267,7 +267,7 @@ function addRelated(id){
   if(f)f.qty++;else c.push({key,id:p.id,name:p.name,price:p.price,qty:1});
   saveCart(c);toast('✓ '+p.name+' agregado al carrito');
 }
-function openRelated(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;window.open('https://wa.me/573137380766?text='+encodeURIComponent('Hola, quiero consultar '+p.name+'.'),'_blank','noopener')}
+function openRelated(id){window.location.href='../?producto='+encodeURIComponent(id)}
 </script>
 </body>
 </html>
