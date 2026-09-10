@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://lift-nutrientes.vercel.app/catalogo/sitemap.xml
