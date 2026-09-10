@@ -107,7 +107,7 @@
 .discountLine{color:#168451}
 @media(max-width:520px){.couponRow{grid-template-columns:1fr}.couponApply{width:100%}.relatedItem{grid-template-columns:42px 1fr auto}.relatedItem img{width:42px;height:42px}}
 
-</style>
+.card[role="link"]{cursor:pointer}\n</style>
 
 <style id="iso100-flavor-style">
 .isoFlavorBlock{margin:16px 0 4px}
@@ -754,7 +754,7 @@ function searchProductsAll(value){
 function quickSearchProducts(value){return searchProductsAll(value).slice(0,7)}
 let fullSearchActive=false;
 function productCards(arr,emptyText='No encontré productos.'){
-  return arr.map(p=>`<article class="card"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Ver producto" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></div><div class="body"><div class="name">${esc(p.name)}</div><div class="productBottom"><div>${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
+  return arr.map(p=>`<article class="card" role="link" tabindex="0" onclick="openLiftProduct(${p.id})" onkeydown="if(event.key==='Enter'){openLiftProduct(${p.id})}"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Vista rápida" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="event.stopPropagation();add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></div><div class="body"><div class="name">${esc(p.name)}</div><div class="productBottom"><div>${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="event.stopPropagation();buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
 }
 function showAllSearchResults(value){
   const term=(value??document.getElementById('q').value).trim();
@@ -773,7 +773,7 @@ function renderQuickSearch(value){
   if(!q){box.classList.remove('show');box.innerHTML='';if(fullSearchActive){fullSearchActive=false;render()}return;}
   const all=searchProductsAll(value);
   const results=all.slice(0,7);
-  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" loading="lazy" decoding="async" fetchpriority="low" data-lift-product="${p.id}" src="${String(p.image).includes('drive.google.com/thumbnail')?String(p.image).replace(/&sz=w\d+/i,'&sz=w240'):p.image}" alt="${esc(p.name)}" title="Ver producto"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
+  const rows=results.length?results.map(p=>`<div class="searchResult"><img class="searchThumb" loading="lazy" decoding="async" fetchpriority="low" data-lift-product="${p.id}" src="${String(p.image).includes('drive.google.com/thumbnail')?String(p.image).replace(/&sz=w\d+/i,'&sz=w240'):p.image}" alt="${esc(p.name)}" title="Ver producto"><div class="searchInfo"><div class="searchName">${esc(p.name)}</div><div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div><div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}</div><div class="searchActions"><button class="searchAdd" onclick="event.stopPropagation();add(${p.id})">Agregar</button><button class="searchBuy" onclick="buyProduct(${p.id});closeQuickSearch()">Comprar</button></div></div>`).join(''):'<div class="searchEmpty">No encontré productos entre las sugerencias rápidas.</div>';
   const allButton=`<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los resultados${all.length?` (${all.length})`:''}</button></div>`;
   box.innerHTML=rows+allButton;
   box.classList.add('show');
@@ -896,7 +896,7 @@ function relatedProductsFor(its,limit=3){
   }
   return chosen.slice(0,limit);
 }
-function relatedHTML(its){const rel=relatedProductsFor(its);if(!rel.length)return '';return `<div class="relatedWrap"><div class="relatedTitle">También te puede interesar</div><div class="relatedGrid">${rel.map(p=>`<div class="relatedItem"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"><div><div class="relatedName">${esc(p.name)} · ${esc(p.brand)}</div><div class="relatedPrice">${fmt(priceOf(p))}</div></div><button class="relatedAdd" onclick="add(${p.id})">Agregar</button></div>`).join('')}</div></div>`}
+function relatedHTML(its){const rel=relatedProductsFor(its);if(!rel.length)return '';return `<div class="relatedWrap"><div class="relatedTitle">También te puede interesar</div><div class="relatedGrid">${rel.map(p=>`<div class="relatedItem"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"><div><div class="relatedName">${esc(p.name)} · ${esc(p.brand)}</div><div class="relatedPrice">${fmt(priceOf(p))}</div></div><button class="relatedAdd" onclick="event.stopPropagation();add(${p.id})">Agregar</button></div>`).join('')}</div></div>`}
 function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({key,p,q})=>{const k=JSON.stringify(String(key));return `<div class="cartline"><img src="${p.image}" alt="${esc(p.name)}${p._cartFlavor?' - '+esc(p._cartFlavor):''}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}${p._cartFlavor?`<div class="cartFlavor">Sabor: <b>${esc(p._cartFlavor)}</b></div>`:''}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick='change(${k},-1)'>−</button><b>${q}</b><button onclick='change(${k},1)'>+</button></div></div><button class="trash" onclick='removeItem(${k})'>×</button></div>`}).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
 function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div>${(p.description||p.presentation||p.flavor)?`<div class="modalPdfInfo">${p.description?`<div><b>${esc(p.description)}</b></div>`:''}${p.presentation?`<div>${esc(p.presentation)}</div>`:''}${p.flavor?`<div>Sabor: ${esc(p.flavor)}</div>`:''}</div>`:''}<div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(compareAtOf(p))}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('productModal').classList.remove('open');document.body.style.overflow=''}
@@ -1459,6 +1459,14 @@ function relatedProductDetailHTML(p){
   };
   function liftProductPageUrl(p){
     return p && (LIFT_PRODUCT_PAGES[String(p.id)] || LIFT_PRODUCT_PAGES[p.id]) || '';
+  }
+
+  function openLiftProduct(pOrId){
+    const p = typeof pOrId==='object' ? pOrId : (window.PRODUCTS||[]).find(x=>String(x.id)===String(pOrId));
+    if(!p) return;
+    const url=liftProductPageUrl(p);
+    if(url){ window.location.href=url; return; }
+    if(typeof openLiftProductById==='function') openLiftProductById(p.id);
   }
 
 function renderProductDetail(p){
@@ -3493,6 +3501,19 @@ function renderProductDetail(p){
     }
   }, true);
 })();
+</script>
+
+
+<script id="lift-open-product-from-url-v1">
+window.addEventListener('load',()=>{
+  try{
+    const id=new URLSearchParams(location.search).get('producto');
+    if(!id)return;
+    setTimeout(()=>{
+      if(typeof openLiftProductById==='function') openLiftProductById(id);
+    },180);
+  }catch(e){}
+});
 </script>
 
 </body></html>
