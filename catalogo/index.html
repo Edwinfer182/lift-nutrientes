@@ -445,6 +445,90 @@
 @media(max-width:760px){.liftMonoPageLink{min-height:46px}}
 </style>
 
+
+<style id="lift-shared-black-header-v1">
+
+/* LIFT HEADER NEGRO UNIFICADO */
+.top{
+  position:sticky!important;
+  top:0!important;
+  z-index:50!important;
+  background:#080808!important;
+  backdrop-filter:blur(14px)!important;
+  border-bottom:1px solid #202020!important;
+  box-shadow:0 6px 20px rgba(0,0,0,.16)!important;
+}
+.bar{
+  max-width:1500px!important;
+  margin:auto!important;
+  padding:10px 16px!important;
+  display:flex!important;
+  gap:10px!important;
+  align-items:center!important;
+  min-height:66px!important;
+}
+.brand{display:flex!important;align-items:center!important;gap:10px!important;min-width:max-content!important}
+.liftHeaderLogo{
+  display:block!important;
+  width:auto!important;
+  height:46px!important;
+  max-width:190px!important;
+  object-fit:contain!important;
+}
+.search{flex:1!important;position:relative!important}
+.search input{
+  width:100%!important;
+  height:44px!important;
+  border:1px solid #343434!important;
+  border-radius:13px!important;
+  padding:0 14px!important;
+  background:#181818!important;
+  color:#fff!important;
+  outline:none!important;
+  font-weight:200!important;
+}
+.search input::placeholder{color:#8f8f8f!important}
+.search input:focus{border-color:#666!important;background:#1c1c1c!important}
+.iconbtn{
+  border:1px solid #2f2f2f!important;
+  background:#111!important;
+  color:#fff!important;
+  height:44px!important;
+  border-radius:13px!important;
+  padding:0 15px!important;
+  font-weight:400!important;
+  cursor:pointer!important;
+  display:flex!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+.offersBtn{
+  border:0!important;
+  background:#16a34a!important;
+  color:#fff!important;
+  height:44px!important;
+  border-radius:13px!important;
+  padding:0 17px!important;
+  font-weight:500!important;
+  cursor:pointer!important;
+  display:flex!important;
+  gap:7px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+  box-shadow:0 5px 16px rgba(22,163,74,.24)!important;
+}
+.offersCount{background:#fff!important;color:#16a34a!important}
+@media(max-width:760px){
+  .bar{padding:9px!important;gap:7px!important;flex-wrap:wrap!important}
+  .brand{order:1!important}
+  .filterMobile{display:flex!important;order:2!important}
+  .offersBtn{order:3!important;height:40px!important;padding:0 11px!important;border-radius:11px!important;font-size:12px!important}
+  .search{order:4!important;flex-basis:100%!important;width:100%!important}
+  .liftHeaderLogo{height:38px!important;max-width:145px!important}
+}
+
+</style>
 </head><body>
 <header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1jnpfEyTWRSHOuPUQDLMXsdhP_H1-V6WM&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" onclick="openOff('filters')">☰ <span class="txt">Marcas / categorías</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
@@ -3504,14 +3588,31 @@ function renderProductDetail(p){
 </script>
 
 
-<script id="lift-open-product-from-url-v1">
+<script id="lift-open-product-from-url-v2">
 window.addEventListener('load',()=>{
   try{
-    const id=new URLSearchParams(location.search).get('producto');
-    if(!id)return;
-    setTimeout(()=>{
-      if(typeof openLiftProductById==='function') openLiftProductById(id);
-    },180);
+    const qs=new URLSearchParams(location.search);
+    const id=qs.get('producto');
+    const buscar=qs.get('buscar');
+    const ofertas=qs.get('ofertas');
+    const cart=qs.get('cart');
+
+    if(buscar){
+      const q=document.getElementById('q');
+      if(q){
+        q.value=buscar;
+        setTimeout(()=>{ if(typeof showAllSearchResults==='function') showAllSearchResults(buscar); },160);
+      }
+    }
+    if(ofertas==='1'){
+      setTimeout(()=>{ if(typeof showOffers==='function' && !state.offerOnly) showOffers(); },180);
+    }
+    if(cart==='1'){
+      setTimeout(()=>{ if(typeof openOff==='function') openOff('cart'); },180);
+    }
+    if(id){
+      setTimeout(()=>{ if(typeof openLiftProductById==='function') openLiftProductById(id); },180);
+    }
   }catch(e){}
 });
 </script>
