@@ -561,7 +561,36 @@
 </style>
 
 </head><body>
-<header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1jnpfEyTWRSHOuPUQDLMXsdhP_H1-V6WM&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" type="button" aria-label="Abrir marcas y categorías" onclick="openOff('filters')">☰ <span class="txt">Menú</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q" placeholder="Busca creatina, proteína, marca..." autocomplete="off"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
+
+<script id="lift-public-url-early">
+(function(){
+  window.liftProductSlug = window.liftProductSlug || function(text){
+    return String(text||'producto')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g,'-')
+      .replace(/^-+|-+$/g,'')
+      .slice(0,80) || 'producto';
+  };
+  window.liftPublicProductUrl = window.liftPublicProductUrl || function(p){
+    if(!p || p.__private) return '';
+    const base=(location.pathname||'/');
+    return `${base}?producto=${encodeURIComponent(String(p.id)+'-'+window.liftProductSlug(p.name))}`;
+  };
+})();
+</script>
+
+<header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1jnpfEyTWRSHOuPUQDLMXsdhP_H1-V6WM&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" type="button" aria-label="Abrir marcas y categorías" onclick="openOff('filters')">☰ <span class="txt">Menú</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q"
+  name="lift_catalog_search_x11"
+  placeholder="Busca creatina, proteína, marca..."
+  type="search"
+  autocomplete="new-password"
+  autocapitalize="off"
+  spellcheck="false"
+  data-lpignore="true"
+  data-1p-ignore="true"
+  readonly
+  onfocus="this.removeAttribute('readonly');if(/@/.test(this.value))this.value='';"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
 <aside class="sidebar"><div id="desktopFilters"></div></aside>
 <section class="content">
@@ -1732,19 +1761,8 @@ function relatedProductDetailHTML(p){
     16: './productos/iso100-dymatize-5-lbs.html'
   };
   
-function liftProductSlug(text){
-  return String(text||'producto')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g,'-')
-    .replace(/^-+|-+$/g,'')
-    .slice(0,80) || 'producto';
-}
-function liftPublicProductUrl(p){
-  if(!p || p.__private) return '';
-  const base=(location.pathname||'/');
-  return `${base}?producto=${encodeURIComponent(String(p.id)+'-'+liftProductSlug(p.name))}`;
-}
+function liftProductSlug(text){ return window.liftProductSlug(text); }
+function liftPublicProductUrl(p){ return window.liftPublicProductUrl(p); }
 function liftProductPageUrl(p){
   return liftPublicProductUrl(p);
 }
@@ -3942,6 +3960,26 @@ window.addEventListener('popstate',()=>{
     }
   }catch(e){}
 });
+</script>
+
+
+<script id="lift-search-autofill-guard">
+(function(){
+  function cleanLiftSearch(){
+    const q=document.getElementById('q');
+    if(!q) return;
+    if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(q.value||'').trim())){
+      q.value='';
+    }
+    q.setAttribute('readonly','readonly');
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    cleanLiftSearch();
+    setTimeout(cleanLiftSearch,80);
+    setTimeout(cleanLiftSearch,350);
+  });
+  window.addEventListener('pageshow',()=>setTimeout(cleanLiftSearch,50));
+})();
 </script>
 
 </body></html>
