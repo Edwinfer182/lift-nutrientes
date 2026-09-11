@@ -560,6 +560,16 @@
 .productPublicLink:hover{text-decoration:underline}
 </style>
 
+
+<style id="lift-product-page-navigation-v12">
+.productImagePublicLink{display:block;width:100%;height:100%;color:inherit;text-decoration:none}
+.productImagePublicLink img{display:block;width:100%;height:100%;object-fit:contain}
+.productPublicLink{color:inherit;text-decoration:none}
+.productPricePublicLink{cursor:pointer}
+.card{cursor:pointer}
+.inspectBtn,.add,.buyNow{cursor:pointer}
+</style>
+
 </head><body>
 
 <script id="lift-public-url-early">
@@ -989,7 +999,9 @@ function searchProductsAll(value){
 function quickSearchProducts(value){return searchProductsAll(value).slice(0,7)}
 let fullSearchActive=false;
 function productCards(arr,emptyText='No encontré productos.'){
-  return arr.map(p=>`<article class="card" role="link" tabindex="0" onclick="openLiftProduct(${p.id})" onkeydown="if(event.key==='Enter'){openLiftProduct(${p.id})}"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Vista rápida" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="event.stopPropagation();add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></div><div class="body"><div class="name"><a class="productPublicLink" href="${liftPublicProductUrl(p)}" onclick="event.stopPropagation();event.preventDefault();openLiftProductById(${p.id})">${esc(p.name)}</a></div><div class="productBottom"><div>${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="event.stopPropagation();buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
+  return arr.map(p=>`<article class="card" role="link" tabindex="0"
+onclick="if(!event.target.closest('.inspectBtn,.add,.buyNow,a')){location.href=liftPublicProductUrl(p)}"
+onkeydown="if(event.key==='Enter'){location.href=liftPublicProductUrl(p)}"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Vista rápida" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="event.stopPropagation();add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><a class="productImagePublicLink" href="${liftPublicProductUrl(p)}" onclick="event.stopPropagation()"><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></a></div><div class="body"><div class="name"><a class="productPublicLink" href="${liftPublicProductUrl(p)}" onclick="event.stopPropagation()">${esc(p.name)}</a></div><div class="productBottom"><div class="productPricePublicLink" onclick="event.stopPropagation();location.href=liftPublicProductUrl(p)">${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="event.stopPropagation();buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
 }
 function showAllSearchResults(value){
   const term=(value??document.getElementById('q').value).trim();
