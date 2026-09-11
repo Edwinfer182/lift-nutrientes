@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-10T16:24:17.200723+00:00",
+  "updated_at": "2026-09-11T16:27:39.630200+00:00",
   "source": "https://www.suplementoscolombia.co/",
   "matched_products": 7,
   "source_products_with_flavors": 39,
@@ -42,7 +42,8 @@
       "flavors": [
         "COOKIES & CREAM",
         "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME"
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
       ],
       "source_name": "NITRO TECH WHEY GOLD",
       "source_url": "https://suplementoscolombia.co/nitro-tech-whey-gold-muscletech",
@@ -58,7 +59,8 @@
       "flavors": [
         "COOKIES & CREAM",
         "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME"
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
       ],
       "source_name": "NITRO TECH WHEY GOLD",
       "source_url": "https://suplementoscolombia.co/nitro-tech-whey-gold-muscletech",
