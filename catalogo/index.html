@@ -560,60 +560,86 @@
 .productPublicLink:hover{text-decoration:underline}
 </style>
 
+<script src="./assets/productos-data.js"></script>
 
-<style id="lift-product-page-navigation-v12">
-.productImagePublicLink{display:block;width:100%;height:100%;color:inherit;text-decoration:none}
-.productImagePublicLink img{display:block;width:100%;height:100%;object-fit:contain}
+<style id="lift-static-card-links-v14">
+.productImagePageLink{display:block;width:100%;height:100%;color:inherit;text-decoration:none}
+.productImagePageLink img{display:block;width:100%;height:100%;object-fit:contain}
 .productPublicLink{color:inherit;text-decoration:none}
-.productPricePublicLink{cursor:pointer}
+.productPublicLink:hover{text-decoration:underline}
 .card{cursor:pointer}
-.inspectBtn,.add,.buyNow{cursor:pointer}
-</style>
-
-
-<style id="lift-single-product-page-style">
-#liftSingleProductPage{display:none;min-height:100vh;background:#f5f5f5;padding:28px 18px 50px}
-body.lift-single-product-mode #liftSingleProductPage{display:block}
-body.lift-single-product-mode header,
-body.lift-single-product-mode .topbar,
-body.lift-single-product-mode .sidebar,
-body.lift-single-product-mode main,
-body.lift-single-product-mode footer,
-body.lift-single-product-mode #mobileBar,
-body.lift-single-product-mode #overlay,
-body.lift-single-product-mode .off{display:none!important}
-.liftSingleWrap{max-width:1180px;margin:0 auto}
-.liftSingleBack{display:inline-flex;align-items:center;gap:7px;margin:0 0 20px;color:#222;text-decoration:none;font-size:14px}
-.liftSingleCard{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);gap:48px;background:#fff;border-radius:22px;padding:34px;box-shadow:0 10px 35px rgba(0,0,0,.08)}
-.liftSingleImage{min-height:520px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:18px;overflow:hidden}
-.liftSingleImage img{max-width:100%;max-height:560px;object-fit:contain}
-.liftSingleBrand{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#777;font-weight:700}
-.liftSingleTitle{font-size:38px;line-height:1.04;margin:12px 0 10px;color:#111}
-.liftSingleCat{color:#777;margin-bottom:22px}
-.liftSinglePrice{font-size:34px;font-weight:800;margin:18px 0}
-.liftSingleDesc{color:#555;line-height:1.55;margin:15px 0}
-.liftSingleChips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
-.liftSingleChip{border:1px solid #ddd;border-radius:999px;padding:8px 12px;font-size:13px}
-.liftSingleActions{display:flex;gap:12px;margin:24px 0}
-.liftSingleActions button{height:48px;border-radius:999px;padding:0 24px;font:inherit;font-weight:700;cursor:pointer}
-.liftSingleAdd{background:#fff;border:1px solid #111}
-.liftSingleBuy{background:#111;color:#fff;border:1px solid #111}
-.liftSingleShipping{border-top:1px solid #eee;margin-top:22px;padding-top:18px;color:#666;line-height:1.55;font-size:14px}
-@media(max-width:780px){
-  #liftSingleProductPage{padding:14px 10px 34px}
-  .liftSingleCard{grid-template-columns:1fr;gap:20px;padding:18px;border-radius:16px}
-  .liftSingleImage{min-height:330px}
-  .liftSingleImage img{max-height:390px}
-  .liftSingleTitle{font-size:29px}
-  .liftSinglePrice{font-size:28px}
-  .liftSingleActions{flex-direction:column}
-  .liftSingleActions button{width:100%}
-}
 </style>
 
 </head><body>
 
-<div id="liftSingleProductPage" aria-live="polite"></div>
+<script id="lift-static-product-router">
+(function(){
+  function norm(v){
+    return String(v||'')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  }
+  function imageKey(url){
+    const s=String(url||'');
+    const m=s.match(/[?&]id=([^&]+)/i);
+    if(m) return m[1];
+    const m2=s.match(/\/d\/([^/]+)/i);
+    if(m2) return m2[1];
+    return s.replace(/&sz=w\d+/ig,'').replace(/[?&]sz=w\d+/ig,'');
+  }
+  function staticRows(){
+    return Array.isArray(window.LIFT_PRODUCTOS) ? window.LIFT_PRODUCTOS : [];
+  }
+  window.liftStaticProductRow=function(p){
+    if(!p || p.__private) return null;
+    const rows=staticRows();
+    if(!rows.length) return null;
+
+    const ik=imageKey(p.image);
+    if(ik){
+      const byImage=rows.find(x=>imageKey(x.image)===ik);
+      if(byImage) return byImage;
+    }
+
+    const nn=norm(p.name);
+    if(nn){
+      const byName=rows.find(x=>norm(x.name)===nn);
+      if(byName) return byName;
+    }
+
+    const byId=rows.find(x=>String(x.id)===String(p.id));
+    if(byId && (!nn || norm(byId.name)===nn || norm(byId.name).includes(nn) || nn.includes(norm(byId.name)))) return byId;
+
+    // Last safe fallback for titles we shortened during the compliance cleanup.
+    if(nn){
+      const candidates=rows.filter(x=>{
+        const n=norm(x.name);
+        return n && (n.startsWith(nn+' ') || nn.startsWith(n+' '));
+      });
+      if(candidates.length===1) return candidates[0];
+    }
+    return null;
+  };
+
+  window.liftStaticProductUrl=function(p){
+    const row=window.liftStaticProductRow(p);
+    return row && row.slug ? `./productos/${encodeURIComponent(row.slug)}.html` : '';
+  };
+
+  window.goLiftStaticProduct=function(id){
+    const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
+    if(!p || p.__private) return;
+    const url=window.liftStaticProductUrl(p);
+    if(url){
+      location.href=url;
+      return;
+    }
+    // If an unusually new product has no generated static page yet, use quick view
+    // rather than sending the customer to a 404.
+    if(typeof window.openLiftProductById==='function') window.openLiftProductById(p.id);
+  };
+})();
+</script>
 
 
 <script id="lift-public-url-early">
@@ -1043,9 +1069,7 @@ function searchProductsAll(value){
 function quickSearchProducts(value){return searchProductsAll(value).slice(0,7)}
 let fullSearchActive=false;
 function productCards(arr,emptyText='No encontré productos.'){
-  return arr.map(p=>`<article class="card" role="link" tabindex="0"
-onclick="if(!event.target.closest('.inspectBtn,.add,.buyNow,a')){openLiftPublicProductPage(p)}"
-onkeydown="if(event.key==='Enter'){openLiftPublicProductPage(p)}"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Vista rápida" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="event.stopPropagation();add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button><a class="productImagePublicLink" href="${liftPublicProductUrl(p)}" onclick="event.stopPropagation()"><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></a></div><div class="body"><div class="name"><a class="productPublicLink" href="${liftPublicProductUrl(p)}" onclick="event.stopPropagation()">${esc(p.name)}</a></div><div class="productBottom"><div class="productPricePublicLink" onclick="event.stopPropagation();openLiftPublicProductPage(p)">${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="event.stopPropagation();buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
+  return arr.map(p=>`<article class="card" role="link" tabindex="0" onclick="if(!event.target.closest('.inspectBtn,.add,.buyNow')){goLiftStaticProduct(${p.id})}" onkeydown="if(event.key==='Enter'){goLiftStaticProduct(${p.id})}"><div class="pic">${offerBadges(p)}<button class="inspectBtn" type="button" aria-label="Ver detalles de ${esc(p.name)}" title="Vista rápida" onclick="event.stopPropagation();openLiftProductById(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button><button class="add topCart" aria-label="Agregar ${esc(p.name)} al carrito" title="Agregar al carrito" onclick="event.stopPropagation();add(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button>${liftStaticProductUrl(p)?`<a class="productImagePageLink" href="${liftStaticProductUrl(p)}" onclick="event.stopPropagation()"><img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></a>`:`<img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">`}</div><div class="body"><div class="name">${liftStaticProductUrl(p)?`<a class="productPublicLink" href="${liftStaticProductUrl(p)}" onclick="event.stopPropagation()">${esc(p.name)}</a>`:esc(p.name)}</div><div class="productBottom"><div>${priceHTML(p)}</div><div class="actions"><button class="buyNow" onclick="event.stopPropagation();buyProduct(${p.id})">Comprar</button></div></div></div></article>`).join('')||`<div class="empty">${emptyText}</div>`;
 }
 function showAllSearchResults(value){
   const term=(value??document.getElementById('q').value).trim();
@@ -1884,14 +1908,15 @@ function liftUpdateProductSeo(p){
 
 
   function openLiftProduct(pOrId){
-    const p = typeof pOrId==='object' ? pOrId : (window.PRODUCTS||[]).find(x=>String(x.id)===String(pOrId));
-    if(!p) return;
-    if(typeof openLiftProductById==='function') openLiftProductById(p.id);
-  }
+  const p=typeof pOrId==='object' ? pOrId : (window.PRODUCTS||[]).find(x=>String(x.id)===String(pOrId));
+  if(!p) return;
+  goLiftStaticProduct(p.id);
+}
 
 function renderProductDetail(p){
     if(!p) return;
     currentProductId=p.id;
+    
     const list=navProducts();
     const idx=Math.max(0,list.findIndex(x=>String(x.id)===String(p.id)));
     const price = typeof priceOf==='function' ? priceOf(p) : p.price;
@@ -1922,7 +1947,7 @@ function renderProductDetail(p){
             <button type="button" id="liftMonoAdd">Agregar al carrito</button>
             <button type="button" id="liftMonoBuy" class="liftMonoBuy">Comprar</button>
           </div>
-          ${liftProductPageUrl(p)?`<a class="liftMonoPageLink" href="${liftProductPageUrl(p)}">Enlace público del producto →</a>`:''}
+          ${liftStaticProductUrl(p)?`<a class="liftMonoPageLink" href="${liftStaticProductUrl(p)}">Ver página del producto →</a>`:''}
           <div class="liftMonoMeta">🚚 Medellín: entrega el mismo día para pedidos confirmados antes de las 2:00 p. m.<br>Nacional: 1–3 días hábiles.</div>
           ${relatedProductDetailHTML(p)}
         </div>
@@ -3931,7 +3956,9 @@ window.addEventListener('load',()=>{
     if(cart==='1'){
       setTimeout(()=>{ if(typeof openOff==='function') openOff('cart'); },180);
     }
-    if(id){ /* La vista de página única se renderiza por lift-single-product-page-script */ }
+    if(id){
+      setTimeout(()=>{ if(typeof openLiftProductById==='function') openLiftProductById(liftProductIdFromParam(id)); },180);
+    }
   }catch(e){}
 });
 </script>
@@ -4032,89 +4059,6 @@ window.addEventListener('popstate',()=>{
     setTimeout(cleanLiftSearch,350);
   });
   window.addEventListener('pageshow',()=>setTimeout(cleanLiftSearch,50));
-})();
-</script>
-
-
-<script id="lift-single-product-page-script">
-(function(){
-  function money(v){
-    try{
-      if(typeof fmt==='function') return fmt(v);
-    }catch(e){}
-    return '$ '+Number(v||0).toLocaleString('es-CO');
-  }
-
-  window.renderLiftSingleProductPage=function(p){
-    if(!p || p.__private) return false;
-    const root=document.getElementById('liftSingleProductPage');
-    if(!root) return false;
-
-    document.body.classList.add('lift-single-product-mode');
-    if(typeof liftUpdateProductSeo==='function') liftUpdateProductSeo(p);
-
-    const presentation=p.presentation ? `<span class="liftSingleChip">${esc(p.presentation)}</span>` : '';
-    const flavor=p.flavor ? `<span class="liftSingleChip">Sabor: ${esc(p.flavor)}</span>` : '';
-    const desc=p.description ? `<div class="liftSingleDesc">${esc(p.description)}</div>` : '';
-    const price=(typeof priceOf==='function' ? priceOf(p) : p.price);
-
-    root.innerHTML=`
-      <div class="liftSingleWrap">
-        <a class="liftSingleBack" href="${location.pathname}">← Volver al catálogo</a>
-        <section class="liftSingleCard">
-          <div class="liftSingleImage">
-            <img src="${String(p.image||'').replace(/"/g,'&quot;')}" alt="${esc(p.name)}">
-          </div>
-          <div class="liftSingleInfo">
-            <div class="liftSingleBrand">${esc(p.brand||'')}</div>
-            <h1 class="liftSingleTitle">${esc(p.name||'')}</h1>
-            <div class="liftSingleCat">${esc(p.category||'')}</div>
-            <div class="liftSinglePrice">${money(price)}</div>
-            ${desc}
-            ${(presentation||flavor)?`<div class="liftSingleChips">${presentation}${flavor}</div>`:''}
-            <div class="liftSingleActions">
-              <button class="liftSingleAdd" type="button" onclick="add(${p.id})">Agregar al carrito</button>
-              <button class="liftSingleBuy" type="button" onclick="buyProduct(${p.id})">Comprar</button>
-            </div>
-            <div class="liftSingleShipping">
-              🚚 Medellín: entrega el mismo día para pedidos confirmados antes de las 2:00 p. m.<br>
-              Nacional: 1–3 días hábiles.
-            </div>
-          </div>
-        </section>
-      </div>`;
-    window.scrollTo(0,0);
-    return true;
-  };
-
-  window.openLiftPublicProductPage=function(pOrId){
-    const p=typeof pOrId==='object'
-      ? pOrId
-      : (window.PRODUCTS||[]).find(x=>String(x.id)===String(pOrId));
-    if(!p || p.__private) return;
-    openLiftPublicProductPage(p);
-  };
-
-  window.addEventListener('DOMContentLoaded',()=>{
-    try{
-      const raw=new URL(location.href).searchParams.get('producto');
-      if(!raw) return;
-      const id=typeof liftProductIdFromParam==='function' ? liftProductIdFromParam(raw) : String(raw).match(/^\d+/)?.[0];
-      if(!id) return;
-      const tryRender=()=>{
-        const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
-        if(p){
-          renderLiftSingleProductPage(p);
-          return true;
-        }
-        return false;
-      };
-      if(!tryRender()){
-        setTimeout(tryRender,80);
-        setTimeout(tryRender,250);
-      }
-    }catch(e){}
-  });
 })();
 </script>
 
