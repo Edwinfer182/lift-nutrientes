@@ -904,13 +904,33 @@ function filterHTML(){const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRO
 <section class="filterPanel" ${isBrands?'':'hidden'}>
   <div class="labVisualWrap">
     <div class="labVisualSearchWrap">
-      <input id="labVisualSearch" class="labVisualSearch" type="search" placeholder="Buscar laboratorio..." autocomplete="off" oninput="renderLaboratoryVisualGrid(this.value)">
+      <input id="labVisualSearch" class="labVisualSearch" type="search"
+        name="lift_laboratory_filter_x7"
+        placeholder="Buscar laboratorio..."
+        autocomplete="new-password"
+        autocapitalize="off"
+        spellcheck="false"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        readonly
+        onfocus="this.removeAttribute('readonly');this.value='';"
+        oninput="renderLaboratoryVisualGrid(this.value)">
     </div>
     <div id="labVisualGrid" class="labVisualGrid"></div>
   </div>
 </section>
 <section class="filterPanel" ${!isBrands?'':'hidden'}>${cats.map(c=>`<button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button>`).join('')}</section>`}
-function renderFilters(){const h=filterHTML();document.getElementById('desktopFilters').innerHTML=h;document.getElementById('mobileFilters').innerHTML=h}
+function renderFilters(){
+  const h=filterHTML();
+  document.getElementById('desktopFilters').innerHTML=h;
+  document.getElementById('mobileFilters').innerHTML=h;
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.labVisualSearch').forEach(el=>{
+      el.value='';
+      el.setAttribute('readonly','readonly');
+    });
+  });
+}
 function setFilterView(view){state.filterView=view;renderFilters()}
 function showOffers(){state.offerOnly=!state.offerOnly;state.cat='Todos';state.brand='Todas';fullSearchActive=false;closeQuickSearch();render();document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'})}
 function setCat(c){state.offerOnly=false;state.cat=c;state.brand='Todas';render();if(innerWidth<=760)closeOff()}
