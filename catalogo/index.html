@@ -2355,7 +2355,7 @@ function renderProductDetail(p){
     <div class="lift-footer-brand">
       <img src="https://drive.google.com/thumbnail?id=1SkY-E2RfkPfN73zqyUUuawiDkIMBiF3R&sz=w1200" alt="" style="display:none">
       <div class="lift-footer-name">LIFT NUTRIENTES</div>
-      <p>Suplementación deportiva • Medellín • Envíos nacionales <button id="privateCatalogBtn" type="button" onclick="openPrivateCatalogAccess()" aria-label="Acceso" style="background:none;border:0;padding:0 2px;color:inherit;font:inherit;cursor:pointer;opacity:.55">/</button></p>
+      <p>Suplementación deportiva • Medellín • Envíos nacionales</p>
     </div>
     <nav class="lift-footer-links" aria-label="Información">
       <button data-lift-legal="envios">Envíos</button>
@@ -3964,64 +3964,39 @@ window.addEventListener('load',()=>{
 </script>
 
 
-<!-- LIFT PRIVATE CATALOG ACCESS -->
-<style id="lift-private-catalog-style">
-.privateCatalogBtn{background:#2b2b2b!important}.privateCatalogBtn.unlocked{background:#166534!important}
-.privateAccessModal{position:fixed;inset:0;z-index:140;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.66);padding:18px}.privateAccessModal.open{display:flex}.privateAccessCard{width:min(92vw,430px);background:#fff;border-radius:18px;padding:22px;box-shadow:0 22px 70px rgba(0,0,0,.32)}.privateAccessCard h2{margin:0 0 8px;font-size:22px}.privateAccessCard p{margin:0 0 14px;color:#666;font-size:13px;line-height:1.45}.privateAccessInput{width:100%;height:46px;border:1px solid #d7d7d7;border-radius:11px;padding:0 12px;font:inherit;box-sizing:border-box}.privateAccessActions{display:flex;gap:8px;margin-top:12px}.privateAccessActions button{flex:1;height:44px;border-radius:11px;border:0;font:inherit;cursor:pointer}.privateAccessGo{background:#111;color:#fff}.privateAccessCancel{background:#eee}.privateAccessMsg{min-height:18px;margin-top:9px;font-size:12px;color:#b91c1c}.privateModeBar{display:none;position:sticky;top:84px;z-index:29;margin:8px auto 0;max-width:1500px;padding:9px 16px;background:#102a17;color:#fff;border-radius:12px;font-size:12px;align-items:center;justify-content:space-between;gap:10px}.privateModeBar.show{display:flex}.privateModeBar button{border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;border-radius:9px;padding:7px 10px;cursor:pointer}@media(max-width:760px){.privateCatalogBtn{order:3;height:40px;padding:0 11px}.privateModeBar{top:112px;margin:7px 9px 0}}
-</style>
-<div id="privateModeBar" class="privateModeBar"><span>🔐 Modo privado activo · los productos internos están cargados solo en esta sesión.</span><button onclick="lockPrivateCatalog()">Cerrar modo privado</button></div>
-<div id="privateAccessModal" class="privateAccessModal" aria-hidden="true">
-  <div class="privateAccessCard">
-    
-    
-    <input id="privateAccessKey" class="privateAccessInput" type="password" autocomplete="current-password" placeholder="Clave privada">
-    <div id="privateAccessMsg" class="privateAccessMsg"></div>
-    <div class="privateAccessActions"><button class="privateAccessCancel" onclick="closePrivateCatalogAccess()">Cancelar</button><button class="privateAccessGo" onclick="unlockPrivateCatalog()">Entrar</button></div>
-  </div>
-</div>
-<script id="lift-private-catalog-script">
-let LIFT_PRIVATE_UNLOCKED=false;
-let LIFT_PRIVATE_IDS=new Set();
-function openPrivateCatalogAccess(){
-  if(LIFT_PRIVATE_UNLOCKED){ state.q=''; state.cat='Todos'; state.brand='Todas'; render(); document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
-  const m=document.getElementById('privateAccessModal'); m.classList.add('open'); m.setAttribute('aria-hidden','false'); setTimeout(()=>document.getElementById('privateAccessKey')?.focus(),50);
-}
-function closePrivateCatalogAccess(){const m=document.getElementById('privateAccessModal');m.classList.remove('open');m.setAttribute('aria-hidden','true');document.getElementById('privateAccessKey').value='';document.getElementById('privateAccessMsg').textContent=''}
-async function unlockPrivateCatalog(){
-  const key=(document.getElementById('privateAccessKey')?.value||'').trim(); const msg=document.getElementById('privateAccessMsg'); if(!key){msg.textContent='Escribe la clave.';return}
-  msg.style.color='#666';msg.textContent='Validando…';
+<!-- LIFT PUBLIC CATALOG LOADER -->
+<script id="lift-public-catalog-loader">
+(async function(){
   try{
-    const data=await liftCouponRpc('unlock_private_catalog',{p_key:key});
-    const rows=Array.isArray(data)?data:[];
-    if(!rows.length){msg.style.color='#b91c1c';msg.textContent='Clave incorrecta.';return}
-    const incoming=rows.map(r=>r.product||r).filter(Boolean);
-    for(const p of incoming){if(!PRODUCTS.some(x=>String(x.id)===String(p.id))){PRODUCTS.push(p);LIFT_PRIVATE_IDS.add(String(p.id))}}
-    for(const c of [...new Set(incoming.map(p=>p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))){if(!cats.includes(c))cats.push(c)}
-    cats.splice(1,cats.length-1,...cats.slice(1).sort((a,b)=>a.localeCompare(b,'es')));
-    for(const b of [...new Set(incoming.map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))){if(!brands.includes(b))brands.push(b)}
-    brands.splice(1,brands.length-1,...brands.slice(1).sort((a,b)=>a.localeCompare(b,'es')));
-    LIFT_PRIVATE_UNLOCKED=true;
-    document.getElementById('privateCatalogBtn')?.classList.add('unlocked');
-    document.getElementById('privateModeBar')?.classList.add('show');
-    state.q='';state.cat='Todos';state.brand='Todas';render();closePrivateCatalogAccess();
-  }catch(e){msg.style.color='#b91c1c';msg.textContent='No se pudo validar el acceso.';console.error(e)}
-}
-function lockPrivateCatalog(){
-  if(!LIFT_PRIVATE_UNLOCKED)return;
-  for(const key of Object.keys(cart)){
-    const baseId=String(key).split('::')[0];
-    if(LIFT_PRIVATE_IDS.has(baseId)){delete cart[key];delete cartMeta[key]}
-  }
-  saveCart();
-  for(let i=PRODUCTS.length-1;i>=0;i--){if(LIFT_PRIVATE_IDS.has(String(PRODUCTS[i].id)))PRODUCTS.splice(i,1)}
-  for(let i=brands.length-1;i>=1;i--){if(!PRODUCTS.some(p=>p.brand===brands[i]))brands.splice(i,1)}
-  for(let i=cats.length-1;i>=1;i--){if(!PRODUCTS.some(p=>p.category===cats[i]))cats.splice(i,1)}
-  LIFT_PRIVATE_IDS.clear();LIFT_PRIVATE_UNLOCKED=false;state.q='';state.cat='Todos';state.brand='Todas';
-  document.getElementById('privateCatalogBtn')?.classList.remove('unlocked');document.getElementById('privateModeBar')?.classList.remove('show');render();
-}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('privateAccessModal')?.classList.contains('open'))unlockPrivateCatalog();if(e.key==='Escape')closePrivateCatalogAccess()});
-</script>
+    const data = await liftCouponRpc('unlock_private_catalog',{p_key:null});
+    const rows = Array.isArray(data) ? data : [];
+    const incoming = rows.map(r=>r.product||r).filter(Boolean);
 
+    for(const p of incoming){
+      if(!PRODUCTS.some(x=>String(x.id)===String(p.id))) PRODUCTS.push(p);
+    }
+
+    for(const c of [...new Set(incoming.map(p=>p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))){
+      if(!cats.includes(c)) cats.push(c);
+    }
+    cats.splice(1,cats.length-1,...cats.slice(1).sort((a,b)=>a.localeCompare(b,'es')));
+
+    for(const b of [...new Set(incoming.map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))){
+      if(!brands.includes(b)) brands.push(b);
+    }
+    brands.splice(1,brands.length-1,...brands.slice(1).sort((a,b)=>a.localeCompare(b,'es')));
+
+    state.q='';
+    state.cat='Todos';
+    state.brand='Todas';
+    render();
+    renderCart();
+    console.info(`Lift: catálogo público completo cargado (${incoming.length} productos adicionales).`);
+  }catch(e){
+    console.error('Lift: no se pudieron cargar los productos públicos adicionales.',e);
+  }
+})();
+</script>
 
 <script id="lift-product-public-history">
 window.addEventListener('popstate',()=>{
