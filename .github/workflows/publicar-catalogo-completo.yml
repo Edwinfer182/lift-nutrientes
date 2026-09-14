@@ -1,0 +1,85 @@
+name: Publicar catalogo completo
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publicar-catalogo-completo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Quitar acceso privado y cargar todos los productos
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('catalogo/index.html')
+          text = path.read_text(encoding='utf-8')
+
+          # Quita el pequeño botón oculto del pie de página que abría la clave.
+          text = re.sub(
+              r'\s*<button\s+id="privateCatalogBtn"[^>]*>.*?</button>',
+              '',
+              text,
+              flags=re.S,
+          )
+
+          public_loader = '''<!-- LIFT PUBLIC CATALOG LOADER -->
+          <script id="lift-public-catalog-loader">
+          (async function(){
+            try{
+              const data = await liftCouponRpc('unlock_private_catalog',{p_key:null});
+              const rows = Array.isArray(data) ? data : [];
+              const incoming = rows.map(r=>r.product||r).filter(Boolean);
+
+              for(const p of incoming){
+                if(!PRODUCTS.some(x=>String(x.id)===String(p.id))) PRODUCTS.push(p);
+              }
+
+              for(const c of [...new Set(incoming.map(p=>p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))){
+                if(!cats.includes(c)) cats.push(c);
+              }
+              cats.splice(1,cats.length-1,...cats.slice(1).sort((a,b)=>a.localeCompare(b,'es')));
+
+              for(const b of [...new Set(incoming.map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))){
+                if(!brands.includes(b)) brands.push(b);
+              }
+              brands.splice(1,brands.length-1,...brands.slice(1).sort((a,b)=>a.localeCompare(b,'es')));
+
+              state.q='';
+              state.cat='Todos';
+              state.brand='Todas';
+              render();
+              renderCart();
+              console.info(`Lift: catálogo público completo cargado (${incoming.length} productos adicionales).`);
+            }catch(e){
+              console.error('Lift: no se pudieron cargar los productos públicos adicionales.',e);
+            }
+          })();
+          </script>
+
+          '''
+
+          pattern = r'<!-- LIFT PRIVATE CATALOG ACCESS -->.*?(?=<script id="lift-product-public-history">)'
+          updated, count = re.subn(pattern, public_loader, text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('No encontré el bloque de catálogo privado para reemplazarlo.')
+
+          path.write_text(updated, encoding='utf-8')
+          PY
+
+      - name: Guardar cambio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalogo/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Hacer visible todo el catálogo sin clave"
+          git push
