@@ -16,6 +16,14 @@
     return !CIUDADES_LOCALES.includes(normalizar(selectedCity.name));
   }
 
+  function quitarAccesoPorClave() {
+    const btn = document.getElementById('privateCatalogBtn');
+    if (btn) btn.remove();
+    try {
+      window.openPrivateCatalogAccess = function () {};
+    } catch (_) {}
+  }
+
   function instalarCampoCedula() {
     if (document.getElementById('coCedulaWrap')) return;
     const cityInput = document.getElementById('coCity');
@@ -52,6 +60,7 @@
       return;
     }
 
+    quitarAccesoPorClave();
     instalarCampoCedula();
     actualizarCampoCedula();
 
@@ -107,7 +116,9 @@
       ];
 
       rows.forEach(({ p, q, flavor }) => {
-        lines.push(`\u26A1 ${q} ${p.name} – ${p.brand}${flavor ? ' · Sabor: ' + flavor : ''} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift ? ' · Incluye regalo' : ''}`);
+        const unit = priceOf(p);
+        const lineTotal = unit * q;
+        lines.push(`⚡ ${q} ${p.name} – ${p.brand}${flavor ? ' · Sabor: ' + flavor : ''} · ${fmt(unit)} c/u · Total ${fmt(lineTotal)}${offerOf(p)?.gift ? ' · Incluye regalo' : ''}`);
       });
 
       lines.push('', `Subtotal: ${fmt(subtotal)}`);
@@ -119,7 +130,7 @@
         `Total del pedido: ${fmt(total)}`
       );
 
-      return lines.join('\n');
+      return lines.filter(Boolean).join('\n');
     };
 
     finishCheckout = function () {
@@ -128,8 +139,17 @@
       window.open(`https://wa.me/${DESTINO}?text=${encodeURIComponent(text)}`, '_blank');
     };
 
-    setInterval(actualizarCampoCedula, 500);
-    console.info('Lift checkout: WhatsApp personalizado y cédula nacional activos');
+    setInterval(() => {
+      actualizarCampoCedula();
+      quitarAccesoPorClave();
+    }, 500);
+    console.info('Lift checkout: WhatsApp con precios y acceso por clave desactivado');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', quitarAccesoPorClave, { once: true });
+  } else {
+    quitarAccesoPorClave();
   }
 
   install();
