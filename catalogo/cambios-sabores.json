@@ -1,25 +1,31 @@
 {
-  "updated_at": "2026-09-14T18:05:22.685761+00:00",
-  "matched_products": 7,
-  "source_products_with_flavors": 39,
+  "updated_at": "2026-09-15T16:58:31.094731+00:00",
+  "matched_products": 6,
+  "source_products_with_flavors": 37,
   "added_products": [],
-  "removed_products": [],
+  "removed_products": [
+    {
+      "id": "101",
+      "product": "Creatina Chews 90 Tabletas",
+      "reason": "ya no supera el filtro seguro"
+    }
+  ],
   "changed": [
     {
       "id": "86",
       "product": "Nitro Tech Whey Gold 2 Lbs",
-      "added": [
-        "FRENCH VAINILLA CREME"
-      ],
-      "removed": []
+      "added": [],
+      "removed": [
+        "COOKIES & CREAM"
+      ]
     },
     {
       "id": "87",
       "product": "Nitro Tech Whey Gold 5 Lbs",
-      "added": [
-        "FRENCH VAINILLA CREME"
-      ],
-      "removed": []
+      "added": [],
+      "removed": [
+        "COOKIES & CREAM"
+      ]
     }
   ]
 }

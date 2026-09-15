@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-09-14T18:05:22.685761+00:00",
+  "updated_at": "2026-09-15T16:58:31.094731+00:00",
   "source": "https://www.suplementoscolombia.co/",
-  "matched_products": 7,
-  "source_products_with_flavors": 39,
+  "matched_products": 6,
+  "source_products_with_flavors": 37,
   "products": {
     "84": {
       "name": "Nitro Tech 2 Lbs",
@@ -40,7 +40,6 @@
       "name": "Nitro Tech Whey Gold 2 Lbs",
       "brand": "MuscleTech",
       "flavors": [
-        "COOKIES & CREAM",
         "DOUBLE RICH CHOCOLATE",
         "FRENCH VAINILLA CREME",
         "CHURRO"
@@ -57,7 +56,6 @@
       "name": "Nitro Tech Whey Gold 5 Lbs",
       "brand": "MuscleTech",
       "flavors": [
-        "COOKIES & CREAM",
         "DOUBLE RICH CHOCOLATE",
         "FRENCH VAINILLA CREME",
         "CHURRO"
@@ -92,17 +90,6 @@
       "source_url": "https://suplementoscolombia.co/amino-build",
       "source_sizes": [],
       "match_score": 0.787
-    },
-    "101": {
-      "name": "Creatina Chews 90 Tabletas",
-      "brand": "MuscleTech",
-      "flavors": [
-        "CITRUS BURST"
-      ],
-      "source_name": "CREATINA CHEWS CREAPURE 90 TABLETAS",
-      "source_url": "https://suplementoscolombia.co/creatina-chews-creapure-90-tabletas",
-      "source_sizes": [],
-      "match_score": 0.92
     }
   }
 }
