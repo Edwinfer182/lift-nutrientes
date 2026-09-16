@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-09-15T16:58:31.094731+00:00",
+  "updated_at": "2026-09-16T16:54:02.508273+00:00",
   "source": "https://www.suplementoscolombia.co/",
-  "matched_products": 6,
-  "source_products_with_flavors": 37,
+  "matched_products": 5,
+  "source_products_with_flavors": 36,
   "products": {
     "84": {
       "name": "Nitro Tech 2 Lbs",
@@ -40,9 +40,9 @@
       "name": "Nitro Tech Whey Gold 2 Lbs",
       "brand": "MuscleTech",
       "flavors": [
+        "COOKIES & CREAM",
         "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME",
-        "CHURRO"
+        "FRENCH VAINILLA CREME"
       ],
       "source_name": "NITRO TECH WHEY GOLD",
       "source_url": "https://suplementoscolombia.co/nitro-tech-whey-gold-muscletech",
@@ -56,9 +56,9 @@
       "name": "Nitro Tech Whey Gold 5 Lbs",
       "brand": "MuscleTech",
       "flavors": [
+        "COOKIES & CREAM",
         "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME",
-        "CHURRO"
+        "FRENCH VAINILLA CREME"
       ],
       "source_name": "NITRO TECH WHEY GOLD",
       "source_url": "https://suplementoscolombia.co/nitro-tech-whey-gold-muscletech",
@@ -67,17 +67,6 @@
         "5 LIBRAS"
       ],
       "match_score": 1.0
-    },
-    "97": {
-      "name": "Cell Tech Creactor 120 Serv",
-      "brand": "MuscleTech",
-      "flavors": [
-        "SIN SABOR"
-      ],
-      "source_name": "CELL TECH CREACTOR",
-      "source_url": "https://suplementoscolombia.co/cell-tech-creactor",
-      "source_sizes": [],
-      "match_score": 0.87
     },
     "100": {
       "name": "Amino Build 40 Serv",

@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-09-15T16:58:31.094731+00:00",
-  "matched_products": 6,
-  "source_products_with_flavors": 37,
+  "updated_at": "2026-09-16T16:54:02.508273+00:00",
+  "matched_products": 5,
+  "source_products_with_flavors": 36,
   "added_products": [],
   "removed_products": [
     {
-      "id": "101",
-      "product": "Creatina Chews 90 Tabletas",
+      "id": "97",
+      "product": "Cell Tech Creactor 120 Serv",
       "reason": "ya no supera el filtro seguro"
     }
   ],
@@ -14,17 +14,21 @@
     {
       "id": "86",
       "product": "Nitro Tech Whey Gold 2 Lbs",
-      "added": [],
-      "removed": [
+      "added": [
         "COOKIES & CREAM"
+      ],
+      "removed": [
+        "CHURRO"
       ]
     },
     {
       "id": "87",
       "product": "Nitro Tech Whey Gold 5 Lbs",
-      "added": [],
-      "removed": [
+      "added": [
         "COOKIES & CREAM"
+      ],
+      "removed": [
+        "CHURRO"
       ]
     }
   ]
