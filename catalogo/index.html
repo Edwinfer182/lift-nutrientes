@@ -669,8 +669,7 @@
   spellcheck="false"
   data-lpignore="true"
   data-1p-ignore="true"
-  readonly
-  onfocus="this.removeAttribute('readonly');if(/@/.test(this.value))this.value='';"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
+  onfocus="if(/@/.test(this.value))this.value='';"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
 <aside class="sidebar"><div id="desktopFilters"></div></aside>
 <section class="content">
@@ -4023,17 +4022,11 @@ window.addEventListener('popstate',()=>{
   function cleanLiftSearch(){
     const q=document.getElementById('q');
     if(!q) return;
-    if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(q.value||'').trim())){
-      q.value='';
-    }
-    q.setAttribute('readonly','readonly');
+    if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(q.value||'').trim())) q.value='';
+    q.removeAttribute('readonly');
   }
-  document.addEventListener('DOMContentLoaded',()=>{
-    cleanLiftSearch();
-    setTimeout(cleanLiftSearch,80);
-    setTimeout(cleanLiftSearch,350);
-  });
-  window.addEventListener('pageshow',()=>setTimeout(cleanLiftSearch,50));
+  document.addEventListener('DOMContentLoaded',cleanLiftSearch);
+  window.addEventListener('pageshow',cleanLiftSearch);
 })();
 </script>
 
