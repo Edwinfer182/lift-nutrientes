@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-09-16T16:54:02.508273+00:00",
+  "updated_at": "2026-09-17T16:59:52.779116+00:00",
   "source": "https://www.suplementoscolombia.co/",
-  "matched_products": 5,
+  "matched_products": 4,
   "source_products_with_flavors": 36,
   "products": {
     "84": {
@@ -36,34 +36,16 @@
       ],
       "match_score": 1.0
     },
-    "86": {
-      "name": "Nitro Tech Whey Gold 2 Lbs",
-      "brand": "MuscleTech",
-      "flavors": [
-        "COOKIES & CREAM",
-        "DOUBLE RICH CHOCOLATE",
-        "FRENCH VAINILLA CREME"
-      ],
-      "source_name": "NITRO TECH WHEY GOLD",
-      "source_url": "https://suplementoscolombia.co/nitro-tech-whey-gold-muscletech",
-      "source_sizes": [
-        "2 LIBRAS",
-        "5 LIBRAS"
-      ],
-      "match_score": 1.0
-    },
     "87": {
       "name": "Nitro Tech Whey Gold 5 Lbs",
       "brand": "MuscleTech",
       "flavors": [
         "COOKIES & CREAM",
-        "DOUBLE RICH CHOCOLATE",
         "FRENCH VAINILLA CREME"
       ],
       "source_name": "NITRO TECH WHEY GOLD",
       "source_url": "https://suplementoscolombia.co/nitro-tech-whey-gold-muscletech",
       "source_sizes": [
-        "2 LIBRAS",
         "5 LIBRAS"
       ],
       "match_score": 1.0
