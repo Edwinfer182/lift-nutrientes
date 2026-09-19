@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-09-18T16:23:38.267211+00:00",
+  "updated_at": "2026-09-19T15:52:53.563104+00:00",
   "source": "https://www.suplementoscolombia.co/",
-  "matched_products": 6,
-  "source_products_with_flavors": 37,
+  "matched_products": 7,
+  "source_products_with_flavors": 38,
   "products": {
     "84": {
       "name": "Nitro Tech 2 Lbs",
@@ -68,6 +68,17 @@
       ],
       "match_score": 1.0
     },
+    "88": {
+      "name": "Nitro Tech Ripped 4 Lbs",
+      "brand": "MuscleTech",
+      "flavors": [
+        "VAINILLA"
+      ],
+      "source_name": "NITRO TECH RIPPED 4 LIBRAS",
+      "source_url": "https://suplementoscolombia.co/nitro-tech-ripped-4-libras",
+      "source_sizes": [],
+      "match_score": 1.0
+    },
     "100": {
       "name": "Amino Build 40 Serv",
       "brand": "MuscleTech",
@@ -84,6 +95,7 @@
       "name": "Creatina Chews 90 Tabletas",
       "brand": "MuscleTech",
       "flavors": [
+        "CITRUS BURST",
         "BOOGIEMAN PUNCH"
       ],
       "source_name": "CREATINA CHEWS CREAPURE 90 TABLETAS",
