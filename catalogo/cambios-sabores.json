@@ -1,25 +1,8 @@
 {
-  "updated_at": "2026-09-19T15:52:53.563104+00:00",
+  "updated_at": "2026-09-20T16:04:49.948869+00:00",
   "matched_products": 7,
   "source_products_with_flavors": 38,
-  "added_products": [
-    {
-      "id": "88",
-      "product": "Nitro Tech Ripped 4 Lbs",
-      "flavors": [
-        "VAINILLA"
-      ]
-    }
-  ],
+  "added_products": [],
   "removed_products": [],
-  "changed": [
-    {
-      "id": "101",
-      "product": "Creatina Chews 90 Tabletas",
-      "added": [
-        "CITRUS BURST"
-      ],
-      "removed": []
-    }
-  ]
+  "changed": []
 }
