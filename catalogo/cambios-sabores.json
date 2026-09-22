@@ -1,25 +1,19 @@
 {
-  "updated_at": "2026-09-21T18:14:20.167745+00:00",
-  "matched_products": 7,
-  "source_products_with_flavors": 38,
+  "updated_at": "2026-09-22T16:57:00.315781+00:00",
+  "matched_products": 5,
+  "source_products_with_flavors": 37,
   "added_products": [],
-  "removed_products": [],
-  "changed": [
+  "removed_products": [
     {
-      "id": "86",
-      "product": "Nitro Tech Whey Gold 2 Lbs",
-      "added": [
-        "CHURRO"
-      ],
-      "removed": []
+      "id": "84",
+      "product": "Nitro Tech 2 Lbs",
+      "reason": "ya no supera el filtro seguro"
     },
     {
-      "id": "87",
-      "product": "Nitro Tech Whey Gold 5 Lbs",
-      "added": [
-        "CHURRO"
-      ],
-      "removed": []
+      "id": "85",
+      "product": "Nitro Tech 4 Lbs",
+      "reason": "ya no supera el filtro seguro"
     }
-  ]
+  ],
+  "changed": []
 }
