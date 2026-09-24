@@ -1356,6 +1356,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <button class="addBtn cardQuickBuyBtn" type="button" title="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" aria-label="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" onclick="event.stopPropagation();${hasFlavor?`openLiftProductById(${p.id})`:`add(${p.id})`}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button>
         <button class="cardShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button>
         <span class="liftCardAdminIcons">
+          <button class="liftCardAdminIcon duplicate" type="button" title="Duplicar producto" aria-label="Duplicar producto" onclick="event.stopPropagation();liftCardAdminDuplicate(${p.id})">⧉</button>
           <button class="liftCardAdminIcon edit" type="button" title="Editar producto" aria-label="Editar producto" onclick="event.stopPropagation();liftCardAdminEdit(${p.id})">✎</button>
           <button class="liftCardAdminIcon delete" type="button" title="Eliminar producto" aria-label="Eliminar producto" onclick="event.stopPropagation();liftCardAdminDelete(${p.id})">⌫</button>
         </span>
@@ -4534,7 +4535,7 @@ window.shareLiftProductImage=async function(id){
  window.closeLiftAdminFull=function(){$('lafBackdrop').classList.remove('show');$('lafPanel').classList.remove('open')};
  window.lafTab=function(name,btn){document.querySelectorAll('.lafPane').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.lafTab').forEach(x=>x.classList.remove('on'));$('laf-'+name).classList.add('on');btn?.classList.add('on');if(name==='offers')lafRenderOffers();if(name==='combos')lafRenderCombos();if(name==='categories')lafRenderCategories();if(name==='create')lafFillLists();if(name==='audit')lafRenderAudit()};
  window.lafFillLists=function(){const bs=[...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))].sort();const cs=[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))].sort();$('lafBrands').innerHTML=bs.map(x=>`<option value="${esc(x)}">`).join('');$('lafCategories').innerHTML=cs.map(x=>`<option value="${esc(x)}">`).join('')};
- window.lafRenderProducts=function(){const q=norm($('lafSearch').value),f=$('lafStatusFilter').value,m=meta();let a=PRODUCTS.filter(p=>!q||norm([p.name,p.brand,p.category].join(' ')).includes(q));if(f==='out')a=a.filter(p=>m.out?.[p.id]);if(f==='offer')a=a.filter(p=>typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id]);if(f==='available')a=a.filter(p=>!m.out?.[p.id]);$('lafCount').textContent=`${a.length} productos · ${PRODUCTS.length} en total`;$('lafProductList').innerHTML=a.slice(0,350).map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}" onerror="this.style.visibility='hidden'"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.brand||'')} · ${esc(p.category||'')} ${m.out?.[p.id]?'· AGOTADO':''}</div></div><input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}"><div class="lafActions"><button class="lafIcon" title="Guardar precio" onclick="lafQuickPrice(${JSON.stringify(p.id)})">✓</button><button class="lafIcon" title="Editar" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div></div>`).join('')||'<div class="lafNote">No hay resultados.</div>'};
+ window.lafRenderProducts=function(){const q=norm($('lafSearch').value),f=$('lafStatusFilter').value,m=meta();let a=PRODUCTS.filter(p=>!q||norm([p.name,p.brand,p.category].join(' ')).includes(q));if(f==='out')a=a.filter(p=>m.out?.[p.id]);if(f==='offer')a=a.filter(p=>typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id]);if(f==='available')a=a.filter(p=>!m.out?.[p.id]);$('lafCount').textContent=`${a.length} productos · ${PRODUCTS.length} en total`;$('lafProductList').innerHTML=a.slice(0,350).map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}" onerror="this.style.visibility='hidden'"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.brand||'')} · ${esc(p.category||'')} ${m.out?.[p.id]?'· AGOTADO':''}</div></div><input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}"><div class="lafActions"><button class="lafIcon" title="Guardar precio" onclick="lafQuickPrice(${JSON.stringify(p.id)})">✓</button><button class="lafIcon" title="Duplicar" onclick="liftCardAdminDuplicate(${JSON.stringify(p.id)})">⧉</button><button class="lafIcon" title="Editar" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div></div>`).join('')||'<div class="lafNote">No hay resultados.</div>'};
  window.lafQuickPrice=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;p.price=num($('lafp_'+id).value);patch(p);$('lafp_'+id).value=fmt(p.price);refresh()};
  window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafImage','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
  window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex'};
@@ -4699,6 +4700,7 @@ window.lafRenderAudit=function(){
 body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
 .liftCardAdminIcon{width:36px;height:36px;border:1px solid #d6d6d6;border-radius:999px;background:#fff;color:#111;display:grid;place-items:center;padding:0;cursor:pointer;font-size:17px;line-height:1;transition:.15s ease}
 .liftCardAdminIcon:hover{background:#111;color:#fff;border-color:#111;transform:translateY(-1px)}
+.liftCardAdminIcon.duplicate:hover{background:#111;border-color:#111;color:#fff}
 .liftCardAdminIcon.delete:hover{background:#b42318;border-color:#b42318;color:#fff}
 @media(max-width:760px){.liftCardAdminIcon{width:34px;height:34px;font-size:16px}.cardQuickActions{gap:5px!important;flex-wrap:wrap}}
 </style>
@@ -4716,6 +4718,38 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    if(typeof window.openLiftAdminFull==='function') window.openLiftAdminFull();
    setTimeout(()=>{if(typeof window.lafEdit==='function') window.lafEdit(id)},20);
  };
+ window.liftCardAdminDuplicate=async function(id){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const original=PRODUCTS.find(x=>String(x.id)===String(id)); if(!original)return;
+   const numericIds=PRODUCTS.map(x=>Number(x.id)).filter(Number.isFinite);
+   const newId=(numericIds.length?Math.max(...numericIds):0)+1;
+   let copy;
+   try{copy=structuredClone(original)}catch(e){copy=JSON.parse(JSON.stringify(original))}
+   copy.id=newId;
+   copy.name=String(original.name||'Producto')+' - Copia';
+   delete copy.slug;
+   delete copy.__private;
+   PRODUCTS.push(copy);
+
+   try{
+     const o=JSON.parse(localStorage.getItem('liftAdminDetalV1')||'{}');
+     o[String(newId)]={name:copy.name,brand:copy.brand||'',category:copy.category||'',price:Number(copy.price)||0,image:copy.image||''};
+     localStorage.setItem('liftAdminDetalV1',JSON.stringify(o));
+   }catch(e){}
+
+   try{
+     if(typeof window.liftCloudSaveProduct==='function') await window.liftCloudSaveProduct(copy);
+   }catch(e){
+     alert('El producto se duplicó en pantalla, pero no pudo guardarse en Supabase: '+e.message);
+   }
+
+   if(typeof render==='function')render();
+   if(typeof renderCart==='function')renderCart();
+   if(typeof lafRenderProducts==='function')lafRenderProducts();
+
+   if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull();
+   setTimeout(()=>{if(typeof window.lafEdit==='function')window.lafEdit(newId)},30);
+ }; 
  window.liftCardAdminDelete=function(id){
    if(!document.body.classList.contains('liftAdminUnlocked'))return;
    const p=PRODUCTS.find(x=>String(x.id)===String(id)); if(!p)return;
