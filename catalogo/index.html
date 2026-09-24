@@ -1138,7 +1138,17 @@ for(const oldKey of Object.keys(cartMeta)){
 }
 window.LIFT_CART_META=cartMeta;
 window.LIFT_SINGLE_META=null;
-const cats=['Todos',...Array.from(new Set(PRODUCTS.map(p=>p.category).filter(c=>c!=='Ofertas'))).sort((a,b)=>a.localeCompare(b,'es'))];
+let LIFT_CATEGORY_CONFIG={};
+let cats=['Todos'];
+function rebuildLiftCategories(){
+  const names=new Set(PRODUCTS.map(p=>String(p.category||'').trim()).filter(c=>c&&c!=='Ofertas'));
+  Object.entries(LIFT_CATEGORY_CONFIG||{}).forEach(([name,data])=>{
+    if(data && data.active===false) names.delete(name);
+    else if(name && name!=='Todos' && name!=='Ofertas') names.add(name);
+  });
+  cats.splice(0,cats.length,'Todos',...[...names].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'})));
+}
+rebuildLiftCategories();
 const brands=['Todas',...Array.from(new Set(PRODUCTS.map(p=>p.brand))).sort((a,b)=>a.localeCompare(b,'es'))];
 
 const CATEGORY_PSEUDO_BRANDS=new Set(['destacados lift','selección lift','seleccion lift','destacados','selección','seleccion']);
@@ -1282,26 +1292,37 @@ function render(){
   updateOffersButton()
 }
 function renderChips(){}
-function filterHTML(){const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRODUCTS.length:categoryProducts(c).length]));const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?PRODUCTS.length:PRODUCTS.filter(p=>p.brand===b).length]));const isBrands=state.filterView==='brands';return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
+function filterHTML(){
+  if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
+  const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRODUCTS.length:categoryProducts(c).length]));
+  const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?PRODUCTS.length:PRODUCTS.filter(p=>p.brand===b).length]));
+  const isBrands=state.filterView==='brands';
+  return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
 <section class="filterPanel" ${isBrands?'':'hidden'}>
   <div class="labVisualWrap">
     <div class="labVisualSearchWrap">
       <input id="labVisualSearch" class="labVisualSearch" type="search"
-        name="lift_laboratory_filter_x7"
-        placeholder="Buscar laboratorio..."
-        autocomplete="new-password"
-        autocapitalize="off"
-        spellcheck="false"
-        data-lpignore="true"
-        data-1p-ignore="true"
-        readonly
+        name="lift_laboratory_filter_x7" placeholder="Buscar laboratorio..."
+        autocomplete="new-password" autocapitalize="off" spellcheck="false"
+        data-lpignore="true" data-1p-ignore="true" readonly
         onfocus="this.removeAttribute('readonly');this.value='';"
         oninput="renderLaboratoryVisualGrid(this.value)">
     </div>
     <div id="labVisualGrid" class="labVisualGrid"></div>
   </div>
 </section>
-<section class="filterPanel" ${!isBrands?'':'hidden'}>${cats.map(c=>`<button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button>`).join('')}</section>`}
+<section class="filterPanel" ${!isBrands?'':'hidden'}>
+  <button type="button" class="liftCatCreateBtn" onclick="event.stopPropagation();liftCategoryCreate()">+ Crear categoría</button>
+  ${cats.map(c=>`<div class="liftCatAdminRow">
+    <button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button>
+    ${c==='Todos'?'':`<span class="liftCatRowActions">
+      <button type="button" title="Renombrar categoría" onclick='event.stopPropagation();liftCategoryRename(${JSON.stringify(c)})'>✎</button>
+      <button type="button" title="Duplicar categoría" onclick='event.stopPropagation();liftCategoryDuplicate(${JSON.stringify(c)})'>⧉</button>
+      <button type="button" title="Eliminar categoría" onclick='event.stopPropagation();liftCategoryDelete(${JSON.stringify(c)})'>⌫</button>
+    </span>`}
+  </div>`).join('')}
+</section>`;
+}
 function renderFilters(){
   const h=filterHTML();
   document.getElementById('desktopFilters').innerHTML=h;
@@ -1356,6 +1377,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <button class="addBtn cardQuickBuyBtn" type="button" title="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" aria-label="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" onclick="event.stopPropagation();${hasFlavor?`openLiftProductById(${p.id})`:`add(${p.id})`}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button>
         <button class="cardShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button>
         <span class="liftCardAdminIcons">
+          <button class="liftCardAdminIcon move" type="button" title="Mover a otra categoría" aria-label="Mover a otra categoría" onclick="event.stopPropagation();liftCategoryMoveProduct(${p.id})">↪</button>
           <button class="liftCardAdminIcon duplicate" type="button" title="Duplicar producto" aria-label="Duplicar producto" onclick="event.stopPropagation();liftCardAdminDuplicate(${p.id})">⧉</button>
           <button class="liftCardAdminIcon edit" type="button" title="Editar producto" aria-label="Editar producto" onclick="event.stopPropagation();liftCardAdminEdit(${p.id})">✎</button>
           <button class="liftCardAdminIcon delete" type="button" title="Eliminar producto" aria-label="Eliminar producto" onclick="event.stopPropagation();liftCardAdminDelete(${p.id})">⌫</button>
@@ -4817,6 +4839,9 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      if(offers&&typeof WEEKLY_OFFERS!=='undefined'){
        Object.keys(WEEKLY_OFFERS).forEach(k=>delete WEEKLY_OFFERS[k]);Object.assign(WEEKLY_OFFERS,offers);
      }
+     const categoryCfg=cfg.find(x=>x.clave==='categories_v1')?.valor;
+     if(categoryCfg && typeof categoryCfg==='object') LIFT_CATEGORY_CONFIG=categoryCfg;
+     if(typeof rebuildLiftCategories==='function') rebuildLiftCategories();
      if(typeof render==='function')render();if(typeof renderCart==='function')renderCart();if(typeof renderFilters==='function')renderFilters();if(typeof lafRenderProducts==='function')lafRenderProducts();
      state('☁ conectado','ok');setTimeout(()=>state(''),2200);
    }catch(e){console.error(e);state('☁ sin conexión','err')}
@@ -5289,288 +5314,153 @@ body.liftAdminUnlocked .labAdminNew{display:block}
 })();
 </script>
 
-<style id="lift-category-admin-v1">
-.catAdminTools{display:none;gap:4px;margin-left:auto;align-items:center}
-body.liftAdminUnlocked .catAdminTools{display:inline-flex}
-.catAdminBtn{width:24px;height:24px;border:1px solid #d8d8d8;border-radius:7px;background:#fff;color:#111;cursor:pointer;font:600 11px Arial;place-items:center}
-.catAdminBtn:hover{background:#111;color:#fff;border-color:#111}
-.catAdminCreate{display:none;width:calc(100% - 16px);margin:7px 8px 10px;min-height:36px;border:1px dashed #aaa;border-radius:10px;background:#fff;font:600 11px Poppins,Arial;cursor:pointer}
-body.liftAdminUnlocked .catAdminCreate{display:block}
-.catAdminModal{position:fixed;inset:0;z-index:10070;background:rgba(0,0,0,.52);display:none;place-items:center;padding:18px}
-.catAdminModal.open{display:grid}
-.catAdminCard{width:min(94vw,540px);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
-.catAdminCard h3{margin:0 0 13px;font-size:20px}
-.catAdminCard label{display:grid;gap:5px;margin:10px 0;font-size:11px;color:#555}
-.catAdminCard input,.catAdminCard select{height:43px;border:1px solid #d7d7d7;border-radius:10px;padding:0 11px;font:inherit;background:#fff}
-.catAdminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.catAdminActions button{height:43px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer}
-.catAdminActions .primary{background:#111;color:#fff;border-color:#111}
-.liftMoveProductBtn{display:none!important}
-body.liftAdminUnlocked .liftMoveProductBtn{display:grid!important}
+</div>
+
+</div>
+
+</div>
+
+
+<style id="lift-category-admin-v3">
+.liftCatCreateBtn{display:none;width:100%;height:38px;margin:0 0 8px;border:1px dashed #999;border-radius:10px;background:#fff;color:#111;font:600 11px Poppins,Arial;cursor:pointer}
+.liftCatAdminRow{display:flex;align-items:center;gap:5px}
+.liftCatAdminRow>.filterItem{flex:1;min-width:0}
+.liftCatRowActions{display:none;gap:3px;flex:0 0 auto}
+.liftCatRowActions button{width:27px;height:27px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#111;cursor:pointer}
+.liftCatRowActions button:hover{background:#111;color:#fff;border-color:#111}
+body.liftAdminUnlocked .liftCatCreateBtn{display:block}
+body.liftAdminUnlocked .liftCatRowActions{display:flex}
+.liftCategoryModal{position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);display:none;place-items:center;padding:18px}
+.liftCategoryModal.open{display:grid}
+.liftCategoryBox{width:min(94vw,520px);background:#fff;border-radius:18px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.3)}
+.liftCategoryBox h3{margin:0 0 12px;font-size:19px}
+.liftCategoryBox p{font-size:12px;line-height:1.45;color:#555}
+.liftCategoryBox label{display:grid;gap:5px;margin:11px 0;font-size:11px;color:#555}
+.liftCategoryBox input,.liftCategoryBox select{height:43px;border:1px solid #d5d5d5;border-radius:10px;padding:0 11px;font:inherit;background:#fff}
+.liftCategoryActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.liftCategoryActions button{height:43px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer}
+.liftCategoryActions .primary{background:#111;color:#fff;border-color:#111}
+.liftCategoryActions .danger{background:#b42318;color:#fff;border-color:#b42318}
 </style>
 
-<div id="liftCatAdminModal" class="catAdminModal" onclick="if(event.target===this)liftCatAdminClose()">
- <div class="catAdminCard">
-  <h3 id="liftCatAdminTitle">Categoría</h3>
-  <input type="hidden" id="liftCatAdminOld">
-  <label>Nombre de la categoría<input id="liftCatAdminName" autocomplete="off"></label>
-  <div class="catAdminActions">
-   <button type="button" onclick="liftCatAdminClose()">Cancelar</button>
-   <button type="button" class="primary" onclick="liftCatAdminSave()">Guardar</button>
+<div id="liftCategoryModal" class="liftCategoryModal" onclick="if(event.target===this)liftCategoryClose()">
+ <div class="liftCategoryBox">
+  <h3 id="liftCategoryTitle">Categoría</h3>
+  <p id="liftCategoryText"></p>
+  <div id="liftCategoryNameWrap"><label>Nombre<input id="liftCategoryName" autocomplete="off"></label></div>
+  <div id="liftCategoryTargetWrap" style="display:none"><label>Mover productos a<select id="liftCategoryTarget"></select></label></div>
+  <input id="liftCategoryMode" type="hidden"><input id="liftCategoryOld" type="hidden"><input id="liftCategoryProductId" type="hidden">
+  <div class="liftCategoryActions">
+   <button type="button" onclick="liftCategoryClose()">Cancelar</button>
+   <button id="liftCategoryConfirm" type="button" class="primary" onclick="liftCategoryConfirm()">Guardar</button>
   </div>
  </div>
 </div>
 
-<div id="liftMoveProductModal" class="catAdminModal" onclick="if(event.target===this)liftMoveProductClose()">
- <div class="catAdminCard">
-  <h3>Mover producto</h3>
-  <input type="hidden" id="liftMoveProductId">
-  <div id="liftMoveProductName" style="font-size:12px;color:#555;margin-bottom:10px"></div>
-  <label>Nueva categoría<select id="liftMoveProductCategory"></select></label>
-  <div class="catAdminActions">
-   <button type="button" onclick="liftMoveProductClose()">Cancelar</button>
-   <button type="button" class="primary" onclick="liftMoveProductSave()">Mover</button>
-  </div>
- </div>
-</div>
-
-<script id="lift-category-admin-v1-script">
+<script id="lift-category-admin-v3-script">
 (function(){
- const CFG='categories_v1';
- let catCfg={};
-
  const clean=v=>String(v||'').trim();
- const productCats=()=>[...new Set((window.PRODUCTS||[]).map(p=>clean(p.category)).filter(Boolean))];
- function allCats(){
-   const s=new Set(productCats());
-   Object.entries(catCfg).forEach(([n,v])=>{if(v?.active!==false)s.add(n)});
-   s.delete('Todos');
-   return [...s].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+ const byCat=name=>PRODUCTS.filter(p=>clean(p.category)===name);
+ function names(exclude=''){
+   if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
+   return cats.filter(c=>c!=='Todos'&&c!==exclude);
  }
- function affected(name){return (window.PRODUCTS||[]).filter(p=>clean(p.category)===name)}
- async function cloudCfg(){
-   if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No encontré la conexión de configuración con Supabase.');
-   await window.liftCloudSaveConfig(CFG,catCfg);
+ async function saveConfig(){
+   if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No está disponible el guardado de configuración en Supabase.');
+   await window.liftCloudSaveConfig('categories_v1',LIFT_CATEGORY_CONFIG);
  }
- async function cloudProducts(arr){
-   if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión de productos con Supabase.');
-   for(const p of arr)await window.liftCloudSaveProduct(p);
+ async function saveProducts(list){
+   if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No está disponible el guardado de productos en Supabase.');
+   for(const p of list)await window.liftCloudSaveProduct(p);
  }
- function refresh(){
-   if(typeof renderFilters==='function')renderFilters();
-   if(typeof render==='function')render();
+ function repaint(){
+   rebuildLiftCategories();
+   if(state.cat!=='Todos'&&!cats.includes(state.cat))state.cat='Todos';
+   render();
    if(typeof lafRenderProducts==='function')lafRenderProducts();
-   setTimeout(decorate,80);
  }
-
- window.liftCatAdminOpen=function(name=''){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const n=clean(name);
-   document.getElementById('liftCatAdminOld').value=n;
-   document.getElementById('liftCatAdminName').value=n;
-   document.getElementById('liftCatAdminTitle').textContent=n?'Renombrar categoría':'Crear categoría';
-   document.getElementById('liftCatAdminModal').classList.add('open');
- };
- window.liftCatAdminClose=()=>document.getElementById('liftCatAdminModal').classList.remove('open');
-
- window.liftCatAdminSave=async function(){
-   const oldName=clean(document.getElementById('liftCatAdminOld').value);
-   const newName=clean(document.getElementById('liftCatAdminName').value);
-   if(!newName)return alert('Escribe el nombre de la categoría.');
-   if(newName==='Todos')return alert('Ese nombre está reservado.');
-   const previous=JSON.parse(JSON.stringify(catCfg));
-   const arr=oldName&&oldName!==newName?affected(oldName):[];
-   try{
-     if(oldName&&oldName!==newName)delete catCfg[oldName];
-     catCfg[newName]={active:true};
-     await cloudCfg();
-     if(arr.length){arr.forEach(p=>p.category=newName);await cloudProducts(arr)}
-     if(window.state?.cat===oldName)window.state.cat=newName;
-     liftCatAdminClose();refresh();
-   }catch(e){catCfg=previous;alert('No pude guardar la categoría: '+(e.message||e))}
- };
-
- window.liftCatAdminDuplicate=async function(name){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const base=clean(name),names=new Set(allCats());let n=base+' Copia',i=2;
-   while(names.has(n))n=base+' Copia '+i++;
-   const previous=JSON.parse(JSON.stringify(catCfg));
-   try{catCfg[n]={active:true};await cloudCfg();refresh();liftCatAdminOpen(n)}
-   catch(e){catCfg=previous;alert('No pude duplicar la categoría: '+(e.message||e))}
- };
-
- window.liftCatAdminDelete=async function(name){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const n=clean(name),arr=affected(n),cats=allCats().filter(x=>x!==n);
-   let target='Sin categoría';
-   if(arr.length){
-     const choice=prompt(`"${n}" tiene ${arr.length} producto(s).\nEscribe la categoría a la que quieres moverlos.\n\nDisponibles:\n${cats.join(', ')}\n\nSi dejas vacío, irán a "Sin categoría".`,'');
-     if(choice===null)return;
-     target=clean(choice)||'Sin categoría';
-   }else if(!confirm(`¿Eliminar la categoría "${n}"?`))return;
-   const previous=JSON.parse(JSON.stringify(catCfg));
-   try{
-     delete catCfg[n];catCfg[target]={active:true};await cloudCfg();
-     if(arr.length){arr.forEach(p=>p.category=target);await cloudProducts(arr)}
-     if(window.state?.cat===n)window.state.cat='Todos';
-     refresh();
-   }catch(e){catCfg=previous;alert('No pude eliminar la categoría: '+(e.message||e))}
- };
-
- window.liftMoveProductOpen=function(id){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));if(!p)return;
-   document.getElementById('liftMoveProductId').value=p.id;
-   document.getElementById('liftMoveProductName').textContent=p.name||'Producto';
-   const sel=document.getElementById('liftMoveProductCategory');
-   sel.innerHTML=allCats().map(c=>`<option value="${String(c).replace(/"/g,'&quot;')}" ${c===p.category?'selected':''}>${c}</option>`).join('');
-   document.getElementById('liftMoveProductModal').classList.add('open');
- };
- window.liftMoveProductClose=()=>document.getElementById('liftMoveProductModal').classList.remove('open');
- window.liftMoveProductSave=async function(){
-   const id=document.getElementById('liftMoveProductId').value,cat=clean(document.getElementById('liftMoveProductCategory').value);
-   const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));if(!p||!cat)return;
-   const old=p.category;p.category=cat;
-   try{
-     if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión con Supabase.');
-     await window.liftCloudSaveProduct(p);
-     catCfg[cat]={active:true};await cloudCfg();
-     liftMoveProductClose();refresh();
-   }catch(e){p.category=old;alert('No pude mover el producto: '+(e.message||e))}
- };
-
- function decorateCards(){
-   document.querySelectorAll('.card').forEach(card=>{
-     if(card.querySelector('.liftMoveProductBtn'))return;
-     const edit=card.querySelector('.liftCardAdminIcon.edit');if(!edit)return;
-     const onclick=edit.getAttribute('onclick')||'',m=onclick.match(/liftCardAdminEdit\(([^)]+)\)/);if(!m)return;
-     const b=document.createElement('button');
-     b.className='liftCardAdminIcon liftMoveProductBtn';b.type='button';b.title='Mover a otra categoría';b.textContent='↪';
-     b.setAttribute('onclick',`event.stopPropagation();liftMoveProductOpen(${m[1]})`);
-     edit.parentNode.insertBefore(b,edit);
-   });
+ function open(mode,oldName='',productId=''){
+   const modal=document.getElementById('liftCategoryModal'), title=document.getElementById('liftCategoryTitle');
+   const text=document.getElementById('liftCategoryText'), nw=document.getElementById('liftCategoryNameWrap');
+   const tw=document.getElementById('liftCategoryTargetWrap'), confirm=document.getElementById('liftCategoryConfirm');
+   document.getElementById('liftCategoryMode').value=mode;
+   document.getElementById('liftCategoryOld').value=oldName;
+   document.getElementById('liftCategoryProductId').value=productId;
+   nw.style.display='block';tw.style.display='none';confirm.className='primary';confirm.textContent='Guardar';text.textContent='';
+   if(mode==='create'){title.textContent='Crear categoría';document.getElementById('liftCategoryName').value=''}
+   if(mode==='rename'){title.textContent='Renombrar categoría';document.getElementById('liftCategoryName').value=oldName;text.textContent=`Se actualizarán también los ${byCat(oldName).length} productos de esta categoría.`}
+   if(mode==='duplicate'){title.textContent='Duplicar categoría';document.getElementById('liftCategoryName').value=oldName+' Copia';text.textContent='Se crea la categoría nueva vacía. Los productos no se duplican.'}
+   if(mode==='delete'){
+     title.textContent='Eliminar categoría';nw.style.display='none';tw.style.display=byCat(oldName).length?'block':'none';
+     text.textContent=byCat(oldName).length?`"${oldName}" tiene ${byCat(oldName).length} producto(s). Elige dónde moverlos antes de eliminarla.`:`"${oldName}" está vacía y se eliminará.`;
+     document.getElementById('liftCategoryTarget').innerHTML=names(oldName).concat(['Sin categoría']).filter((v,i,a)=>a.indexOf(v)===i).map(c=>`<option>${esc(c)}</option>`).join('');
+     confirm.className='danger';confirm.textContent='Eliminar';
+   }
+   if(mode==='move'){
+     const p=PRODUCTS.find(x=>String(x.id)===String(productId));if(!p)return;
+     title.textContent='Mover producto';nw.style.display='none';tw.style.display='block';
+     text.textContent=p.name||'Producto';
+     document.getElementById('liftCategoryTarget').innerHTML=names().map(c=>`<option ${c===p.category?'selected':''}>${esc(c)}</option>`).join('');
+     confirm.textContent='Mover';
+   }
+   modal.classList.add('open');
  }
+ window.liftCategoryClose=()=>document.getElementById('liftCategoryModal').classList.remove('open');
+ window.liftCategoryCreate=()=>open('create');
+ window.liftCategoryRename=n=>open('rename',n);
+ window.liftCategoryDuplicate=n=>open('duplicate',n);
+ window.liftCategoryDelete=n=>open('delete',n);
+ window.liftCategoryMoveProduct=id=>open('move','',id);
 
- function decorateFilters(){
-   document.querySelectorAll('.filterPanel').forEach(panel=>{
-     const text=panel.textContent||'';
-     if(!/categor/i.test(text)&&!panel.querySelector('.filterItem'))return;
-     if(!panel.querySelector('.catAdminCreate')){
-       const add=document.createElement('button');add.type='button';add.className='catAdminCreate';add.textContent='+ Crear categoría';add.onclick=()=>liftCatAdminOpen('');
-       panel.insertBefore(add,panel.firstChild);
+ window.liftCategoryConfirm=async function(){
+   const mode=document.getElementById('liftCategoryMode').value;
+   const oldName=clean(document.getElementById('liftCategoryOld').value);
+   const newName=clean(document.getElementById('liftCategoryName').value);
+   const target=clean(document.getElementById('liftCategoryTarget').value);
+   const productId=document.getElementById('liftCategoryProductId').value;
+   const backupCfg=JSON.parse(JSON.stringify(LIFT_CATEGORY_CONFIG||{}));
+   const changed=[];
+   try{
+     if(mode==='create'||mode==='duplicate'){
+       if(!newName||newName==='Todos')throw new Error('Escribe un nombre válido.');
+       if(names().includes(newName))throw new Error('Esa categoría ya existe.');
+       LIFT_CATEGORY_CONFIG[newName]={active:true};
+       await saveConfig();
      }
-     panel.querySelectorAll('.filterItem').forEach(item=>{
-       const name=clean(item.childNodes[0]?.textContent||item.textContent).replace(/\d+\s*$/,'').trim();
-       if(!name||name==='Todos'||item.querySelector('.catAdminTools'))return;
-       const tools=document.createElement('span');tools.className='catAdminTools';
-       tools.innerHTML='<button class="catAdminBtn" type="button" title="Duplicar">⧉</button><button class="catAdminBtn" type="button" title="Renombrar">✎</button><button class="catAdminBtn" type="button" title="Eliminar">⌫</button>';
-       const bs=tools.querySelectorAll('button');
-       bs[0].onclick=e=>{e.stopPropagation();liftCatAdminDuplicate(name)};
-       bs[1].onclick=e=>{e.stopPropagation();liftCatAdminOpen(name)};
-       bs[2].onclick=e=>{e.stopPropagation();liftCatAdminDelete(name)};
-       item.appendChild(tools);
-     });
-   });
- }
- function decorate(){decorateCards();decorateFilters()}
- const obs=new MutationObserver(()=>requestAnimationFrame(decorate));
- function boot(){obs.observe(document.body,{childList:true,subtree:true});decorate()}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-
- // Captura categories_v1 cuando la carga cloud consulta lift_catalog_config.
- const originalFetch=window.fetch;
- window.fetch=async function(input,init){
-   const r=await originalFetch.apply(this,arguments);
-   try{
-     const u=String(input||'');
-     if(u.includes('/rest/v1/lift_catalog_config?select=clave,valor')){
-       const data=await r.clone().json();
-       const row=Array.isArray(data)?data.find(x=>x.clave===CFG):null;
-       if(row?.valor&&typeof row.valor==='object'){catCfg=row.valor;setTimeout(refresh,0)}
+     if(mode==='rename'){
+       if(!newName||newName==='Todos')throw new Error('Escribe un nombre válido.');
+       if(newName!==oldName&&names(oldName).includes(newName))throw new Error('Ya existe una categoría con ese nombre.');
+       const arr=byCat(oldName);changed.push(...arr.map(p=>({p,old:p.category})));
+       arr.forEach(p=>p.category=newName);
+       delete LIFT_CATEGORY_CONFIG[oldName];
+       LIFT_CATEGORY_CONFIG[newName]={active:true};
+       await saveProducts(arr);
+       await saveConfig();
+       if(state.cat===oldName)state.cat=newName;
      }
-   }catch(e){}
-   return r;
- };
-})();
-</script>
-
-<style id="lift-category-delete-fix-v2">
-#liftCatDeleteModal .catDeleteInfo{font-size:12px;line-height:1.5;color:#555;padding:10px 12px;background:#f7f7f7;border-radius:10px;margin-bottom:10px}
-#liftCatDeleteModal .danger{background:#b42318!important;color:#fff!important;border-color:#b42318!important}
-</style>
-
-<div id="liftCatDeleteModal" class="catAdminModal" onclick="if(event.target===this)liftCatDeleteClose()">
- <div class="catAdminCard">
-  <h3>Eliminar categoría</h3>
-  <input type="hidden" id="liftCatDeleteName">
-  <div id="liftCatDeleteInfo" class="catDeleteInfo"></div>
-  <label id="liftCatDeleteTargetWrap">Mover sus productos a
-   <select id="liftCatDeleteTarget"></select>
-  </label>
-  <div class="catAdminActions">
-   <button type="button" onclick="liftCatDeleteClose()">Cancelar</button>
-   <button type="button" class="danger" onclick="liftCatDeleteConfirm()">Eliminar categoría</button>
-  </div>
- </div>
-</div>
-
-<script id="lift-category-delete-fix-v2-script">
-(function(){
- function clean(v){return String(v||'').trim()}
- function cats(exclude){
-   const set=new Set((window.PRODUCTS||[]).map(p=>clean(p.category)).filter(Boolean));
-   set.add('Sin categoría');
-   set.delete('Todos');set.delete(exclude);
-   return [...set].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
- }
- function affected(name){return (window.PRODUCTS||[]).filter(p=>clean(p.category)===name)}
-
- window.liftCatAdminDelete=function(name){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const n=clean(name);if(!n||n==='Todos')return;
-   const arr=affected(n);
-   document.getElementById('liftCatDeleteName').value=n;
-   document.getElementById('liftCatDeleteInfo').textContent=arr.length
-     ? `"${n}" tiene ${arr.length} producto${arr.length===1?'':'s'}. Antes de eliminarla, elige dónde moverlos.`
-     : `"${n}" no tiene productos. Puedes eliminarla directamente.`;
-   const wrap=document.getElementById('liftCatDeleteTargetWrap'),sel=document.getElementById('liftCatDeleteTarget');
-   wrap.style.display=arr.length?'grid':'none';
-   sel.innerHTML=cats(n).map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c}</option>`).join('');
-   document.getElementById('liftCatDeleteModal').classList.add('open');
- };
- window.liftCatDeleteClose=function(){document.getElementById('liftCatDeleteModal').classList.remove('open')};
-
- window.liftCatDeleteConfirm=async function(){
-   const n=clean(document.getElementById('liftCatDeleteName').value),arr=affected(n);
-   const target=arr.length?clean(document.getElementById('liftCatDeleteTarget').value):'';
-   if(arr.length&&!target)return alert('Selecciona la categoría de destino.');
-
-   const oldProducts=arr.map(p=>({p,category:p.category}));
-   try{
-     // Primero mueve y persiste todos los productos afectados.
-     if(arr.length){
-       if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión de productos con Supabase.');
-       for(const p of arr){p.category=target;await window.liftCloudSaveProduct(p)}
+     if(mode==='delete'){
+       const arr=byCat(oldName);changed.push(...arr.map(p=>({p,old:p.category})));
+       if(arr.length&&!target)throw new Error('Selecciona una categoría destino.');
+       arr.forEach(p=>p.category=target);
+       if(arr.length)await saveProducts(arr);
+       LIFT_CATEGORY_CONFIG[oldName]={active:false,__deleted:true};
+       if(target)LIFT_CATEGORY_CONFIG[target]={active:true};
+       await saveConfig();
+       if(state.cat===oldName)state.cat='Todos';
      }
-
-     // Después elimina la categoría de la configuración persistente.
-     // Reutilizamos la configuración mediante save-config, conservando las categorías
-     // que realmente existen en productos y marcando la eliminada como inactiva.
-     const current=[...new Set((window.PRODUCTS||[]).map(p=>clean(p.category)).filter(Boolean))];
-     const cfg={};
-     current.filter(c=>c!=='Todos'&&c!==n).forEach(c=>cfg[c]={active:true});
-     cfg[n]={active:false,__deleted:true};
-     if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No encontré la conexión de categorías con Supabase.');
-     await window.liftCloudSaveConfig('categories_v1',cfg);
-
-     if(window.state?.cat===n)window.state.cat='Todos';
-     liftCatDeleteClose();
-     if(typeof renderFilters==='function')renderFilters();
-     if(typeof render==='function')render();
-     if(typeof lafRenderProducts==='function')lafRenderProducts();
+     if(mode==='move'){
+       const p=PRODUCTS.find(x=>String(x.id)===String(productId));if(!p)throw new Error('No encontré el producto.');
+       if(!target)throw new Error('Selecciona una categoría.');
+       changed.push({p,old:p.category});p.category=target;
+       LIFT_CATEGORY_CONFIG[target]={active:true};
+       await window.liftCloudSaveProduct(p);
+       await saveConfig();
+     }
+     liftCategoryClose();repaint();
    }catch(e){
-     oldProducts.forEach(x=>x.p.category=x.category);
-     alert('No pude eliminar la categoría: '+(e.message||e));
+     changed.forEach(x=>x.p.category=x.old);
+     LIFT_CATEGORY_CONFIG=backupCfg;
+     alert('No se pudo completar el cambio: '+(e.message||e));
    }
  };
 })();
