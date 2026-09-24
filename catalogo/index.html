@@ -709,9 +709,14 @@
   <div class="checkoutCard">
     <div class="checkoutHead"><h2>Finalizar compra</h2><button class="close" onclick="closeCheckout()">×</button></div>
     <div class="checkoutBody">
+      <div id="liftRecurringClientBox" class="liftRecurringClientBox">
+        <div class="liftRecurringClientTitle">Clientes recurrentes</div>
+        <div class="liftRecurringClientSearch"><input id="liftClientSearch" type="search" autocomplete="off" placeholder="Buscar por celular o nombre"><button type="button" onclick="liftFindClient()">⌕</button></div>
+        <div id="liftClientResults" class="liftClientResults"></div>
+      </div>
       <div class="checkoutGrid">
         <div class="field"><label for="coName">Nombre</label><input id="coName" autocomplete="name" placeholder="Nombre completo"></div>
-        <div class="field"><label for="coPhone">Celular</label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></div>
+        <div class="field"><label for="coPhone">Celular <span style="font-weight:400;color:#888">(opcional si tiene @usuario)</span></label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></div><div class="field"><label for="coWhatsappUser">Usuario de WhatsApp</label><input id="coWhatsappUser" autocomplete="off" placeholder="@usuario"></div>
         <div class="field full"><label for="coAddress">Dirección</label><input id="coAddress" autocomplete="street-address" placeholder="Dirección de entrega"></div>
         <div class="field full"><label for="coCity">Ciudad / municipio</label><div class="cityWrap"><input id="coCity" autocomplete="off" placeholder="Busca tu ciudad o municipio"><div id="cityResults" class="cityResults"></div></div></div>
         <div class="field full"><label for="coNotes">Notas del pedido</label><textarea id="coNotes" placeholder="Ej: entregar en portería, sabor preferido, indicaciones de entrega..."></textarea></div>
@@ -722,6 +727,22 @@
         </div>
         <div class="field full checkoutFlavorNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div>
       </div>
+      <div id="liftManualProductBox" class="liftManualProductBox">
+        <button id="liftManualProductToggle" type="button" class="liftManualProductToggle" onclick="liftToggleManualProduct()">＋ Producto manual</button>
+        <div id="liftManualProductForm" class="liftManualProductForm" hidden>
+          <div class="liftManualProductTitle">Agregar producto al pedido</div>
+          <div class="liftManualGrid">
+            <label>Nombre<input id="liftManualName" type="text" placeholder="Nombre del producto"></label>
+            <label>Marca<input id="liftManualBrand" type="text" placeholder="Marca"></label>
+            <label>Presentación<input id="liftManualPresentation" type="text" placeholder="Ej: 60 caps, 2 lb"></label>
+            <label>Precio<input id="liftManualPrice" type="number" min="0" step="100" inputmode="numeric" placeholder="0"></label>
+            <label class="full">URL de imagen<input id="liftManualImage" type="url" placeholder="https://..."></label>
+            <label class="full">Guardar como<select id="liftManualVisibility"><option value="admin">🔒 Solo administrador</option><option value="public">🌐 Público</option><option value="order">🧾 Solo este pedido</option></select></label>
+          </div>
+          <div class="liftManualActions"><button type="button" onclick="liftCreateManualProduct()">Crear y agregar</button><button type="button" class="light" onclick="liftToggleManualProduct(false)">Cancelar</button></div>
+          <div id="liftManualStatus" class="liftManualStatus"></div>
+        </div>
+      </div>
       <div class="checkoutSummary">
         <div id="checkoutItems" class="checkoutItems"></div>
         <div id="checkoutShippingProgress"></div>
@@ -729,7 +750,7 @@
         <div id="coDiscountLine" class="checkoutLine discountLine" style="display:none"><span id="coDiscountLabel">Descuento</span><strong id="coDiscount">-$0</strong></div>
         <div class="checkoutLine"><span>Envío</span><strong id="coShipping">Selecciona ciudad</strong></div>
         <div class="checkoutLine total"><span>Total</span><span id="coTotal">$0</span></div>
-        <button class="checkoutSend" onclick="finishCheckout()">Enviar pedido por WhatsApp</button>
+        <button class="checkoutSend" onclick="finishCheckout()">Comprar por WP</button><button id="liftProviderCheckoutBtn" class="checkoutProviderBtn" type="button" onclick="finishProviderCheckout()">Proveedor</button>
         <div class="checkoutHint">El envío se calcula por ciudad y cantidad de productos. Medellín, Bello, Itagüí, Envigado, Sabaneta y La Estrella usan la tarifa local; las demás ciudades usan la tarifa nacional.</div>
       </div>
     </div>
@@ -1021,7 +1042,7 @@ function renderProductListProgressive(arr,emptyText='No encontré productos.'){
   appendNext();
 }
 function render(){
-  const arr=filtered();
+  const arr=filtered().filter(p=>!p.adminOnly || document.body.classList.contains('liftAdminUnlocked'));
   document.getElementById('status').textContent=state.offerOnly?`🔥 ${arr.length} ofertas disponibles`:`${arr.length} productos encontrados`;
   renderProductListProgressive(arr,state.offerOnly?'No hay ofertas activas en este momento.':'No encontré productos con esos filtros.');
   renderFilters();
@@ -1340,7 +1361,7 @@ function renderCheckoutSummary(){
   const flavorMsg=flavorMessageFor(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
     const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=trainerCouponActive()&&eff<pub;
-    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">${esc(x.p.brand)}</div>${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div style="font-size:10px;color:#888;text-decoration:line-through">${fmt(pub*x.q)}</div>`:''}${fmt(eff*x.q)}</div></div>`;
+    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div style="font-size:10px;color:#888;text-decoration:line-through">${fmt(pub*x.q)}</div>`:''}${fmt(eff*x.q)}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
   }).join('')}</div>`+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');
   const prog=document.getElementById('checkoutShippingProgress');
   if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());
@@ -1363,17 +1384,50 @@ function checkoutText(){
   if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}
   const its=checkoutItemsList();if(!its.length)return '';
   const sub=checkoutPublicSubtotal(its),effectiveSub=checkoutEffectiveSubtotal(its),ship=shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(its),total=Math.max(0,effectiveSub-(trainerCouponActive()?0:discount))+(ship||0);
+  const moneySpace=v=>fmt(v).replace(/^\$\s*/, '$ ');
   const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];
   its.forEach(({p,q})=>{
-    const pub=priceOf(p),eff=checkoutUnitPrice(p);
-    lines.push(`⚡ ${q} ${p.name}${p._cartFlavor?' · Sabor: '+p._cartFlavor:''} – ${p.brand} · ${fmt(eff)} c/u${trainerCouponActive()&&eff<pub?' · 🏋️ Entrenador':''}${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`);
+    const pub=priceOf(p),eff=checkoutUnitPrice(p),flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
+    const productName=`${p.name}${flavor}`;
+    if(q>1) lines.push(`${q} -  ${productName}  · (${moneySpace(eff)} c/u) - ${moneySpace(eff*q)}`);
+    else lines.push(`${q} -  ${productName}  · ${moneySpace(eff)} c/u`);
   });
-  lines.push('',`💬 Si el producto maneja sabores, se confirman por WhatsApp según disponibilidad.`);
-  lines.push('',`Subtotal público: ${fmt(sub)}`);
-  if(appliedCoupon&&discount)lines.push(`${trainerCouponActive()?'Precio entrenador':'Cupón'} ${appliedCoupon.code}: -${fmt(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);
-  lines.push(`Envío: ${ship===0?'GRATIS':fmt(ship)}`,`Total: ${fmt(total)}`);
-  return lines.filter(Boolean).join('\n');
+  lines.push('',`Subtotal público: ${moneySpace(sub)}`);
+  if(appliedCoupon&&discount)lines.push(`${trainerCouponActive()?'Precio entrenador':'Cupón'} ${appliedCoupon.code}: -${moneySpace(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);
+  lines.push(`Envío: ${ship===0?'GRATIS':moneySpace(ship)}`,`Total: ${moneySpace(total)}`);
+  return lines.filter((v,i)=>v!=='' || i===1 || i===7 || i===lines.length-4).join('\n');
 }
+function providerCheckoutText(){
+  const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();
+  if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}
+  const its=checkoutItemsList();if(!its.length)return '';
+  const sub=checkoutPublicSubtotal(its);
+  const lines=[`Buenas me puedes enviar este pedido porfa`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`];
+  if(notes) lines.push(`Notas: ${notes}`);
+  lines.push(``,`Pedido:`);
+  its.forEach(({p,q})=>{
+    const flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
+    lines.push(`${q} -  ${p.name}${flavor}`);
+  });
+  lines.push(``,``,`Cancela en efectivo ${fmt(sub)} contra entrega`,`Cancela ${fmt(sub)}  por transferencia contra entrega a esta cuenta:`,``,`Titular: Edwin Fernando Muñoz Tobon`,`🏦 Bancolombia ahorros`,`# 36655023431  / 🔑Llave  @edwin4518`);
+  return lines.join('\n');
+}
+async function finishProviderCheckout(){
+  if(!document.body.classList.contains('liftAdminUnlocked'))return;
+  const t=providerCheckoutText();if(!t)return;
+  try{
+    await navigator.clipboard.writeText(t);
+    alert('Pedido de proveedor copiado ✓');
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    document.execCommand('copy');ta.remove();
+    alert('Pedido de proveedor copiado ✓');
+  }
+}
+window.providerCheckoutText=providerCheckoutText;
+window.finishProviderCheckout=finishProviderCheckout;
 async function registerCouponUse(){
   if(!appliedCoupon)return true;
   try{
@@ -4214,7 +4268,7 @@ window.shareLiftProductImage=async function(id){
 </style>
 <div id="lafBackdrop" onclick="closeLiftAdminFull()"></div>
 <aside id="lafPanel">
- <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
+ <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button type="button" onclick="lockLiftAdmin()" title="Salir del administrador" style="margin-left:auto;border:1px solid #444;background:#1b1b1b;color:#fff;border-radius:9px;height:34px;padding:0 11px;cursor:pointer;font:600 11px Poppins,Arial">Salir</button><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
  <div class="lafTabs">
   <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="audit" onclick="lafTab('audit',this)">Auditoría</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
  </div>
@@ -4281,7 +4335,7 @@ window.shareLiftProductImage=async function(id){
 
 <style id="lift-admin-access-lock-v1">
 #liftAdminFullBtn{display:none!important}
-#liftAdminLoginBtn{height:44px;border:1px solid #343434;background:#111;color:#fff;border-radius:13px;padding:0 14px;font:600 12px Poppins,Arial;cursor:pointer;white-space:nowrap}
+#liftAdminLoginBtn{display:none!important;height:44px;border:1px solid #343434;background:#111;color:#fff;border-radius:13px;padding:0 14px;font:600 12px Poppins,Arial;cursor:pointer;white-space:nowrap}
 body.liftAdminUnlocked #liftAdminFullBtn{display:inline-flex!important;align-items:center;justify-content:center}
 body.liftAdminUnlocked #liftAdminLoginBtn{display:none!important}
 #liftAdminAccessModal{position:fixed;inset:0;z-index:14000;background:rgba(0,0,0,.58);display:none;place-items:center;padding:18px}
@@ -4292,6 +4346,10 @@ body.liftAdminUnlocked #liftAdminLoginBtn{display:none!important}
 .liftAdminAccessActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.liftAdminAccessActions button{height:42px;border:0;border-radius:10px;cursor:pointer;font-weight:600}.liftAdminAccessEnter{background:#111;color:#fff}.liftAdminAccessCancel{background:#eee;color:#111}
 #liftAdminAccessError{min-height:18px;color:#b42318;font-size:11px;margin-top:7px}
 @media(max-width:760px){#liftAdminLoginBtn{height:40px;padding:0 10px;font-size:0}#liftAdminLoginBtn:after{content:'🔐';font-size:17px}body.liftAdminUnlocked #liftAdminFullBtn{font-size:0!important;width:40px;padding:0!important}body.liftAdminUnlocked #liftAdminFullBtn:after{content:'⚙';font-size:17px}}
+
+#liftProviderCheckoutBtn{display:none;width:100%;height:48px;border:1px solid #d7d7d7;border-radius:11px;background:#fff;color:#111;font-family:inherit;font-weight:500;cursor:pointer;margin-top:8px}
+body.liftAdminUnlocked #liftProviderCheckoutBtn{display:block}
+#liftProviderCheckoutBtn:hover{background:#f4f4f4}
 </style>
 <div id="liftAdminAccessModal" onclick="if(event.target===this)closeLiftAdminAccess()">
  <div class="liftAdminAccessCard" role="dialog" aria-modal="true" aria-labelledby="liftAdminAccessTitle">
@@ -4312,11 +4370,19 @@ body.liftAdminUnlocked #liftAdminLoginBtn{display:none!important}
  window.openLiftAdminAccess=function(){if(unlocked()){if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull();return}const m=$('liftAdminAccessModal');if(m)m.classList.add('open');const i=$('liftAdminAccessPassword');if(i){i.value='';setTimeout(()=>i.focus(),40)}const e=$('liftAdminAccessError');if(e)e.textContent=''};
  window.closeLiftAdminAccess=function(){const m=$('liftAdminAccessModal');if(m)m.classList.remove('open')};
  window.unlockLiftAdmin=function(){const i=$('liftAdminAccessPassword'),e=$('liftAdminAccessError');if(!i)return;if(i.value===ADMIN_PASSWORD){try{sessionStorage.setItem(SESSION_KEY,'1')}catch(x){}sync();closeLiftAdminAccess();if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull()}else{if(e)e.textContent='Clave incorrecta.';i.select()}};
- window.lockLiftAdmin=function(){try{sessionStorage.removeItem(SESSION_KEY)}catch(e){}sync();if(typeof window.closeLiftAdminFull==='function')window.closeLiftAdminFull()};
- function addLogin(){sync();const bar=document.querySelector('.top .bar');if(!bar||$('liftAdminLoginBtn'))return;const b=document.createElement('button');b.id='liftAdminLoginBtn';b.type='button';b.textContent='🔐 Admin';b.onclick=openLiftAdminAccess;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
+ window.lockLiftAdmin=function(){try{sessionStorage.removeItem(SESSION_KEY);sessionStorage.removeItem('liftAdminCloudPasswordV1')}catch(e){}sync();if(typeof window.closeLiftAdminFull==='function')window.closeLiftAdminFull();try{const u=new URL(location.href);u.searchParams.delete('admin');history.replaceState(null,'',u.pathname+u.search+u.hash)}catch(e){}};
+ function initPrivateAdmin(){
+  sync();
+  const params=new URLSearchParams(location.search);
+  const adminRoute=(params.get('admin')||'').toLowerCase()==='lift';
+  if(adminRoute){
+    if(unlocked()){ if(typeof window.openLiftAdminFull==='function') setTimeout(()=>window.openLiftAdminFull(),80); }
+    else setTimeout(()=>window.openLiftAdminAccess(),80);
+  }
+ }
  const originalOpen=window.openLiftAdminFull;
  if(typeof originalOpen==='function')window.openLiftAdminFull=function(){if(!unlocked()){openLiftAdminAccess();return}return originalOpen.apply(this,arguments)};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(addLogin,0));else setTimeout(addLogin,0);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initPrivateAdmin);else initPrivateAdmin();
 })();
 </script>
 
@@ -4516,6 +4582,208 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    loadCloud();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,80));else setTimeout(install,80);
+})();
+</script>
+
+
+<style id="lift-recurring-clients-style-v1">
+.liftRecurringClientBox{display:none;margin:0 0 14px;padding:12px;border:1px solid #e3e3e3;border-radius:13px;background:#fafafa}
+body.liftAdminUnlocked .liftRecurringClientBox{display:block}
+.liftRecurringClientTitle{font-size:12px;font-weight:600;margin-bottom:8px}.liftRecurringClientSearch{display:grid;grid-template-columns:1fr 42px;gap:7px}.liftRecurringClientSearch input{height:42px;border:1px solid #d5d5d5;border-radius:10px;padding:0 11px;font:inherit;font-size:12px;outline:none;background:#fff}.liftRecurringClientSearch input:focus{border-color:#111}.liftRecurringClientSearch button{border:0;border-radius:10px;background:#111;color:#fff;font-size:19px;cursor:pointer}.liftClientResults{display:grid;gap:7px;margin-top:8px}.liftClientResult{border:1px solid #e1e1e1;border-radius:10px;background:#fff;padding:9px}.liftClientResultHead{display:flex;justify-content:space-between;gap:8px;align-items:center}.liftClientResultHead b{font-size:12px}.liftClientResultHead span{font-size:10px;color:#777}.liftClientAddress{width:100%;border:0;background:#f6f6f6;border-radius:8px;padding:8px 9px;margin-top:6px;text-align:left;font:inherit;font-size:10px;line-height:1.35;cursor:pointer}.liftClientAddress:hover{background:#ededed}.liftClientEmpty{font-size:10px;color:#777;padding:4px}
+</style>
+<script id="lift-recurring-clients-supabase-v1">
+(function(){
+ const SB_URL='https://vdxkknftyssjyfbdieqa.supabase.co';
+ const SB_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const FN=SB_URL+'/functions/v1/lift-clientes';
+ const PASS_KEY='liftAdminCloudPasswordV1';
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pass=()=>{try{return sessionStorage.getItem(PASS_KEY)||''}catch(e){return ''}};
+ async function call(payload){const r=await fetch(FN,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo consultar clientes');return j}
+ window.liftFindClient=async function(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const q=document.getElementById('liftClientSearch')?.value.trim()||'', box=document.getElementById('liftClientResults');if(!box)return;
+   if(q.length<2){box.innerHTML='<div class="liftClientEmpty">Escribe un nombre o celular.</div>';return}
+   box.innerHTML='<div class="liftClientEmpty">Buscando…</div>';
+   try{const j=await call({action:'find',q});const cs=j.clientes||[];if(!cs.length){box.innerHTML='<div class="liftClientEmpty">No encontré ese cliente.</div>';return}
+     box.innerHTML=cs.map(c=>`<div class="liftClientResult"><div class="liftClientResultHead"><b>${esc(c.nombre)}</b><span>${esc(c.celular)}</span></div>${(c.lift_direcciones_cliente||[]).sort((a,b)=>Number(b.predeterminada)-Number(a.predeterminada)).map(d=>`<button type="button" class="liftClientAddress" data-client='${esc(JSON.stringify({nombre:c.nombre,celular:c.celular,...d}))}'>${d.predeterminada?'★ ':''}${esc(d.etiqueta||'Dirección')}: ${esc(d.direccion)} · ${esc(d.ciudad)}${d.departamento?' · '+esc(d.departamento):''}</button>`).join('')}</div>`).join('');
+     box.querySelectorAll('.liftClientAddress').forEach(b=>b.onclick=()=>{const d=JSON.parse(b.dataset.client);document.getElementById('coName').value=d.nombre||'';document.getElementById('coPhone').value=d.celular||'';document.getElementById('coAddress').value=d.direccion||'';if(document.getElementById('coNotes')&&!document.getElementById('coNotes').value)document.getElementById('coNotes').value=d.notas||'';const city=document.getElementById('coCity');if(city){city.value=d.ciudad+(d.departamento?' · '+d.departamento:'');}if(typeof selectedCity!=='undefined'){selectedCity={name:d.ciudad,department:d.departamento||''};}if(typeof renderCheckoutSummary==='function')renderCheckoutSummary();box.innerHTML='<div class="liftClientEmpty">✓ Datos cargados</div>';});
+   }catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}
+ };
+ window.liftSaveRecurringClient=async function(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return true;
+   const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';
+   if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)return true;
+   try{await call({action:'save',nombre,celular,direccion,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',notas});return true}catch(e){console.error('Cliente recurrente:',e);return true}
+ };
+ document.addEventListener('DOMContentLoaded',()=>{const i=document.getElementById('liftClientSearch');if(i)i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();liftFindClient()}})});
+ // Guarda/actualiza el cliente al ejecutar cualquiera de las dos acciones de checkout administrativo.
+ const install=()=>{
+   const wp=window.finishCheckout;if(typeof wp==='function'&&!wp.__liftClientWrapped){const f=async function(){if(document.body.classList.contains('liftAdminUnlocked'))await window.liftSaveRecurringClient();return wp.apply(this,arguments)};f.__liftClientWrapped=true;window.finishCheckout=f}
+   const pr=window.finishProviderCheckout;if(typeof pr==='function'&&!pr.__liftClientWrapped){const f=async function(){await window.liftSaveRecurringClient();return pr.apply(this,arguments)};f.__liftClientWrapped=true;window.finishProviderCheckout=f}
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
+
+
+<style id="lift-order-history-style-v1">
+.liftOrderHistory{margin-top:9px;display:grid;gap:8px}.liftHistoryBtn{width:100%;height:34px;border:1px solid #ddd;border-radius:8px;background:#111;color:#fff;font:inherit;font-size:10px;cursor:pointer;margin-top:7px}.liftHistoryCard{border:1px solid #ddd;border-radius:11px;background:#fff;padding:10px}.liftHistoryHead{display:flex;justify-content:space-between;gap:8px;align-items:center}.liftHistoryHead b{font-size:11px}.liftHistoryHead span{font-size:9px;color:#777}.liftHistoryItems{font-size:10px;line-height:1.5;margin-top:6px;color:#333}.liftHistoryTotal{font-size:11px;font-weight:600;margin-top:6px}.liftRepeatOrder{width:100%;height:34px;border:0;border-radius:8px;background:#111;color:#fff;font:inherit;font-size:10px;cursor:pointer;margin-top:8px}.liftHistoryTitle{font-size:11px;font-weight:600;margin:10px 0 3px}.liftHistoryEmpty{font-size:10px;color:#777;padding:7px 2px}
+</style>
+<script id="lift-order-history-supabase-v1">
+(function(){
+ const SB_URL='https://vdxkknftyssjyfbdieqa.supabase.co', SB_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh', FN=SB_URL+'/functions/v1/lift-clientes', PASS_KEY='liftAdminCloudPasswordV1';
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pass=()=>{try{return sessionStorage.getItem(PASS_KEY)||''}catch(e){return ''}};
+ async function call(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo consultar el historial');return j}
+ let activeClientId=null, historyCache={};
+ const money=v=>typeof fmt==='function'?fmt(Number(v||0)):'$ '+Number(v||0).toLocaleString('es-CO');
+ const date=v=>{try{return new Intl.DateTimeFormat('es-CO',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(v))}catch(e){return v||''}};
+ window.liftLoadHistory=async function(clientId, targetId){
+   activeClientId=Number(clientId); const box=document.getElementById(targetId||('liftHistory-'+clientId)); if(!box)return;
+   box.innerHTML='<div class="liftHistoryEmpty">Cargando pedidos…</div>';
+   try{const j=await call({action:'history',cliente_id:activeClientId});const ps=j.pedidos||[];historyCache[activeClientId]=ps;if(!ps.length){box.innerHTML='<div class="liftHistoryEmpty">Este cliente todavía no tiene pedidos guardados.</div>';return}
+     box.innerHTML='<div class="liftHistoryTitle">Último pedido</div>'+ps.slice(0,1).map(p=>historyCard(p,activeClientId)).join('')+(ps.length>1?`<details style="margin-top:7px"><summary style="font-size:10px;cursor:pointer">Ver historial (${ps.length})</summary><div class="liftOrderHistory">${ps.slice(1).map(p=>historyCard(p,activeClientId)).join('')}</div></details>`:'');
+   }catch(e){box.innerHTML='<div class="liftHistoryEmpty">'+esc(e.message)+'</div>'}
+ };
+ function historyCard(p,cid){const items=p.lift_pedido_productos||[];return `<div class="liftHistoryCard"><div class="liftHistoryHead"><b>Pedido #${p.id}</b><span>${date(p.fecha)}</span></div><div class="liftHistoryItems">${items.map(x=>`${x.cantidad} × ${esc(x.nombre)}${x.marca?' · '+esc(x.marca):''}`).join('<br>')}</div><div class="liftHistoryTotal">Total: ${money(p.total)}</div><button type="button" class="liftRepeatOrder" onclick="liftRepeatOrder(${cid},${p.id})">↻ Repetir pedido</button></div>`}
+ window.liftRepeatOrder=function(cid,pid){const p=(historyCache[cid]||[]).find(x=>Number(x.id)===Number(pid));if(!p)return;let added=0,missing=[];(p.lift_pedido_productos||[]).forEach(x=>{const current=(window.PRODUCTS||[]).find(z=>String(z.id)===String(x.producto_id));if(!current){missing.push(x.nombre);return}for(let i=0;i<Number(x.cantidad||1);i++){if(typeof add==='function')add(current.id);added++}});if(added&&typeof renderCheckoutSummary==='function')renderCheckoutSummary();if(missing.length)alert('Se agregaron los productos disponibles. Ya no encontré en el catálogo: '+missing.join(', '));};
+ // Mejora la búsqueda de clientes: cada cliente muestra direcciones + último pedido/historial.
+ window.liftFindClient=async function(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const q=document.getElementById('liftClientSearch')?.value.trim()||'', box=document.getElementById('liftClientResults');if(!box)return;if(q.length<2){box.innerHTML='<div class="liftClientEmpty">Escribe un nombre o celular.</div>';return}box.innerHTML='<div class="liftClientEmpty">Buscando…</div>';
+   try{const j=await call({action:'find',q});const cs=j.clientes||[];if(!cs.length){box.innerHTML='<div class="liftClientEmpty">No encontré ese cliente.</div>';return}
+     box.innerHTML=cs.map(c=>`<div class="liftClientResult"><div class="liftClientResultHead"><b>${esc(c.nombre)}</b><span>${esc(c.celular)}</span></div>${(c.lift_direcciones_cliente||[]).sort((a,b)=>Number(b.predeterminada)-Number(a.predeterminada)).map(d=>`<button type="button" class="liftClientAddress" data-client='${esc(JSON.stringify({cliente_id:c.id,nombre:c.nombre,celular:c.celular,...d}))}'>${d.predeterminada?'★ ':''}${esc(d.etiqueta||'Dirección')}: ${esc(d.direccion)} · ${esc(d.ciudad)}${d.departamento?' · '+esc(d.departamento):''}</button>`).join('')}<button type="button" class="liftHistoryBtn" onclick="liftLoadHistory(${c.id},'liftHistory-${c.id}')">🧾 Último pedido / historial</button><div id="liftHistory-${c.id}" class="liftOrderHistory"></div></div>`).join('');
+     box.querySelectorAll('.liftClientAddress').forEach(b=>b.onclick=()=>{const d=JSON.parse(b.dataset.client);activeClientId=Number(d.cliente_id);document.getElementById('coName').value=d.nombre||'';document.getElementById('coPhone').value=d.celular||'';document.getElementById('coAddress').value=d.direccion||'';if(document.getElementById('coNotes')&&!document.getElementById('coNotes').value)document.getElementById('coNotes').value=d.notas||'';const city=document.getElementById('coCity');if(city)city.value=d.ciudad+(d.departamento?' · '+d.departamento:'');if(typeof selectedCity!=='undefined')selectedCity={name:d.ciudad,department:d.departamento||''};if(typeof renderCheckoutSummary==='function')renderCheckoutSummary();liftLoadHistory(activeClientId,'liftHistory-'+activeClientId);});
+   }catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}
+ };
+ window.liftSaveOrderHistory=async function(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return true;
+   const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)return true;
+   const its=typeof checkoutItemsList==='function'?checkoutItemsList():[];if(!its.length)return true;const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty()),descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+(envio||0);
+   const items=its.map(({p,q})=>({producto_id:p.id,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q}));
+   try{await call({action:'save-order',nombre,celular,direccion,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',notas,subtotal,envio:envio||0,descuento:trainerCouponActive()?0:descuento,total,origen:'proveedor',items});return true}catch(e){console.error('Historial pedido:',e);alert('El pedido se copió, pero no pude guardar el historial: '+e.message);return false}
+ };
+ const install=()=>{const pr=window.finishProviderCheckout;if(typeof pr==='function'&&!pr.__liftHistoryWrapped){const f=async function(){const r=await pr.apply(this,arguments);await window.liftSaveOrderHistory();return r};f.__liftHistoryWrapped=true;window.finishProviderCheckout=f}};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
+
+
+<style id="lift-manual-checkout-style-v1">
+.liftManualProductBox{display:none;margin:2px 0 14px}.liftAdminUnlocked .liftManualProductBox{display:block}.liftManualProductToggle{width:100%;height:40px;border:1px dashed #bdbdbd;border-radius:10px;background:#fafafa;color:#111;font:inherit;font-size:11px;font-weight:600;cursor:pointer}.liftManualProductToggle:hover{background:#f2f2f2}.liftManualProductForm{margin-top:9px;border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa}.liftManualProductTitle{font-size:12px;font-weight:700;margin-bottom:10px}.liftManualGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftManualGrid label{font-size:9px;color:#666;display:grid;gap:4px}.liftManualGrid label.full{grid-column:1/-1}.liftManualGrid input,.liftManualGrid select{width:100%;height:38px;border:1px solid #d7d7d7;border-radius:8px;background:#fff;padding:0 10px;font:inherit;font-size:11px;outline:none}.liftManualGrid input:focus,.liftManualGrid select:focus{border-color:#111}.liftManualActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.liftManualActions button{height:38px;border:0;border-radius:8px;background:#111;color:#fff;font:inherit;font-size:10px;font-weight:600;cursor:pointer}.liftManualActions button.light{background:#fff;color:#111;border:1px solid #ddd}.liftManualStatus{font-size:10px;margin-top:7px;color:#666;min-height:14px}.liftManualRemove{display:block;margin:5px 0 0 auto;width:24px;height:24px;border:1px solid #ddd;border-radius:50%;background:#fff;color:#111;font-size:16px;line-height:20px;cursor:pointer}.liftManualRemove:hover{background:#111;color:#fff}.liftManualBadge{font-size:9px;color:#777;margin-top:3px}@media(max-width:620px){.liftManualGrid{grid-template-columns:1fr}.liftManualGrid label.full{grid-column:auto}}
+</style>
+<script id="lift-manual-checkout-v1">
+(function(){
+ const clean=s=>String(s||'').trim();
+ window.liftToggleManualProduct=function(force){const f=document.getElementById('liftManualProductForm');if(!f)return;f.hidden=typeof force==='boolean'?!force:!f.hidden;if(!f.hidden)setTimeout(()=>document.getElementById('liftManualName')?.focus(),30)};
+ function nextId(){return Math.max(0,...PRODUCTS.map(p=>Number(p.id)).filter(Number.isFinite))+1}
+ function addDirect(p){
+   if(!PRODUCTS.some(x=>String(x.id)===String(p.id)))PRODUCTS.push(p);
+   checkoutMode='cart';checkoutSingleId=null;
+   const key=String(p.id);cart[key]=(cart[key]||0)+1;saveCart();renderCart();renderCheckoutSummary();
+ }
+ window.liftRemoveManualCheckoutItem=function(key){key=String(key);delete cart[key];if(typeof cartMeta!=='undefined')delete cartMeta[key];saveCart();renderCart();renderCheckoutSummary()};
+ window.liftCreateManualProduct=async function(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const status=document.getElementById('liftManualStatus'),name=clean(document.getElementById('liftManualName')?.value),brand=clean(document.getElementById('liftManualBrand')?.value)||'Sin marca',presentation=clean(document.getElementById('liftManualPresentation')?.value),price=Math.max(0,Number(document.getElementById('liftManualPrice')?.value||0)),image=clean(document.getElementById('liftManualImage')?.value),visibility=document.getElementById('liftManualVisibility')?.value||'admin';
+   if(!name){status.textContent='Escribe el nombre del producto.';return}if(!price){status.textContent='Escribe el precio del producto.';return}
+   const fullName=presentation&&!name.toLowerCase().includes(presentation.toLowerCase())?name+' '+presentation:name;
+   const p={id:visibility==='order'?'manual-'+Date.now():nextId(),name:fullName,brand,category:'Otros',price,image:image||'https://placehold.co/600x600?text=Producto',presentation,_manualProduct:true,adminOnly:visibility!=='public',_checkoutOnly:visibility==='order'};
+   status.textContent=visibility==='order'?'Agregando al pedido…':'Guardando en Supabase…';
+   try{
+     if(visibility!=='order'){
+       if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión de productos con Supabase.');
+       await window.liftCloudSaveProduct(p);
+     }
+     addDirect(p);
+     status.textContent=visibility==='order'?'✓ Agregado solo a este pedido':visibility==='public'?'✓ Guardado como público y agregado':'✓ Guardado solo para administrador y agregado';
+     ['liftManualName','liftManualBrand','liftManualPresentation','liftManualPrice','liftManualImage'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+     setTimeout(()=>liftToggleManualProduct(false),900);
+     if(typeof render==='function')render();
+   }catch(e){status.textContent='No pude guardar: '+(e.message||e)}
+ };
+ // Asegura que productos privados cargados desde Supabase desaparezcan del catálogo al salir de Admin.
+ const oldLock=window.lockLiftAdmin;if(typeof oldLock==='function'&&!oldLock.__manualVisibility){const f=function(){const r=oldLock.apply(this,arguments);if(typeof render==='function')render();return r};f.__manualVisibility=true;window.lockLiftAdmin=f}
+})();
+</script>
+
+<style id="lift-quotes-style-v1">
+.liftQuoteBox{display:none;margin:0 0 14px}.liftAdminUnlocked .liftQuoteBox{display:block}.liftQuoteBtn{width:100%;height:44px;border:1px solid #111;border-radius:10px;background:#fff;color:#111;font:600 11px Poppins,Arial;cursor:pointer}.liftQuoteForm{margin-top:9px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.liftQuoteGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftQuoteGrid label{display:grid;gap:4px;font-size:9px;color:#666}.liftQuoteGrid label.full{grid-column:1/-1}.liftQuoteGrid input,.liftQuoteGrid select,.liftQuoteGrid textarea{width:100%;border:1px solid #d7d7d7;border-radius:8px;background:#fff;padding:9px;font:inherit;font-size:10px}.liftQuoteGrid textarea{min-height:60px;resize:vertical}.liftQuoteActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.liftQuoteActions button{height:40px;border:0;border-radius:8px;background:#111;color:#fff;font:600 10px Poppins,Arial;cursor:pointer}.liftQuoteActions .light{background:#fff;color:#111;border:1px solid #ddd}.liftQuoteStatus{font-size:10px;color:#666;margin-top:8px;min-height:14px}.liftFollowBtn{width:100%;height:36px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins,Arial;cursor:pointer;margin-top:8px}.liftFollowPanel{margin-top:8px;display:grid;gap:7px}.liftFollowCard{border:1px solid #ddd;border-radius:10px;background:#fff;padding:9px;font-size:10px}.liftFollowHead{display:flex;justify-content:space-between;gap:8px}.liftFollowTotal{font-weight:700;margin-top:4px}.liftFollowActions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.liftFollowActions button{border:1px solid #ddd;border-radius:7px;background:#fafafa;padding:6px 8px;font:600 9px Poppins,Arial;cursor:pointer}.liftQuoteBadge{display:inline-flex;min-width:18px;height:18px;border-radius:9px;background:#111;color:#fff;align-items:center;justify-content:center;padding:0 5px;font-size:9px;margin-left:5px}@media(max-width:620px){.liftQuoteGrid{grid-template-columns:1fr}.liftQuoteGrid label.full{grid-column:auto}}
+</style>
+<script id="lift-quotes-supabase-v1">
+(function(){
+ const SB_URL='https://vdxkknftyssjyfbdieqa.supabase.co',SB_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',FN=SB_URL+'/functions/v1/lift-clientes',PASS_KEY='liftAdminCloudPasswordV1';
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pass=()=>{try{return sessionStorage.getItem(PASS_KEY)||''}catch(e){return ''}};
+ const money=v=>typeof fmt==='function'?fmt(Number(v||0)):'$ '+Number(v||0).toLocaleString('es-CO');
+ async function call(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo guardar la cotización');return j}
+ function delivery(city){const n=String(city||'').toLowerCase();const local=['medellín','medellin','bello','itagüí','itagui','envigado','sabaneta','la estrella'].some(x=>n.includes(x));return local?'Ruta local: mismo día para pedidos confirmados antes de las 2:00 p. m., sujeto a disponibilidad.':'Envío nacional: 1 a 3 días hábiles después de generada la guía.'}
+ function payments(city){const n=String(city||'').toLowerCase();const metro=['medellín','medellin','bello','itagüí','itagui','envigado','sabaneta','la estrella','copacabana','girardota','barbosa','caldas'].some(x=>n.includes(x));const base='Llave Bre-B · Bancolombia Ahorros · Bold para tarjetas de crédito (+ costo de la transacción por la pasarela)';return metro?base+' · Contraentrega en Área Metropolitana':base+' · Transferencia previa al despacho';}
+ function quoteData(){const nombre=document.getElementById('coName')?.value.trim()||'';if(typeof selectedCity==='undefined'||!selectedCity)throw new Error('Selecciona la ciudad / municipio para calcular la cotización.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty())||0,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+envio;const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q,image:p.image||''}));return{nombre,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',subtotal,envio,descuento:trainerCouponActive()?0:descuento,total,items,tiempo_entrega:delivery(selectedCity.name),medios_pago:payments(selectedCity.name)}}
+ window.liftToggleQuote=function(force){const f=document.getElementById('liftQuoteForm');if(!f)return;f.hidden=typeof force==='boolean'?!force:!f.hidden};
+ function followISO(v){if(!v)return null;const d=new Date(v+'T12:00:00');return isNaN(d)?null:d.toISOString()}
+ window.liftGenerateQuote=async function(){const st=document.getElementById('liftQuoteStatus');try{const d=quoteData(),ref='COT-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(Date.now()).slice(-4);st.textContent='Generando imagen…';await makeImage(d,ref,new Date().toISOString());st.textContent='✓ Cotización generada. No se guardó en Supabase.';}catch(e){st.textContent=e.message||e;alert(e.message||e)}};
+ function wrap(ctx,text,max){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){lines.push(line);line=w}else line=t}if(line)lines.push(line);return lines}
+ async function liftQuoteLoadImage(src){
+  if(!src)return null;
+  try{
+    if(typeof liftLoadShareImage==='function'){
+      const shared=await liftLoadShareImage(src);
+      if(shared)return shared;
+    }
+  }catch(e){}
+  const raw=String(src||'').trim(), candidates=[];
+  const add=u=>{if(u&&!candidates.includes(u))candidates.push(u)};
+  let m=raw.match(/[?&]id=([^&]+)/i);
+  if(!m)m=raw.match(/\/d\/([^/]+)/i);
+  const driveId=m?m[1]:'';
+  if(driveId){
+    add('https://lh3.googleusercontent.com/d/'+driveId+'=w1200');
+    add('https://drive.google.com/thumbnail?id='+driveId+'&sz=w1200');
+  }
+  add(raw);
+  for(const u of candidates){
+    try{
+      const img=new Image();
+      img.crossOrigin='anonymous';
+      img.referrerPolicy='no-referrer';
+      await new Promise((ok,fail)=>{
+        const timer=setTimeout(()=>fail(new Error('timeout')),8000);
+        img.onload=()=>{clearTimeout(timer);ok()};
+        img.onerror=()=>{clearTimeout(timer);fail(new Error('image'))};
+        img.src=u;
+      });
+      if(img.naturalWidth>0&&img.naturalHeight>0)return img;
+    }catch(e){}
+  }
+  return null;
+}
+ async function makeImage(d,ref,fecha){
+  const W=1080,pad=70,thumb=112,rowH=142;let H=820+d.items.length*rowH;
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#111';x.fillRect(0,0,W,135);x.fillStyle='#fff';x.font='700 42px Poppins,Arial';x.fillText('LIFT NUTRIENTES',pad,62);x.font='500 22px Poppins,Arial';x.fillText('Cotización '+ref,pad,101);
+  let y=190;x.fillStyle='#111';x.font='700 27px Poppins,Arial';x.fillText(d.ciudad+(d.departamento?' · '+d.departamento:''),pad,y);y+=55;x.strokeStyle='#ddd';x.beginPath();x.moveTo(pad,y);x.lineTo(W-pad,y);x.stroke();y+=42;x.fillStyle='#111';x.font='700 23px Poppins,Arial';x.fillText('PRODUCTOS',pad,y);y+=38;
+  for(const it of d.items){
+   const img=await liftQuoteLoadImage(it.image);const iy=y-20;
+   x.fillStyle='#f6f6f6';x.fillRect(pad,iy,thumb,thumb);
+   if(img){const r=Math.min(thumb/img.width,thumb/img.height),dw=img.width*r,dh=img.height*r;x.drawImage(img,pad+(thumb-dw)/2,iy+(thumb-dh)/2,dw,dh)}
+   const tx=pad+thumb+28;x.font='600 21px Poppins,Arial';x.fillStyle='#111';const lines=wrap(x,it.cantidad+' × '+it.nombre,570).slice(0,3);lines.forEach((ln,i)=>x.fillText(ln,tx,y+i*27));
+   if(it.marca){x.font='500 17px Poppins,Arial';x.fillStyle='#777';x.fillText(it.marca,tx,y+lines.length*27+8)}
+   x.textAlign='right';x.font='600 21px Poppins,Arial';x.fillStyle='#111';x.fillText(money(it.total_linea),W-pad,y);x.textAlign='left';y+=rowH;
+  }
+  x.strokeStyle='#ddd';x.beginPath();x.moveTo(pad,y);x.lineTo(W-pad,y);x.stroke();y+=38;x.font='500 20px Poppins,Arial';x.fillStyle='#111';x.fillText('Subtotal',pad,y);x.textAlign='right';x.fillText(money(d.subtotal),W-pad,y);x.textAlign='left';y+=34;x.fillText('Envío',pad,y);x.textAlign='right';x.fillText(money(d.envio),W-pad,y);x.textAlign='left';y+=42;x.font='700 29px Poppins,Arial';x.fillText('TOTAL',pad,y);x.textAlign='right';x.fillText(money(d.total),W-pad,y);x.textAlign='left';y+=58;
+  x.font='700 20px Poppins,Arial';x.fillText('ENTREGA ESTIMADA',pad,y);y+=29;x.font='500 18px Poppins,Arial';x.fillStyle='#555';for(const ln of wrap(x,d.tiempo_entrega,W-pad*2)){x.fillText(ln,pad,y);y+=25}y+=18;
+  x.fillStyle='#111';x.font='700 20px Poppins,Arial';x.fillText('MEDIOS DE PAGO',pad,y);y+=29;x.font='500 18px Poppins,Arial';x.fillStyle='#555';for(const ln of wrap(x,d.medios_pago,W-pad*2)){x.fillText(ln,pad,y);y+=25}
+  x.fillStyle='#888';x.font='500 16px Poppins,Arial';x.fillText('Generada '+new Intl.DateTimeFormat('es-CO',{dateStyle:'medium'}).format(new Date(fecha||Date.now())),pad,H-45);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png',0.95));if(!blob)throw new Error('No se pudo generar la imagen de la cotización.');const file=new File([blob],ref+'.png',{type:'image/png'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Cotización '+ref})}else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=ref+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+ }
+ window.liftLoadDueQuotes=async function(){const box=document.getElementById('liftFollowPanel'),badge=document.getElementById('liftFollowBadge');if(!box||!document.body.classList.contains('liftAdminUnlocked'))return;box.innerHTML='<div class="liftClientEmpty">Cargando seguimientos…</div>';try{const j=await call({action:'quotes',due:true}),qs=j.cotizaciones||[];if(badge)badge.textContent=qs.length;if(!qs.length){box.innerHTML='<div class="liftClientEmpty">No tienes seguimientos pendientes para hoy.</div>';return}box.innerHTML=qs.map(q=>`<div class="liftFollowCard"><div class="liftFollowHead"><b>${esc(q.nombre)}</b><span>${esc(q.referencia||'')}</span></div><div>${esc(q.celular||q.whatsapp_usuario||'Sin celular')} · ${esc(q.ciudad)}</div><div class="liftFollowTotal">${money(q.total)} · ${esc(q.estado)}</div>${q.nota_interna?`<div style="margin-top:4px;color:#666">${esc(q.nota_interna)}</div>`:''}<div class="liftFollowActions"><button onclick="liftQuoteWhatsApp('${esc(q.celular)}','${esc(q.nombre)}','${esc(q.whatsapp_usuario||'')}')">WhatsApp</button><button onclick="liftQuoteDone(${q.id},'Ganada')">Ganada</button><button onclick="liftQuoteDone(${q.id},'No compró')">No compró</button></div></div>`).join('')}catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}};
+ window.liftQuoteWhatsApp=function(phone,name,user){const p=String(phone||'').replace(/\D/g,'');if(!p){alert('Este cliente está guardado como '+(user||'usuario de WhatsApp')+'. WhatsApp no permite abrir un chat por nickname desde un enlace. Búscalo por su usuario en WhatsApp.');return}const cc=p.startsWith('57')?p:'57'+p;window.open('https://wa.me/'+cc+'?text='+encodeURIComponent('Hola '+name+', ¿cómo estás? Te escribo para hacer seguimiento a la cotización que te envié.'),'_blank')};
+ window.liftQuoteDone=async function(id,estado){await call({action:'update-quote',id,estado,seguimiento_at:null});liftLoadDueQuotes()};
+ function inject(){const manual=document.getElementById('liftManualProductBox');if(manual&&!document.getElementById('liftQuoteBox')){const box=document.createElement('div');box.id='liftQuoteBox';box.className='liftQuoteBox';box.innerHTML=`<button type="button" class="liftQuoteBtn" onclick="liftToggleQuote()">📄 Cotizar</button><div id="liftQuoteForm" class="liftQuoteForm" hidden><div style="font-size:12px;font-weight:700;margin-bottom:7px">Generar cotización</div><div style="font-size:10px;color:#777;line-height:1.45;margin-bottom:10px">Usa los productos del pedido y la ciudad seleccionada para calcular envío, entrega y medios de pago. No guarda datos del cliente ni la cotización.</div><div class="liftQuoteActions"><button type="button" onclick="liftGenerateQuote()">Generar imagen</button><button type="button" class="light" onclick="liftToggleQuote(false)">Cancelar</button></div><div id="liftQuoteStatus" class="liftQuoteStatus"></div></div>`;manual.insertAdjacentElement('afterend',box)}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);else inject();
 })();
 </script>
 
