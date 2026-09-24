@@ -1,11 +1,51 @@
 {
-  "updated_at": "2026-09-23T16:56:29.121217+00:00",
-  "matched_products": 7,
+  "updated_at": "2026-09-24T17:09:50.524477+00:00",
+  "matched_products": 16,
   "source_products_with_flavors": 38,
   "added_products": [
     {
-      "id": "84",
-      "product": "Nitro Tech 2 Lbs",
+      "id": "297",
+      "product": "Nitro-Tech Whey Gold 2.2 Lb Vainilla - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "298",
+      "product": "Nitro-Tech Whey Gold 2.2 Lb Chocolate - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "299",
+      "product": "Nitro-Tech Whey Gold 5 Lb Vainilla - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "300",
+      "product": "Nitro-Tech Whey Gold 5 Lb Chocolate - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "301",
+      "product": "Nitro-Tech 2 Lb Vainilla - MUSCLETECH",
       "flavors": [
         "COOKIES & CREAM",
         "CHOCOLATE",
@@ -13,15 +53,142 @@
       ]
     },
     {
-      "id": "85",
-      "product": "Nitro Tech 4 Lbs",
+      "id": "302",
+      "product": "Nitro-Tech 2 Lb Chocolate - MUSCLETECH",
       "flavors": [
         "COOKIES & CREAM",
         "CHOCOLATE",
         "VAINILLA"
       ]
+    },
+    {
+      "id": "303",
+      "product": "Nitro-Tech 4 Lb Vainilla - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "CHOCOLATE",
+        "VAINILLA"
+      ]
+    },
+    {
+      "id": "304",
+      "product": "Nitro-Tech 4 Lb Cookies - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "CHOCOLATE",
+        "VAINILLA"
+      ]
+    },
+    {
+      "id": "308",
+      "product": "Amino Build 40 Serv",
+      "flavors": [
+        "TROPICAL TWIST",
+        "FRESA SANDIA"
+      ]
+    },
+    {
+      "id": "415",
+      "product": "Platinum 100% EAA+ 30 Serv - MUSCLETECH",
+      "flavors": [
+        "FRUIT PUNCH",
+        "UVA"
+      ]
+    },
+    {
+      "id": "416",
+      "product": "Nitro-Tech Whey Gold 5 Lb Arequipe - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "542",
+      "product": "Nitro-Tech 4 Lb Fresa - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "CHOCOLATE",
+        "VAINILLA"
+      ]
+    },
+    {
+      "id": "545",
+      "product": "Nitro-Tech Whey Gold 5 Lb Cookies - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "546",
+      "product": "Nitro-Tech Whey Gold 5 Lb Churro - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "547",
+      "product": "Nitro-Tech Whey Gold 5 Lb Banana - MUSCLETECH",
+      "flavors": [
+        "COOKIES & CREAM",
+        "DOUBLE RICH CHOCOLATE",
+        "FRENCH VAINILLA CREME",
+        "CHURRO"
+      ]
+    },
+    {
+      "id": "805",
+      "product": "Creatina Chews 90 Tabletas",
+      "flavors": [
+        "CITRUS BURST",
+        "BOOGIEMAN PUNCH"
+      ]
     }
   ],
-  "removed_products": [],
+  "removed_products": [
+    {
+      "id": "84",
+      "product": "Nitro Tech 2 Lbs",
+      "reason": "ya no supera el filtro seguro"
+    },
+    {
+      "id": "85",
+      "product": "Nitro Tech 4 Lbs",
+      "reason": "ya no supera el filtro seguro"
+    },
+    {
+      "id": "86",
+      "product": "Nitro Tech Whey Gold 2 Lbs",
+      "reason": "ya no supera el filtro seguro"
+    },
+    {
+      "id": "87",
+      "product": "Nitro Tech Whey Gold 5 Lbs",
+      "reason": "ya no supera el filtro seguro"
+    },
+    {
+      "id": "88",
+      "product": "Nitro Tech Ripped 4 Lbs",
+      "reason": "ya no supera el filtro seguro"
+    },
+    {
+      "id": "100",
+      "product": "Amino Build 40 Serv",
+      "reason": "ya no supera el filtro seguro"
+    },
+    {
+      "id": "101",
+      "product": "Creatina Chews 90 Tabletas",
+      "reason": "ya no supera el filtro seguro"
+    }
+  ],
   "changed": []
 }
