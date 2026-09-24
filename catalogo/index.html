@@ -5493,4 +5493,86 @@ body.liftAdminUnlocked .liftMoveProductBtn{display:grid!important}
  };
 })();
 </script>
+
+<style id="lift-category-delete-fix-v2">
+#liftCatDeleteModal .catDeleteInfo{font-size:12px;line-height:1.5;color:#555;padding:10px 12px;background:#f7f7f7;border-radius:10px;margin-bottom:10px}
+#liftCatDeleteModal .danger{background:#b42318!important;color:#fff!important;border-color:#b42318!important}
+</style>
+
+<div id="liftCatDeleteModal" class="catAdminModal" onclick="if(event.target===this)liftCatDeleteClose()">
+ <div class="catAdminCard">
+  <h3>Eliminar categoría</h3>
+  <input type="hidden" id="liftCatDeleteName">
+  <div id="liftCatDeleteInfo" class="catDeleteInfo"></div>
+  <label id="liftCatDeleteTargetWrap">Mover sus productos a
+   <select id="liftCatDeleteTarget"></select>
+  </label>
+  <div class="catAdminActions">
+   <button type="button" onclick="liftCatDeleteClose()">Cancelar</button>
+   <button type="button" class="danger" onclick="liftCatDeleteConfirm()">Eliminar categoría</button>
+  </div>
+ </div>
+</div>
+
+<script id="lift-category-delete-fix-v2-script">
+(function(){
+ function clean(v){return String(v||'').trim()}
+ function cats(exclude){
+   const set=new Set((window.PRODUCTS||[]).map(p=>clean(p.category)).filter(Boolean));
+   set.add('Sin categoría');
+   set.delete('Todos');set.delete(exclude);
+   return [...set].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+ }
+ function affected(name){return (window.PRODUCTS||[]).filter(p=>clean(p.category)===name)}
+
+ window.liftCatAdminDelete=function(name){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const n=clean(name);if(!n||n==='Todos')return;
+   const arr=affected(n);
+   document.getElementById('liftCatDeleteName').value=n;
+   document.getElementById('liftCatDeleteInfo').textContent=arr.length
+     ? `"${n}" tiene ${arr.length} producto${arr.length===1?'':'s'}. Antes de eliminarla, elige dónde moverlos.`
+     : `"${n}" no tiene productos. Puedes eliminarla directamente.`;
+   const wrap=document.getElementById('liftCatDeleteTargetWrap'),sel=document.getElementById('liftCatDeleteTarget');
+   wrap.style.display=arr.length?'grid':'none';
+   sel.innerHTML=cats(n).map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c}</option>`).join('');
+   document.getElementById('liftCatDeleteModal').classList.add('open');
+ };
+ window.liftCatDeleteClose=function(){document.getElementById('liftCatDeleteModal').classList.remove('open')};
+
+ window.liftCatDeleteConfirm=async function(){
+   const n=clean(document.getElementById('liftCatDeleteName').value),arr=affected(n);
+   const target=arr.length?clean(document.getElementById('liftCatDeleteTarget').value):'';
+   if(arr.length&&!target)return alert('Selecciona la categoría de destino.');
+
+   const oldProducts=arr.map(p=>({p,category:p.category}));
+   try{
+     // Primero mueve y persiste todos los productos afectados.
+     if(arr.length){
+       if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión de productos con Supabase.');
+       for(const p of arr){p.category=target;await window.liftCloudSaveProduct(p)}
+     }
+
+     // Después elimina la categoría de la configuración persistente.
+     // Reutilizamos la configuración mediante save-config, conservando las categorías
+     // que realmente existen en productos y marcando la eliminada como inactiva.
+     const current=[...new Set((window.PRODUCTS||[]).map(p=>clean(p.category)).filter(Boolean))];
+     const cfg={};
+     current.filter(c=>c!=='Todos'&&c!==n).forEach(c=>cfg[c]={active:true});
+     cfg[n]={active:false,__deleted:true};
+     if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No encontré la conexión de categorías con Supabase.');
+     await window.liftCloudSaveConfig('categories_v1',cfg);
+
+     if(window.state?.cat===n)window.state.cat='Todos';
+     liftCatDeleteClose();
+     if(typeof renderFilters==='function')renderFilters();
+     if(typeof render==='function')render();
+     if(typeof lafRenderProducts==='function')lafRenderProducts();
+   }catch(e){
+     oldProducts.forEach(x=>x.p.category=x.category);
+     alert('No pude eliminar la categoría: '+(e.message||e));
+   }
+ };
+})();
+</script>
 </body></html>
