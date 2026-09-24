@@ -5288,4 +5288,209 @@ body.liftAdminUnlocked .labAdminNew{display:block}
  };
 })();
 </script>
+
+<style id="lift-category-admin-v1">
+.catAdminTools{display:none;gap:4px;margin-left:auto;align-items:center}
+body.liftAdminUnlocked .catAdminTools{display:inline-flex}
+.catAdminBtn{width:24px;height:24px;border:1px solid #d8d8d8;border-radius:7px;background:#fff;color:#111;cursor:pointer;font:600 11px Arial;place-items:center}
+.catAdminBtn:hover{background:#111;color:#fff;border-color:#111}
+.catAdminCreate{display:none;width:calc(100% - 16px);margin:7px 8px 10px;min-height:36px;border:1px dashed #aaa;border-radius:10px;background:#fff;font:600 11px Poppins,Arial;cursor:pointer}
+body.liftAdminUnlocked .catAdminCreate{display:block}
+.catAdminModal{position:fixed;inset:0;z-index:10070;background:rgba(0,0,0,.52);display:none;place-items:center;padding:18px}
+.catAdminModal.open{display:grid}
+.catAdminCard{width:min(94vw,540px);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.catAdminCard h3{margin:0 0 13px;font-size:20px}
+.catAdminCard label{display:grid;gap:5px;margin:10px 0;font-size:11px;color:#555}
+.catAdminCard input,.catAdminCard select{height:43px;border:1px solid #d7d7d7;border-radius:10px;padding:0 11px;font:inherit;background:#fff}
+.catAdminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.catAdminActions button{height:43px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer}
+.catAdminActions .primary{background:#111;color:#fff;border-color:#111}
+.liftMoveProductBtn{display:none!important}
+body.liftAdminUnlocked .liftMoveProductBtn{display:grid!important}
+</style>
+
+<div id="liftCatAdminModal" class="catAdminModal" onclick="if(event.target===this)liftCatAdminClose()">
+ <div class="catAdminCard">
+  <h3 id="liftCatAdminTitle">Categoría</h3>
+  <input type="hidden" id="liftCatAdminOld">
+  <label>Nombre de la categoría<input id="liftCatAdminName" autocomplete="off"></label>
+  <div class="catAdminActions">
+   <button type="button" onclick="liftCatAdminClose()">Cancelar</button>
+   <button type="button" class="primary" onclick="liftCatAdminSave()">Guardar</button>
+  </div>
+ </div>
+</div>
+
+<div id="liftMoveProductModal" class="catAdminModal" onclick="if(event.target===this)liftMoveProductClose()">
+ <div class="catAdminCard">
+  <h3>Mover producto</h3>
+  <input type="hidden" id="liftMoveProductId">
+  <div id="liftMoveProductName" style="font-size:12px;color:#555;margin-bottom:10px"></div>
+  <label>Nueva categoría<select id="liftMoveProductCategory"></select></label>
+  <div class="catAdminActions">
+   <button type="button" onclick="liftMoveProductClose()">Cancelar</button>
+   <button type="button" class="primary" onclick="liftMoveProductSave()">Mover</button>
+  </div>
+ </div>
+</div>
+
+<script id="lift-category-admin-v1-script">
+(function(){
+ const CFG='categories_v1';
+ let catCfg={};
+
+ const clean=v=>String(v||'').trim();
+ const productCats=()=>[...new Set((window.PRODUCTS||[]).map(p=>clean(p.category)).filter(Boolean))];
+ function allCats(){
+   const s=new Set(productCats());
+   Object.entries(catCfg).forEach(([n,v])=>{if(v?.active!==false)s.add(n)});
+   s.delete('Todos');
+   return [...s].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+ }
+ function affected(name){return (window.PRODUCTS||[]).filter(p=>clean(p.category)===name)}
+ async function cloudCfg(){
+   if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No encontré la conexión de configuración con Supabase.');
+   await window.liftCloudSaveConfig(CFG,catCfg);
+ }
+ async function cloudProducts(arr){
+   if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión de productos con Supabase.');
+   for(const p of arr)await window.liftCloudSaveProduct(p);
+ }
+ function refresh(){
+   if(typeof renderFilters==='function')renderFilters();
+   if(typeof render==='function')render();
+   if(typeof lafRenderProducts==='function')lafRenderProducts();
+   setTimeout(decorate,80);
+ }
+
+ window.liftCatAdminOpen=function(name=''){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const n=clean(name);
+   document.getElementById('liftCatAdminOld').value=n;
+   document.getElementById('liftCatAdminName').value=n;
+   document.getElementById('liftCatAdminTitle').textContent=n?'Renombrar categoría':'Crear categoría';
+   document.getElementById('liftCatAdminModal').classList.add('open');
+ };
+ window.liftCatAdminClose=()=>document.getElementById('liftCatAdminModal').classList.remove('open');
+
+ window.liftCatAdminSave=async function(){
+   const oldName=clean(document.getElementById('liftCatAdminOld').value);
+   const newName=clean(document.getElementById('liftCatAdminName').value);
+   if(!newName)return alert('Escribe el nombre de la categoría.');
+   if(newName==='Todos')return alert('Ese nombre está reservado.');
+   const previous=JSON.parse(JSON.stringify(catCfg));
+   const arr=oldName&&oldName!==newName?affected(oldName):[];
+   try{
+     if(oldName&&oldName!==newName)delete catCfg[oldName];
+     catCfg[newName]={active:true};
+     await cloudCfg();
+     if(arr.length){arr.forEach(p=>p.category=newName);await cloudProducts(arr)}
+     if(window.state?.cat===oldName)window.state.cat=newName;
+     liftCatAdminClose();refresh();
+   }catch(e){catCfg=previous;alert('No pude guardar la categoría: '+(e.message||e))}
+ };
+
+ window.liftCatAdminDuplicate=async function(name){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const base=clean(name),names=new Set(allCats());let n=base+' Copia',i=2;
+   while(names.has(n))n=base+' Copia '+i++;
+   const previous=JSON.parse(JSON.stringify(catCfg));
+   try{catCfg[n]={active:true};await cloudCfg();refresh();liftCatAdminOpen(n)}
+   catch(e){catCfg=previous;alert('No pude duplicar la categoría: '+(e.message||e))}
+ };
+
+ window.liftCatAdminDelete=async function(name){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const n=clean(name),arr=affected(n),cats=allCats().filter(x=>x!==n);
+   let target='Sin categoría';
+   if(arr.length){
+     const choice=prompt(`"${n}" tiene ${arr.length} producto(s).\nEscribe la categoría a la que quieres moverlos.\n\nDisponibles:\n${cats.join(', ')}\n\nSi dejas vacío, irán a "Sin categoría".`,'');
+     if(choice===null)return;
+     target=clean(choice)||'Sin categoría';
+   }else if(!confirm(`¿Eliminar la categoría "${n}"?`))return;
+   const previous=JSON.parse(JSON.stringify(catCfg));
+   try{
+     delete catCfg[n];catCfg[target]={active:true};await cloudCfg();
+     if(arr.length){arr.forEach(p=>p.category=target);await cloudProducts(arr)}
+     if(window.state?.cat===n)window.state.cat='Todos';
+     refresh();
+   }catch(e){catCfg=previous;alert('No pude eliminar la categoría: '+(e.message||e))}
+ };
+
+ window.liftMoveProductOpen=function(id){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));if(!p)return;
+   document.getElementById('liftMoveProductId').value=p.id;
+   document.getElementById('liftMoveProductName').textContent=p.name||'Producto';
+   const sel=document.getElementById('liftMoveProductCategory');
+   sel.innerHTML=allCats().map(c=>`<option value="${String(c).replace(/"/g,'&quot;')}" ${c===p.category?'selected':''}>${c}</option>`).join('');
+   document.getElementById('liftMoveProductModal').classList.add('open');
+ };
+ window.liftMoveProductClose=()=>document.getElementById('liftMoveProductModal').classList.remove('open');
+ window.liftMoveProductSave=async function(){
+   const id=document.getElementById('liftMoveProductId').value,cat=clean(document.getElementById('liftMoveProductCategory').value);
+   const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));if(!p||!cat)return;
+   const old=p.category;p.category=cat;
+   try{
+     if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión con Supabase.');
+     await window.liftCloudSaveProduct(p);
+     catCfg[cat]={active:true};await cloudCfg();
+     liftMoveProductClose();refresh();
+   }catch(e){p.category=old;alert('No pude mover el producto: '+(e.message||e))}
+ };
+
+ function decorateCards(){
+   document.querySelectorAll('.card').forEach(card=>{
+     if(card.querySelector('.liftMoveProductBtn'))return;
+     const edit=card.querySelector('.liftCardAdminIcon.edit');if(!edit)return;
+     const onclick=edit.getAttribute('onclick')||'',m=onclick.match(/liftCardAdminEdit\(([^)]+)\)/);if(!m)return;
+     const b=document.createElement('button');
+     b.className='liftCardAdminIcon liftMoveProductBtn';b.type='button';b.title='Mover a otra categoría';b.textContent='↪';
+     b.setAttribute('onclick',`event.stopPropagation();liftMoveProductOpen(${m[1]})`);
+     edit.parentNode.insertBefore(b,edit);
+   });
+ }
+
+ function decorateFilters(){
+   document.querySelectorAll('.filterPanel').forEach(panel=>{
+     const text=panel.textContent||'';
+     if(!/categor/i.test(text)&&!panel.querySelector('.filterItem'))return;
+     if(!panel.querySelector('.catAdminCreate')){
+       const add=document.createElement('button');add.type='button';add.className='catAdminCreate';add.textContent='+ Crear categoría';add.onclick=()=>liftCatAdminOpen('');
+       panel.insertBefore(add,panel.firstChild);
+     }
+     panel.querySelectorAll('.filterItem').forEach(item=>{
+       const name=clean(item.childNodes[0]?.textContent||item.textContent).replace(/\d+\s*$/,'').trim();
+       if(!name||name==='Todos'||item.querySelector('.catAdminTools'))return;
+       const tools=document.createElement('span');tools.className='catAdminTools';
+       tools.innerHTML='<button class="catAdminBtn" type="button" title="Duplicar">⧉</button><button class="catAdminBtn" type="button" title="Renombrar">✎</button><button class="catAdminBtn" type="button" title="Eliminar">⌫</button>';
+       const bs=tools.querySelectorAll('button');
+       bs[0].onclick=e=>{e.stopPropagation();liftCatAdminDuplicate(name)};
+       bs[1].onclick=e=>{e.stopPropagation();liftCatAdminOpen(name)};
+       bs[2].onclick=e=>{e.stopPropagation();liftCatAdminDelete(name)};
+       item.appendChild(tools);
+     });
+   });
+ }
+ function decorate(){decorateCards();decorateFilters()}
+ const obs=new MutationObserver(()=>requestAnimationFrame(decorate));
+ function boot(){obs.observe(document.body,{childList:true,subtree:true});decorate()}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+
+ // Captura categories_v1 cuando la carga cloud consulta lift_catalog_config.
+ const originalFetch=window.fetch;
+ window.fetch=async function(input,init){
+   const r=await originalFetch.apply(this,arguments);
+   try{
+     const u=String(input||'');
+     if(u.includes('/rest/v1/lift_catalog_config?select=clave,valor')){
+       const data=await r.clone().json();
+       const row=Array.isArray(data)?data.find(x=>x.clave===CFG):null;
+       if(row?.valor&&typeof row.valor==='object'){catCfg=row.valor;setTimeout(refresh,0)}
+     }
+   }catch(e){}
+   return r;
+ };
+})();
+</script>
 </body></html>
