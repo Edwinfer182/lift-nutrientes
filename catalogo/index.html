@@ -1260,13 +1260,12 @@ function updateOffersButton(){const btn=document.getElementById('offersButton'),
 let mobileRenderToken=0;
 function renderProductListProgressive(arr,emptyText='No encontré productos.'){
   const grid=document.getElementById('grid');
+  // Rendimiento: nunca montar todo el catálogo de una sola vez.
+  // Antes, escritorio insertaba todos los productos y disparaba cientos/miles
+  // de solicitudes de imágenes a Google Drive. Ahora PC y móvil cargan por lotes.
   const isMobile=window.matchMedia('(max-width: 640px)').matches;
-  if(!isMobile){
-    grid.innerHTML=productCards(arr,emptyText);
-    return;
-  }
   const token=++mobileRenderToken;
-  const batch=32;
+  const batch=isMobile?24:36;
   let shown=0;
   grid.innerHTML='';
   if(!arr.length){
@@ -1291,7 +1290,7 @@ function renderProductListProgressive(arr,emptyText='No encontré productos.'){
           io.disconnect();
           requestAnimationFrame(appendNext);
         }
-      },{rootMargin:'500px 0px'});
+      },{rootMargin:'250px 0px'});
       io.observe(sentinel);
     }
   };
@@ -1366,7 +1365,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <div class="pic">
           ${offerBadges(p)}
           <button class="liftCardFav ${liftFavorites.has(Number(p.id))?'active':''}" type="button" title="Favorito" aria-label="Favorito" onclick="event.stopPropagation();toggleLiftFavorite(${p.id},this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 4.3 13A5.2 5.2 0 0 1 12 6a5.2 5.2 0 0 1 7.7 7L12 20.4Z"/></svg></button>
-          <img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">
+          <img loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">
         </div>
         <div class="body">
           <div class="liftCardSection">${esc(p.brand||'')} · ${esc(p.category||'')}</div>
@@ -4768,7 +4767,7 @@ function dl(name,text,type){const b=new Blob([text],{type});const a=document.cre
  const done=data=>{
   pending={products:data.products||[],offers:data.offers||[],combos:data.combos||[],variations:data.variations||[]};
   $('lafImportPreview').style.display='block';
-  $('lafImportPreview').innerHTML=previewTable(pending.products);
+  $('lafImportPreview').innerHTML=previewTable(pending.products.slice(0,20))+'<div style="padding:10px 12px;color:#777;font-size:11px">Vista previa: 20 de '+pending.products.length+' productos. La importación procesa el archivo completo.</div>';
   $('lafImportResult').textContent=`Listo: ${pending.products.length} productos, ${pending.variations.length} variaciones, ${pending.offers.length} ofertas, ${pending.combos.length} combos.`;
   $('lafApplyImport').disabled=false
  };
@@ -5423,7 +5422,7 @@ document.addEventListener('DOMContentLoaded',()=>{liftUpdateMergeBar();setTimeou
      return true;
    }catch(e){console.error('Lift Excel variaciones',e);return false}
  }
- let n=0,t=setInterval(()=>{n++;if(hydrate()||n>30)clearInterval(t)},120);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hydrate,{once:true});else hydrate();setTimeout(hydrate,250);
 })();
 </script>
 
@@ -5538,11 +5537,9 @@ window.liftOpenParentVariants=function(id){
      window.openLiftProductById=function(id){if(liftOpenParentVariants(id))return;return original(id)}
    }
    decorate();
-   const grid=document.getElementById('grid');
-   if(grid&&!window.__liftParentObserver){window.__liftParentObserver=new MutationObserver(()=>decorate());window.__liftParentObserver.observe(grid,{childList:true,subtree:true})}
+   setTimeout(decorate,0)
  }
- let tries=0,t=setInterval(()=>{tries++;install();if(tries>40)clearInterval(t)},150);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();setTimeout(install,250);
 })();
 </script>
 
@@ -5602,10 +5599,53 @@ body.liftAdminUnlocked #liftAdminFullBtn{display:inline-flex!important;align-ite
    if(label){label.textContent=vs.length+' sabores disponibles';label.classList.add('liftParentFlavorCount')}
   });
  }
- const grid=document.getElementById('grid');
- if(grid){new MutationObserver(decorate).observe(grid,{childList:true,subtree:true})}
+ 
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',decorate,{once:true});else decorate();
- setTimeout(decorate,350);setTimeout(decorate,1000);
+ setTimeout(decorate,250);
+})();
+</script>
+
+
+<script id="lift-runtime-performance-v1">
+(function(){
+ let scheduled=false;
+ function refreshParentLabels(){
+   scheduled=false;
+   let vm={};
+   try{vm=JSON.parse(localStorage.getItem('liftExcelParentVariantsV1')||'{}')}catch(e){}
+   document.querySelectorAll('#grid .card').forEach(card=>{
+     const raw=card.innerHTML||'';
+     const hit=raw.match(/openLiftProductById\((\d+)\)/)||raw.match(/add\((\d+)/);
+     if(!hit)return;
+     const vs=vm[String(hit[1])];
+     if(!Array.isArray(vs)||vs.length<2)return;
+     let label=card.querySelector('.liftCardFlavor');
+     if(!label){
+       const name=card.querySelector('.name');
+       if(!name)return;
+       label=document.createElement('div');
+       label.className='liftCardFlavor';
+       name.insertAdjacentElement('afterend',label);
+     }
+     label.textContent=vs.length+' sabores disponibles';
+     label.classList.add('liftParentFlavorCount');
+   });
+ }
+ function scheduleLabels(){
+   if(scheduled)return;
+   scheduled=true;
+   requestAnimationFrame(refreshParentLabels);
+ }
+ const originalRender=window.render;
+ if(typeof originalRender==='function'&&!window.__liftPerfRenderWrapped){
+   window.__liftPerfRenderWrapped=true;
+   window.render=function(){
+     const r=originalRender.apply(this,arguments);
+     scheduleLabels();
+     return r;
+   };
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleLabels,{once:true});else scheduleLabels();
 })();
 </script>
 
