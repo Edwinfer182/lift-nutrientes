@@ -574,6 +574,45 @@
 
 <!-- LIFT FASE 2: fusion de catalogo Vitaness sin reemplazar productos existentes. Nuevos productos usan precio publico Vitaness. -->
 <!-- FUSION GLOBAL CORRECTA: Lift conserva sus productos; coincidencias usan imagen Vitaness; exclusivos Vitaness se agregan a marca canonica Lift. -->
+
+<style id="liftAdminCheckoutMobileVisibility">
+/* En móvil, si la sesión administrativa está activa, no ocultar herramientas del checkout. */
+@media (max-width: 760px){
+  body.liftAdminUnlocked #checkoutModal .liftRecurringClientBox,
+  body.liftAdminUnlocked #checkoutModal .liftManualProductBox,
+  body.liftAdminUnlocked #checkoutModal .liftQuoteBox,
+  body.liftAdminUnlocked #checkoutModal #liftProviderCheckoutBtn{
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+
+  body.liftAdminUnlocked #checkoutModal #liftManualProductToggle,
+  body.liftAdminUnlocked #checkoutModal .liftQuoteBtn,
+  body.liftAdminUnlocked #checkoutModal #liftProviderCheckoutBtn,
+  body.liftAdminUnlocked #checkoutModal .checkoutSend,
+  body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn,
+  body.liftAdminUnlocked #checkoutModal .liftFollowBtn{
+    display:flex !important;
+    width:100% !important;
+    min-height:44px !important;
+    align-items:center !important;
+    justify-content:center !important;
+    box-sizing:border-box !important;
+  }
+
+  body.liftAdminUnlocked #checkoutModal .checkoutBody{
+    overflow:visible;
+  }
+
+  body.liftAdminUnlocked #checkoutModal .checkoutCard{
+    max-height:94vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+}
+</style>
+
 </head><body>
 <!-- FASE5 LIMPIEZA V2: 67 duplicados Lift adicionales eliminados; Vitaness conservado como prioridad. -->
 
