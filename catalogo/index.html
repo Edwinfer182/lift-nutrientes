@@ -4802,6 +4802,65 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
        if(p){await window.liftCloudSaveProduct(p);const m=JSON.parse(localStorage.getItem('liftAdminFullMetaV2')||'{}');await window.liftCloudSaveConfig('admin_meta',m)}
      }catch(e){alert(e.message)}},0);
    };
+   // PERSISTENCIA UNIFICADA: cualquier editor y la importación Excel deben terminar en Supabase.
+   const oldLegacySave=window.saveLiftAdminProduct;
+   if(typeof oldLegacySave==='function')window.saveLiftAdminProduct=function(id){
+     const beforeIds=new Set(PRODUCTS.map(p=>String(p.id)));
+     const r=oldLegacySave.apply(this,arguments);
+     setTimeout(async()=>{try{
+       let p=id!=null?PRODUCTS.find(x=>String(x.id)===String(id)):PRODUCTS.find(x=>!beforeIds.has(String(x.id)));
+       if(p){
+         await window.liftCloudSaveProduct(p);
+         const m=JSON.parse(localStorage.getItem('liftAdminFullMetaV2')||'{}');
+         await window.liftCloudSaveConfig('admin_meta',m);
+       }
+     }catch(e){alert('El cambio se vio en pantalla, pero no pudo guardarse en Supabase: '+e.message)}},0);
+     return r;
+   };
+
+   async function cloudSaveMany(list,concurrency=5){
+     let cursor=0,done=0;
+     async function worker(){
+       while(cursor<list.length){
+         const p=list[cursor++];
+         await window.liftCloudSaveProduct(p);
+         done++;
+         state(`☁ guardando ${done}/${list.length}…`);
+       }
+     }
+     await Promise.all(Array.from({length:Math.min(concurrency,Math.max(1,list.length))},worker));
+   }
+
+   const oldImport=window.lafApplyImport;
+   if(typeof oldImport==='function')window.lafApplyImport=async function(){
+     const btn=document.getElementById('lafApplyImport');
+     const result=document.getElementById('lafImportResult');
+     const before=new Map(PRODUCTS.map(p=>[String(p.id),JSON.stringify(p)]));
+     const beforeIds=new Set(before.keys());
+     if(btn){btn.disabled=true;btn.textContent='Importando…'}
+     try{
+       oldImport.apply(this,arguments);
+       const afterIds=new Set(PRODUCTS.map(p=>String(p.id)));
+       const changed=PRODUCTS.filter(p=>!before.has(String(p.id))||before.get(String(p.id))!==JSON.stringify(p));
+       const removed=[...beforeIds].filter(id=>!afterIds.has(id));
+       if(result)result.textContent=`Guardando ${changed.length} cambios en Supabase…`;
+       if(changed.length)await cloudSaveMany(changed,5);
+       for(const id of removed)await window.liftCloudDeleteProduct(id);
+       const m=JSON.parse(localStorage.getItem('liftAdminFullMetaV2')||'{}');
+       await window.liftCloudSaveConfig('admin_meta',m);
+       if(typeof WEEKLY_OFFERS!=='undefined')await window.liftCloudSaveConfig('weekly_offers',WEEKLY_OFFERS);
+       if(result)result.textContent=(result.textContent.includes('Importación terminada')?result.textContent+' ':'')+`✓ Nube sincronizada: ${changed.length} guardados${removed.length?`, ${removed.length} eliminados`:''}.`;
+       state('☁ importación guardada','ok');setTimeout(()=>state(''),2200);
+     }catch(e){
+       console.error(e);
+       if(result)result.textContent='⚠ La importación cambió la vista, pero falló el guardado en Supabase: '+(e.message||e);
+       state('☁ error al guardar','err');
+       alert('No se terminó de guardar la importación en Supabase. No recargues todavía. '+(e.message||e));
+     }finally{
+       if(btn){btn.disabled=false;btn.textContent='Importar'}
+     }
+   };
+
    const oldQuick=window.lafQuickPrice;
    if(typeof oldQuick==='function')window.lafQuickPrice=function(id){oldQuick.apply(this,arguments);const p=PRODUCTS.find(x=>String(x.id)===String(id));if(p)window.liftCloudSaveProduct(p).catch(e=>alert(e.message))};
    const oldDelete=window.lafDeleteCurrent;
