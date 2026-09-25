@@ -1634,7 +1634,7 @@ function renderCheckoutSummary(){
   const its=checkoutItemsList();
   const sub=checkoutPublicSubtotal(its);
   const effectiveSub=checkoutEffectiveSubtotal(its);
-  const ship=shippingFor(selectedCity?.name||'',checkoutQty());
+  const ship=adminTrainerMode()?11000:shippingFor(selectedCity?.name||'',checkoutQty());
   if(appliedCoupon&&sub<Number(appliedCoupon.min||0)){
     appliedCoupon=null;
     setCouponStatus('El subtotal cambió y el cupón debe validarse nuevamente.','');
@@ -1665,7 +1665,7 @@ function checkoutText(){
   const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();
   if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}
   const its=checkoutItemsList();if(!its.length)return '';
-  const sub=checkoutPublicSubtotal(its),effectiveSub=checkoutEffectiveSubtotal(its),ship=shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(its),total=Math.max(0,effectiveSub-((adminTrainerMode()||trainerCouponActive())?0:discount))+(ship||0);
+  const sub=checkoutPublicSubtotal(its),effectiveSub=checkoutEffectiveSubtotal(its),ship=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(its),total=Math.max(0,effectiveSub-((adminTrainerMode()||trainerCouponActive())?0:discount))+(ship||0);
   const moneySpace=v=>fmt(v).replace(/^\$\s*/, '$ ');
   const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];
   its.forEach(({p,q})=>{
