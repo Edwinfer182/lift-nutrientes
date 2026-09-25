@@ -4866,7 +4866,7 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
 
    if(typeof render==='function')render();
    if(typeof renderCart==='function')renderCart();
-   if(typeof lafRenderProducts==='function')lafRenderProducts();
+   if(typeof lafRenderProducts==='function')lafRenderProducts();if(typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid('');
 
    if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull();
    setTimeout(()=>{if(typeof window.lafEdit==='function')window.lafEdit(newId)},30);
@@ -4969,6 +4969,8 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      }
      const categoryCfg=cfg.find(x=>x.clave==='categories_v1')?.valor;
      if(categoryCfg && typeof categoryCfg==='object') LIFT_CATEGORY_CONFIG=categoryCfg;
+     const labCfg=cfg.find(x=>x.clave==='laboratories_v1')?.valor;
+     window.LIFT_LABORATORIES_SUPABASE=(labCfg && typeof labCfg==='object')?labCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
      if(typeof render==='function')render();if(typeof renderCart==='function')renderCart();if(typeof renderFilters==='function')renderFilters();if(typeof lafRenderProducts==='function')lafRenderProducts();
      console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: ${fromCache?'caché local':'Supabase'}.`);
@@ -5616,6 +5618,73 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
  .lafBulkTools .lafSelect{flex:1;min-width:140px}
 }
 </style>
+
+<script id="lift-laboratorios-supabase-unica-fuente-v1">
+(function(){
+  'use strict';
+
+  // ÚNICA fuente de imágenes de laboratorios: lift_catalog_config.laboratories_v1
+  window.LIFT_LABORATORIES_SUPABASE = window.LIFT_LABORATORIES_SUPABASE || {};
+
+  window.liftLabLogo = function(name){
+    const key=String(name||'').trim();
+    const direct=window.LIFT_LABORATORIES_SUPABASE?.[key];
+    if(direct?.active===false) return '';
+    if(direct?.image) return String(direct.image).trim();
+
+    // tolerancia solo para mayúsculas/tildes; nunca usa mapas embebidos
+    const nk=typeof norm==='function'?norm(key):key.toLowerCase();
+    const found=Object.entries(window.LIFT_LABORATORIES_SUPABASE||{})
+      .find(([k,v])=>(typeof norm==='function'?norm(k):k.toLowerCase())===nk && v?.active!==false);
+    return found?.[1]?.image ? String(found[1].image).trim() : '';
+  };
+
+  function labsFromProducts(){
+    const counts=new Map();
+    (window.PRODUCTS||PRODUCTS||[]).forEach(p=>{
+      const b=String(p?.brand||'').trim();
+      if(!b) return;
+      counts.set(b,(counts.get(b)||0)+1);
+    });
+    return [...counts.entries()]
+      .map(([name,count])=>({name,count}))
+      .sort((a,b)=>a.name.localeCompare(b,'es',{sensitivity:'base'}));
+  }
+
+  window.renderLaboratoryVisualGrid=function(query=''){
+    const q=String(query||'').trim().toLowerCase();
+    const labs=labsFromProducts().filter(l=>!q||l.name.toLowerCase().includes(q));
+    document.querySelectorAll('#labVisualGrid').forEach(grid=>{
+      if(!labs.length){
+        grid.innerHTML='<div class="labVisualEmpty">No encontré ese laboratorio.</div>';
+        return;
+      }
+      grid.innerHTML=labs.map(l=>{
+        const logo=window.liftLabLogo(l.name);
+        const visual=logo
+          ? `<img loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(l.name)}">`
+          : `<span class="labVisualInitial">${esc(l.name.charAt(0))}</span>`;
+        const active=state.brand===l.name?' on':'';
+        return `<button type="button" class="labVisualCard${active}" onclick='selectLaboratoryVisual(${JSON.stringify(l.name)})'>
+          <span class="labVisualLogoBox">${visual}</span>
+          <span class="labVisualName">${esc(l.name)}</span>
+          <span class="labVisualCount">${l.count} producto${l.count===1?'':'s'}</span>
+        </button>`;
+      }).join('');
+    });
+  };
+
+  // Buscador también usa exactamente la misma imagen de Supabase.
+  window.LIFT_BRAND_LOGOS = new Proxy({},{
+    get(_target,prop){
+      // Los bloques viejos esperan IDs de Drive. Devolvemos undefined para impedir
+      // que vuelvan a imponer logos embebidos.
+      return undefined;
+    }
+  });
+})();
+</script>
+
 </body></html>
 <style id="lift-whatsapp-client-button-v1">
 #checkoutModal .checkoutSend{
