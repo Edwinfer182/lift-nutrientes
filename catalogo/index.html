@@ -4920,6 +4920,93 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
 })();
 </script>
 
+<script id="lift-admin-private-products-v2">
+(function(){
+  'use strict';
+
+  function adminUnlocked(){
+    return document.body.classList.contains('liftAdminUnlocked');
+  }
+
+  function isPrivateProduct(p){
+    if(!p) return false;
+    const visibility = String(
+      p.visibility ?? p.visibilidad ?? p.scope ?? p.access ?? ''
+    ).toLowerCase().trim();
+
+    return p.__private === true ||
+           p.private === true ||
+           p.admin_only === true ||
+           p.adminOnly === true ||
+           visibility === 'private' ||
+           visibility === 'admin' ||
+           visibility === 'admin_only' ||
+           visibility === 'solo administrador';
+  }
+
+  window.liftIsPrivateProduct = isPrivateProduct;
+
+  function applyPrivacy(){
+    if(!Array.isArray(window.PRODUCTS)) return;
+
+    // Conservamos una copia de los registros recibidos de Supabase para poder
+    // mostrarlos al entrar como administrador sin recargar la base.
+    if(!Array.isArray(window.LIFT_ALL_PRODUCTS_FROM_SUPABASE) ||
+       window.LIFT_ALL_PRODUCTS_FROM_SUPABASE.length < window.PRODUCTS.length){
+      window.LIFT_ALL_PRODUCTS_FROM_SUPABASE = window.PRODUCTS.slice();
+    }else{
+      // incorporar productos nuevos que hayan llegado desde Supabase
+      const ids = new Set(window.LIFT_ALL_PRODUCTS_FROM_SUPABASE.map(p => String(p.id)));
+      window.PRODUCTS.forEach(p => {
+        if(!ids.has(String(p.id))) window.LIFT_ALL_PRODUCTS_FROM_SUPABASE.push(p);
+      });
+    }
+
+    const source = window.LIFT_ALL_PRODUCTS_FROM_SUPABASE;
+    window.PRODUCTS = adminUnlocked()
+      ? source.slice()
+      : source.filter(p => !isPrivateProduct(p));
+
+    // También limpiar resultados ya pintados cuando se cierra admin.
+    if(typeof render === 'function') render();
+    if(typeof renderFilters === 'function') renderFilters();
+    if(typeof renderSearchResults === 'function'){
+      try{ renderSearchResults(); }catch(_){}
+    }
+  }
+
+  window.liftApplyPrivateProductVisibility = applyPrivacy;
+
+  // Aplicar después de que Supabase termine de poblar el catálogo.
+  const observer = new MutationObserver(() => {
+    clearTimeout(window.__liftPrivacyTimer);
+    window.__liftPrivacyTimer = setTimeout(applyPrivacy, 30);
+  });
+
+  function boot(){
+    applyPrivacy();
+    observer.observe(document.body, {
+      attributes:true,
+      attributeFilter:['class']
+    });
+
+    // Revisión breve durante la carga inicial, porque Supabase es asíncrono.
+    let checks = 0;
+    const timer = setInterval(() => {
+      applyPrivacy();
+      if(++checks >= 20) clearInterval(timer);
+    }, 250);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  }else{
+    boot();
+  }
+})();
+</script>
+
+
 <style id="lift-quotes-style-v1">
 .liftQuoteBox{display:none;margin:0 0 14px}.liftAdminUnlocked .liftQuoteBox{display:block}.liftQuoteBtn{width:100%;height:44px;border:1px solid #111;border-radius:10px;background:#fff;color:#111;font:600 11px Poppins,Arial;cursor:pointer}.liftQuoteForm{margin-top:9px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.liftQuoteGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftQuoteGrid label{display:grid;gap:4px;font-size:9px;color:#666}.liftQuoteGrid label.full{grid-column:1/-1}.liftQuoteGrid input,.liftQuoteGrid select,.liftQuoteGrid textarea{width:100%;border:1px solid #d7d7d7;border-radius:8px;background:#fff;padding:9px;font:inherit;font-size:10px}.liftQuoteGrid textarea{min-height:60px;resize:vertical}.liftQuoteActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.liftQuoteActions button{height:40px;border:0;border-radius:8px;background:#111;color:#fff;font:600 10px Poppins,Arial;cursor:pointer}.liftQuoteActions .light{background:#fff;color:#111;border:1px solid #ddd}.liftQuoteStatus{font-size:10px;color:#666;margin-top:8px;min-height:14px}.liftFollowBtn{width:100%;height:36px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins,Arial;cursor:pointer;margin-top:8px}.liftFollowPanel{margin-top:8px;display:grid;gap:7px}.liftFollowCard{border:1px solid #ddd;border-radius:10px;background:#fff;padding:9px;font-size:10px}.liftFollowHead{display:flex;justify-content:space-between;gap:8px}.liftFollowTotal{font-weight:700;margin-top:4px}.liftFollowActions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.liftFollowActions button{border:1px solid #ddd;border-radius:7px;background:#fafafa;padding:6px 8px;font:600 9px Poppins,Arial;cursor:pointer}.liftQuoteBadge{display:inline-flex;min-width:18px;height:18px;border-radius:9px;background:#111;color:#fff;align-items:center;justify-content:center;padding:0 5px;font-size:9px;margin-left:5px}@media(max-width:620px){.liftQuoteGrid{grid-template-columns:1fr}.liftQuoteGrid label.full{grid-column:auto}}
 </style>
@@ -5035,142 +5122,281 @@ body.liftAdminUnlocked .labAdminNew{display:block}
  </div>
 </div>
 
-<script id="lift-lab-admin-v1-script">
+<script id="lift-lab-admin-v2-script">
 (function(){
- const CONFIG_KEY='laboratories_v1';
- let labConfig={};
+  'use strict';
 
- function normName(v){return String(v||'').trim()}
- function cfgEntry(name){return labConfig[name]||{}}
- function logo(name){return String(cfgEntry(name).image||'').trim()}
+  const CONFIG_KEY = 'laboratories_v1';
 
- async function cloudConfig(value){
-   if(typeof window.liftCloudSaveConfig!=='function') throw new Error('No encontré la conexión de configuración con Supabase.');
-   return window.liftCloudSaveConfig(CONFIG_KEY,value);
- }
- function refresh(){
-   if(typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid('');
-   if(typeof renderFilters==='function')renderFilters();
-   setTimeout(()=>{if(typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid('')},60);
- }
- function productsFor(name){return (window.PRODUCTS||[]).filter(p=>String(p.brand||'').trim()===name)}
- async function saveProducts(arr){
-   if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No encontré la conexión de productos con Supabase.');
-   for(const p of arr) await window.liftCloudSaveProduct(p);
- }
+  function normName(v){
+    return String(v || '').trim();
+  }
 
- window.liftLabLogo=function(name){
-   return logo(name) || (function(){
-     const id=window.LIFT_BRAND_LOGOS?.[name];
-     return id?`https://drive.google.com/thumbnail?id=${id}&sz=w260`:'';
-   })();
- };
+  function getConfig(){
+    if(!window.LIFT_LABORATORIES_SUPABASE || typeof window.LIFT_LABORATORIES_SUPABASE !== 'object'){
+      window.LIFT_LABORATORIES_SUPABASE = {};
+    }
+    return window.LIFT_LABORATORIES_SUPABASE;
+  }
 
- window.liftLabAdminOpen=function(name){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const n=normName(name);
-   document.getElementById('liftLabAdminOldName').value=n;
-   document.getElementById('liftLabAdminName').value=n;
-   document.getElementById('liftLabAdminImage').value=logo(n);
-   document.getElementById('liftLabAdminTitle').textContent=n?'Editar laboratorio':'Crear laboratorio';
-   liftLabAdminPreview();
-   document.getElementById('liftLabAdminModal').classList.add('open');
- };
- window.liftLabAdminClose=function(){document.getElementById('liftLabAdminModal').classList.remove('open')};
- window.liftLabAdminPreview=function(){
-   const u=document.getElementById('liftLabAdminImage').value.trim(),box=document.getElementById('liftLabAdminPreview');
-   box.innerHTML=u?`<img src="${u.replace(/"/g,'&quot;')}" alt="">`:'<span>Sin imagen</span>';
- };
- window.liftLabAdminSave=async function(){
-   const oldName=normName(document.getElementById('liftLabAdminOldName').value);
-   const newName=normName(document.getElementById('liftLabAdminName').value);
-   const image=document.getElementById('liftLabAdminImage').value.trim();
-   if(!newName)return alert('Escribe el nombre del laboratorio.');
-   const previous=JSON.parse(JSON.stringify(labConfig));
-   const affected=oldName&&oldName!==newName?productsFor(oldName):[];
-   try{
-     if(oldName&&oldName!==newName) delete labConfig[oldName];
-     labConfig[newName]={...(previous[oldName]||previous[newName]||{}),image,active:true};
-     await cloudConfig(labConfig);
-     if(affected.length){
-       affected.forEach(p=>p.brand=newName);
-       await saveProducts(affected);
-     }
-     liftLabAdminClose();refresh();
-   }catch(e){labConfig=previous;alert('No pude guardar el laboratorio: '+(e.message||e))}
- };
- window.liftLabAdminDuplicate=async function(name){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const base=normName(name),newName=base+' Copia';
-   let candidate=newName,i=2;
-   const names=new Set([...Object.keys(labConfig),...(window.PRODUCTS||[]).map(p=>String(p.brand||'').trim())]);
-   while(names.has(candidate))candidate=base+' Copia '+i++;
-   const previous=JSON.parse(JSON.stringify(labConfig));
-   try{
-     labConfig[candidate]={...cfgEntry(base),active:true};
-     await cloudConfig(labConfig);
-     refresh();
-     liftLabAdminOpen(candidate);
-   }catch(e){labConfig=previous;alert('No pude duplicar el laboratorio: '+(e.message||e))}
- };
- window.liftLabAdminDelete=async function(name){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const n=normName(name),count=productsFor(n).length;
-   const msg=count?`"${n}" tiene ${count} productos. Al eliminar el laboratorio, esos productos quedarán con la marca "Sin laboratorio". ¿Continuar?`:`¿Eliminar el laboratorio "${n}"?`;
-   if(!confirm(msg))return;
-   const previous=JSON.parse(JSON.stringify(labConfig));
-   const affected=productsFor(n);
-   try{
-     delete labConfig[n];
-     await cloudConfig(labConfig);
-     if(affected.length){
-       affected.forEach(p=>p.brand='Sin laboratorio');
-       await saveProducts(affected);
-     }
-     if(window.state?.brand===n)window.state.brand='Todas';
-     refresh();if(typeof render==='function')render();
-   }catch(e){labConfig=previous;alert('No pude eliminar el laboratorio: '+(e.message||e))}
- };
+  function cloneConfig(){
+    return JSON.parse(JSON.stringify(getConfig()));
+  }
 
- function decorate(){
-   document.querySelectorAll('.labVisualGrid').forEach(grid=>{
-     if(!grid.previousElementSibling?.classList?.contains('labAdminNew')){
-       const b=document.createElement('button');b.type='button';b.className='labAdminNew';b.textContent='+ Crear laboratorio';
-       b.onclick=()=>liftLabAdminOpen('');grid.parentNode.insertBefore(b,grid);
-     }
-     grid.querySelectorAll('.labVisualCard').forEach(card=>{
-       if(card.querySelector('.labAdminActions'))return;
-       const name=card.querySelector('.labVisualName')?.textContent?.trim();if(!name)return;
-       const a=document.createElement('span');a.className='labAdminActions';
-       a.innerHTML=`<button type="button" class="labAdminBtn" title="Duplicar laboratorio">⧉</button><button type="button" class="labAdminBtn" title="Editar laboratorio">✎</button><button type="button" class="labAdminBtn" title="Eliminar laboratorio">⌫</button>`;
-       const bs=a.querySelectorAll('button');
-       bs[0].onclick=e=>{e.stopPropagation();liftLabAdminDuplicate(name)};
-       bs[1].onclick=e=>{e.stopPropagation();liftLabAdminOpen(name)};
-       bs[2].onclick=e=>{e.stopPropagation();liftLabAdminDelete(name)};
-       card.appendChild(a);
-       const img=card.querySelector('.labVisualLogoBox img'),u=liftLabLogo(name);
-       if(u){if(img)img.src=u;else card.querySelector('.labVisualLogoBox').innerHTML=`<img loading="lazy" decoding="async" src="${u}" alt="Logo">`}
-     });
-   });
- }
- const obs=new MutationObserver(()=>requestAnimationFrame(decorate));
- function boot(){obs.observe(document.body,{childList:true,subtree:true});decorate()}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  function getEntry(name){
+    const cfg = getConfig();
+    const key = normName(name);
+    if(cfg[key]) return cfg[key];
 
- // Extender la carga cloud existente para leer la configuración de laboratorios sin crear otra tabla.
- const originalFetch=window.fetch;
- window.fetch=async function(input,init){
-   const r=await originalFetch.apply(this,arguments);
-   try{
-     const u=String(input||'');
-     if(u.includes('/rest/v1/lift_catalog_config?select=clave,valor')){
-       const clone=r.clone(),data=await clone.json();
-       const row=Array.isArray(data)?data.find(x=>x.clave===CONFIG_KEY):null;
-       if(row?.valor&&typeof row.valor==='object'){labConfig=row.valor;setTimeout(refresh,0)}
-     }
-   }catch(e){}
-   return r;
- };
+    const normalized = typeof norm === 'function' ? norm(key) : key.toLowerCase();
+    const match = Object.keys(cfg).find(k => {
+      const nk = typeof norm === 'function' ? norm(k) : k.toLowerCase();
+      return nk === normalized;
+    });
+    return match ? cfg[match] : {};
+  }
+
+  function getLogo(name){
+    const entry = getEntry(name);
+    if(entry?.active === false) return '';
+    return String(entry?.image || '').trim();
+  }
+
+  async function saveConfig(nextConfig){
+    if(typeof window.liftCloudSaveConfig !== 'function'){
+      throw new Error('No encontré la conexión de configuración con Supabase.');
+    }
+
+    // Primero se guarda en Supabase. Solo si responde bien se cambia el estado visual.
+    await window.liftCloudSaveConfig(CONFIG_KEY, nextConfig);
+    window.LIFT_LABORATORIES_SUPABASE = nextConfig;
+  }
+
+  function refreshLabs(){
+    if(typeof window.renderLaboratoryVisualGrid === 'function'){
+      window.renderLaboratoryVisualGrid('');
+    }
+    if(typeof renderFilters === 'function') renderFilters();
+    requestAnimationFrame(() => {
+      if(typeof window.renderLaboratoryVisualGrid === 'function'){
+        window.renderLaboratoryVisualGrid('');
+      }
+    });
+  }
+
+  function productsFor(name){
+    const target = normName(name);
+    return (window.PRODUCTS || []).filter(p => normName(p.brand) === target);
+  }
+
+  async function saveProducts(products){
+    if(!products.length) return;
+    if(typeof window.liftCloudSaveProduct !== 'function'){
+      throw new Error('No encontré la conexión de productos con Supabase.');
+    }
+    for(const product of products){
+      await window.liftCloudSaveProduct(product);
+    }
+  }
+
+  // Una sola fuente para mostrar logos: Supabase.
+  window.liftLabLogo = function(name){
+    return getLogo(name);
+  };
+
+  window.liftLabAdminOpen = function(name){
+    if(!document.body.classList.contains('liftAdminUnlocked')) return;
+
+    const n = normName(name);
+    document.getElementById('liftLabAdminOldName').value = n;
+    document.getElementById('liftLabAdminName').value = n;
+    document.getElementById('liftLabAdminImage').value = getLogo(n);
+    document.getElementById('liftLabAdminTitle').textContent = n ? 'Editar laboratorio' : 'Crear laboratorio';
+    window.liftLabAdminPreview();
+    document.getElementById('liftLabAdminModal').classList.add('open');
+  };
+
+  window.liftLabAdminClose = function(){
+    document.getElementById('liftLabAdminModal').classList.remove('open');
+  };
+
+  window.liftLabAdminPreview = function(){
+    const input = document.getElementById('liftLabAdminImage');
+    const box = document.getElementById('liftLabAdminPreview');
+    const url = input.value.trim();
+
+    if(!url){
+      box.innerHTML = '<span>Sin imagen</span>';
+      return;
+    }
+
+    const img = document.createElement('img');
+    img.alt = '';
+    img.src = url;
+    img.onerror = () => {
+      box.innerHTML = '<span>La URL no pudo cargar la imagen</span>';
+    };
+    box.replaceChildren(img);
+  };
+
+  window.liftLabAdminSave = async function(){
+    const oldName = normName(document.getElementById('liftLabAdminOldName').value);
+    const newName = normName(document.getElementById('liftLabAdminName').value);
+    const image = document.getElementById('liftLabAdminImage').value.trim();
+
+    if(!newName) return alert('Escribe el nombre del laboratorio.');
+
+    const previous = cloneConfig();
+    const next = cloneConfig();
+    const affected = oldName && oldName !== newName ? productsFor(oldName) : [];
+
+    try{
+      const previousEntry = next[oldName] || next[newName] || {};
+
+      if(oldName && oldName !== newName){
+        delete next[oldName];
+      }
+
+      next[newName] = {
+        ...previousEntry,
+        image: image,
+        active: true
+      };
+
+      // Guardado único y directo de la imagen dentro de laboratories_v1.
+      await saveConfig(next);
+
+      if(affected.length){
+        const oldBrands = affected.map(p => p.brand);
+        try{
+          affected.forEach(p => p.brand = newName);
+          await saveProducts(affected);
+        }catch(productError){
+          affected.forEach((p, i) => p.brand = oldBrands[i]);
+          await saveConfig(previous);
+          throw productError;
+        }
+      }
+
+      window.liftLabAdminClose();
+      refreshLabs();
+    }catch(e){
+      window.LIFT_LABORATORIES_SUPABASE = previous;
+      refreshLabs();
+      alert('No pude guardar el laboratorio: ' + (e.message || e));
+    }
+  };
+
+  window.liftLabAdminDuplicate = async function(name){
+    if(!document.body.classList.contains('liftAdminUnlocked')) return;
+
+    const base = normName(name);
+    const previous = cloneConfig();
+    const next = cloneConfig();
+    const names = new Set([
+      ...Object.keys(next),
+      ...(window.PRODUCTS || []).map(p => normName(p.brand))
+    ]);
+
+    let candidate = base + ' Copia';
+    let i = 2;
+    while(names.has(candidate)) candidate = base + ' Copia ' + i++;
+
+    try{
+      next[candidate] = {...getEntry(base), active:true};
+      await saveConfig(next);
+      refreshLabs();
+      window.liftLabAdminOpen(candidate);
+    }catch(e){
+      window.LIFT_LABORATORIES_SUPABASE = previous;
+      alert('No pude duplicar el laboratorio: ' + (e.message || e));
+    }
+  };
+
+  window.liftLabAdminDelete = async function(name){
+    if(!document.body.classList.contains('liftAdminUnlocked')) return;
+
+    const n = normName(name);
+    const affected = productsFor(n);
+    const count = affected.length;
+    const msg = count
+      ? `"${n}" tiene ${count} productos. Al eliminar el laboratorio, esos productos quedarán con la marca "Sin laboratorio". ¿Continuar?`
+      : `¿Eliminar el laboratorio "${n}"?`;
+
+    if(!confirm(msg)) return;
+
+    const previous = cloneConfig();
+    const next = cloneConfig();
+    delete next[n];
+
+    try{
+      await saveConfig(next);
+
+      if(affected.length){
+        const oldBrands = affected.map(p => p.brand);
+        try{
+          affected.forEach(p => p.brand = 'Sin laboratorio');
+          await saveProducts(affected);
+        }catch(productError){
+          affected.forEach((p, i) => p.brand = oldBrands[i]);
+          await saveConfig(previous);
+          throw productError;
+        }
+      }
+
+      if(window.state?.brand === n) window.state.brand = 'Todas';
+      refreshLabs();
+      if(typeof render === 'function') render();
+    }catch(e){
+      window.LIFT_LABORATORIES_SUPABASE = previous;
+      refreshLabs();
+      alert('No pude eliminar el laboratorio: ' + (e.message || e));
+    }
+  };
+
+  function decorate(){
+    document.querySelectorAll('.labVisualGrid').forEach(grid => {
+      if(!grid.previousElementSibling?.classList?.contains('labAdminNew')){
+        const create = document.createElement('button');
+        create.type = 'button';
+        create.className = 'labAdminNew';
+        create.textContent = '+ Crear laboratorio';
+        create.onclick = () => window.liftLabAdminOpen('');
+        grid.parentNode.insertBefore(create, grid);
+      }
+
+      grid.querySelectorAll('.labVisualCard').forEach(card => {
+        if(card.querySelector('.labAdminActions')) return;
+
+        const name = card.querySelector('.labVisualName')?.textContent?.trim();
+        if(!name) return;
+
+        const actions = document.createElement('span');
+        actions.className = 'labAdminActions';
+        actions.innerHTML = '<button type="button" class="labAdminBtn" title="Duplicar laboratorio">⧉</button><button type="button" class="labAdminBtn" title="Editar laboratorio">✎</button><button type="button" class="labAdminBtn" title="Eliminar laboratorio">⌫</button>';
+
+        const buttons = actions.querySelectorAll('button');
+        buttons[0].onclick = e => { e.stopPropagation(); window.liftLabAdminDuplicate(name); };
+        buttons[1].onclick = e => { e.stopPropagation(); window.liftLabAdminOpen(name); };
+        buttons[2].onclick = e => { e.stopPropagation(); window.liftLabAdminDelete(name); };
+
+        card.appendChild(actions);
+      });
+    });
+  }
+
+  const observer = new MutationObserver(() => requestAnimationFrame(decorate));
+
+  function boot(){
+    observer.observe(document.body, {childList:true, subtree:true});
+    decorate();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  }else{
+    boot();
+  }
 })();
 </script>
 
