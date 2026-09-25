@@ -942,6 +942,13 @@
   <div class="checkoutCard">
     <div class="checkoutHead"><h2>Finalizar compra</h2><button class="close" onclick="closeCheckout()">×</button></div>
     <div class="checkoutBody">
+      <div id="liftAdminPriceMode" class="liftAdminPriceMode">
+        <span>Precio del pedido</span>
+        <div class="liftPriceModeBtns">
+          <button type="button" class="on" data-price-mode="public" onclick="liftSetAdminPriceMode('public',this)">Público</button>
+          <button type="button" data-price-mode="trainer" onclick="liftSetAdminPriceMode('trainer',this)">Entrenador</button>
+        </div>
+      </div>
       <div id="liftRecurringClientBox" class="liftRecurringClientBox">
         <div class="liftRecurringClientTitle">Clientes recurrentes</div>
         <div class="liftRecurringClientSearch"><input id="liftClientSearch" type="search" autocomplete="off" placeholder="Buscar por celular o nombre"><button type="button" onclick="liftFindClient()">⌕</button></div>
@@ -983,7 +990,10 @@
         <div id="coDiscountLine" class="checkoutLine discountLine" style="display:none"><span id="coDiscountLabel">Descuento</span><strong id="coDiscount">-$0</strong></div>
         <div class="checkoutLine"><span>Envío</span><strong id="coShipping">Selecciona ciudad</strong></div>
         <div class="checkoutLine total"><span>Total</span><span id="coTotal">$0</span></div>
-        <button class="checkoutSend" onclick="finishCheckout()">Comprar por WP</button><button id="liftProviderCheckoutBtn" class="checkoutProviderBtn" type="button" onclick="finishProviderCheckout()">Proveedor</button>
+        <button class="checkoutSend" onclick="finishCheckout()" aria-label="Enviar pedido al cliente por WhatsApp">
+<svg viewBox="0 0 32 32" aria-hidden="true" style="width:19px;height:19px;fill:currentColor;flex:0 0 auto"><path d="M19.11 17.37c-.26-.13-1.54-.76-1.78-.85-.24-.09-.41-.13-.59.13-.17.26-.67.85-.82 1.02-.15.17-.3.2-.56.07-.26-.13-1.1-.41-2.1-1.3-.78-.69-1.3-1.55-1.45-1.81-.15-.26-.02-.4.11-.53.12-.12.26-.3.39-.46.13-.15.17-.26.26-.43.09-.17.04-.33-.02-.46-.07-.13-.59-1.41-.8-1.94-.21-.51-.43-.44-.59-.45h-.5c-.17 0-.46.07-.7.33-.24.26-.91.89-.91 2.17s.93 2.52 1.06 2.69c.13.17 1.83 2.8 4.44 3.92.62.27 1.1.43 1.48.55.62.2 1.19.17 1.64.1.5-.07 1.54-.63 1.76-1.24.22-.61.22-1.13.15-1.24-.06-.11-.24-.17-.5-.3z"/><path d="M16.03 3.2A12.67 12.67 0 0 0 5.25 22.52L3.5 28.9l6.53-1.71a12.66 12.66 0 1 0 6-23.99zm0 22.99c-2.02 0-4-.54-5.72-1.56l-.41-.24-3.87 1.01 1.03-3.77-.27-.43a10.34 10.34 0 1 1 9.24 4.99z"/></svg>
+<span>Enviar pedido al cliente</span>
+</button><button id="liftProviderCheckoutBtn" class="checkoutProviderBtn" type="button" onclick="finishProviderCheckout()">Proveedor</button>
         <div class="checkoutHint">El envío se calcula por ciudad y cantidad de productos. Medellín, Bello, Itagüí, Envigado, Sabaneta y La Estrella usan la tarifa local; las demás ciudades usan la tarifa nacional.</div>
       </div>
     </div>
@@ -1002,16 +1012,26 @@ const TRAINER_PRICE_BY_ID={"6":115500,"7":147000,"8":115500,"19":349000,"37":129
 const TRAINER_FALLBACK_DISCOUNT=0.175;
 function trainerPriceOf(p){
   const publicPrice=Number(priceOf(p)||0);
-  const exact=Number(TRAINER_PRICE_BY_ID[String(p.id)]||0);
+  const saved=Number(p?.trainerPrice||0);
+  const legacy=Number(TRAINER_PRICE_BY_ID[String(p.id)]||0);
   const fallback=Math.round((publicPrice*(1-TRAINER_FALLBACK_DISCOUNT))/1000)*1000;
-  const candidate=exact>0?exact:fallback;
+  const candidate=saved>0?saved:(legacy>0?legacy:fallback);
   return Math.max(0,Math.min(publicPrice,candidate));
 }
 function trainerCouponActive(){
   return !!(appliedCoupon&&appliedCoupon.discountType==='trainer_price');
 }
+let LIFT_ADMIN_PRICE_MODE='public';
+function liftSetAdminPriceMode(mode,btn){
+  LIFT_ADMIN_PRICE_MODE=mode==='trainer'?'trainer':'public';
+  document.querySelectorAll('#liftAdminPriceMode [data-price-mode]').forEach(b=>b.classList.toggle('on',b.dataset.priceMode===LIFT_ADMIN_PRICE_MODE));
+  if(typeof renderCheckoutSummary==='function')renderCheckoutSummary();
+}
+function adminTrainerMode(){
+  return document.body.classList.contains('liftAdminUnlocked') && LIFT_ADMIN_PRICE_MODE==='trainer';
+}
 function checkoutUnitPrice(p){
-  return trainerCouponActive()?trainerPriceOf(p):priceOf(p);
+  return (adminTrainerMode()||trainerCouponActive())?trainerPriceOf(p):priceOf(p);
 }
 function checkoutPublicSubtotal(its=checkoutItemsList()){
   return its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);
@@ -1622,7 +1642,7 @@ function renderCheckoutSummary(){
   const discount=checkoutCouponDiscount(its);
   const flavorMsg=flavorMessageFor(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
-    const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=trainerCouponActive()&&eff<pub;
+    const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=(adminTrainerMode()||trainerCouponActive())&&eff<pub;
     return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div style="font-size:10px;color:#888;text-decoration:line-through">${fmt(pub*x.q)}</div>`:''}${fmt(eff*x.q)}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
   }).join('')}</div>`+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');
   const prog=document.getElementById('checkoutShippingProgress');
@@ -1631,11 +1651,11 @@ function renderCheckoutSummary(){
   const dl=document.getElementById('coDiscountLine');
   if(dl)dl.style.display=discount?'flex':'none';
   if(discount){
-    document.getElementById('coDiscountLabel').textContent=trainerCouponActive()?`Precio entrenador · ${appliedCoupon.code}`:`Cupón ${appliedCoupon.code}`;
+    document.getElementById('coDiscountLabel').textContent=adminTrainerMode()?'Precio entrenador':(trainerCouponActive()?`Precio entrenador · ${appliedCoupon.code}`:`Cupón ${appliedCoupon.code}`);
     document.getElementById('coDiscount').textContent='-'+fmt(discount);
   }
   document.getElementById('coShipping').textContent=ship===null?'Selecciona ciudad':(ship===0?'Gratis':fmt(ship));
-  document.getElementById('coTotal').textContent=fmt(Math.max(0,effectiveSub-(trainerCouponActive()?0:discount))+(ship||0));
+  document.getElementById('coTotal').textContent=fmt(Math.max(0,effectiveSub-((adminTrainerMode()||trainerCouponActive())?0:discount))+(ship||0));
 }
 function showCityResults(term=''){const box=document.getElementById('cityResults');const q=norm(term);const rows=(cityData.length?cityData:fallbackCities).filter(c=>!q||norm(c.name+' '+c.department).includes(q)).slice(0,80);box.innerHTML=rows.map((c,i)=>`<button type="button" class="cityOption" data-i="${i}" data-name="${esc(c.name)}" data-dept="${esc(c.department)}"><span>${esc(c.name)}</span><small>${esc(c.department)}</small></button>`).join('')||'<div class="cityOption">No encontré esa ciudad.</div>';box.classList.add('show');box.querySelectorAll('button[data-name]').forEach(btn=>btn.addEventListener('click',()=>selectCity(btn.dataset.name,btn.dataset.dept)))}
 function selectCity(name,department){selectedCity={name,department};document.getElementById('coCity').value=department?`${name} · ${department}`:name;document.getElementById('cityResults').classList.remove('show');renderCheckoutSummary()}
@@ -1645,7 +1665,7 @@ function checkoutText(){
   const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();
   if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}
   const its=checkoutItemsList();if(!its.length)return '';
-  const sub=checkoutPublicSubtotal(its),effectiveSub=checkoutEffectiveSubtotal(its),ship=shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(its),total=Math.max(0,effectiveSub-(trainerCouponActive()?0:discount))+(ship||0);
+  const sub=checkoutPublicSubtotal(its),effectiveSub=checkoutEffectiveSubtotal(its),ship=shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(its),total=Math.max(0,effectiveSub-((adminTrainerMode()||trainerCouponActive())?0:discount))+(ship||0);
   const moneySpace=v=>fmt(v).replace(/^\$\s*/, '$ ');
   const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];
   its.forEach(({p,q})=>{
@@ -4521,7 +4541,7 @@ window.shareLiftProductImage=async function(id){
   <div id="lafProductList" class="lafList"></div>
 </section>
   <section id="laf-create" class="lafPane"><div class="lafBox"><h3 id="lafFormTitle">Crear producto</h3><div class="lafForm">
-   <label class="lafField full">Nombre<input id="lafName"></label><label class="lafField">Marca<input id="lafBrand" list="lafBrands"></label><label class="lafField">Categoría<input id="lafCategory" list="lafCategories"></label><label class="lafField">Presentación<input id="lafPresentation"></label><label class="lafField">Precio detal<input id="lafPrice" inputmode="numeric"></label><label class="lafField">Estado<select id="lafStatus"><option value="">Disponible</option><option value="out">Agotado</option></select></label><label class="lafField full">URL imagen<input id="lafImage"></label><label class="lafField full">Descripción<textarea id="lafDescription"></textarea></label><label class="lafField full">Sabores / variantes<textarea id="lafFlavors" placeholder="Uno por línea o separados por coma"></textarea></label>
+   <label class="lafField full">Nombre<input id="lafName"></label><label class="lafField">Marca<input id="lafBrand" list="lafBrands"></label><label class="lafField">Categoría<input id="lafCategory" list="lafCategories"></label><label class="lafField">Presentación<input id="lafPresentation"></label><label class="lafField">Precio público<input id="lafPrice" inputmode="numeric"></label><label class="lafField">Precio entrenador<input id="lafTrainerPrice" inputmode="numeric" placeholder="Opcional"></label><label class="lafField">Estado<select id="lafStatus"><option value="">Disponible</option><option value="out">Agotado</option></select></label><label class="lafField full">URL imagen<input id="lafImage"></label><label class="lafField full">Descripción<textarea id="lafDescription"></textarea></label><label class="lafField full">Sabores / variantes<textarea id="lafFlavors" placeholder="Uno por línea o separados por coma"></textarea></label>
   </div><input type="hidden" id="lafEditId"><datalist id="lafBrands"></datalist><datalist id="lafCategories"></datalist><div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" onclick="lafSaveProduct()">Guardar producto</button><button class="lafBtn" onclick="lafClearForm()">Limpiar</button><button id="lafDeleteBtn" class="lafBtn danger" style="display:none" onclick="lafDeleteCurrent()">Eliminar producto</button></div><div id="lafFormResult" class="lafResult"></div></div></section>
   <section id="laf-offers" class="lafPane"><div class="lafNote">Crea o elimina ofertas con precio promocional y fecha de vencimiento. Al vencer, vuelve automáticamente al precio detal normal.</div><div class="lafTools"><input id="lafOfferSearch" class="lafInput" placeholder="Buscar producto..." oninput="lafRenderOffers()"></div><div id="lafOfferList"></div></section>
   <section id="laf-combos" class="lafPane"><div class="lafNote">Los combos se manejan como productos de la categoría <b>Combos</b>. Puedes crearlos, editar precio, imagen y descripción desde aquí.</div><button class="lafBtn primary" onclick="lafNewCombo()">+ Crear combo</button><div id="lafComboList" class="lafList" style="margin-top:10px"></div></section>
@@ -4541,7 +4561,7 @@ window.shareLiftProductImage=async function(id){
  function store(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}} function saveStore(o){localStorage.setItem(KEY,JSON.stringify(o))}
  function meta(){try{return JSON.parse(localStorage.getItem(META)||'{"out":{}}')}catch(e){return {out:{}}}} function saveMeta(o){localStorage.setItem(META,JSON.stringify(o))}
  function refresh(){try{render()}catch(e){} try{renderCart()}catch(e){} try{renderQuickSearch()}catch(e){} try{renderFilters()}catch(e){} lafRenderProducts(); lafFillLists();}
- function patch(p){const o=store();o[String(p.id)]={...(o[String(p.id)]||{}),name:p.name,brand:p.brand,category:p.category,price:p.price,image:p.image,description:p.description||'',flavors:p.flavors||[]};saveStore(o)}
+ function patch(p){const o=store();o[String(p.id)]={...(o[String(p.id)]||{}),name:p.name,brand:p.brand,category:p.category,price:p.price,trainerPrice:p.trainerPrice||null,image:p.image,description:p.description||'',flavors:p.flavors||[]};saveStore(o)}
  function nextId(){return Math.max(0,...PRODUCTS.map(p=>Number(p.id)||0))+1}
  window.openLiftAdminFull=function(){ $('lafBackdrop').classList.add('show');$('lafPanel').classList.add('open');lafRenderProducts();lafFillLists();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  window.closeLiftAdminFull=function(){$('lafBackdrop').classList.remove('show');$('lafPanel').classList.remove('open')};
@@ -4628,9 +4648,9 @@ window.shareLiftProductImage=async function(id){
  };
  window.lafRenderProducts();
  window.lafQuickPrice=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;p.price=num($('lafp_'+id).value);patch(p);$('lafp_'+id).value=fmt(p.price);refresh()};
- window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafImage','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
- window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex'};
- window.lafSaveProduct=function(){const id=$('lafEditId').value;let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;if(!p){p={id:nextId()};PRODUCTS.push(p)}p.name=$('lafName').value.trim();p.brand=$('lafBrand').value.trim();p.category=$('lafCategory').value.trim();p.presentation=$('lafPresentation').value.trim();p.price=num($('lafPrice').value);p.image=$('lafImage').value.trim();p.description=$('lafDescription').value.trim();p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);if(!p.name||!p.price){$('lafFormResult').textContent='Nombre y precio son obligatorios.';return}const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);$('lafFormResult').textContent='Producto guardado.';lafClearForm();refresh()};
+ window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
+ window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex'};
+ window.lafSaveProduct=function(){const id=$('lafEditId').value;let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;if(!p){p={id:nextId()};PRODUCTS.push(p)}p.name=$('lafName').value.trim();p.brand=$('lafBrand').value.trim();p.category=$('lafCategory').value.trim();p.presentation=$('lafPresentation').value.trim();p.price=num($('lafPrice').value);p.trainerPrice=num($('lafTrainerPrice').value)||null;p.image=$('lafImage').value.trim();p.description=$('lafDescription').value.trim();p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);if(!p.name||!p.price){$('lafFormResult').textContent='Nombre y precio son obligatorios.';return}const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);$('lafFormResult').textContent='Producto guardado.';lafClearForm();refresh()};
  window.lafDeleteCurrent=function(){const id=$('lafEditId').value;if(!id)return;if(!confirm('¿Eliminar este producto del catálogo?'))return;const i=PRODUCTS.findIndex(x=>String(x.id)===String(id));if(i>=0)PRODUCTS.splice(i,1);const o=store();delete o[String(id)];saveStore(o);const m=meta();if(m.out)delete m.out[id];saveMeta(m);lafClearForm();refresh()};
  window.lafNewCombo=function(){lafClearForm();lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafCategory').value='Combos';$('lafBrand').value='COMBOS';$('lafFormTitle').textContent='Crear combo'};
  window.lafRenderCombos=function(){const a=PRODUCTS.filter(p=>norm(p.category)==='combos'||norm(p.brand)==='combos');$('lafComboList').innerHTML=a.map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.description||'Combo')}</div></div><div>$${fmt(p.price)}</div><button class="lafIcon" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>`).join('')||'<div class="lafNote">No hay combos.</div>'};
@@ -4759,7 +4779,7 @@ body.liftAdminUnlocked #liftProviderCheckoutBtn{display:block}
  // Reemplaza la imagen del carrito de Fase 4 para que siempre muestre el total.
  window.shareLiftCartImage=async function(){try{const rows=typeof items==='function'?items():[];if(!rows.length){liftShareToast('No hay productos en el carrito');return}liftShareToast('Creando imagen…');const W=1080,rowH=205,H=128+45+rows.length*rowH+190,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);drawHeader(ctx,W,'Tu carrito');let y=165,total=0;for(const row of rows){const p=row.p,q=row.q||1;total+=priceOf(p)*q;y+=await drawProduct(ctx,p,q,y,W)}ctx.fillStyle='#111';ctx.font='600 24px Poppins,Arial';ctx.fillText('TOTAL',55,H-105);ctx.font='700 38px Poppins,Arial';const txt=money(total);ctx.fillText(txt,W-55-ctx.measureText(txt).width,H-102);ctx.fillStyle='#777';ctx.font='500 18px Poppins,Arial';ctx.fillText('Total de productos. El envío se calcula al finalizar la compra.',55,H-55);await shareCanvas(c,'lift-carrito.png','Carrito Lift Nutrientes')}catch(e){console.error(e);liftShareToast('No se pudo generar la imagen')}};
  function injectCheckoutShare(){const send=document.querySelector('#checkoutModal .checkoutSend');if(!send||document.getElementById('liftCheckoutShareBtn'))return;const b=document.createElement('button');b.id='liftCheckoutShareBtn';b.type='button';b.className='checkoutShareOrder';b.innerHTML=shareSvg+'<span>Compartir pedido con datos</span>';b.onclick=()=>shareLiftCheckoutImage();send.insertAdjacentElement('afterend',b)}
- window.shareLiftCheckoutImage=async function(){try{const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad antes de compartir el pedido.');return}const rows=checkoutItemsList();if(!rows.length)return;liftShareToast('Creando pedido…');const sub=checkoutPublicSubtotal(rows),effectiveSub=checkoutEffectiveSubtotal(rows),ship=shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(rows),total=Math.max(0,effectiveSub-(trainerCouponActive()?0:discount))+(ship||0);const info=[];info.push(['Cliente',name],['Celular',phone],['Dirección',address],['Ciudad',selectedCity.name+(selectedCity.department?' · '+selectedCity.department:'')]);if(notes)info.push(['Notas',notes]);if(appliedCoupon)info.push(['Cupón',appliedCoupon.code]);const W=1080,rowH=205;let infoLines=0;const tmp=document.createElement('canvas').getContext('2d');tmp.font='500 21px Poppins,Arial';for(const [,v] of info)infoLines+=Math.max(1,wrap(tmp,v,750,3).length);const infoH=125+infoLines*42;const totalsH=245;const H=128+infoH+45+rows.length*rowH+totalsH;const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);drawHeader(ctx,W,'Pedido');let y=165;
+ window.shareLiftCheckoutImage=async function(){try{const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad antes de compartir el pedido.');return}const rows=checkoutItemsList();if(!rows.length)return;liftShareToast('Creando pedido…');const sub=checkoutPublicSubtotal(rows),effectiveSub=checkoutEffectiveSubtotal(rows),ship=shippingFor(selectedCity.name,checkoutQty()),discount=checkoutCouponDiscount(rows),total=Math.max(0,effectiveSub-((adminTrainerMode()||trainerCouponActive())?0:discount))+(ship||0);const info=[];info.push(['Cliente',name],['Celular',phone],['Dirección',address],['Ciudad',selectedCity.name+(selectedCity.department?' · '+selectedCity.department:'')]);if(notes)info.push(['Notas',notes]);if(appliedCoupon)info.push(['Cupón',appliedCoupon.code]);const W=1080,rowH=205;let infoLines=0;const tmp=document.createElement('canvas').getContext('2d');tmp.font='500 21px Poppins,Arial';for(const [,v] of info)infoLines+=Math.max(1,wrap(tmp,v,750,3).length);const infoH=125+infoLines*42;const totalsH=245;const H=128+infoH+45+rows.length*rowH+totalsH;const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);drawHeader(ctx,W,'Pedido');let y=165;
 // Datos del cliente mucho más visibles: bloque independiente, título y valores grandes.
 ctx.fillStyle='#f4f4f4';ctx.beginPath();ctx.roundRect(45,y-22,W-90,infoH+18,22);ctx.fill();
 ctx.fillStyle='#111';ctx.font='700 27px Poppins,Arial';ctx.fillText('DATOS DEL CLIENTE',70,y+18);y+=58;
@@ -5584,3 +5604,19 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
 }
 </style>
 </body></html>
+<style id="lift-whatsapp-client-button-v1">
+#checkoutModal .checkoutSend{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+</style>
+
+<style id="lift-admin-trainer-price-v1">
+.liftAdminPriceMode{display:none;margin:0 0 14px;padding:10px 12px;border:1px solid #e7e7e7;border-radius:12px;background:#fafafa;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
+body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
+.liftPriceModeBtns{display:flex;gap:5px}
+.liftPriceModeBtns button{height:34px;border:1px solid #d7d7d7;background:#fff;border-radius:8px;padding:0 12px;font:inherit;cursor:pointer}
+.liftPriceModeBtns button.on{background:#111;color:#fff;border-color:#111}
+</style>
