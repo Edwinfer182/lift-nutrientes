@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="es">
 <head>
+
+<!--
+LIFT · FUENTE DE DATOS
+Productos/precios/categorías/marcas: Supabase -> lift_productos
+Imágenes/configuración de laboratorios: Supabase -> lift_catalog_config/laboratories_v1
+El HTML no debe contener catálogos ni mapas de logos como fuente alternativa.
+localStorage se usa solo como caché/sesión/estado local de interfaz.
+-->
+
 <!-- LIFT FASE 5: auditoría segura. Conserva catálogo/funciones, elimina solo duplicados inequívocos y agrega panel de revisión. -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Catálogo Lift Nutrientes</title>
@@ -2906,179 +2915,7 @@ function renderProductDetail(p){
 }
 </style>
 
-<script id="lift-search-entities-v1-script">
-(function(){
-  const BRAND_LOGOS = {
-    "Applied Nutrition":"1kilvw5vQu1wgTb55h2oY-Q5Vr9exnXC4",
-    "Basic Supplements":"18kW7yFLqrrz5ryt1qmcMY5uXjHt2xiI8",
-    "BSN":"1bNij0QT4liD7z4nsia047m3QBol_Fb0R",
-    "Cellucor":"1cOiQitS392NPpXaXxVFARCLc0EB0DlMl",
-    "Darkness":"1zQL_883QRx_0Dqz-J6_vSJLkgcLCCjBb",
-    "Dymatize":"1jDshoTb_5CUjaGhcDVPLtNsSKC_SNSy5",
-    "Healthy Sports":"10tbmt0DmxmxoJDfmnMqCjkxcXrRlQFEP",
-    "Hyper":"1-w7zbU8y24hb1t-T3C11x-fwXtd6jH4h",
-    "IMN Nutrition":"1ED2q6DxsYWpBSgba99MOiVr_5gBjhuLd",
-    "Insane Labz":"1fdSLVRXqqDmyxDSr6tLrrCxGpN-rWxib",
-    "Integralmedica":"1Dx2pQsBQImvEnh1gqHo3wjqXdvojMPWx",
-    "Isopure":"1tj22DLfSlqA3hmePjg2UusWzx-_tMGBO",
-    "Kirkland":"1A4FeH4-GNql4gePlvW3w_vk76oIEhSFA",
-    "Macroblends":"1KJfUhkO0JEvlyW-quq_fr-kWBORsjLLN",
-    "MuscleMeds":"1O2Tc2MKuZGJQz0xnVIvdZGoWSlCOQz0B",
-    "MuscleTech":"1WLM_frMq-oLlCF0BB4hnY9gYQhkdnwAg",
-    "Nutramerican / Megaplex":"1ooEQmYh1ciVyzydF5n3o9U_bN7fxuhNr",
-    "Nutramerican":"1ooEQmYh1ciVyzydF5n3o9U_bN7fxuhNr",
-    "Nutrex":"1VC0OdGtBixvDBjAsTp6UV6-UpsdfRBH2",
-    "Nutricost":"1CtTzrwO-KEKtvslVGbjbg-fSgxedLXyh",
-    "Optimum Nutrition":"1Sz3XoqfAtme2sxE37zDphFB397SEScyS",
-    "Primaforce":"1PQwdoRdIfehaUBYoE-6gZ2lbbAjJDel3",
-    "ProScience":"1lBg5nUqLYKaz-hF3H3wE4x6GgfPk411o",
-    "RAW Nutrition":"1SxXu7LbqYudY1NIF29rZ4TsnwNAvkPW_",
-    "Savage":"1ufMmQ0RoDoID3FKeWRCflhwBd7HQV2Fp",
-    "Simply Vitamins":"1HQFvNbOjxcZDiVkGsXI2bmy2ANrDRp1G",
-    "Smart Nutrition":"1dBxrB5awvEotL4g5xlXCMcTvHHu_fGYK",
-    "SmartMuscle":"1fyO4YxWYLGmQgGacGjnoguClrcSoS57C",
-    "TNT Super Nutrition":"1Jr7hrYZlQRJIQWEmNuJ0NEaRrreCT1e3",
-    "Universal":"1f5PQfhzVZkcyoc2wPBYNXfCO7QPd7uJY",
-    "Vitanas":"1sTA6JUPNeH_MsLSshDu9XOiB_GLMeCtc"
-  };
 
-  window.LIFT_BRAND_LOGOS = BRAND_LOGOS;
-
-  function logoUrl(brand){
-    const id=BRAND_LOGOS[brand];
-    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w300` : "";
-  }
-
-  function entityMatches(value){
-    const q=norm(value).trim();
-    if(!q) return {brands:[],categories:[]};
-
-    const realBrands=[...new Set(PRODUCTS.map(p=>p.brand))]
-      .filter(b=>b && !["Destacados Lift","Selección Lift","Varias marcas"].includes(b));
-
-    const matchedBrands=realBrands
-      .filter(b=>{
-        const n=norm(b);
-        return n.includes(q) || q.includes(n);
-      })
-      .sort((a,b)=>{
-        const na=norm(a), nb=norm(b);
-        return (na===q?-100:0)-(nb===q?-100:0) || a.localeCompare(b);
-      });
-
-    const realCats=[...new Set(PRODUCTS.map(p=>p.category))].filter(Boolean);
-    const matchedCats=realCats
-      .filter(c=>{
-        const n=norm(c);
-        const aliases=[n,n+"s",n.replace(/a$/,"as"),n.replace(/o$/,"os")];
-        return aliases.some(x=>x.includes(q) || q.includes(x));
-      })
-      .sort((a,b)=>{
-        const na=norm(a), nb=norm(b);
-        return (na===q?-100:0)-(nb===q?-100:0) || a.localeCompare(b);
-      });
-
-    return {brands:matchedBrands.slice(0,3),categories:matchedCats.slice(0,3)};
-  }
-
-  function brandRow(brand){
-    const count=PRODUCTS.filter(p=>p.brand===brand).length;
-    const logo=logoUrl(brand);
-    const visual=logo
-      ? `<img class="searchThumb" loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(brand)}">`
-      : `<div class="searchEntityFallback">${esc(brand.charAt(0))}</div>`;
-    return `<div class="searchResult liftEntityResult">
-      ${visual}
-      <div class="searchInfo">
-        <div class="liftEntityType">Laboratorio</div>
-        <div class="searchName">${esc(brand)}</div>
-        <div class="searchBrand">${count} producto${count===1?'':'s'}</div>
-      </div>
-      <div class="searchActions"><button class="searchView" onclick='liftViewBrand(${JSON.stringify(brand)})'>Ver</button></div>
-    </div>`;
-  }
-
-  function categoryRow(cat){
-    const arr=PRODUCTS.filter(p=>p.category===cat);
-    const representative=arr.find(p=>p.image)||arr[0];
-    const img=representative?.image
-      ? String(representative.image).replace(/&sz=w\d+/i,'&sz=w240')
-      : "";
-    const visual=img
-      ? `<img class="searchThumb" loading="lazy" decoding="async" src="${img}" alt="${esc(cat)}">`
-      : `<div class="searchEntityFallback">${esc(cat.charAt(0))}</div>`;
-    return `<div class="searchResult liftEntityResult">
-      ${visual}
-      <div class="searchInfo">
-        <div class="liftEntityType">Categoría</div>
-        <div class="searchName">${esc(cat)}</div>
-        <div class="searchBrand">${arr.length} producto${arr.length===1?'':'s'}</div>
-      </div>
-      <div class="searchActions"><button class="searchView" onclick='liftViewCategory(${JSON.stringify(cat)})'>Ver</button></div>
-    </div>`;
-  }
-
-  window.liftViewBrand=function(brand){
-    closeQuickSearch();
-    document.getElementById('q').value=brand;
-    state.offerOnly=false;
-    fullSearchActive=false;
-    setBrand(brand);
-    setTimeout(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}),40);
-  };
-
-  window.liftViewCategory=function(cat){
-    closeQuickSearch();
-    document.getElementById('q').value=cat;
-    state.offerOnly=false;
-    fullSearchActive=false;
-    setCat(cat);
-    setTimeout(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}),40);
-  };
-
-  window.renderQuickSearch=function(value){
-    const box=document.getElementById('searchResults');
-    const q=value.trim();
-    if(!q){
-      box.classList.remove('show');
-      box.innerHTML='';
-      if(fullSearchActive){fullSearchActive=false;render()}
-      return;
-    }
-
-    const entities=entityMatches(value);
-    const all=searchProductsAll(value);
-    const productLimit=Math.max(2,7-entities.brands.length-entities.categories.length);
-    const products=all.slice(0,productLimit);
-
-    let rows='';
-    rows+=entities.brands.map(brandRow).join('');
-    rows+=entities.categories.map(categoryRow).join('');
-    rows+=products.map(p=>`<div class="searchResult">
-      <img class="searchThumb" loading="lazy" decoding="async" fetchpriority="low"
-        data-lift-product="${p.id}"
-        src="${String(p.image).includes('drive.google.com/thumbnail')?String(p.image).replace(/&sz=w\d+/i,'&sz=w240'):p.image}"
-        alt="${esc(p.name)}" title="Ver producto">
-      <div class="searchInfo">
-        <div class="searchName">${esc(p.name)}</div>
-        <div class="searchBrand">${esc(p.brand)} · ${esc(p.category)}</div>
-        <div class="searchPrice">${fmt(priceOf(p))}${savingOf(p)?`<span class="searchOldPrice">${fmt(compareAtOf(p))}</span>`:''}</div>
-        ${savingOf(p)?`<div class="searchSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}
-        ${offerOf(p)?.gift?'<div class="searchSaving">🎁 Incluye regalo</div>':''}
-        ${offerOf(p)?.flavors?.length?`<div class="searchFlavor">Sabores: ${offerOf(p).flavors.map(esc).join(' · ')}</div>`:''}
-      </div>
-      <div class="searchActions"><button class="searchView" onclick="openLiftProductById(${p.id});closeQuickSearch()">Ver</button></div>
-    </div>`).join('');
-
-    if(!rows) rows='<div class="searchEmpty">No encontré coincidencias.</div>';
-
-    const totalEntities=entities.brands.length+entities.categories.length;
-    const allButton=`<div class="searchAllWrap"><button class="searchAllBtn" onclick="showAllSearchResults()">Ver todos los productos${all.length?` (${all.length})`:''}</button></div>`;
-    box.innerHTML=rows+(all.length?allButton:'');
-    box.classList.add('show');
-  };
-})();
-</script>
 
 
 <!-- LIFT SEARCH UX v2: productos primero, acciones originales, fila completa abre offcanvas -->
@@ -3856,119 +3693,7 @@ function renderProductDetail(p){
 }
 </style>
 
-<script id="lift-laboratorios-integrados-script">
-(function(){
-  const LOGOS = Object.assign({}, window.LIFT_BRAND_LOGOS || {}, {
-    "Applied Nutrition":"1kilvw5vQu1wgTb55h2oY-Q5Vr9exnXC4",
-    "Basic Supplements":"18kW7yFLqrrz5ryt1qmcMY5uXjHt2xiI8",
-    "BSN":"1bNij0QT4liD7z4nsia047m3QBol_Fb0R",
-    "Cellucor":"1cOiQitS392NPpXaXxVFARCLc0EB0DlMl",
-    "Darkness":"1zQL_883QRx_0Dqz-J6_vSJLkgcLCCjBb",
-    "Dymatize":"1jDshoTb_5CUjaGhcDVPLtNsSKC_SNSy5",
-    "Healthy Sports":"10tbmt0DmxmxoJDfmnMqCjkxcXrRlQFEP",
-    "Hyper":"1-w7zbU8y24hb1t-T3C11x-fwXtd6jH4h",
-    "IMN Nutrition":"1ED2q6DxsYWpBSgba99MOiVr_5gBjhuLd",
-    "Insane Labz":"1fdSLVRXqqDmyxDSr6tLrrCxGpN-rWxib",
-    "Integralmedica":"1Dx2pQsBQImvEnh1gqHo3wjqXdvojMPWx",
-    "Isopure":"1tj22DLfSlqA3hmePjg2UusWzx-_tMGBO",
-    "Kirkland":"1A4FeH4-GNql4gePlvW3w_vk76oIEhSFA",
-    "Macroblends":"1KJfUhkO0JEvlyW-quq_fr-kWBORsjLLN",
-    "MuscleMeds":"1O2Tc2MKuZGJQz0xnVIvdZGoWSlCOQz0B",
-    "MuscleTech":"1WLM_frMq-oLlCF0BB4hnY9gYQhkdnwAg",
-    "Nutrex":"1VC0OdGtBixvDBjAsTp6UV6-UpsdfRBH2",
-    "Nutricost":"1CtTzrwO-KEKtvslVGbjbg-fSgxedLXyh",
-    "Optimum Nutrition":"1Sz3XoqfAtme2sxE37zDphFB397SEScyS",
-    "Primaforce":"1PQwdoRdIfehaUBYoE-6gZ2lbbAjJDel3",
-    "ProScience":"1lBg5nUqLYKaz-hF3H3wE4x6GgfPk411o",
-    "RAW Nutrition":"1SxXu7LbqYudY1NIF29rZ4TsnwNAvkPW_",
-    "Savage":"1ufMmQ0RoDoID3FKeWRCflhwBd7HQV2Fp",
-    "Simply Vitamins":"1HQFvNbOjxcZDiVkGsXI2bmy2ANrDRp1G",
-    "Smart Nutrition":"1dBxrB5awvEotL4g5xlXCMcTvHHu_fGYK",
-    "SmartMuscle":"1fyO4YxWYLGmQgGacGjnoguClrcSoS57C",
-    "Universal":"1f5PQfhzVZkcyoc2wPBYNXfCO7QPd7uJY",
-    "Vitanas":"1sTA6JUPNeH_MsLSshDu9XOiB_GLMeCtc"
-  });
-  window.LIFT_BRAND_LOGOS = LOGOS;
 
-  const generic = new Set(["Destacados Lift","Selección Lift"]);
-
-  function getLabs(){
-    const counts = new Map();
-    (window.PRODUCTS||[]).forEach(p=>{
-      const b=(p.brand||'').trim();
-      if(!b || generic.has(b)) return;
-      counts.set(b,(counts.get(b)||0)+1);
-    });
-    return [...counts.entries()]
-      .map(([name,count])=>({name,count}))
-      .sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
-  }
-
-  function logoUrl(name){
-    const id=LOGOS[name];
-    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w260` : '';
-  }
-
-  window.renderLaboratoryVisualGrid = function(query=''){
-    const grid=document.getElementById('labVisualGrid');
-    if(!grid) return;
-
-    const q=(query||'').trim().toLowerCase();
-    const labs=getLabs().filter(l=>!q || l.name.toLowerCase().includes(q));
-
-    if(!labs.length){
-      grid.innerHTML='<div class="labVisualEmpty">No encontré ese laboratorio.</div>';
-      return;
-    }
-
-    grid.innerHTML=labs.map(l=>{
-      const logo=logoUrl(l.name);
-      const visual=logo
-        ? `<img loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(l.name)}">`
-        : `<span class="labVisualInitial">${esc(l.name.charAt(0))}</span>`;
-      const active=state.brand===l.name ? ' on' : '';
-      return `<button type="button" class="labVisualCard${active}" onclick='selectLaboratoryVisual(${JSON.stringify(l.name)})'>
-        <span class="labVisualLogoBox">${visual}</span>
-        <span class="labVisualName">${esc(l.name)}</span>
-        <span class="labVisualCount">${l.count} producto${l.count===1?'':'s'}</span>
-      </button>`;
-    }).join('');
-  };
-
-  window.selectLaboratoryVisual = function(name){
-    state.offerOnly=false;
-    state.cat='Todos';
-    state.brand=name;
-    try{
-      const q=document.getElementById('q');
-      if(q) q.value='';
-      fullSearchActive=false;
-    }catch(e){}
-    render();
-    setTimeout(()=>{
-      renderLaboratoryVisualGrid(document.getElementById('labVisualSearch')?.value||'');
-    },0);
-  };
-
-  function refreshWhenVisible(){
-    const grid=document.getElementById('labVisualGrid');
-    if(grid) renderLaboratoryVisualGrid(document.getElementById('labVisualSearch')?.value||'');
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshWhenVisible,120));
-  }else{
-    setTimeout(refreshWhenVisible,120);
-  }
-
-  document.addEventListener('click',e=>{
-    const btn=e.target.closest('.filterTab');
-    if(btn && /Laboratorios/i.test(btn.textContent||'')){
-      setTimeout(refreshWhenVisible,0);
-    }
-  });
-})();
-</script>
 
 
 <!-- LIFT LABORATORIOS MOBILE FIX -->
@@ -4898,8 +4623,8 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
  const SB_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const FN=SB_URL+'/functions/v1/lift-catalog-admin';
  const PASS_KEY='liftAdminCloudPasswordV1';
- const CACHE_KEY='liftCatalogSupabaseCacheV1';
- const CACHE_TTL=15*60*1000; // 15 minutos
+ const CACHE_KEY='liftCatalogSupabaseCacheV2';
+ const CACHE_TTL=3*60*1000; // 3 minutos; Supabase sigue siendo la fuente
  const headers=()=>({'apikey':SB_KEY,'Content-Type':'application/json'});
  function readCatalogCache(){
    try{
@@ -4968,7 +4693,7 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
        Object.keys(WEEKLY_OFFERS).forEach(k=>delete WEEKLY_OFFERS[k]);Object.assign(WEEKLY_OFFERS,offers);
      }
      const categoryCfg=cfg.find(x=>x.clave==='categories_v1')?.valor;
-     if(categoryCfg && typeof categoryCfg==='object') LIFT_CATEGORY_CONFIG=categoryCfg;
+     LIFT_CATEGORY_CONFIG=(categoryCfg && typeof categoryCfg==='object')?categoryCfg:{};
      const labCfg=cfg.find(x=>x.clave==='laboratories_v1')?.valor;
      window.LIFT_LABORATORIES_SUPABASE=(labCfg && typeof labCfg==='object')?labCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
@@ -5624,7 +5349,7 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
   'use strict';
 
   // ÚNICA fuente de imágenes de laboratorios: lift_catalog_config.laboratories_v1
-  window.LIFT_LABORATORIES_SUPABASE = window.LIFT_LABORATORIES_SUPABASE || {};
+  window.LIFT_LABORATORIES_SUPABASE = {};
 
   window.liftLabLogo = function(name){
     const key=String(name||'').trim();
@@ -5673,19 +5398,10 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
       }).join('');
     });
   };
-
-  // Buscador también usa exactamente la misma imagen de Supabase.
-  window.LIFT_BRAND_LOGOS = new Proxy({},{
-    get(_target,prop){
-      // Los bloques viejos esperan IDs de Drive. Devolvemos undefined para impedir
-      // que vuelvan a imponer logos embebidos.
-      return undefined;
-    }
-  });
 })();
 </script>
 
-</body></html>
+
 <style id="lift-whatsapp-client-button-v1">
 #checkoutModal .checkoutSend{
   display:flex;
@@ -5702,3 +5418,6 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 .liftPriceModeBtns button{height:34px;border:1px solid #d7d7d7;background:#fff;border-radius:8px;padding:0 12px;font:inherit;cursor:pointer}
 .liftPriceModeBtns button.on{background:#111;color:#fff;border-color:#111}
 </style>
+
+</body>
+</html>
