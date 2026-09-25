@@ -1161,12 +1161,18 @@ window.LIFT_SINGLE_META=null;
 let LIFT_CATEGORY_CONFIG={};
 let cats=['Todos'];
 function rebuildLiftCategories(){
-  const names=new Set(PRODUCTS.map(p=>String(p.category||'').trim()).filter(c=>c&&c!=='Ofertas'));
-  Object.entries(LIFT_CATEGORY_CONFIG||{}).forEach(([name,data])=>{
-    if(data && data.active===false) names.delete(name);
-    else if(name && name!=='Todos' && name!=='Ofertas') names.add(name);
+  // El menú lateral debe reflejar las categorías REALES que tienen productos.
+  // categories_v1 conserva configuración administrativa, pero no puede reinsertar
+  // categorías antiguas vacías después de una importación de Excel.
+  const realNames=[...new Set(
+    PRODUCTS.map(p=>String(p.category||'').trim())
+      .filter(c=>c&&c!=='Ofertas')
+  )];
+  const visible=realNames.filter(name=>{
+    const cfg=LIFT_CATEGORY_CONFIG?.[name];
+    return !(cfg && cfg.active===false);
   });
-  cats.splice(0,cats.length,'Todos',...[...names].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'})));
+  cats.splice(0,cats.length,'Todos',...visible.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'})));
 }
 rebuildLiftCategories();
 let brands=['Todas'];
@@ -1348,6 +1354,11 @@ function filterHTML(){
     </span>`}
   </div>`).join('')}
 </section>`;
+}
+function syncLiftCategoryUI(){
+  rebuildLiftCategories();
+  if(state.cat!=='Todos' && !cats.some(c=>norm(c)===norm(state.cat))) state.cat='Todos';
+  renderFilters();
 }
 function renderFilters(){
   const h=filterHTML();
@@ -4671,7 +4682,7 @@ window.shareLiftProductImage=async function(id){
  function normalizeRow(r){return {id:num(rowVal(r,['id','codigo','sku']))||null,name:String(rowVal(r,['producto','nombre','name'])||'').trim(),brand:String(rowVal(r,['marca','brand'])||'').trim(),category:String(rowVal(r,['categoria','category'])||'').trim(),presentation:String(rowVal(r,['presentacion','presentation'])||'').trim(),price:num(rowVal(r,['precio_detal','precio','price','precio_publico'])),status:norm(rowVal(r,['estado','status'])),image:String(rowVal(r,['imagen','image','url_imagen'])||'').trim(),description:String(rowVal(r,['descripcion','description'])||'').trim(),flavors:String(rowVal(r,['sabores','sabor','flavors'])||'').split(/[|,;]+/).map(x=>x.trim()).filter(Boolean)}}
  function previewTable(rows){if(!rows.length)return '<div class="lafNote">Sin filas.</div>';const ks=Object.keys(rows[0]);return '<table><thead><tr>'+ks.map(k=>`<th>${esc(k)}</th>`).join('')+'</tr></thead><tbody>'+rows.slice(0,30).map(r=>'<tr>'+ks.map(k=>`<td>${esc(r[k])}</td>`).join('')+'</tr>').join('')+'</tbody></table>'}
  window.lafPreviewImport=function(){const f=$('lafImportFile').files[0];if(!f)return alert('Selecciona un archivo.');const ext=f.name.split('.').pop().toLowerCase();const done=data=>{pending=data;$('lafImportPreview').style.display='block';$('lafImportPreview').innerHTML=previewTable(data.products);$('lafImportResult').textContent=`Listo: ${data.products.length} productos, ${data.offers.length} ofertas, ${data.combos.length} combos.`;$('lafApplyImport').disabled=false};if(ext==='json'){const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);done({products:(j.products||j.Productos||[]).map(normalizeRow),offers:j.offers||j.Ofertas||[],combos:(j.combos||j.Combos||[]).map(normalizeRow)})}catch(e){alert('JSON inválido')}};rd.readAsText(f);return}ensureXLSX(()=>{const rd=new FileReader();rd.onload=()=>{const wb=XLSX.read(rd.result,{type:'array'});const get=n=>{const sh=wb.Sheets[wb.SheetNames.find(x=>norm(x)===norm(n))||wb.SheetNames[0]];return sh?XLSX.utils.sheet_to_json(sh,{defval:''}):[]};const products=get('Productos').map(normalizeRow);let offers=[];const os=wb.Sheets[wb.SheetNames.find(x=>norm(x)==='ofertas')];if(os)offers=XLSX.utils.sheet_to_json(os,{defval:''});let combos=[];const cs=wb.Sheets[wb.SheetNames.find(x=>norm(x)==='combos')];if(cs)combos=XLSX.utils.sheet_to_json(cs,{defval:''}).map(normalizeRow);done({products,offers,combos})};rd.readAsArrayBuffer(f)})};
- window.lafApplyImport=function(){const mode=$('lafImportMode').value;let added=0,updated=0;if(mode==='replace'){PRODUCTS.splice(0,PRODUCTS.length);localStorage.removeItem(KEY)}const all=[...pending.products,...pending.combos];for(const r of all){if(!r.name)continue;let p=r.id?PRODUCTS.find(x=>String(x.id)===String(r.id)):PRODUCTS.find(x=>norm(x.name)===norm(r.name)&&norm(x.brand)===norm(r.brand));if(p){if(mode==='add')continue;Object.assign(p,{name:r.name||p.name,brand:r.brand||p.brand,category:r.category||p.category,presentation:r.presentation||p.presentation,price:r.price||p.price,image:r.image||p.image,description:r.description||p.description,flavors:r.flavors?.length?r.flavors:p.flavors});patch(p);updated++}else{if(mode==='update')continue;p={id:r.id||nextId(),name:r.name,brand:r.brand,category:r.category,presentation:r.presentation,price:r.price,image:r.image,description:r.description,flavors:r.flavors};PRODUCTS.push(p);patch(p);added++}const m=meta();m.out=m.out||{};if(r.status.includes('agot'))m.out[p.id]=true;else delete m.out[p.id];saveMeta(m)}if(typeof WEEKLY_OFFERS!=='undefined'){for(const r of pending.offers){const id=num(r.ID??r.id),pr=num(r.Precio_oferta??r.precio_oferta??r.price),date=r.Fecha_fin??r.fecha_fin??r.promoUntil;if(id&&pr)WEEKLY_OFFERS[id]={price:pr,promoUntil:date||'2099-12-31T23:59:59-05:00',gift:norm(r.Regalo??r.gift)==='si'}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m)}$('lafImportResult').textContent=`Importación terminada: ${added} nuevos, ${updated} actualizados.`;if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();if(typeof rebuildLiftBrands==='function')rebuildLiftBrands();refresh();if(typeof renderFilters==='function')renderFilters();lafFillLists();lafRenderProducts();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
+ window.lafApplyImport=function(){const mode=$('lafImportMode').value;let added=0,updated=0;if(mode==='replace'){PRODUCTS.splice(0,PRODUCTS.length);localStorage.removeItem(KEY)}const all=[...pending.products,...pending.combos];for(const r of all){if(!r.name)continue;let p=r.id?PRODUCTS.find(x=>String(x.id)===String(r.id)):PRODUCTS.find(x=>norm(x.name)===norm(r.name)&&norm(x.brand)===norm(r.brand));if(p){if(mode==='add')continue;Object.assign(p,{name:r.name||p.name,brand:r.brand||p.brand,category:r.category||p.category,presentation:r.presentation||p.presentation,price:r.price||p.price,image:r.image||p.image,description:r.description||p.description,flavors:r.flavors?.length?r.flavors:p.flavors});patch(p);updated++}else{if(mode==='update')continue;p={id:r.id||nextId(),name:r.name,brand:r.brand,category:r.category,presentation:r.presentation,price:r.price,image:r.image,description:r.description,flavors:r.flavors};PRODUCTS.push(p);patch(p);added++}const m=meta();m.out=m.out||{};if(r.status.includes('agot'))m.out[p.id]=true;else delete m.out[p.id];saveMeta(m)}if(typeof WEEKLY_OFFERS!=='undefined'){for(const r of pending.offers){const id=num(r.ID??r.id),pr=num(r.Precio_oferta??r.precio_oferta??r.price),date=r.Fecha_fin??r.fecha_fin??r.promoUntil;if(id&&pr)WEEKLY_OFFERS[id]={price:pr,promoUntil:date||'2099-12-31T23:59:59-05:00',gift:norm(r.Regalo??r.gift)==='si'}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m)}$('lafImportResult').textContent=`Importación terminada: ${added} nuevos, ${updated} actualizados.`;if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();if(typeof rebuildLiftBrands==='function')rebuildLiftBrands();refresh();if(typeof syncLiftCategoryUI==='function')syncLiftCategoryUI();lafFillLists();lafRenderProducts();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  function addButton(){const bar=document.querySelector('.top .bar');if(!bar||$('liftAdminFullBtn'))return;const b=document.createElement('button');b.id='liftAdminFullBtn';b.textContent='⚙ Administrar';b.onclick=openLiftAdminFull;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
  loadSavedOffers();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButton);else addButton();
 })();
@@ -5032,7 +5043,7 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
        if(result)result.textContent=(result.textContent.includes('Importación terminada')?result.textContent+' ':'')+`✓ Nube sincronizada: ${changed.length} guardados${removed.length?`, ${removed.length} eliminados`:''}.`;
        if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
        if(typeof rebuildLiftBrands==='function')rebuildLiftBrands();
-       if(typeof renderFilters==='function')renderFilters();
+       if(typeof syncLiftCategoryUI==='function')syncLiftCategoryUI();
        if(typeof lafFillLists==='function')lafFillLists();
        if(typeof lafRenderProducts==='function')lafRenderProducts();
        state('☁ importación guardada','ok');setTimeout(()=>state(''),2200);
