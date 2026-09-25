@@ -1260,7 +1260,20 @@ function categoryProducts(cat){
   }
   return out;
 }
+function liftProductVisible(p){
+  const isPrivate = !!(p && (
+    p.adminOnly === true ||
+    p.__private === true ||
+    p.visibility === 'admin' ||
+    p.visibility === 'admin_only'
+  ));
+  return !isPrivate || document.body.classList.contains('liftAdminUnlocked');
+}
+function liftVisibleProducts(){
+  return PRODUCTS.filter(liftProductVisible);
+}
 function filtered(){
+  const VISIBLE_PRODUCTS=liftVisibleProducts();
   let base;
   if(state.cat!=='Todos' && state.brand==='Todas'){
     base=categoryProducts(state.cat);
@@ -1281,13 +1294,13 @@ function filtered(){
         'nac 600 mg 120 tab',
         'ultimate pre workout 30 serv'
       ]);
-      base=PRODUCTS.filter(p=>
+      base=VISIBLE_PRODUCTS.filter(p=>
         proteinChildren.has(norm(p.category||'')) &&
         !proteinExclusions.has(norm(p.name||'')) &&
         (state.brand==='Todas'||p.brand===state.brand)
       );
     }else{
-      base=PRODUCTS.filter(p=>(state.cat==='Todos'||norm(p.category||'')===norm(state.cat))&&(state.brand==='Todas'||p.brand===state.brand));
+      base=VISIBLE_PRODUCTS.filter(p=>(state.cat==='Todos'||norm(p.category||'')===norm(state.cat))&&(state.brand==='Todas'||p.brand===state.brand));
     }
   }
   let out=base.filter(p=>!state.offerOnly||hasOffer(p));
@@ -1296,7 +1309,7 @@ function filtered(){
   else if(state.sort==='offers') out=[...out].sort((a,b)=>(hasOffer(b)?1:0)-(hasOffer(a)?1:0)||Number(savingOf(b)||0)-Number(savingOf(a)||0));
   return out;
 }
-function updateOffersButton(){const btn=document.getElementById('offersButton'),count=document.getElementById('offersCount');if(count)count.textContent=PRODUCTS.filter(hasOffer).length;if(btn)btn.classList.toggle('active',state.offerOnly)}
+function updateOffersButton(){const btn=document.getElementById('offersButton'),count=document.getElementById('offersCount');if(count)count.textContent=liftVisibleProducts().filter(hasOffer).length;if(btn)btn.classList.toggle('active',state.offerOnly)}
 let mobileRenderToken=0;
 function renderProductListProgressive(arr,emptyText='No encontré productos.'){
   const grid=document.getElementById('grid');
@@ -1338,7 +1351,7 @@ function renderProductListProgressive(arr,emptyText='No encontré productos.'){
   appendNext();
 }
 function render(){
-  const arr=filtered().filter(p=>!p.adminOnly || document.body.classList.contains('liftAdminUnlocked'));
+  const arr=filtered();
   document.getElementById('status').textContent=state.offerOnly?`🔥 ${arr.length} ofertas disponibles`:`${arr.length} productos encontrados`;
   renderProductListProgressive(arr,state.offerOnly?'No hay ofertas activas en este momento.':'No encontré productos con esos filtros.');
   renderFilters();
@@ -1347,8 +1360,9 @@ function render(){
 function renderChips(){}
 function filterHTML(){
   rebuildLiftExcelFilters();
-  const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?PRODUCTS.length:PRODUCTS.filter(p=>norm(p.category)===norm(c)).length]));
-  const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?PRODUCTS.length:PRODUCTS.filter(p=>norm(p.brand)===norm(b)).length]));
+  const VISIBLE_PRODUCTS=liftVisibleProducts();
+  const cc=Object.fromEntries(cats.map(c=>[c,c==='Todos'?VISIBLE_PRODUCTS.length:VISIBLE_PRODUCTS.filter(p=>norm(p.category)===norm(c)).length]));
+  const bc=Object.fromEntries(brands.map(b=>[b,b==='Todas'?VISIBLE_PRODUCTS.length:VISIBLE_PRODUCTS.filter(p=>norm(p.brand)===norm(b)).length]));
   const isBrands=state.filterView==='brands';
   return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
 <section class="filterPanel" ${isBrands?'':'hidden'}>
@@ -1387,7 +1401,7 @@ function searchProductsAll(value){
   const q=norm(value).trim();
   if(!q)return [];
   const words=q.split(/\s+/).filter(Boolean);
-  return PRODUCTS.map(p=>{
+  return liftVisibleProducts().map(p=>{
     const name=norm(p.name), brand=norm(p.brand), category=norm(p.category), description=norm(p.description||''), presentation=norm(p.presentation||''), flavor=norm(p.flavor||''), pdfName=norm(p.pdfCatalogName||''), pdfFlavors=norm((p.pdfFlavors||[]).join(' ')), offerTerms=hasOffer(p)?(' ofertas oferta sale'+(offerOf(p).gift?' regalo':'')):'', hay=name+' '+brand+' '+category+' '+description+' '+presentation+' '+flavor+' '+pdfName+' '+pdfFlavors+offerTerms;
     if(!words.every(w=>hay.includes(w)))return null;
     let score=hasOffer(p)?5:0;
@@ -4901,7 +4915,7 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
    const status=document.getElementById('liftManualStatus'),name=clean(document.getElementById('liftManualName')?.value),brand=clean(document.getElementById('liftManualBrand')?.value)||'Sin marca',presentation=clean(document.getElementById('liftManualPresentation')?.value),price=Math.max(0,Number(document.getElementById('liftManualPrice')?.value||0)),image=clean(document.getElementById('liftManualImage')?.value),visibility=document.getElementById('liftManualVisibility')?.value||'admin';
    if(!name){status.textContent='Escribe el nombre del producto.';return}if(!price){status.textContent='Escribe el precio del producto.';return}
    const fullName=presentation&&!name.toLowerCase().includes(presentation.toLowerCase())?name+' '+presentation:name;
-   const p={id:visibility==='order'?'manual-'+Date.now():nextId(),name:fullName,brand,category:'Otros',price,image:image||'https://placehold.co/600x600?text=Producto',presentation,_manualProduct:true,adminOnly:visibility!=='public',_checkoutOnly:visibility==='order'};
+   const p={id:visibility==='order'?'manual-'+Date.now():nextId(),name:fullName,brand,category:'Otros',price,image:image||'https://placehold.co/600x600?text=Producto',presentation,_manualProduct:true,adminOnly:visibility!=='public',__private:visibility==='admin',visibility:visibility==='admin'?'admin':visibility,_checkoutOnly:visibility==='order'};
    status.textContent=visibility==='order'?'Agregando al pedido…':'Guardando en Supabase…';
    try{
      if(visibility!=='order'){
@@ -4919,93 +4933,6 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
  const oldLock=window.lockLiftAdmin;if(typeof oldLock==='function'&&!oldLock.__manualVisibility){const f=function(){const r=oldLock.apply(this,arguments);if(typeof render==='function')render();return r};f.__manualVisibility=true;window.lockLiftAdmin=f}
 })();
 </script>
-
-<script id="lift-admin-private-products-v2">
-(function(){
-  'use strict';
-
-  function adminUnlocked(){
-    return document.body.classList.contains('liftAdminUnlocked');
-  }
-
-  function isPrivateProduct(p){
-    if(!p) return false;
-    const visibility = String(
-      p.visibility ?? p.visibilidad ?? p.scope ?? p.access ?? ''
-    ).toLowerCase().trim();
-
-    return p.__private === true ||
-           p.private === true ||
-           p.admin_only === true ||
-           p.adminOnly === true ||
-           visibility === 'private' ||
-           visibility === 'admin' ||
-           visibility === 'admin_only' ||
-           visibility === 'solo administrador';
-  }
-
-  window.liftIsPrivateProduct = isPrivateProduct;
-
-  function applyPrivacy(){
-    if(!Array.isArray(window.PRODUCTS)) return;
-
-    // Conservamos una copia de los registros recibidos de Supabase para poder
-    // mostrarlos al entrar como administrador sin recargar la base.
-    if(!Array.isArray(window.LIFT_ALL_PRODUCTS_FROM_SUPABASE) ||
-       window.LIFT_ALL_PRODUCTS_FROM_SUPABASE.length < window.PRODUCTS.length){
-      window.LIFT_ALL_PRODUCTS_FROM_SUPABASE = window.PRODUCTS.slice();
-    }else{
-      // incorporar productos nuevos que hayan llegado desde Supabase
-      const ids = new Set(window.LIFT_ALL_PRODUCTS_FROM_SUPABASE.map(p => String(p.id)));
-      window.PRODUCTS.forEach(p => {
-        if(!ids.has(String(p.id))) window.LIFT_ALL_PRODUCTS_FROM_SUPABASE.push(p);
-      });
-    }
-
-    const source = window.LIFT_ALL_PRODUCTS_FROM_SUPABASE;
-    window.PRODUCTS = adminUnlocked()
-      ? source.slice()
-      : source.filter(p => !isPrivateProduct(p));
-
-    // También limpiar resultados ya pintados cuando se cierra admin.
-    if(typeof render === 'function') render();
-    if(typeof renderFilters === 'function') renderFilters();
-    if(typeof renderSearchResults === 'function'){
-      try{ renderSearchResults(); }catch(_){}
-    }
-  }
-
-  window.liftApplyPrivateProductVisibility = applyPrivacy;
-
-  // Aplicar después de que Supabase termine de poblar el catálogo.
-  const observer = new MutationObserver(() => {
-    clearTimeout(window.__liftPrivacyTimer);
-    window.__liftPrivacyTimer = setTimeout(applyPrivacy, 30);
-  });
-
-  function boot(){
-    applyPrivacy();
-    observer.observe(document.body, {
-      attributes:true,
-      attributeFilter:['class']
-    });
-
-    // Revisión breve durante la carga inicial, porque Supabase es asíncrono.
-    let checks = 0;
-    const timer = setInterval(() => {
-      applyPrivacy();
-      if(++checks >= 20) clearInterval(timer);
-    }, 250);
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  }else{
-    boot();
-  }
-})();
-</script>
-
 
 <style id="lift-quotes-style-v1">
 .liftQuoteBox{display:none;margin:0 0 14px}.liftAdminUnlocked .liftQuoteBox{display:block}.liftQuoteBtn{width:100%;height:44px;border:1px solid #111;border-radius:10px;background:#fff;color:#111;font:600 11px Poppins,Arial;cursor:pointer}.liftQuoteForm{margin-top:9px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.liftQuoteGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftQuoteGrid label{display:grid;gap:4px;font-size:9px;color:#666}.liftQuoteGrid label.full{grid-column:1/-1}.liftQuoteGrid input,.liftQuoteGrid select,.liftQuoteGrid textarea{width:100%;border:1px solid #d7d7d7;border-radius:8px;background:#fff;padding:9px;font:inherit;font-size:10px}.liftQuoteGrid textarea{min-height:60px;resize:vertical}.liftQuoteActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.liftQuoteActions button{height:40px;border:0;border-radius:8px;background:#111;color:#fff;font:600 10px Poppins,Arial;cursor:pointer}.liftQuoteActions .light{background:#fff;color:#111;border:1px solid #ddd}.liftQuoteStatus{font-size:10px;color:#666;margin-top:8px;min-height:14px}.liftFollowBtn{width:100%;height:36px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins,Arial;cursor:pointer;margin-top:8px}.liftFollowPanel{margin-top:8px;display:grid;gap:7px}.liftFollowCard{border:1px solid #ddd;border-radius:10px;background:#fff;padding:9px;font-size:10px}.liftFollowHead{display:flex;justify-content:space-between;gap:8px}.liftFollowTotal{font-weight:700;margin-top:4px}.liftFollowActions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.liftFollowActions button{border:1px solid #ddd;border-radius:7px;background:#fafafa;padding:6px 8px;font:600 9px Poppins,Arial;cursor:pointer}.liftQuoteBadge{display:inline-flex;min-width:18px;height:18px;border-radius:9px;background:#111;color:#fff;align-items:center;justify-content:center;padding:0 5px;font-size:9px;margin-left:5px}@media(max-width:620px){.liftQuoteGrid{grid-template-columns:1fr}.liftQuoteGrid label.full{grid-column:auto}}
@@ -5645,5 +5572,18 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 .liftPriceModeBtns button.on{background:#111;color:#fff;border-color:#111}
 </style>
 
+<script id="lift-private-visibility-guard-v1">
+(function(){
+  let last=document.body.classList.contains('liftAdminUnlocked');
+  new MutationObserver(function(){
+    const now=document.body.classList.contains('liftAdminUnlocked');
+    if(now===last)return;
+    last=now;
+    if(typeof render==='function')render();
+    const q=document.getElementById('q');
+    if(q && q.value.trim() && typeof renderQuickSearch==='function')renderQuickSearch(q.value);
+  }).observe(document.body,{attributes:true,attributeFilter:['class']});
+})();
+</script>
 </body>
 </html>
