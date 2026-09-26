@@ -4637,9 +4637,22 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
  const SB_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const FN=SB_URL+'/functions/v1/lift-catalog-admin';
  const PASS_KEY='liftAdminCloudPasswordV1';
- const CACHE_KEY='liftCatalogSupabaseCacheV2';
+ const CACHE_KEY='liftCatalogSupabaseCacheV3';
  const CACHE_TTL=3*60*1000; // 3 minutos; Supabase sigue siendo la fuente
  const headers=()=>({'apikey':SB_KEY,'Content-Type':'application/json'});
+ async function fetchAllProducts(){
+   const all=[];
+   const batch=1000;
+   for(let offset=0;;offset+=batch){
+     const r=await fetch(SB_URL+'/rest/v1/lift_productos?select=id,product,activo&order=id.asc&limit='+batch+'&offset='+offset,{headers:headers(),cache:'no-store'});
+     if(!r.ok)throw new Error('No se pudo leer productos de Supabase');
+     const page=await r.json();
+     if(!Array.isArray(page))throw new Error('Respuesta inválida de productos');
+     all.push(...page);
+     if(page.length<batch)break;
+   }
+   return all;
+ }
  function readCatalogCache(){
    try{
      const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
@@ -4684,12 +4697,12 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
        state('⚡ catálogo en caché','ok');
      }else{
        state('☁ sincronizando…');
-       const [rp,rc]=await Promise.all([
-         fetch(SB_URL+'/rest/v1/lift_productos?select=id,product,activo&order=id.asc',{headers:headers(),cache:'no-store'}),
+       const [allProducts,rc]=await Promise.all([
+         fetchAllProducts(),
          fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'})
        ]);
-       if(!rp.ok||!rc.ok)throw new Error('No se pudo leer Supabase');
-       rows=await rp.json();
+       if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
+       rows=allProducts;
        cfg=await rc.json();
        writeCatalogCache(rows,cfg);
      }
