@@ -4760,6 +4760,19 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    }catch(e){console.error(e);state('☁ sin conexión · catálogo no disponible','err');try{const g=document.getElementById('grid');if(g&&!PRODUCTS.length)g.innerHTML='<div style="padding:28px;text-align:center;color:#666">No se pudieron cargar los productos desde Supabase.</div>'}catch(_){} }
  }
  function install(){
+   const oldOpenFull=window.openLiftAdminFull;
+   if(typeof oldOpenFull==='function')window.openLiftAdminFull=function(){
+     const r=oldOpenFull.apply(this,arguments);
+     setTimeout(()=>{
+       if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
+         loadPrivateProducts().catch(e=>{
+           console.error('Productos privados:',e);
+           state('🔒 no se pudieron cargar privados','err');
+         });
+       }
+     },0);
+     return r;
+   };
    const oldUnlock=window.unlockLiftAdmin;
    if(typeof oldUnlock==='function')window.unlockLiftAdmin=function(){
      const inp=document.getElementById('liftAdminAccessPassword'),v=inp?.value||'';oldUnlock.apply(this,arguments);
@@ -4784,6 +4797,12 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      if(typeof renderFilters==='function')renderFilters();
      return r;
    };
+   if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
+     setTimeout(()=>loadPrivateProducts().catch(e=>{
+       console.error('Productos privados:',e);
+       state('🔒 no se pudieron cargar privados','err');
+     }),180);
+   }
    const oldSave=window.lafSaveProduct;
    if(typeof oldSave==='function')window.lafSaveProduct=function(){
      const editId=document.getElementById('lafEditId')?.value;oldSave.apply(this,arguments);
