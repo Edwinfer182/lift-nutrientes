@@ -4683,8 +4683,38 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    clearCatalogCache();
    state('☁ guardado','ok');setTimeout(()=>state(''),1800);return j;
  }
- window.liftCloudSaveProduct=async p=>adminCall({action:'save',product:p});
- window.liftCloudDeleteProduct=async id=>adminCall({action:'delete',id});
+ const PRIVATE_IDS=window.LIFT_PRIVATE_IDS instanceof Set?window.LIFT_PRIVATE_IDS:(window.LIFT_PRIVATE_IDS=new Set());
+ function removePrivateProducts(){
+   for(let i=PRODUCTS.length-1;i>=0;i--)if(PRODUCTS[i]?.__private)PRODUCTS.splice(i,1);
+   PRIVATE_IDS.clear();
+ }
+ async function loadPrivateProducts(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const j=await adminCall({action:'list-private'});
+   const rows=Array.isArray(j.products)?j.products:[];
+   removePrivateProducts();
+   rows.forEach(r=>{
+     if(!r?.activo||!r?.product)return;
+     const p={...r.product,id:r.id,__private:true,adminOnly:true};
+     PRODUCTS.push(p);
+     PRIVATE_IDS.add(String(r.id));
+   });
+   if(typeof rebuildLiftExcelFilters==='function')rebuildLiftExcelFilters();
+   if(typeof render==='function')render();
+   if(typeof renderCart==='function')renderCart();
+   if(typeof renderFilters==='function')renderFilters();
+   if(typeof lafFillLists==='function')lafFillLists();
+   if(typeof lafRenderProducts==='function')lafRenderProducts();
+   state('🔒 '+rows.length+' privados cargados','ok');setTimeout(()=>state(''),1800);
+ }
+ window.liftLoadPrivateProducts=loadPrivateProducts;
+ window.liftCloudSaveProduct=async p=>adminCall({action:p?.__private?'save-private':'save',product:p});
+ window.liftCloudDeleteProduct=async id=>{
+   const key=String(id),isPrivate=PRIVATE_IDS.has(key);
+   const out=await adminCall({action:isPrivate?'delete-private':'delete',id});
+   if(isPrivate)PRIVATE_IDS.delete(key);
+   return out;
+ };
  window.liftCloudSaveConfig=async(clave,valor)=>adminCall({action:'save-config',clave,valor});
  async function loadCloud(){
    try{
@@ -4733,10 +4763,27 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    const oldUnlock=window.unlockLiftAdmin;
    if(typeof oldUnlock==='function')window.unlockLiftAdmin=function(){
      const inp=document.getElementById('liftAdminAccessPassword'),v=inp?.value||'';oldUnlock.apply(this,arguments);
-     setTimeout(()=>{if(document.body.classList.contains('liftAdminUnlocked'))try{sessionStorage.setItem(PASS_KEY,v)}catch(e){}},0);
+     setTimeout(async()=>{
+       if(!document.body.classList.contains('liftAdminUnlocked'))return;
+       try{
+         sessionStorage.setItem(PASS_KEY,v);
+         await loadPrivateProducts();
+       }catch(e){
+         console.error('Productos privados:',e);
+         state('🔒 no se pudieron cargar privados','err');
+       }
+     },0);
    };
    const oldLock=window.lockLiftAdmin;
-   if(typeof oldLock==='function')window.lockLiftAdmin=function(){try{sessionStorage.removeItem(PASS_KEY)}catch(e){};return oldLock.apply(this,arguments)};
+   if(typeof oldLock==='function')window.lockLiftAdmin=function(){
+     try{sessionStorage.removeItem(PASS_KEY)}catch(e){}
+     removePrivateProducts();
+     const r=oldLock.apply(this,arguments);
+     if(typeof render==='function')render();
+     if(typeof renderCart==='function')renderCart();
+     if(typeof renderFilters==='function')renderFilters();
+     return r;
+   };
    const oldSave=window.lafSaveProduct;
    if(typeof oldSave==='function')window.lafSaveProduct=function(){
      const editId=document.getElementById('lafEditId')?.value;oldSave.apply(this,arguments);
