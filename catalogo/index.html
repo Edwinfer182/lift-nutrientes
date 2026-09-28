@@ -589,8 +589,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 @media (max-width: 760px){
   body.liftAdminUnlocked #checkoutModal .liftRecurringClientBox,
   body.liftAdminUnlocked #checkoutModal .liftManualProductBox,
-  body.liftAdminUnlocked #checkoutModal .liftQuoteBox,
-  body.liftAdminUnlocked #checkoutModal #liftProviderCheckoutBtn{
+  body.liftAdminUnlocked #checkoutModal .liftQuoteBox{
     display:block !important;
     visibility:visible !important;
     opacity:1 !important;
@@ -598,7 +597,6 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 
   body.liftAdminUnlocked #checkoutModal #liftManualProductToggle,
   body.liftAdminUnlocked #checkoutModal .liftQuoteBtn,
-  body.liftAdminUnlocked #checkoutModal #liftProviderCheckoutBtn,
   body.liftAdminUnlocked #checkoutModal .checkoutSend,
   body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn,
   body.liftAdminUnlocked #checkoutModal .liftFollowBtn{
@@ -1012,7 +1010,11 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
         <button class="checkoutSend" onclick="finishCheckout()" aria-label="Enviar pedido al cliente por WhatsApp">
 <svg viewBox="0 0 32 32" aria-hidden="true" style="width:19px;height:19px;fill:currentColor;flex:0 0 auto"><path d="M19.11 17.37c-.26-.13-1.54-.76-1.78-.85-.24-.09-.41-.13-.59.13-.17.26-.67.85-.82 1.02-.15.17-.3.2-.56.07-.26-.13-1.1-.41-2.1-1.3-.78-.69-1.3-1.55-1.45-1.81-.15-.26-.02-.4.11-.53.12-.12.26-.3.39-.46.13-.15.17-.26.26-.43.09-.17.04-.33-.02-.46-.07-.13-.59-1.41-.8-1.94-.21-.51-.43-.44-.59-.45h-.5c-.17 0-.46.07-.7.33-.24.26-.91.89-.91 2.17s.93 2.52 1.06 2.69c.13.17 1.83 2.8 4.44 3.92.62.27 1.1.43 1.48.55.62.2 1.19.17 1.64.1.5-.07 1.54-.63 1.76-1.24.22-.61.22-1.13.15-1.24-.06-.11-.24-.17-.5-.3z"/><path d="M16.03 3.2A12.67 12.67 0 0 0 5.25 22.52L3.5 28.9l6.53-1.71a12.66 12.66 0 1 0 6-23.99zm0 22.99c-2.02 0-4-.54-5.72-1.56l-.41-.24-3.87 1.01 1.03-3.77-.27-.43a10.34 10.34 0 1 1 9.24 4.99z"/></svg>
 <span>Enviar pedido al cliente</span>
-</button><button id="liftProviderCheckoutBtn" class="checkoutProviderBtn" type="button" onclick="finishProviderCheckout()">Proveedor</button>
+</button><div id="liftProviderBox" class="liftProviderBox">
+          <div class="liftProviderGreetingWrap"><label for="liftProviderGreeting">Saludo para proveedor</label><input id="liftProviderGreeting" type="text" autocomplete="off" placeholder="Ej: Hola Daniel, ¿cómo estás?" oninput="liftUpdateProviderMode()"></div>
+          <div id="liftProviderMode" class="liftProviderMode">Cotización proveedor · no requiere datos de entrega</div>
+          <div id="liftProviderButtons" class="liftProviderButtons" aria-label="Enviar pedido a proveedor por WhatsApp"></div>
+        </div>
         <div class="checkoutHint">El envío se calcula por ciudad y cantidad de productos. Medellín, Bello, Itagüí, Envigado, Sabaneta y La Estrella usan la tarifa local; las demás ciudades usan la tarifa nacional.</div>
       </div>
     </div>
@@ -1769,38 +1771,85 @@ function checkoutText(){
   lines.push(`Envío: ${ship===0?'GRATIS':moneySpace(ship)}`,`Total: ${moneySpace(total)}`);
   return lines.filter((v,i)=>v!=='' || i===1 || i===7 || i===lines.length-4).join('\n');
 }
+function providerCheckoutComplete(){
+  const name=document.getElementById('coName')?.value.trim()||'',phone=document.getElementById('coPhone')?.value.trim()||'',address=document.getElementById('coAddress')?.value.trim()||'';
+  return !!(name&&phone&&address&&selectedCity);
+}
+function liftUpdateProviderMode(){
+  const el=document.getElementById('liftProviderMode');if(!el)return;
+  const complete=providerCheckoutComplete();
+  el.classList.toggle('complete',complete);
+  el.textContent=complete?'Pedido proveedor · datos completos, se guardará en Supabase':'Cotización proveedor · no requiere nombre, celular, dirección ni ciudad';
+}
 function providerCheckoutText(){
-  const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();
-  if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad de la lista.');return ''}
-  const its=checkoutItemsList();if(!its.length)return '';
-  const sub=checkoutPublicSubtotal(its);
-  const lines=[`Buenas me puedes enviar este pedido porfa`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`];
-  if(notes) lines.push(`Notas: ${notes}`);
-  lines.push(``,`Pedido:`);
+  const greeting=document.getElementById('liftProviderGreeting')?.value.trim()||'';
+  const name=document.getElementById('coName')?.value.trim()||'',phone=document.getElementById('coPhone')?.value.trim()||'',address=document.getElementById('coAddress')?.value.trim()||'',notes=document.getElementById('coNotes')?.value.trim()||'';
+  const its=checkoutItemsList();if(!its.length){alert('Agrega al menos un producto al pedido.');return ''}
+  const complete=providerCheckoutComplete(),lines=[];
+  if(greeting)lines.push(greeting,'');
+  if(complete){
+    lines.push(`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`);
+    if(notes)lines.push(`Notas: ${notes}`);
+    lines.push('');
+  }else if(notes){
+    lines.push(`Notas: ${notes}`,'');
+  }
+  lines.push(`Pedido:`);
   its.forEach(({p,q})=>{
     const presentation=p.presentation?' · '+p.presentation:'';
     const flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
     lines.push(`${q} -  ${p.name}${presentation}${flavor}`);
   });
-  lines.push(``,``,`Cancela en efectivo ${fmt(sub)} contra entrega`,`Cancela ${fmt(sub)}  por transferencia contra entrega a esta cuenta:`,``,`Titular: Edwin Fernando Muñoz Tobon`,`🏦 Bancolombia ahorros`,`# 36655023431  / 🔑Llave  @edwin4518`);
+  // Los datos de pago solo tienen sentido cuando ya hay datos completos de entrega.
+  if(complete){
+    const sub=checkoutPublicSubtotal(its);
+    lines.push(``,``,`Cancela en efectivo ${fmt(sub)} contra entrega`,`Cancela ${fmt(sub)}  por transferencia contra entrega a esta cuenta:`,``,`Titular: Edwin Fernando Muñoz Tobon`,`🏦 Bancolombia ahorros`,`# 36655023431  / 🔑Llave  @edwin4518`);
+  }
   return lines.join('\n');
 }
-async function finishProviderCheckout(){
-  if(!document.body.classList.contains('liftAdminUnlocked'))return;
-  const t=providerCheckoutText();if(!t)return;
-  try{
-    await navigator.clipboard.writeText(t);
-    alert('Pedido de proveedor copiado ✓');
-  }catch(e){
-    const ta=document.createElement('textarea');
-    ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.focus();ta.select();
-    document.execCommand('copy');ta.remove();
-    alert('Pedido de proveedor copiado ✓');
-  }
+const LIFT_PROVIDERS=[
+  {name:'Daniel',phone:'573116026548'},
+  {name:'Andrés',phone:'573007700020'},
+  {name:'Golem Nutrition',phone:'573137129643'},
+  {name:'Mutantes',phone:'573135415970'},
+  {name:'Suas',phone:'573132766723'},
+  {name:'Vitaness Distribuidor',phone:'573208352352'},
+  {name:'MAXFITNESS',phone:'573156168490'},
+  {name:'Cooper 3',phone:'573016803587'},
+  {name:'Evolución Muscular',phone:'573018189316'},
+  {name:'Tópico',phone:'573243563803'}
+];
+function renderProviderButtons(){
+  const box=document.getElementById('liftProviderButtons');if(!box)return;
+  box.innerHTML=LIFT_PROVIDERS.map((x,i)=>`<button type="button" class="checkoutProviderBtn" onclick="finishProviderCheckout(${i})">${esc(x.name)}</button>`).join('');
+  liftUpdateProviderMode();
 }
+let LIFT_LAST_PROVIDER_SAVED_SIGNATURE='';
+async function finishProviderCheckout(providerIndex){
+  if(!document.body.classList.contains('liftAdminUnlocked'))return;
+  const provider=LIFT_PROVIDERS[Number(providerIndex)];if(!provider)return;
+  const t=providerCheckoutText();if(!t)return;
+  // Cotización: puede enviarse solo con productos. Pedido completo: además se registra una vez en Supabase.
+  if(providerCheckoutComplete()&&typeof window.liftSaveOrderHistory==='function'){
+    const its=checkoutItemsList();
+    const signature=JSON.stringify({name:document.getElementById('coName')?.value.trim(),phone:document.getElementById('coPhone')?.value.trim(),address:document.getElementById('coAddress')?.value.trim(),city:selectedCity?.name,items:its.map(x=>[x.p.id,x.p._cartFlavor||'',x.q]),total:document.getElementById('coTotal')?.textContent||''});
+    if(signature!==LIFT_LAST_PROVIDER_SAVED_SIGNATURE){
+      const ok=await window.liftSaveOrderHistory();
+      if(ok===false)return;
+      LIFT_LAST_PROVIDER_SAVED_SIGNATURE=signature;
+    }
+  }
+  try{await navigator.clipboard.writeText(t)}catch(e){}
+  window.open(`https://wa.me/${provider.phone}?text=${encodeURIComponent(t)}`,'_blank','noopener');
+}
+window.LIFT_PROVIDERS=LIFT_PROVIDERS;
+window.renderProviderButtons=renderProviderButtons;
 window.providerCheckoutText=providerCheckoutText;
+window.providerCheckoutComplete=providerCheckoutComplete;
+window.liftUpdateProviderMode=liftUpdateProviderMode;
 window.finishProviderCheckout=finishProviderCheckout;
+['coName','coPhone','coAddress','coCity'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>setTimeout(liftUpdateProviderMode,0)));
+renderProviderButtons();
 async function registerCouponUse(){
   if(!appliedCoupon)return true;
   try{
@@ -4525,9 +4574,13 @@ body.liftAdminUnlocked #liftAdminLoginBtn{display:none!important}
 #liftAdminAccessError{min-height:18px;color:#b42318;font-size:11px;margin-top:7px}
 @media(max-width:760px){#liftAdminLoginBtn{height:40px;padding:0 10px;font-size:0}#liftAdminLoginBtn:after{content:'🔐';font-size:17px}body.liftAdminUnlocked #liftAdminFullBtn{font-size:0!important;width:40px;padding:0!important}body.liftAdminUnlocked #liftAdminFullBtn:after{content:'⚙';font-size:17px}}
 
-#liftProviderCheckoutBtn{display:none;width:100%;height:48px;border:1px solid #d7d7d7;border-radius:11px;background:#fff;color:#111;font-family:inherit;font-weight:500;cursor:pointer;margin-top:8px}
-body.liftAdminUnlocked #liftProviderCheckoutBtn{display:block}
-#liftProviderCheckoutBtn:hover{background:#f4f4f4}
+#liftProviderBox{display:none;margin-top:10px;padding:11px;border:1px solid #e2e2e2;border-radius:13px;background:#fafafa}
+body.liftAdminUnlocked #liftProviderBox{display:block}
+.liftProviderGreetingWrap{display:grid;gap:5px;margin-bottom:7px}.liftProviderGreetingWrap label{font-size:11px;font-weight:500;color:#333}.liftProviderGreetingWrap input{width:100%;height:40px;border:1px solid #d7d7d7;border-radius:10px;background:#fff;padding:0 11px;font-family:inherit;font-size:12px;outline:none}.liftProviderGreetingWrap input:focus{border-color:#111}.liftProviderMode{font-size:10px;line-height:1.4;color:#666;margin:0 1px 8px}.liftProviderMode.complete{color:#168451;font-weight:500}
+#liftProviderButtons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+#liftProviderButtons .checkoutProviderBtn{width:100%;min-height:44px;border:1px solid #d7d7d7;border-radius:11px;background:#fff;color:#111;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;padding:8px 10px}
+#liftProviderButtons .checkoutProviderBtn:hover{background:#f4f4f4}
+@media(max-width:520px){#liftProviderButtons{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <div id="liftAdminAccessModal" onclick="if(event.target===this)closeLiftAdminAccess()">
  <div class="liftAdminAccessCard" role="dialog" aria-modal="true" aria-labelledby="liftAdminAccessTitle">
