@@ -4645,24 +4645,16 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
  window.liftCloudSaveConfig=async(clave,valor)=>adminCall({action:'save-config',clave,valor});
  async function loadCloud(){
    try{
-     const cached=readCatalogCache();
-     let rows,cfg,fromCache=false;
-     if(cached){
-       rows=cached.rows;
-       cfg=cached.cfg;
-       fromCache=true;
-       state('⚡ catálogo en caché','ok');
-     }else{
-       state('☁ sincronizando…');
-       const [allProducts,rc]=await Promise.all([
-         fetchAllProducts(),
-         fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'})
-       ]);
-       if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
-       rows=allProducts;
-       cfg=await rc.json();
-       writeCatalogCache(rows,cfg);
-     }
+     // SUPABASE ES LA ÚNICA FUENTE: no reutilizar catálogo ni configuración desde localStorage.
+     // Esto evita que laboratories_v1/categories_v1 viejos pisen cambios recién guardados.
+     clearCatalogCache();
+     state('☁ sincronizando Supabase…');
+     const [rows,rc]=await Promise.all([
+       fetchAllProducts(),
+       fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'})
+     ]);
+     if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
+     const cfg=await rc.json();
      // FUENTE ÚNICA: nada de cachés, RPC antiguos ni productos incrustados.
      PRODUCTS.splice(0,PRODUCTS.length);
      rows.forEach(r=>{
@@ -4687,8 +4679,10 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
        try{await loadPrivateProducts()}catch(e){console.error('Productos privados tras recarga:',e);state('🔒 no se pudieron cargar privados','err')}
      }
-     console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: ${fromCache?'caché local':'Supabase'}.`);
-     state(`${fromCache?'⚡ caché':'☁ conectado'} · ${PRODUCTS.length} productos`,'ok');setTimeout(()=>state(''),2200);
+     console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: Supabase.`);
+     if(typeof lafBulkDestinations==='function')lafBulkDestinations();
+     if(typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid('');
+     state(`☁ Supabase · ${PRODUCTS.length} productos`,'ok');setTimeout(()=>state(''),2200);
    }catch(e){console.error(e);state('☁ sin conexión · catálogo no disponible','err');try{const g=document.getElementById('grid');if(g&&!PRODUCTS.length)g.innerHTML='<div style="padding:28px;text-align:center;color:#666">No se pudieron cargar los productos desde Supabase.</div>'}catch(_){} }
  }
  function install(){
