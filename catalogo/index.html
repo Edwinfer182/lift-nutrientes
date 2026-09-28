@@ -1377,10 +1377,6 @@ function filterHTML(){
   return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
 <section class="filterPanel" ${isBrands?'':'hidden'}>
   <div class="labVisualWrap">
-    <div class="labVisualSearchWrap">
-      <input id="labVisualSearch" class="labVisualSearch" type="search" placeholder="Buscar laboratorio..."
-        autocomplete="off" oninput="renderLaboratoryVisualGrid(this.value)">
-    </div>
     <div id="labVisualGrid" class="labVisualGrid">
       ${brands.filter(b=>b!=='Todas').map(b=>`<button class="filterItem ${state.brand===b?'on':''}" onclick='setBrand(${JSON.stringify(b)})'><span>${esc(b)}</span><small>${bc[b]}</small></button>`).join('')}
     </div>
@@ -1396,17 +1392,39 @@ function renderFilters(){
   const h=filterHTML();
   document.getElementById('desktopFilters').innerHTML=h;
   document.getElementById('mobileFilters').innerHTML=h;
-  requestAnimationFrame(()=>{
-    document.querySelectorAll('.labVisualSearch').forEach(el=>{
-      el.value='';
-      el.setAttribute('readonly','readonly');
-    });
-  });
 }
 function setFilterView(view){state.filterView=view;renderFilters()}
 function showOffers(){state.offerOnly=!state.offerOnly;state.cat='Todos';state.brand='Todas';fullSearchActive=false;closeQuickSearch();render();document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'})}
 function setCat(c){state.offerOnly=false;state.cat=c;state.brand='Todas';render();if(innerWidth<=760)closeOff()}
 function setBrand(b){state.offerOnly=false;state.brand=b;state.cat='Todos';render();if(innerWidth<=760)closeOff()}
+function liftViewBrand(brand){
+  if(!brand)return;
+  fullSearchActive=false;
+  const q=document.getElementById('q');
+  if(q)q.value='';
+  closeQuickSearch();
+  state.offerOnly=false;
+  state.filterView='brands';
+  state.brand=brand;
+  state.cat='Todos';
+  render();
+  if(innerWidth<=760 && typeof closeOff==='function')closeOff();
+  requestAnimationFrame(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function liftViewCategory(category){
+  if(!category)return;
+  fullSearchActive=false;
+  const q=document.getElementById('q');
+  if(q)q.value='';
+  closeQuickSearch();
+  state.offerOnly=false;
+  state.filterView='categories';
+  state.cat=category;
+  state.brand='Todas';
+  render();
+  if(innerWidth<=760 && typeof closeOff==='function')closeOff();
+  requestAnimationFrame(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
 function searchProductsAll(value){
   const q=norm(value).trim();
   if(!q)return [];
@@ -4320,6 +4338,7 @@ window.shareLiftProductImage=async function(id){
      <label class="lafField">Categoría (px)<input id="liftAppearanceCategorySize" type="number" min="8" max="18" step="1"></label>
      <label class="lafField">Precio (px)<input id="liftAppearancePriceSize" type="number" min="14" max="32" step="1"></label>
      <label class="lafField">Grosor texto gris<select id="liftAppearanceMetaWeight"><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></label>
+     <label class="lafField">Color fondo de toda la página<input id="liftAppearancePageBg" type="color"></label>
      <label class="lafField">Color tarjeta<input id="liftAppearanceCardBg" type="color"></label>
      <label class="lafField">Color fondo imagen<input id="liftAppearanceImageBg" type="color"></label>
      <label class="lafField">Color borde<input id="liftAppearanceBorderColor" type="color"></label>
@@ -5878,7 +5897,8 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 
 
 <style id="lift-appearance-supabase-v1">
-:root{--lift-font:"Poppins";--lift-body-weight:400;--lift-title-weight:600;--lift-price-weight:600;--lift-meta-weight:700;--lift-product-name-size:16px;--lift-category-size:12px;--lift-price-size:20px;--lift-card-bg:#ffffff;--lift-image-bg:#ffffff;--lift-card-border:#dddddd;--lift-meta-color:#888888;--lift-name-color:#111111;--lift-presentation-color:#666666;--lift-price-color:#111111;--lift-card-radius:13px}
+:root{--lift-font:"Poppins";--lift-body-weight:400;--lift-title-weight:600;--lift-price-weight:600;--lift-meta-weight:700;--lift-product-name-size:16px;--lift-category-size:12px;--lift-price-size:20px;--lift-page-bg:#ffffff;--lift-card-bg:#ffffff;--lift-image-bg:#ffffff;--lift-card-border:#dddddd;--lift-meta-color:#888888;--lift-name-color:#111111;--lift-presentation-color:#666666;--lift-price-color:#111111;--lift-card-radius:13px}
+html,body,.layout,.content{background:var(--lift-page-bg)!important}
 body{font-family:var(--lift-font),ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-weight:var(--lift-body-weight)!important}
 body *:not(svg):not(path){font-family:var(--lift-font),ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
@@ -5898,18 +5918,18 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
 (function(){
  'use strict';
  const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
- const DEF={fontFamily:'Poppins',bodyWeight:400,titleWeight:600,priceWeight:600,metaWeight:700,productNameSize:16,categorySize:12,priceSize:20,cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#111111',cardRadius:13};
+ const DEF={fontFamily:'Poppins',bodyWeight:400,titleWeight:600,priceWeight:600,metaWeight:700,productNameSize:16,categorySize:12,priceSize:20,pageBg:'#ffffff',cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#111111',cardRadius:13};
  let cfg={...DEF}; const $=id=>document.getElementById(id);
  const clamp=(v,a,b,d)=>{v=Number(v);return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d};
  const color=(v,d)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):d;
- function clean(x){x=x&&typeof x==='object'?x:{};return {fontFamily:['Poppins','Inter','Montserrat','Roboto'].includes(x.fontFamily)?x.fontFamily:DEF.fontFamily,bodyWeight:clamp(x.bodyWeight,300,600,DEF.bodyWeight),titleWeight:clamp(x.titleWeight,400,700,DEF.titleWeight),priceWeight:clamp(x.priceWeight,400,700,DEF.priceWeight),metaWeight:clamp(x.metaWeight,400,700,DEF.metaWeight),productNameSize:clamp(x.productNameSize,11,24,DEF.productNameSize),categorySize:clamp(x.categorySize,8,18,DEF.categorySize),priceSize:clamp(x.priceSize,14,32,DEF.priceSize),cardBg:color(x.cardBg,DEF.cardBg),imageBg:color(x.imageBg,DEF.imageBg),borderColor:color(x.borderColor,DEF.borderColor),metaColor:color(x.metaColor,DEF.metaColor),nameColor:color(x.nameColor,DEF.nameColor),presentationColor:color(x.presentationColor,DEF.presentationColor),priceColor:color(x.priceColor,DEF.priceColor),cardRadius:clamp(x.cardRadius,0,30,DEF.cardRadius)}}
- function apply(x){cfg=clean(x);const r=document.documentElement.style,vars={'--lift-font':'"'+cfg.fontFamily+'"','--lift-body-weight':cfg.bodyWeight,'--lift-title-weight':cfg.titleWeight,'--lift-price-weight':cfg.priceWeight,'--lift-meta-weight':cfg.metaWeight,'--lift-product-name-size':cfg.productNameSize+'px','--lift-category-size':cfg.categorySize+'px','--lift-price-size':cfg.priceSize+'px','--lift-card-bg':cfg.cardBg,'--lift-image-bg':cfg.imageBg,'--lift-card-border':cfg.borderColor,'--lift-meta-color':cfg.metaColor,'--lift-name-color':cfg.nameColor,'--lift-presentation-color':cfg.presentationColor,'--lift-price-color':cfg.priceColor,'--lift-card-radius':cfg.cardRadius+'px'};Object.entries(vars).forEach(([k,v])=>r.setProperty(k,v));window.LIFT_APPEARANCE=cfg}
+ function clean(x){x=x&&typeof x==='object'?x:{};return {fontFamily:['Poppins','Inter','Montserrat','Roboto'].includes(x.fontFamily)?x.fontFamily:DEF.fontFamily,bodyWeight:clamp(x.bodyWeight,300,600,DEF.bodyWeight),titleWeight:clamp(x.titleWeight,400,700,DEF.titleWeight),priceWeight:clamp(x.priceWeight,400,700,DEF.priceWeight),metaWeight:clamp(x.metaWeight,400,700,DEF.metaWeight),productNameSize:clamp(x.productNameSize,11,24,DEF.productNameSize),categorySize:clamp(x.categorySize,8,18,DEF.categorySize),priceSize:clamp(x.priceSize,14,32,DEF.priceSize),pageBg:color(x.pageBg,DEF.pageBg),cardBg:color(x.cardBg,DEF.cardBg),imageBg:color(x.imageBg,DEF.imageBg),borderColor:color(x.borderColor,DEF.borderColor),metaColor:color(x.metaColor,DEF.metaColor),nameColor:color(x.nameColor,DEF.nameColor),presentationColor:color(x.presentationColor,DEF.presentationColor),priceColor:color(x.priceColor,DEF.priceColor),cardRadius:clamp(x.cardRadius,0,30,DEF.cardRadius)}}
+ function apply(x){cfg=clean(x);const r=document.documentElement.style,vars={'--lift-font':'"'+cfg.fontFamily+'"','--lift-body-weight':cfg.bodyWeight,'--lift-title-weight':cfg.titleWeight,'--lift-price-weight':cfg.priceWeight,'--lift-meta-weight':cfg.metaWeight,'--lift-product-name-size':cfg.productNameSize+'px','--lift-category-size':cfg.categorySize+'px','--lift-price-size':cfg.priceSize+'px','--lift-page-bg':cfg.pageBg,'--lift-card-bg':cfg.cardBg,'--lift-image-bg':cfg.imageBg,'--lift-card-border':cfg.borderColor,'--lift-meta-color':cfg.metaColor,'--lift-name-color':cfg.nameColor,'--lift-presentation-color':cfg.presentationColor,'--lift-price-color':cfg.priceColor,'--lift-card-radius':cfg.cardRadius+'px'};Object.entries(vars).forEach(([k,v])=>r.setProperty(k,v));window.LIFT_APPEARANCE=cfg}
  async function load(){try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?clave=eq.appearance_v1&select=valor',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('No se pudo leer apariencia');const j=await r.json();apply({...DEF,...(j?.[0]?.valor||{})})}catch(e){console.warn('Apariencia Lift:',e);apply(DEF)}}
- window.liftAppearanceFill=function(){const x=cfg;const vals={liftAppearanceFont:x.fontFamily,liftAppearanceBodyWeight:x.bodyWeight,liftAppearanceTitleWeight:x.titleWeight,liftAppearancePriceWeight:x.priceWeight,liftAppearanceMetaWeight:x.metaWeight,liftAppearanceNameSize:x.productNameSize,liftAppearanceCategorySize:x.categorySize,liftAppearancePriceSize:x.priceSize,liftAppearanceCardBg:x.cardBg,liftAppearanceImageBg:x.imageBg,liftAppearanceBorderColor:x.borderColor,liftAppearanceMetaColor:x.metaColor,liftAppearanceNameColor:x.nameColor,liftAppearancePresentationColor:x.presentationColor,liftAppearancePriceColor:x.priceColor,liftAppearanceRadius:x.cardRadius};Object.entries(vals).forEach(([id,v])=>{if($(id))$(id).value=String(v)})};
- function readForm(){return clean({fontFamily:$('liftAppearanceFont').value,bodyWeight:$('liftAppearanceBodyWeight').value,titleWeight:$('liftAppearanceTitleWeight').value,priceWeight:$('liftAppearancePriceWeight').value,metaWeight:$('liftAppearanceMetaWeight').value,productNameSize:$('liftAppearanceNameSize').value,categorySize:$('liftAppearanceCategorySize').value,priceSize:$('liftAppearancePriceSize').value,cardBg:$('liftAppearanceCardBg').value,imageBg:$('liftAppearanceImageBg').value,borderColor:$('liftAppearanceBorderColor').value,metaColor:$('liftAppearanceMetaColor').value,nameColor:$('liftAppearanceNameColor').value,presentationColor:$('liftAppearancePresentationColor').value,priceColor:$('liftAppearancePriceColor').value,cardRadius:$('liftAppearanceRadius').value})}
+ window.liftAppearanceFill=function(){const x=cfg;const vals={liftAppearanceFont:x.fontFamily,liftAppearanceBodyWeight:x.bodyWeight,liftAppearanceTitleWeight:x.titleWeight,liftAppearancePriceWeight:x.priceWeight,liftAppearanceMetaWeight:x.metaWeight,liftAppearanceNameSize:x.productNameSize,liftAppearanceCategorySize:x.categorySize,liftAppearancePriceSize:x.priceSize,liftAppearancePageBg:x.pageBg,liftAppearanceCardBg:x.cardBg,liftAppearanceImageBg:x.imageBg,liftAppearanceBorderColor:x.borderColor,liftAppearanceMetaColor:x.metaColor,liftAppearanceNameColor:x.nameColor,liftAppearancePresentationColor:x.presentationColor,liftAppearancePriceColor:x.priceColor,liftAppearanceRadius:x.cardRadius};Object.entries(vals).forEach(([id,v])=>{if($(id))$(id).value=String(v)})};
+ function readForm(){return clean({fontFamily:$('liftAppearanceFont').value,bodyWeight:$('liftAppearanceBodyWeight').value,titleWeight:$('liftAppearanceTitleWeight').value,priceWeight:$('liftAppearancePriceWeight').value,metaWeight:$('liftAppearanceMetaWeight').value,productNameSize:$('liftAppearanceNameSize').value,categorySize:$('liftAppearanceCategorySize').value,priceSize:$('liftAppearancePriceSize').value,pageBg:$('liftAppearancePageBg').value,cardBg:$('liftAppearanceCardBg').value,imageBg:$('liftAppearanceImageBg').value,borderColor:$('liftAppearanceBorderColor').value,metaColor:$('liftAppearanceMetaColor').value,nameColor:$('liftAppearanceNameColor').value,presentationColor:$('liftAppearancePresentationColor').value,priceColor:$('liftAppearancePriceColor').value,cardRadius:$('liftAppearanceRadius').value})}
  window.liftAppearanceSave=async function(){const st=$('liftAppearanceStatus'),next=readForm();apply(next);st.textContent='Guardando en Supabase…';try{if(typeof window.liftCloudSaveConfig!=='function')throw new Error('Abre nuevamente la sesión de administrador.');await window.liftCloudSaveConfig('appearance_v1',next);st.textContent='✓ Apariencia guardada en Supabase';setTimeout(()=>st.textContent='',2200)}catch(e){st.textContent='No se pudo guardar: '+(e.message||e)}};
  window.liftAppearanceReset=async function(){apply(DEF);liftAppearanceFill();const st=$('liftAppearanceStatus');st.textContent='Guardando valores predeterminados…';try{if(typeof window.liftCloudSaveConfig!=='function')throw new Error('Abre nuevamente la sesión de administrador.');await window.liftCloudSaveConfig('appearance_v1',DEF);st.textContent='✓ Apariencia restablecida'}catch(e){st.textContent='No se pudo guardar: '+(e.message||e)}};
- function bindLivePreview(){const ids=['liftAppearanceFont','liftAppearanceBodyWeight','liftAppearanceTitleWeight','liftAppearancePriceWeight','liftAppearanceMetaWeight','liftAppearanceNameSize','liftAppearanceCategorySize','liftAppearancePriceSize','liftAppearanceCardBg','liftAppearanceImageBg','liftAppearanceBorderColor','liftAppearanceMetaColor','liftAppearanceNameColor','liftAppearancePresentationColor','liftAppearancePriceColor','liftAppearanceRadius'];ids.forEach(id=>{const el=$(id);if(!el||el.dataset.liveAppearance)return;el.dataset.liveAppearance='1';const preview=()=>{apply(readForm());const st=$('liftAppearanceStatus');if(st)st.textContent='Vista previa en tiempo real · pulsa Guardar para conservar';};el.addEventListener('input',preview);el.addEventListener('change',preview)})}
+ function bindLivePreview(){const ids=['liftAppearanceFont','liftAppearanceBodyWeight','liftAppearanceTitleWeight','liftAppearancePriceWeight','liftAppearanceMetaWeight','liftAppearanceNameSize','liftAppearanceCategorySize','liftAppearancePriceSize','liftAppearancePageBg','liftAppearanceCardBg','liftAppearanceImageBg','liftAppearanceBorderColor','liftAppearanceMetaColor','liftAppearanceNameColor','liftAppearancePresentationColor','liftAppearancePriceColor','liftAppearanceRadius'];ids.forEach(id=>{const el=$(id);if(!el||el.dataset.liveAppearance)return;el.dataset.liveAppearance='1';const preview=()=>{apply(readForm());const st=$('liftAppearanceStatus');if(st)st.textContent='Vista previa en tiempo real · pulsa Guardar para conservar';};el.addEventListener('input',preview);el.addEventListener('change',preview)})}
  document.addEventListener('DOMContentLoaded',bindLivePreview);window.liftAppearanceFill=(function(original){return function(){original();bindLivePreview()}})(window.liftAppearanceFill);load();
 })();
 </script>\n</body>
