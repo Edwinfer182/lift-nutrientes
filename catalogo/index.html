@@ -1179,6 +1179,31 @@ window.LIFT_CART_META=cartMeta;
 window.LIFT_SINGLE_META=null;
 let LIFT_CATEGORY_CONFIG={};
 
+// LIFT · ORDEN DE FILTROS CONTROLADO POR SUPABASE
+// categories_v1 y laboratories_v1 guardan un campo `order` por elemento.
+// El HTML solo lo obedece; si un elemento nuevo aún no tiene order, cae al final.
+function liftSupabaseOrder(name, config){
+  const direct=config?.[name];
+  const n=Number(direct?.order);
+  if(Number.isFinite(n)) return n;
+  const nk=typeof norm==='function'?norm(name):String(name||'').toLowerCase();
+  for(const [k,v] of Object.entries(config||{})){
+    const kk=typeof norm==='function'?norm(k):String(k||'').toLowerCase();
+    if(kk===nk){
+      const x=Number(v?.order);
+      if(Number.isFinite(x)) return x;
+    }
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+function liftSortBySupabaseOrder(items, config, getName=x=>x){
+  return items.sort((a,b)=>{
+    const an=getName(a), bn=getName(b);
+    const ao=liftSupabaseOrder(an,config), bo=liftSupabaseOrder(bn,config);
+    return ao-bo || String(an).localeCompare(String(bn),'es',{sensitivity:'base'});
+  });
+}
+
 /* ============================================================
    LIFT · FILTROS RECONSTRUIDOS
    Única fuente: los valores category y brand de PRODUCTS.
@@ -1197,7 +1222,9 @@ function liftUniqueFieldValues(field){
     if(!key || key==='ofertas') continue;
     if(!map.has(key)) map.set(key,raw);
   }
-  return [...map.values()].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  const values=[...map.values()];
+  const cfg=field==='category' ? LIFT_CATEGORY_CONFIG : (window.LIFT_LABORATORIES_SUPABASE||{});
+  return liftSortBySupabaseOrder(values,cfg,x=>x);
 }
 function rebuildLiftCategories(){
   cats.splice(0,cats.length,'Todos',...liftUniqueFieldValues('category'));
@@ -3842,9 +3869,11 @@ function renderProductDetail(p){
       if(!b || genericLabs.has(b)) return;
       counts.set(b,(counts.get(b)||0)+1);
     });
-    return [...counts.entries()]
-      .map(([name,count])=>({name,count}))
-      .sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
+    return liftSortBySupabaseOrder(
+      [...counts.entries()].map(([name,count])=>({name,count})),
+      window.LIFT_LABORATORIES_SUPABASE||{},
+      x=>x.name
+    );
   }
 
   function labLogo(name){
@@ -4347,7 +4376,7 @@ window.shareLiftProductImage=async function(id){
  window.openLiftAdminFull=function(){ $('lafBackdrop').classList.add('show');$('lafPanel').classList.add('open');lafRenderProducts();lafFillLists();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  window.closeLiftAdminFull=function(){$('lafBackdrop').classList.remove('show');$('lafPanel').classList.remove('open')};
  window.lafTab=function(name,btn){document.querySelectorAll('.lafPane').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.lafTab').forEach(x=>x.classList.remove('on'));$('laf-'+name).classList.add('on');btn?.classList.add('on');if(name==='offers')lafRenderOffers();if(name==='combos')lafRenderCombos();if(name==='categories')lafRenderCategories();if(name==='create')lafFillLists();if(name==='audit')lafRenderAudit()};
- window.lafFillLists=function(){const bs=[...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))].sort();const cs=[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))].sort();$('lafBrands').innerHTML=bs.map(x=>`<option value="${esc(x)}">`).join('');$('lafCategories').innerHTML=cs.map(x=>`<option value="${esc(x)}">`).join('')};
+ window.lafFillLists=function(){const bs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))],window.LIFT_LABORATORIES_SUPABASE||{},x=>x);const cs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))],LIFT_CATEGORY_CONFIG,x=>x);$('lafBrands').innerHTML=bs.map(x=>`<option value="${esc(x)}">`).join('');$('lafCategories').innerHTML=cs.map(x=>`<option value="${esc(x)}">`).join('')};
  window.LIFT_BULK_SELECTED=window.LIFT_BULK_SELECTED||new Set();
  window.lafBulkCategories=function(){
    if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
@@ -4435,7 +4464,7 @@ window.shareLiftProductImage=async function(id){
  window.lafDeleteCurrent=function(){const id=$('lafEditId').value;if(!id)return;if(!confirm('¿Eliminar este producto del catálogo?'))return;const i=PRODUCTS.findIndex(x=>String(x.id)===String(id));if(i>=0)PRODUCTS.splice(i,1);const o=store();delete o[String(id)];saveStore(o);const m=meta();if(m.out)delete m.out[id];saveMeta(m);lafClearForm();refresh()};
  window.lafNewCombo=function(){lafClearForm();lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafCategory').value='Combos';$('lafBrand').value='COMBOS';$('lafFormTitle').textContent='Crear combo'};
  window.lafRenderCombos=function(){const a=PRODUCTS.filter(p=>norm(p.category)==='combos'||norm(p.brand)==='combos');$('lafComboList').innerHTML=a.map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.description||'Combo')}</div></div><div>$${fmt(p.price)}</div><button class="lafIcon" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>`).join('')||'<div class="lafNote">No hay combos.</div>'};
- window.lafRenderCategories=function(){const cs=[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))].sort();$('lafCategoryList').innerHTML=cs.map((c,i)=>`<div class="lafOfferRow"><div><b>${esc(c)}</b><div class="lafMeta">${PRODUCTS.filter(p=>p.category===c).length} productos</div></div><input class="lafInput" id="lafcat_${i}" value="${esc(c)}"><button class="lafBtn" onclick="lafRenameCategory(${JSON.stringify(c)},'lafcat_${i}')">Renombrar</button></div>`).join('')};
+ window.lafRenderCategories=function(){const cs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))],LIFT_CATEGORY_CONFIG,x=>x);$('lafCategoryList').innerHTML=cs.map((c,i)=>`<div class="lafOfferRow"><div><b>${esc(c)}</b><div class="lafMeta">${PRODUCTS.filter(p=>p.category===c).length} productos</div></div><input class="lafInput" id="lafcat_${i}" value="${esc(c)}"><button class="lafBtn" onclick="lafRenameCategory(${JSON.stringify(c)},'lafcat_${i}')">Renombrar</button></div>`).join('')};
  window.lafRenameCategory=function(old,id){const n=$(id).value.trim();if(!n||n===old)return;PRODUCTS.filter(p=>p.category===old).forEach(p=>{p.category=n;patch(p)});refresh();lafRenderCategories()};
  window.lafRenderOffers=function(){const q=norm($('lafOfferSearch').value);const a=PRODUCTS.filter(p=>(!q||norm([p.name,p.brand].join(' ')).includes(q))&&(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).concat(PRODUCTS.filter(p=>!q||norm([p.name,p.brand].join(' ')).includes(q)).filter(p=>!(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).slice(0,40));$('lafOfferList').innerHTML=a.slice(0,150).map(p=>{const o=typeof WEEKLY_OFFERS!=='undefined'?WEEKLY_OFFERS[p.id]:null;const date=o?.promoUntil?String(o.promoUntil).slice(0,10):'';return `<div class="lafOfferRow"><div><b style="font-size:11px">${esc(p.name)}</b><div class="lafMeta">Detal $${fmt(p.price)}</div></div><input class="lafPrice" id="lafo_${p.id}" placeholder="Precio oferta" value="${o?fmt(o.price):''}"><input class="lafPrice" type="date" id="lafod_${p.id}" value="${date}"><button class="lafBtn ${o?'danger':'primary'}" onclick="lafToggleOffer(${JSON.stringify(p.id)})">${o?'Quitar':'Guardar'}</button></div>`}).join('')};
  window.lafToggleOffer=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p||typeof WEEKLY_OFFERS==='undefined')return;if(WEEKLY_OFFERS[id]){delete WEEKLY_OFFERS[id]}else{const pr=num($('lafo_'+id).value),d=$('lafod_'+id).value;if(!pr){alert('Escribe el precio de oferta');return}WEEKLY_OFFERS[id]={price:pr,promoUntil:d?d+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:false}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m);refresh();lafRenderOffers()};
@@ -4783,6 +4812,7 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      }
      const categoryCfg=cfg.find(x=>x.clave==='categories_v1')?.valor;
      LIFT_CATEGORY_CONFIG=(categoryCfg && typeof categoryCfg==='object')?categoryCfg:{};
+     if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
      const labCfg=cfg.find(x=>x.clave==='laboratories_v1')?.valor;
      window.LIFT_LABORATORIES_SUPABASE=(labCfg && typeof labCfg==='object')?labCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
@@ -5639,9 +5669,11 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
       if(!b) return;
       counts.set(b,(counts.get(b)||0)+1);
     });
-    return [...counts.entries()]
-      .map(([name,count])=>({name,count}))
-      .sort((a,b)=>a.name.localeCompare(b,'es',{sensitivity:'base'}));
+    return liftSortBySupabaseOrder(
+      [...counts.entries()].map(([name,count])=>({name,count})),
+      window.LIFT_LABORATORIES_SUPABASE||{},
+      x=>x.name
+    );
   }
 
   window.renderLaboratoryVisualGrid=function(query=''){
