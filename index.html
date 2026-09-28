@@ -1179,6 +1179,31 @@ window.LIFT_CART_META=cartMeta;
 window.LIFT_SINGLE_META=null;
 let LIFT_CATEGORY_CONFIG={};
 
+// LIFT · ORDEN DE FILTROS CONTROLADO POR SUPABASE
+// categories_v1 y laboratories_v1 guardan un campo `order` por elemento.
+// El HTML solo lo obedece; si un elemento nuevo aún no tiene order, cae al final.
+function liftSupabaseOrder(name, config){
+  const direct=config?.[name];
+  const n=Number(direct?.order);
+  if(Number.isFinite(n)) return n;
+  const nk=typeof norm==='function'?norm(name):String(name||'').toLowerCase();
+  for(const [k,v] of Object.entries(config||{})){
+    const kk=typeof norm==='function'?norm(k):String(k||'').toLowerCase();
+    if(kk===nk){
+      const x=Number(v?.order);
+      if(Number.isFinite(x)) return x;
+    }
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+function liftSortBySupabaseOrder(items, config, getName=x=>x){
+  return items.sort((a,b)=>{
+    const an=getName(a), bn=getName(b);
+    const ao=liftSupabaseOrder(an,config), bo=liftSupabaseOrder(bn,config);
+    return ao-bo || String(an).localeCompare(String(bn),'es',{sensitivity:'base'});
+  });
+}
+
 /* ============================================================
    LIFT · FILTROS RECONSTRUIDOS
    Única fuente: los valores category y brand de PRODUCTS.
@@ -1197,7 +1222,9 @@ function liftUniqueFieldValues(field){
     if(!key || key==='ofertas') continue;
     if(!map.has(key)) map.set(key,raw);
   }
-  return [...map.values()].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  const values=[...map.values()];
+  const cfg=field==='category' ? LIFT_CATEGORY_CONFIG : (window.LIFT_LABORATORIES_SUPABASE||{});
+  return liftSortBySupabaseOrder(values,cfg,x=>x);
 }
 function rebuildLiftCategories(){
   cats.splice(0,cats.length,'Todos',...liftUniqueFieldValues('category'));
@@ -3842,9 +3869,11 @@ function renderProductDetail(p){
       if(!b || genericLabs.has(b)) return;
       counts.set(b,(counts.get(b)||0)+1);
     });
-    return [...counts.entries()]
-      .map(([name,count])=>({name,count}))
-      .sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
+    return liftSortBySupabaseOrder(
+      [...counts.entries()].map(([name,count])=>({name,count})),
+      window.LIFT_LABORATORIES_SUPABASE||{},
+      x=>x.name
+    );
   }
 
   function labLogo(name){
@@ -4302,7 +4331,7 @@ window.shareLiftProductImage=async function(id){
 <aside id="lafPanel">
  <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button type="button" onclick="lockLiftAdmin()" title="Salir del administrador" style="margin-left:auto;border:1px solid #444;background:#1b1b1b;color:#fff;border-radius:9px;height:34px;padding:0 11px;cursor:pointer;font:600 11px Poppins,Arial">Salir</button><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
  <div class="lafTabs">
-  <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="appearance" onclick="lafTab('appearance',this);liftAppearanceFill()">🎨 Apariencia</button><button class="lafTab" data-pane="audit" onclick="lafTab('audit',this)">Auditoría</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
+  <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="audit" onclick="lafTab('audit',this)">Auditoría</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
  </div>
  <div class="lafBody">
   <section id="laf-products" class="lafPane on">
@@ -4327,31 +4356,6 @@ window.shareLiftProductImage=async function(id){
   <section id="laf-offers" class="lafPane"><div class="lafNote">Crea o elimina ofertas con precio promocional y fecha de vencimiento. Al vencer, vuelve automáticamente al precio detal normal.</div><div class="lafTools"><input id="lafOfferSearch" class="lafInput" placeholder="Buscar producto..." oninput="lafRenderOffers()"></div><div id="lafOfferList"></div></section>
   <section id="laf-combos" class="lafPane"><div class="lafNote">Los combos se manejan como productos de la categoría <b>Combos</b>. Puedes crearlos, editar precio, imagen y descripción desde aquí.</div><button class="lafBtn primary" onclick="lafNewCombo()">+ Crear combo</button><div id="lafComboList" class="lafList" style="margin-top:10px"></div></section>
   <section id="laf-categories" class="lafPane"><div class="lafNote">Renombra categorías de forma masiva. El cambio se aplica a todos los productos que pertenezcan a esa categoría.</div><div id="lafCategoryList"></div></section>
-  <section id="laf-appearance" class="lafPane">
-   <div class="lafBox"><h3>🎨 Apariencia del catálogo</h3><div class="lafNote">Estos cambios se guardan en Supabase y se aplican al catálogo en PC y móvil. No modifican los datos de los productos.</div>
-    <div class="lafForm">
-     <label class="lafField">Fuente<select id="liftAppearanceFont"><option>Poppins</option><option>Inter</option><option>Montserrat</option><option>Roboto</option></select></label>
-     <label class="lafField">Texto general<select id="liftAppearanceBodyWeight"><option value="300">300 · Fino</option><option value="400">400 · Normal</option><option value="500">500 · Medio</option><option value="600">600 · Fuerte</option></select></label>
-     <label class="lafField">Títulos<select id="liftAppearanceTitleWeight"><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></label>
-     <label class="lafField">Precios<select id="liftAppearancePriceWeight"><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></label>
-     <label class="lafField">Nombre del producto (px)<input id="liftAppearanceNameSize" type="number" min="11" max="24" step="1"></label>
-     <label class="lafField">Categoría (px)<input id="liftAppearanceCategorySize" type="number" min="8" max="18" step="1"></label>
-     <label class="lafField">Precio (px)<input id="liftAppearancePriceSize" type="number" min="14" max="32" step="1"></label>
-     <label class="lafField">Grosor texto gris<select id="liftAppearanceMetaWeight"><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></label>
-     <label class="lafField">Color fondo de toda la página<input id="liftAppearancePageBg" type="color"></label>
-     <label class="lafField">Color tarjeta<input id="liftAppearanceCardBg" type="color"></label>
-     <label class="lafField">Color fondo imagen<input id="liftAppearanceImageBg" type="color"></label>
-     <label class="lafField">Color borde<input id="liftAppearanceBorderColor" type="color"></label>
-     <label class="lafField">Color texto gris / marca-categoría<input id="liftAppearanceMetaColor" type="color"></label>
-     <label class="lafField">Color nombre producto<input id="liftAppearanceNameColor" type="color"></label>
-     <label class="lafField">Color presentación<input id="liftAppearancePresentationColor" type="color"></label>
-     <label class="lafField">Color precio<input id="liftAppearancePriceColor" type="color"></label>
-     <label class="lafField">Redondeado tarjeta (px)<input id="liftAppearanceRadius" type="number" min="0" max="30" step="1"></label>
-    </div>
-    <div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" type="button" onclick="liftAppearanceSave()">Guardar apariencia</button><button class="lafBtn" type="button" onclick="liftAppearanceReset()">Restablecer</button></div>
-    <div id="liftAppearanceStatus" class="lafResult"></div>
-   </div>
-  </section>
   <section id="laf-excel" class="lafPane">
    <div class="lafBox"><h3>Importar Excel / CSV / JSON</h3><div class="lafNote">Como en Vitaness: Excel puede traer <b>Productos</b>, <b>Ofertas</b> y <b>Combos</b>. Para Lift solo existe un precio comercial: <b>Precio detal</b>.</div><div class="lafForm"><label class="lafField full">Archivo<input id="lafImportFile" type="file" accept=".xlsx,.xls,.csv,.json"></label><label class="lafField">Modo<select id="lafImportMode"><option value="upsert">Agregar + actualizar</option><option value="add">Solo nuevos</option><option value="update">Solo actualizar</option><option value="replace">Reemplazar catálogo</option></select></label></div><div class="lafTools" style="margin-top:12px"><button class="lafBtn" onclick="lafPreviewImport()">Leer archivo</button><button id="lafApplyImport" class="lafBtn primary" disabled onclick="lafApplyImport()">Importar</button></div><div id="lafImportResult" class="lafResult"></div><div id="lafImportPreview" class="lafPreview" style="display:none"></div></div>
    <div class="lafBox"><h3>Exportar base completa</h3><div class="lafNote">El Excel genera tres pestañas: <b>Productos</b>, <b>Ofertas</b> y <b>Combos</b>. Puedes editarlo y volverlo a importar.</div><div class="lafTools"><button class="lafBtn primary" onclick="lafExportXLSX()">Exportar Excel</button><button class="lafBtn" onclick="lafExportCSV()">Exportar CSV</button><button class="lafBtn" onclick="lafExportJSON()">Respaldo JSON</button></div><div id="lafExportResult" class="lafResult"></div></div>
@@ -4372,7 +4376,7 @@ window.shareLiftProductImage=async function(id){
  window.openLiftAdminFull=function(){ $('lafBackdrop').classList.add('show');$('lafPanel').classList.add('open');lafRenderProducts();lafFillLists();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  window.closeLiftAdminFull=function(){$('lafBackdrop').classList.remove('show');$('lafPanel').classList.remove('open')};
  window.lafTab=function(name,btn){document.querySelectorAll('.lafPane').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.lafTab').forEach(x=>x.classList.remove('on'));$('laf-'+name).classList.add('on');btn?.classList.add('on');if(name==='offers')lafRenderOffers();if(name==='combos')lafRenderCombos();if(name==='categories')lafRenderCategories();if(name==='create')lafFillLists();if(name==='audit')lafRenderAudit()};
- window.lafFillLists=function(){const bs=[...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))].sort();const cs=[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))].sort();$('lafBrands').innerHTML=bs.map(x=>`<option value="${esc(x)}">`).join('');$('lafCategories').innerHTML=cs.map(x=>`<option value="${esc(x)}">`).join('')};
+ window.lafFillLists=function(){const bs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))],window.LIFT_LABORATORIES_SUPABASE||{},x=>x);const cs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))],LIFT_CATEGORY_CONFIG,x=>x);$('lafBrands').innerHTML=bs.map(x=>`<option value="${esc(x)}">`).join('');$('lafCategories').innerHTML=cs.map(x=>`<option value="${esc(x)}">`).join('')};
  window.LIFT_BULK_SELECTED=window.LIFT_BULK_SELECTED||new Set();
  window.lafBulkCategories=function(){
    if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
@@ -4460,7 +4464,7 @@ window.shareLiftProductImage=async function(id){
  window.lafDeleteCurrent=function(){const id=$('lafEditId').value;if(!id)return;if(!confirm('¿Eliminar este producto del catálogo?'))return;const i=PRODUCTS.findIndex(x=>String(x.id)===String(id));if(i>=0)PRODUCTS.splice(i,1);const o=store();delete o[String(id)];saveStore(o);const m=meta();if(m.out)delete m.out[id];saveMeta(m);lafClearForm();refresh()};
  window.lafNewCombo=function(){lafClearForm();lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafCategory').value='Combos';$('lafBrand').value='COMBOS';$('lafFormTitle').textContent='Crear combo'};
  window.lafRenderCombos=function(){const a=PRODUCTS.filter(p=>norm(p.category)==='combos'||norm(p.brand)==='combos');$('lafComboList').innerHTML=a.map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.description||'Combo')}</div></div><div>$${fmt(p.price)}</div><button class="lafIcon" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>`).join('')||'<div class="lafNote">No hay combos.</div>'};
- window.lafRenderCategories=function(){const cs=[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))].sort();$('lafCategoryList').innerHTML=cs.map((c,i)=>`<div class="lafOfferRow"><div><b>${esc(c)}</b><div class="lafMeta">${PRODUCTS.filter(p=>p.category===c).length} productos</div></div><input class="lafInput" id="lafcat_${i}" value="${esc(c)}"><button class="lafBtn" onclick="lafRenameCategory(${JSON.stringify(c)},'lafcat_${i}')">Renombrar</button></div>`).join('')};
+ window.lafRenderCategories=function(){const cs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))],LIFT_CATEGORY_CONFIG,x=>x);$('lafCategoryList').innerHTML=cs.map((c,i)=>`<div class="lafOfferRow"><div><b>${esc(c)}</b><div class="lafMeta">${PRODUCTS.filter(p=>p.category===c).length} productos</div></div><input class="lafInput" id="lafcat_${i}" value="${esc(c)}"><button class="lafBtn" onclick="lafRenameCategory(${JSON.stringify(c)},'lafcat_${i}')">Renombrar</button></div>`).join('')};
  window.lafRenameCategory=function(old,id){const n=$(id).value.trim();if(!n||n===old)return;PRODUCTS.filter(p=>p.category===old).forEach(p=>{p.category=n;patch(p)});refresh();lafRenderCategories()};
  window.lafRenderOffers=function(){const q=norm($('lafOfferSearch').value);const a=PRODUCTS.filter(p=>(!q||norm([p.name,p.brand].join(' ')).includes(q))&&(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).concat(PRODUCTS.filter(p=>!q||norm([p.name,p.brand].join(' ')).includes(q)).filter(p=>!(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).slice(0,40));$('lafOfferList').innerHTML=a.slice(0,150).map(p=>{const o=typeof WEEKLY_OFFERS!=='undefined'?WEEKLY_OFFERS[p.id]:null;const date=o?.promoUntil?String(o.promoUntil).slice(0,10):'';return `<div class="lafOfferRow"><div><b style="font-size:11px">${esc(p.name)}</b><div class="lafMeta">Detal $${fmt(p.price)}</div></div><input class="lafPrice" id="lafo_${p.id}" placeholder="Precio oferta" value="${o?fmt(o.price):''}"><input class="lafPrice" type="date" id="lafod_${p.id}" value="${date}"><button class="lafBtn ${o?'danger':'primary'}" onclick="lafToggleOffer(${JSON.stringify(p.id)})">${o?'Quitar':'Guardar'}</button></div>`}).join('')};
  window.lafToggleOffer=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p||typeof WEEKLY_OFFERS==='undefined')return;if(WEEKLY_OFFERS[id]){delete WEEKLY_OFFERS[id]}else{const pr=num($('lafo_'+id).value),d=$('lafod_'+id).value;if(!pr){alert('Escribe el precio de oferta');return}WEEKLY_OFFERS[id]={price:pr,promoUntil:d?d+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:false}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m);refresh();lafRenderOffers()};
@@ -4808,10 +4812,15 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      }
      const categoryCfg=cfg.find(x=>x.clave==='categories_v1')?.valor;
      LIFT_CATEGORY_CONFIG=(categoryCfg && typeof categoryCfg==='object')?categoryCfg:{};
+     if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
      const labCfg=cfg.find(x=>x.clave==='laboratories_v1')?.valor;
      window.LIFT_LABORATORIES_SUPABASE=(labCfg && typeof labCfg==='object')?labCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
      if(typeof render==='function')render();if(typeof renderCart==='function')renderCart();if(typeof renderFilters==='function')renderFilters();if(typeof lafRenderProducts==='function')lafRenderProducts();
+     // Si Admin ya estaba iniciado al recargar, primero termina el catálogo público y después reincorpora los privados.
+     if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
+       try{await loadPrivateProducts()}catch(e){console.error('Productos privados tras recarga:',e);state('🔒 no se pudieron cargar privados','err')}
+     }
      console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: ${fromCache?'caché local':'Supabase'}.`);
      state(`${fromCache?'⚡ caché':'☁ conectado'} · ${PRODUCTS.length} productos`,'ok');setTimeout(()=>state(''),2200);
    }catch(e){console.error(e);state('☁ sin conexión · catálogo no disponible','err');try{const g=document.getElementById('grid');if(g&&!PRODUCTS.length)g.innerHTML='<div style="padding:28px;text-align:center;color:#666">No se pudieron cargar los productos desde Supabase.</div>'}catch(_){} }
@@ -5660,9 +5669,11 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
       if(!b) return;
       counts.set(b,(counts.get(b)||0)+1);
     });
-    return [...counts.entries()]
-      .map(([name,count])=>({name,count}))
-      .sort((a,b)=>a.name.localeCompare(b,'es',{sensitivity:'base'}));
+    return liftSortBySupabaseOrder(
+      [...counts.entries()].map(([name,count])=>({name,count})),
+      window.LIFT_LABORATORIES_SUPABASE||{},
+      x=>x.name
+    );
   }
 
   window.renderLaboratoryVisualGrid=function(query=''){
@@ -5914,23 +5925,17 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
 .grid .liftVitanessCard .liftCardPresentation{color:var(--lift-presentation-color)!important}
 .grid .liftVitanessCard .liftCardPresentation,.grid .liftVitanessCard .liftCardFlavor,.status,.filterItem,.checkItem,.chip{font-weight:var(--lift-body-weight)!important}
 </style>
-<script id="lift-appearance-supabase-v2-script">
+<script id="lift-appearance-supabase-readonly-script">
 (function(){
  'use strict';
  const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const DEF={fontFamily:'Poppins',bodyWeight:400,titleWeight:600,priceWeight:600,metaWeight:700,productNameSize:16,categorySize:12,priceSize:20,pageBg:'#ffffff',cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#111111',cardRadius:13};
- let cfg={...DEF}; const $=id=>document.getElementById(id);
  const clamp=(v,a,b,d)=>{v=Number(v);return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d};
  const color=(v,d)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):d;
  function clean(x){x=x&&typeof x==='object'?x:{};return {fontFamily:['Poppins','Inter','Montserrat','Roboto'].includes(x.fontFamily)?x.fontFamily:DEF.fontFamily,bodyWeight:clamp(x.bodyWeight,300,600,DEF.bodyWeight),titleWeight:clamp(x.titleWeight,400,700,DEF.titleWeight),priceWeight:clamp(x.priceWeight,400,700,DEF.priceWeight),metaWeight:clamp(x.metaWeight,400,700,DEF.metaWeight),productNameSize:clamp(x.productNameSize,11,24,DEF.productNameSize),categorySize:clamp(x.categorySize,8,18,DEF.categorySize),priceSize:clamp(x.priceSize,14,32,DEF.priceSize),pageBg:color(x.pageBg,DEF.pageBg),cardBg:color(x.cardBg,DEF.cardBg),imageBg:color(x.imageBg,DEF.imageBg),borderColor:color(x.borderColor,DEF.borderColor),metaColor:color(x.metaColor,DEF.metaColor),nameColor:color(x.nameColor,DEF.nameColor),presentationColor:color(x.presentationColor,DEF.presentationColor),priceColor:color(x.priceColor,DEF.priceColor),cardRadius:clamp(x.cardRadius,0,30,DEF.cardRadius)}}
- function apply(x){cfg=clean(x);const r=document.documentElement.style,vars={'--lift-font':'"'+cfg.fontFamily+'"','--lift-body-weight':cfg.bodyWeight,'--lift-title-weight':cfg.titleWeight,'--lift-price-weight':cfg.priceWeight,'--lift-meta-weight':cfg.metaWeight,'--lift-product-name-size':cfg.productNameSize+'px','--lift-category-size':cfg.categorySize+'px','--lift-price-size':cfg.priceSize+'px','--lift-page-bg':cfg.pageBg,'--lift-card-bg':cfg.cardBg,'--lift-image-bg':cfg.imageBg,'--lift-card-border':cfg.borderColor,'--lift-meta-color':cfg.metaColor,'--lift-name-color':cfg.nameColor,'--lift-presentation-color':cfg.presentationColor,'--lift-price-color':cfg.priceColor,'--lift-card-radius':cfg.cardRadius+'px'};Object.entries(vars).forEach(([k,v])=>r.setProperty(k,v));window.LIFT_APPEARANCE=cfg}
- async function load(){try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?clave=eq.appearance_v1&select=valor',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('No se pudo leer apariencia');const j=await r.json();apply({...DEF,...(j?.[0]?.valor||{})})}catch(e){console.warn('Apariencia Lift:',e);apply(DEF)}}
- window.liftAppearanceFill=function(){const x=cfg;const vals={liftAppearanceFont:x.fontFamily,liftAppearanceBodyWeight:x.bodyWeight,liftAppearanceTitleWeight:x.titleWeight,liftAppearancePriceWeight:x.priceWeight,liftAppearanceMetaWeight:x.metaWeight,liftAppearanceNameSize:x.productNameSize,liftAppearanceCategorySize:x.categorySize,liftAppearancePriceSize:x.priceSize,liftAppearancePageBg:x.pageBg,liftAppearanceCardBg:x.cardBg,liftAppearanceImageBg:x.imageBg,liftAppearanceBorderColor:x.borderColor,liftAppearanceMetaColor:x.metaColor,liftAppearanceNameColor:x.nameColor,liftAppearancePresentationColor:x.presentationColor,liftAppearancePriceColor:x.priceColor,liftAppearanceRadius:x.cardRadius};Object.entries(vals).forEach(([id,v])=>{if($(id))$(id).value=String(v)})};
- function readForm(){return clean({fontFamily:$('liftAppearanceFont').value,bodyWeight:$('liftAppearanceBodyWeight').value,titleWeight:$('liftAppearanceTitleWeight').value,priceWeight:$('liftAppearancePriceWeight').value,metaWeight:$('liftAppearanceMetaWeight').value,productNameSize:$('liftAppearanceNameSize').value,categorySize:$('liftAppearanceCategorySize').value,priceSize:$('liftAppearancePriceSize').value,pageBg:$('liftAppearancePageBg').value,cardBg:$('liftAppearanceCardBg').value,imageBg:$('liftAppearanceImageBg').value,borderColor:$('liftAppearanceBorderColor').value,metaColor:$('liftAppearanceMetaColor').value,nameColor:$('liftAppearanceNameColor').value,presentationColor:$('liftAppearancePresentationColor').value,priceColor:$('liftAppearancePriceColor').value,cardRadius:$('liftAppearanceRadius').value})}
- window.liftAppearanceSave=async function(){const st=$('liftAppearanceStatus'),next=readForm();apply(next);st.textContent='Guardando en Supabase…';try{if(typeof window.liftCloudSaveConfig!=='function')throw new Error('Abre nuevamente la sesión de administrador.');await window.liftCloudSaveConfig('appearance_v1',next);st.textContent='✓ Apariencia guardada en Supabase';setTimeout(()=>st.textContent='',2200)}catch(e){st.textContent='No se pudo guardar: '+(e.message||e)}};
- window.liftAppearanceReset=async function(){apply(DEF);liftAppearanceFill();const st=$('liftAppearanceStatus');st.textContent='Guardando valores predeterminados…';try{if(typeof window.liftCloudSaveConfig!=='function')throw new Error('Abre nuevamente la sesión de administrador.');await window.liftCloudSaveConfig('appearance_v1',DEF);st.textContent='✓ Apariencia restablecida'}catch(e){st.textContent='No se pudo guardar: '+(e.message||e)}};
- function bindLivePreview(){const ids=['liftAppearanceFont','liftAppearanceBodyWeight','liftAppearanceTitleWeight','liftAppearancePriceWeight','liftAppearanceMetaWeight','liftAppearanceNameSize','liftAppearanceCategorySize','liftAppearancePriceSize','liftAppearancePageBg','liftAppearanceCardBg','liftAppearanceImageBg','liftAppearanceBorderColor','liftAppearanceMetaColor','liftAppearanceNameColor','liftAppearancePresentationColor','liftAppearancePriceColor','liftAppearanceRadius'];ids.forEach(id=>{const el=$(id);if(!el||el.dataset.liveAppearance)return;el.dataset.liveAppearance='1';const preview=()=>{apply(readForm());const st=$('liftAppearanceStatus');if(st)st.textContent='Vista previa en tiempo real · pulsa Guardar para conservar';};el.addEventListener('input',preview);el.addEventListener('change',preview)})}
- document.addEventListener('DOMContentLoaded',bindLivePreview);window.liftAppearanceFill=(function(original){return function(){original();bindLivePreview()}})(window.liftAppearanceFill);load();
+ function apply(x){const cfg=clean(x),r=document.documentElement.style,vars={'--lift-font':'"'+cfg.fontFamily+'"','--lift-body-weight':cfg.bodyWeight,'--lift-title-weight':cfg.titleWeight,'--lift-price-weight':cfg.priceWeight,'--lift-meta-weight':cfg.metaWeight,'--lift-product-name-size':cfg.productNameSize+'px','--lift-category-size':cfg.categorySize+'px','--lift-price-size':cfg.priceSize+'px','--lift-page-bg':cfg.pageBg,'--lift-card-bg':cfg.cardBg,'--lift-image-bg':cfg.imageBg,'--lift-card-border':cfg.borderColor,'--lift-meta-color':cfg.metaColor,'--lift-name-color':cfg.nameColor,'--lift-presentation-color':cfg.presentationColor,'--lift-price-color':cfg.priceColor,'--lift-card-radius':cfg.cardRadius+'px'};Object.entries(vars).forEach(([k,v])=>r.setProperty(k,v));window.LIFT_APPEARANCE=cfg}
+ async function load(){try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?clave=eq.appearance_v1&select=valor',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('No se pudo leer appearance_v1');const j=await r.json();apply({...DEF,...(j?.[0]?.valor||{})})}catch(e){console.warn('Apariencia Lift desde Supabase:',e);apply(DEF)}}
+ load();
 })();
 </script>\n</body>
 </html>
