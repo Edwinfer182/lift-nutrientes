@@ -3032,7 +3032,8 @@ function renderProductDetail(p){
   }
 
   function logoUrlV2(brand){
-    return typeof window.liftLabLogo==='function' ? window.liftLabLogo(brand) : '';
+    const id=window.LIFT_BRAND_LOGOS?.[brand];
+    return id?`https://drive.google.com/thumbnail?id=${id}&sz=w300`:"";
   }
 
   function brandRowV2(brand){
@@ -3193,7 +3194,8 @@ function renderProductDetail(p){
     }).sort((a,b)=>(norm(a)===nq?-1:0)-(norm(b)===nq?-1:0)||a.localeCompare(b)).slice(0,3);
 
     function logoUrlV3(brand){
-      return typeof window.liftLabLogo==='function' ? window.liftLabLogo(brand) : '';
+      const id=window.LIFT_BRAND_LOGOS?.[brand];
+      return id?`https://drive.google.com/thumbnail?id=${id}&sz=w300`:"";
     }
 
     function productActionsV3(p){
@@ -3799,6 +3801,161 @@ function renderProductDetail(p){
   }
 }
 </style>
+
+<script id="lift-laboratorios-mobile-fix-script">
+(function(){
+  function refreshLabsSoon(){
+    setTimeout(()=>{
+      try{
+        const grid=document.getElementById('labVisualGrid');
+        if(grid && typeof window.renderLaboratoryVisualGrid==='function'){
+          const input=document.getElementById('labVisualSearch');
+          window.renderLaboratoryVisualGrid(input ? input.value : '');
+        }
+      }catch(e){}
+    },30);
+  }
+
+  // El panel de filtros se vuelve a crear varias veces al renderizar.
+  // Si aparece un nuevo labVisualGrid, lo rellenamos de inmediato.
+  const obs = new MutationObserver(mutations=>{
+    for(const m of mutations){
+      for(const node of m.addedNodes||[]){
+        if(!(node instanceof HTMLElement)) continue;
+        if(node.id==='labVisualGrid' || node.querySelector?.('#labVisualGrid')){
+          refreshLabsSoon();
+          return;
+        }
+      }
+    }
+  });
+
+  function boot(){
+    obs.observe(document.body,{childList:true,subtree:true});
+    refreshLabsSoon();
+
+    // En móvil, tocar la pestaña Laboratorios debe forzar el repintado
+    // después de que el panel haya cambiado de contenido.
+    document.addEventListener('click',e=>{
+      const tab=e.target.closest('button');
+      if(tab && /Laboratorios/i.test(tab.textContent||'')){
+        refreshLabsSoon();
+        setTimeout(refreshLabsSoon,120);
+      }
+    },true);
+
+    window.addEventListener('resize',refreshLabsSoon);
+    window.addEventListener('orientationchange',()=>setTimeout(refreshLabsSoon,150));
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot);
+  }else{
+    boot();
+  }
+})();
+</script>
+
+
+<!-- LIFT LABORATORIOS MOBILE FIX FINAL: desktop + mobile grids -->
+<script id="lift-laboratorios-mobile-final-script">
+(function(){
+  const genericLabs = new Set(["Destacados Lift","Selección Lift"]);
+
+  function allLabs(){
+    const counts=new Map();
+    (window.PRODUCTS||[]).forEach(p=>{
+      const b=(p.brand||'').trim();
+      if(!b || genericLabs.has(b)) return;
+      counts.set(b,(counts.get(b)||0)+1);
+    });
+    return liftSortBySupabaseOrder(
+      [...counts.entries()].map(([name,count])=>({name,count})),
+      window.LIFT_LABORATORIES_SUPABASE||{},
+      x=>x.name
+    );
+  }
+
+  function labLogo(name){
+    if(typeof window.liftLabLogo==='function') return window.liftLabLogo(name);
+    const id=window.LIFT_BRAND_LOGOS?.[name];
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w260` : '';
+  }
+
+  // Hay dos paneles simultáneos en el HTML: desktop y móvil.
+  // Por eso no usamos getElementById: pintamos TODOS los grids existentes.
+  window.renderLaboratoryVisualGrid=function(query=''){
+    const q=(query||'').trim().toLowerCase();
+    const labs=allLabs().filter(l=>!q || l.name.toLowerCase().includes(q));
+    const grids=[...document.querySelectorAll('#labVisualGrid')];
+
+    grids.forEach(grid=>{
+      if(!labs.length){
+        grid.innerHTML='<div class="labVisualEmpty">No encontré ese laboratorio.</div>';
+        return;
+      }
+      grid.innerHTML=labs.map(l=>{
+        const logo=labLogo(l.name);
+        const visual=logo
+          ? `<img loading="lazy" decoding="async" src="${logo}" alt="Logo ${esc(l.name)}">`
+          : `<span class="labVisualInitial">${esc(l.name.charAt(0))}</span>`;
+        const active=state.brand===l.name?' on':'';
+        return `<button type="button" class="labVisualCard${active}" onclick='selectLaboratoryVisual(${JSON.stringify(l.name)})'>
+          <span class="labVisualLogoBox">${visual}</span>
+          <span class="labVisualName">${esc(l.name)}</span>
+          <span class="labVisualCount">${l.count} producto${l.count===1?'':'s'}</span>
+        </button>`;
+      }).join('');
+    });
+  };
+
+  // Los dos buscadores también comparten id en desktop/móvil.
+  document.addEventListener('input',e=>{
+    if(e.target && e.target.matches('#labVisualSearch')){
+      document.querySelectorAll('#labVisualSearch').forEach(input=>{
+        if(input!==e.target) input.value=e.target.value;
+      });
+      window.renderLaboratoryVisualGrid(e.target.value);
+    }
+  },true);
+
+  function paint(){
+    if(typeof window.renderLaboratoryVisualGrid==='function'){
+      const visibleInput=[...document.querySelectorAll('#labVisualSearch')]
+        .find(x=>x.offsetParent!==null);
+      window.renderLaboratoryVisualGrid(visibleInput?.value||'');
+    }
+  }
+
+  // Cada renderFilters reemplaza ambos paneles, así que observamos ambos contenedores.
+  const observer=new MutationObserver(muts=>{
+    if(muts.some(m=>[...m.addedNodes].some(n=>
+      n.nodeType===1 && (n.matches?.('#labVisualGrid,.labVisualWrap') || n.querySelector?.('#labVisualGrid'))
+    ))){
+      requestAnimationFrame(paint);
+    }
+  });
+
+  function boot(){
+    const desktop=document.getElementById('desktopFilters');
+    const mobile=document.getElementById('mobileFilters');
+    if(desktop) observer.observe(desktop,{childList:true,subtree:true});
+    if(mobile) observer.observe(mobile,{childList:true,subtree:true});
+    paint();
+
+    document.addEventListener('click',e=>{
+      const tab=e.target.closest('.filterTab');
+      if(tab && /Laboratorios/i.test(tab.textContent||'')){
+        requestAnimationFrame(()=>requestAnimationFrame(paint));
+      }
+    },true);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+  else boot();
+})();
+</script>
+
 
 <!-- LIFT LABORATORIOS: PRESERVAR SCROLL DEL PANEL -->
 <script id="lift-laboratorios-scroll-preservado-script">
@@ -4645,16 +4802,24 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
  window.liftCloudSaveConfig=async(clave,valor)=>adminCall({action:'save-config',clave,valor});
  async function loadCloud(){
    try{
-     // SUPABASE ES LA ÚNICA FUENTE: no reutilizar catálogo ni configuración desde localStorage.
-     // Esto evita que laboratories_v1/categories_v1 viejos pisen cambios recién guardados.
-     clearCatalogCache();
-     state('☁ sincronizando Supabase…');
-     const [rows,rc]=await Promise.all([
-       fetchAllProducts(),
-       fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'})
-     ]);
-     if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
-     const cfg=await rc.json();
+     const cached=readCatalogCache();
+     let rows,cfg,fromCache=false;
+     if(cached){
+       rows=cached.rows;
+       cfg=cached.cfg;
+       fromCache=true;
+       state('⚡ catálogo en caché','ok');
+     }else{
+       state('☁ sincronizando…');
+       const [allProducts,rc]=await Promise.all([
+         fetchAllProducts(),
+         fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'})
+       ]);
+       if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
+       rows=allProducts;
+       cfg=await rc.json();
+       writeCatalogCache(rows,cfg);
+     }
      // FUENTE ÚNICA: nada de cachés, RPC antiguos ni productos incrustados.
      PRODUCTS.splice(0,PRODUCTS.length);
      rows.forEach(r=>{
@@ -4679,10 +4844,8 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
        try{await loadPrivateProducts()}catch(e){console.error('Productos privados tras recarga:',e);state('🔒 no se pudieron cargar privados','err')}
      }
-     console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: Supabase.`);
-     if(typeof lafBulkDestinations==='function')lafBulkDestinations();
-     if(typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid('');
-     state(`☁ Supabase · ${PRODUCTS.length} productos`,'ok');setTimeout(()=>state(''),2200);
+     console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: ${fromCache?'caché local':'Supabase'}.`);
+     state(`${fromCache?'⚡ caché':'☁ conectado'} · ${PRODUCTS.length} productos`,'ok');setTimeout(()=>state(''),2200);
    }catch(e){console.error(e);state('☁ sin conexión · catálogo no disponible','err');try{const g=document.getElementById('grid');if(g&&!PRODUCTS.length)g.innerHTML='<div style="padding:28px;text-align:center;color:#666">No se pudieron cargar los productos desde Supabase.</div>'}catch(_){} }
  }
  function install(){
@@ -5131,7 +5294,10 @@ body.liftAdminUnlocked .labAdminNew{display:block}
     }
   }
 
-  // El resolver visual global se define una sola vez en el bloque Supabase de laboratorios.
+  // Una sola fuente para mostrar logos: Supabase.
+  window.liftLabLogo = function(name){
+    return getLogo(name);
+  };
 
   window.liftLabAdminOpen = function(name){
     if(!document.body.classList.contains('liftAdminUnlocked')) return;
@@ -5504,7 +5670,7 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
   'use strict';
 
   // ÚNICA fuente de imágenes de laboratorios: lift_catalog_config.laboratories_v1
-  window.LIFT_LABORATORIES_SUPABASE = (window.LIFT_LABORATORIES_SUPABASE && typeof window.LIFT_LABORATORIES_SUPABASE==='object') ? window.LIFT_LABORATORIES_SUPABASE : {};
+  window.LIFT_LABORATORIES_SUPABASE = {};
 
   window.liftLabLogo = function(name){
     const key=String(name||'').trim();
@@ -5526,12 +5692,9 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
       if(!b) return;
       counts.set(b,(counts.get(b)||0)+1);
     });
-    const cfg=window.LIFT_LABORATORIES_SUPABASE||{};
     return liftSortBySupabaseOrder(
-      [...counts.entries()]
-        .filter(([name])=>cfg[name]?.active!==false)
-        .map(([name,count])=>({name,count})),
-      cfg,
+      [...counts.entries()].map(([name,count])=>({name,count})),
+      window.LIFT_LABORATORIES_SUPABASE||{},
       x=>x.name
     );
   }
