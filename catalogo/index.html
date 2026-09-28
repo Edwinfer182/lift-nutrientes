@@ -14,7 +14,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Catálogo Lift Nutrientes</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@200;300;400;500;600;700&family=Roboto:wght@300;400;500;600;700&display=swap');
 :root{--bg:#f5f6f7;--card:#fff;--ink:#111;--muted:#727272;--line:#e7e7e7;--accent:#e31b23;--dark:#0e0e0e;--shadow:0 10px 28px rgba(0,0,0,.08);--side:292px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:"Poppins",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-weight:200}button,input{font:inherit}
 .top{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
@@ -816,6 +816,16 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 }
 </style>
 
+
+<style id="lift-card-price-clean-v1">
+/* Tarjeta: precio limpio, sin etiqueta ni contenedor gris */
+.grid .liftVitanessCard .prices{display:block!important;margin-top:auto!important;}
+.grid .liftVitanessCard .priceBox{background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important;}
+.grid .liftVitanessCard .priceBox small{display:none!important;}
+.grid .liftVitanessCard .priceBox .price{display:block!important;margin:0!important;background:transparent!important;padding:0!important;}
+.grid .liftVitanessCard .priceBox .offerPrices{margin:0!important;}
+</style>
+
 </head><body>
 <!-- FASE5 LIMPIEZA V2: 67 duplicados Lift adicionales eliminados; Vitaness conservado como prioridad. -->
 
@@ -1367,10 +1377,6 @@ function filterHTML(){
   return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
 <section class="filterPanel" ${isBrands?'':'hidden'}>
   <div class="labVisualWrap">
-    <div class="labVisualSearchWrap">
-      <input id="labVisualSearch" class="labVisualSearch" type="search" placeholder="Buscar laboratorio..."
-        autocomplete="off" oninput="renderLaboratoryVisualGrid(this.value)">
-    </div>
     <div id="labVisualGrid" class="labVisualGrid">
       ${brands.filter(b=>b!=='Todas').map(b=>`<button class="filterItem ${state.brand===b?'on':''}" onclick='setBrand(${JSON.stringify(b)})'><span>${esc(b)}</span><small>${bc[b]}</small></button>`).join('')}
     </div>
@@ -1386,17 +1392,39 @@ function renderFilters(){
   const h=filterHTML();
   document.getElementById('desktopFilters').innerHTML=h;
   document.getElementById('mobileFilters').innerHTML=h;
-  requestAnimationFrame(()=>{
-    document.querySelectorAll('.labVisualSearch').forEach(el=>{
-      el.value='';
-      el.setAttribute('readonly','readonly');
-    });
-  });
 }
 function setFilterView(view){state.filterView=view;renderFilters()}
 function showOffers(){state.offerOnly=!state.offerOnly;state.cat='Todos';state.brand='Todas';fullSearchActive=false;closeQuickSearch();render();document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'})}
 function setCat(c){state.offerOnly=false;state.cat=c;state.brand='Todas';render();if(innerWidth<=760)closeOff()}
 function setBrand(b){state.offerOnly=false;state.brand=b;state.cat='Todos';render();if(innerWidth<=760)closeOff()}
+function liftViewBrand(brand){
+  if(!brand)return;
+  fullSearchActive=false;
+  const q=document.getElementById('q');
+  if(q)q.value='';
+  closeQuickSearch();
+  state.offerOnly=false;
+  state.filterView='brands';
+  state.brand=brand;
+  state.cat='Todos';
+  render();
+  if(innerWidth<=760 && typeof closeOff==='function')closeOff();
+  requestAnimationFrame(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function liftViewCategory(category){
+  if(!category)return;
+  fullSearchActive=false;
+  const q=document.getElementById('q');
+  if(q)q.value='';
+  closeQuickSearch();
+  state.offerOnly=false;
+  state.filterView='categories';
+  state.cat=category;
+  state.brand='Todas';
+  render();
+  if(innerWidth<=760 && typeof closeOff==='function')closeOff();
+  requestAnimationFrame(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
 function searchProductsAll(value){
   const q=norm(value).trim();
   if(!q)return [];
@@ -1430,7 +1458,7 @@ function productCards(arr,emptyText='No encontré productos.'){
           <div class="name">${esc(p.name)}</div>
           ${p.presentation?`<div class="liftCardPresentation">${esc(p.presentation)}</div>`:''}
           ${hasFlavor?`<div class="liftCardFlavor">Opciones / sabores disponibles</div>`:''}
-          <div class="prices singlePrice"><div class="priceBox"><small>Precio</small>${priceHTML(p)}</div></div>
+          <div class="prices singlePrice"><div class="priceBox">${priceHTML(p)}</div></div>
         </div>
       </div>
       <div class="cardQuickBuy cardQuickActions">
@@ -4759,17 +4787,9 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      window.LIFT_LABORATORIES_SUPABASE=(labCfg && typeof labCfg==='object')?labCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
      if(typeof render==='function')render();if(typeof renderCart==='function')renderCart();if(typeof renderFilters==='function')renderFilters();if(typeof lafRenderProducts==='function')lafRenderProducts();
-
-     // IMPORTANTE: loadCloud() reconstruye PRODUCTS desde lift_productos.
-     // Si la sesión Admin ya estaba abierta al recargar, una carga privada anterior
-     // podía quedar borrada por este splice. Cargamos los privados DESPUÉS de que
-     // termine el catálogo público para que permanezcan visibles en Admin.
-     if(document.body.classList.contains('liftAdminUnlocked') && getPass()){
-       try{ await loadPrivateProducts(); }
-       catch(e){
-         console.error('Productos privados después de recargar catálogo:',e);
-         state('🔒 no se pudieron cargar privados','err');
-       }
+     // Si Admin ya estaba iniciado al recargar, primero termina el catálogo público y después reincorpora los privados.
+     if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
+       try{await loadPrivateProducts()}catch(e){console.error('Productos privados tras recarga:',e);state('🔒 no se pudieron cargar privados','err')}
      }
      console.info(`Lift catálogo: ${rows.length} filas, ${PRODUCTS.length} productos activos · fuente: ${fromCache?'caché local':'Supabase'}.`);
      state(`${fromCache?'⚡ caché':'☁ conectado'} · ${PRODUCTS.length} productos`,'ok');setTimeout(()=>state(''),2200);
@@ -5854,5 +5874,36 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 })();
 </script>
 
-</body>
+
+<style id="lift-appearance-supabase-v1">
+:root{--lift-font:"Poppins";--lift-body-weight:400;--lift-title-weight:600;--lift-price-weight:600;--lift-meta-weight:700;--lift-product-name-size:16px;--lift-category-size:12px;--lift-price-size:20px;--lift-page-bg:#ffffff;--lift-card-bg:#ffffff;--lift-image-bg:#ffffff;--lift-card-border:#dddddd;--lift-meta-color:#888888;--lift-name-color:#111111;--lift-presentation-color:#666666;--lift-price-color:#111111;--lift-card-radius:13px}
+html,body,.layout,.content{background:var(--lift-page-bg)!important}
+body{font-family:var(--lift-font),ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-weight:var(--lift-body-weight)!important}
+body *:not(svg):not(path){font-family:var(--lift-font),ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
+/* Apariencia especializada de tarjeta: al final para prevalecer sobre estilos históricos. */
+.grid .liftVitanessCard{background:var(--lift-card-bg)!important;border-color:var(--lift-card-border)!important;border-radius:var(--lift-card-radius)!important}
+.grid .liftVitanessCard .pic{background:var(--lift-image-bg)!important}
+.grid .liftVitanessCard .body{background:var(--lift-card-bg)!important}
+.grid .liftVitanessCard .name,.liftMonoTitle,.modalName,.lafName{font-weight:var(--lift-title-weight)!important}
+.grid .liftVitanessCard .name{font-size:var(--lift-product-name-size)!important;color:var(--lift-name-color)!important}
+.grid .liftVitanessCard .priceBox .price,.modalPrice,.liftMonoPrice,.liftMonoPriceArea .price{font-weight:var(--lift-price-weight)!important}
+.grid .liftVitanessCard .priceBox .price{font-size:var(--lift-price-size)!important;color:var(--lift-price-color)!important}
+.grid .liftVitanessCard .liftCardSection{font-size:var(--lift-category-size)!important;color:var(--lift-meta-color)!important;font-weight:var(--lift-meta-weight)!important}
+.grid .liftVitanessCard .liftCardPresentation{color:var(--lift-presentation-color)!important}
+.grid .liftVitanessCard .liftCardPresentation,.grid .liftVitanessCard .liftCardFlavor,.status,.filterItem,.checkItem,.chip{font-weight:var(--lift-body-weight)!important}
+</style>
+<script id="lift-appearance-supabase-readonly-script">
+(function(){
+ 'use strict';
+ const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const DEF={fontFamily:'Poppins',bodyWeight:400,titleWeight:600,priceWeight:600,metaWeight:700,productNameSize:16,categorySize:12,priceSize:20,pageBg:'#ffffff',cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#111111',cardRadius:13};
+ const clamp=(v,a,b,d)=>{v=Number(v);return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d};
+ const color=(v,d)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):d;
+ function clean(x){x=x&&typeof x==='object'?x:{};return {fontFamily:['Poppins','Inter','Montserrat','Roboto'].includes(x.fontFamily)?x.fontFamily:DEF.fontFamily,bodyWeight:clamp(x.bodyWeight,300,600,DEF.bodyWeight),titleWeight:clamp(x.titleWeight,400,700,DEF.titleWeight),priceWeight:clamp(x.priceWeight,400,700,DEF.priceWeight),metaWeight:clamp(x.metaWeight,400,700,DEF.metaWeight),productNameSize:clamp(x.productNameSize,11,24,DEF.productNameSize),categorySize:clamp(x.categorySize,8,18,DEF.categorySize),priceSize:clamp(x.priceSize,14,32,DEF.priceSize),pageBg:color(x.pageBg,DEF.pageBg),cardBg:color(x.cardBg,DEF.cardBg),imageBg:color(x.imageBg,DEF.imageBg),borderColor:color(x.borderColor,DEF.borderColor),metaColor:color(x.metaColor,DEF.metaColor),nameColor:color(x.nameColor,DEF.nameColor),presentationColor:color(x.presentationColor,DEF.presentationColor),priceColor:color(x.priceColor,DEF.priceColor),cardRadius:clamp(x.cardRadius,0,30,DEF.cardRadius)}}
+ function apply(x){const cfg=clean(x),r=document.documentElement.style,vars={'--lift-font':'"'+cfg.fontFamily+'"','--lift-body-weight':cfg.bodyWeight,'--lift-title-weight':cfg.titleWeight,'--lift-price-weight':cfg.priceWeight,'--lift-meta-weight':cfg.metaWeight,'--lift-product-name-size':cfg.productNameSize+'px','--lift-category-size':cfg.categorySize+'px','--lift-price-size':cfg.priceSize+'px','--lift-page-bg':cfg.pageBg,'--lift-card-bg':cfg.cardBg,'--lift-image-bg':cfg.imageBg,'--lift-card-border':cfg.borderColor,'--lift-meta-color':cfg.metaColor,'--lift-name-color':cfg.nameColor,'--lift-presentation-color':cfg.presentationColor,'--lift-price-color':cfg.priceColor,'--lift-card-radius':cfg.cardRadius+'px'};Object.entries(vars).forEach(([k,v])=>r.setProperty(k,v));window.LIFT_APPEARANCE=cfg}
+ async function load(){try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?clave=eq.appearance_v1&select=valor',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('No se pudo leer appearance_v1');const j=await r.json();apply({...DEF,...(j?.[0]?.valor||{})})}catch(e){console.warn('Apariencia Lift desde Supabase:',e);apply(DEF)}}
+ load();
+})();
+</script>\n</body>
 </html>
