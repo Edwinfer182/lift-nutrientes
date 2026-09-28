@@ -1428,6 +1428,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <div class="body">
           <div class="liftCardSection">${esc(p.brand||'')} · ${esc(p.category||'')}</div>
           <div class="name">${esc(p.name)}</div>
+          ${p.presentation?`<div class="liftCardPresentation">${esc(p.presentation)}</div>`:''}
           ${hasFlavor?`<div class="liftCardFlavor">Opciones / sabores disponibles</div>`:''}
           <div class="prices singlePrice"><div class="priceBox"><small>Precio</small>${priceHTML(p)}</div></div>
         </div>
@@ -1676,7 +1677,7 @@ function renderCheckoutSummary(){
   const flavorMsg=flavorMessageFor(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
     const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=(adminTrainerMode()||trainerCouponActive())&&eff<pub;
-    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div style="font-size:10px;color:#888;text-decoration:line-through">${fmt(pub*x.q)}</div>`:''}${fmt(eff*x.q)}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
+    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p.presentation?`<div class="checkoutProductBrand">Presentación: ${esc(x.p.presentation)}</div>`:''}${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div style="font-size:10px;color:#888;text-decoration:line-through">${fmt(pub*x.q)}</div>`:''}${fmt(eff*x.q)}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
   }).join('')}</div>`+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');
   const prog=document.getElementById('checkoutShippingProgress');
   if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());
@@ -1703,7 +1704,8 @@ function checkoutText(){
   const lines=[`Hola, quiero confirmar este pedido:`,``,`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`,notes?`Notas: ${notes}`:'',``,`Pedido:`];
   its.forEach(({p,q})=>{
     const pub=priceOf(p),eff=checkoutUnitPrice(p),flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
-    const productName=`${p.name}${flavor}`;
+    const presentation=p.presentation?' · '+p.presentation:'';
+    const productName=`${p.name}${presentation}${flavor}`;
     if(q>1) lines.push(`${q} -  ${productName}  · (${moneySpace(eff)} c/u) - ${moneySpace(eff*q)}`);
     else lines.push(`${q} -  ${productName}  · ${moneySpace(eff)} c/u`);
   });
@@ -1721,8 +1723,9 @@ function providerCheckoutText(){
   if(notes) lines.push(`Notas: ${notes}`);
   lines.push(``,`Pedido:`);
   its.forEach(({p,q})=>{
+    const presentation=p.presentation?' · '+p.presentation:'';
     const flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
-    lines.push(`${q} -  ${p.name}${flavor}`);
+    lines.push(`${q} -  ${p.name}${presentation}${flavor}`);
   });
   lines.push(``,``,`Cancela en efectivo ${fmt(sub)} contra entrega`,`Cancela ${fmt(sub)}  por transferencia contra entrega a esta cuenta:`,``,`Titular: Edwin Fernando Muñoz Tobon`,`🏦 Bancolombia ahorros`,`# 36655023431  / 🔑Llave  @edwin4518`);
   return lines.join('\n');
@@ -1776,7 +1779,7 @@ async function finishCheckout(){
   const url='https://wa.me/?text='+encodeURIComponent(t);
   if(popup)popup.location.href=url;else window.location.href=url;
 }
-function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name}${p._cartFlavor?' · Sabor: '+p._cartFlavor:''} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
+function orderText(){const its=items();if(!its.length)return '';const lines=['Pedido:',''];its.forEach(({p,q})=>lines.push(`⚡ ${q} ${p.name}${p.presentation?' · '+p.presentation:''}${p._cartFlavor?' · Sabor: '+p._cartFlavor:''} – ${p.brand} · ${fmt(priceOf(p))} c/u${offerOf(p)?.gift?' · 🎁 Incluye regalo':''}`));const sub=its.reduce((s,x)=>s+priceOf(x.p)*x.q,0);lines.push('',`Subtotal: ${fmt(sub)}`);return lines.join('\n')}
 async function copyOrder(){const t=orderText();if(!t)return;try{await navigator.clipboard.writeText(t);alert('Pedido copiado.')}catch(e){prompt('Copia el pedido:',t)}}
 
 // Base principal disponible para los módulos externos del catálogo.
@@ -4135,6 +4138,7 @@ window.addEventListener('popstate',()=>{
 .liftVitanessCard .body{padding:12px!important;gap:6px!important;min-height:148px!important}
 .liftCardSection{font-size:10px;letter-spacing:.07em;color:#888;text-transform:uppercase;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .liftVitanessCard .name{font-size:14px!important;line-height:1.35!important;min-height:56px!important;max-height:58px!important;margin:2px 0 4px!important;font-weight:600!important}
+.liftCardPresentation{font-size:11px;color:#666;line-height:1.35;min-height:14px;margin-top:-1px}
 .liftCardFlavor{font-size:10px;color:#777;line-height:1.3;min-height:13px}
 .liftVitanessCard .prices{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;margin-top:auto}
 .liftVitanessCard .priceBox{background:#f6f6f6;border-radius:9px;padding:8px}
