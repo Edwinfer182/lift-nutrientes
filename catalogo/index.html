@@ -4342,6 +4342,7 @@ window.shareLiftProductImage=async function(id){
   <div class="lafBulkTools">
     <label class="lafBulkSelectAll"><input id="lafBulkAll" type="checkbox" onchange="lafBulkToggleVisible(this.checked)"> Seleccionar visibles</label>
     <strong id="lafBulkCount">0 seleccionados</strong>
+    <select id="lafBulkField" class="lafSelect" onchange="lafBulkDestinations()"><option value="category">Categoría</option><option value="brand">Laboratorio</option></select>
     <select id="lafBulkTarget" class="lafSelect"></select>
     <button class="lafBtn primary" type="button" onclick="lafBulkMoveSelected()">Mover seleccionados</button>
     <button class="lafBtn" type="button" onclick="lafBulkClear()">Limpiar</button>
@@ -4378,14 +4379,24 @@ window.shareLiftProductImage=async function(id){
  window.lafTab=function(name,btn){document.querySelectorAll('.lafPane').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.lafTab').forEach(x=>x.classList.remove('on'));$('laf-'+name).classList.add('on');btn?.classList.add('on');if(name==='offers')lafRenderOffers();if(name==='combos')lafRenderCombos();if(name==='categories')lafRenderCategories();if(name==='create')lafFillLists();if(name==='audit')lafRenderAudit()};
  window.lafFillLists=function(){const bs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))],window.LIFT_LABORATORIES_SUPABASE||{},x=>x);const cs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))],LIFT_CATEGORY_CONFIG,x=>x);$('lafBrands').innerHTML=bs.map(x=>`<option value="${esc(x)}">`).join('');$('lafCategories').innerHTML=cs.map(x=>`<option value="${esc(x)}">`).join('')};
  window.LIFT_BULK_SELECTED=window.LIFT_BULK_SELECTED||new Set();
- window.lafBulkCategories=function(){
-   if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
-   const arr=(typeof cats!=='undefined'?cats:[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))]).filter(c=>c&&c!=='Todos');
+ window.lafBulkDestinations=function(){
+   const field=String($('lafBulkField')?.value||'category');
+   let arr=[];
+   if(field==='brand'){
+     const cfg=window.LIFT_LABORATORIES_SUPABASE||{};
+     arr=[...new Set([...Object.keys(cfg).filter(k=>cfg[k]?.active!==false&&!cfg[k]?.__deleted),...PRODUCTS.map(p=>String(p.brand||'').trim()).filter(Boolean)])];
+     arr=liftSortBySupabaseOrder(arr,cfg,x=>x);
+   }else{
+     if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
+     arr=(typeof cats!=='undefined'?cats:[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))]).filter(c=>c&&c!=='Todos');
+     arr=liftSortBySupabaseOrder(arr,typeof LIFT_CATEGORY_CONFIG!=='undefined'?LIFT_CATEGORY_CONFIG:{},x=>x);
+   }
    const sel=$('lafBulkTarget');if(!sel)return;
    const old=sel.value;
    sel.innerHTML=arr.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
    if(arr.includes(old))sel.value=old;
  };
+ window.lafBulkCategories=window.lafBulkDestinations;
  window.lafBulkUpdate=function(){
    const set=window.LIFT_BULK_SELECTED;
    const el=$('lafBulkCount');if(el)el.textContent=`${set.size} seleccionado${set.size===1?'':'s'}`;
@@ -4396,7 +4407,7 @@ window.shareLiftProductImage=async function(id){
      all.checked=visible.length>0&&visible.every(ch=>set.has(String(ch.value)));
      all.indeterminate=visible.some(ch=>set.has(String(ch.value)))&&!all.checked;
    }
-   lafBulkCategories();
+   lafBulkDestinations();
  };
  window.lafBulkToggle=function(id,checked){checked?window.LIFT_BULK_SELECTED.add(String(id)):window.LIFT_BULK_SELECTED.delete(String(id));lafBulkUpdate()};
  window.lafBulkToggleVisible=function(checked){
@@ -4412,7 +4423,7 @@ window.shareLiftProductImage=async function(id){
    if(f==='available')a=a.filter(p=>!m.out?.[p.id]);
    $('lafCount').textContent=`${a.length} productos · ${PRODUCTS.length} en total`;
    $('lafProductList').innerHTML=a.slice(0,350).map(p=>`<div class="lafRow lafBulkRow">
-     <label class="lafBulkCheckWrap" title="Seleccionar"><input class="lafBulkCheck" type="checkbox" value="${esc(p.id)}" ${window.LIFT_BULK_SELECTED.has(String(p.id))?'checked':''} onchange="lafBulkToggle(${JSON.stringify(String(p.id))},this.checked)"></label>
+     <label class="lafBulkCheckWrap" title="Seleccionar"><input class="lafBulkCheck" type="checkbox" value="${esc(p.id)}" ${window.LIFT_BULK_SELECTED.has(String(p.id))?'checked':''} onchange="lafBulkToggle(this.value,this.checked)"></label>
      <img src="${esc(p.image||'')}" onerror="this.style.visibility='hidden'">
      <div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.brand||'')} · ${esc(p.category||'')} ${m.out?.[p.id]?'· AGOTADO':''}</div></div>
      <input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}">
@@ -4421,37 +4432,49 @@ window.shareLiftProductImage=async function(id){
    lafBulkUpdate();
  };
  window.lafBulkMoveSelected=async function(){
-   const ids=[...window.LIFT_BULK_SELECTED],target=String($('lafBulkTarget')?.value||'').trim(),status=$('lafBulkStatus');
+   const ids=[...window.LIFT_BULK_SELECTED],field=String($('lafBulkField')?.value||'category'),target=String($('lafBulkTarget')?.value||'').trim(),status=$('lafBulkStatus');
+   const isBrand=field==='brand',label=isBrand?'laboratorio':'categoría';
    if(!ids.length){status.textContent='Selecciona al menos un producto.';return}
-   if(!target){status.textContent='Selecciona la categoría destino.';return}
+   if(!target){status.textContent=`Selecciona el ${label} destino.`;return}
    const arr=PRODUCTS.filter(p=>ids.includes(String(p.id)));
-   const backup=arr.map(p=>({p,category:p.category}));
+   const backup=arr.map(p=>({p,value:isBrand?p.brand:p.category}));
+   const previousLabConfig=isBrand?JSON.parse(JSON.stringify(window.LIFT_LABORATORIES_SUPABASE||{})):null;
+   const previousCatConfig=!isBrand&&typeof LIFT_CATEGORY_CONFIG!=='undefined'?JSON.parse(JSON.stringify(LIFT_CATEGORY_CONFIG||{})):null;
    const btn=document.querySelector('#laf-products .lafBulkTools .primary');
    if(btn)btn.disabled=true;
    try{
-     let done=0;status.textContent=`Moviendo 0 de ${arr.length}…`;
+     let done=0;status.textContent=`Moviendo 0 de ${arr.length} a ${target}…`;
      const queue=[...arr];
      const workers=Array.from({length:Math.min(4,queue.length)},async()=>{
        while(queue.length){
          const p=queue.shift();
-         p.category=target;
+         if(isBrand)p.brand=target;else p.category=target;
          await window.liftCloudSaveProduct(p);
          done++;status.textContent=`Guardando en Supabase: ${done} de ${arr.length}…`;
        }
      });
      await Promise.all(workers);
-     if(typeof LIFT_CATEGORY_CONFIG!=='undefined'){
-       LIFT_CATEGORY_CONFIG[target]={active:true};
+     if(isBrand){
+       const cfg=JSON.parse(JSON.stringify(window.LIFT_LABORATORIES_SUPABASE||{}));
+       cfg[target]={...(cfg[target]||{}),active:true};
+       await window.liftCloudSaveConfig('laboratories_v1',cfg);
+       window.LIFT_LABORATORIES_SUPABASE=cfg;
+     }else if(typeof LIFT_CATEGORY_CONFIG!=='undefined'){
+       LIFT_CATEGORY_CONFIG[target]={...(LIFT_CATEGORY_CONFIG[target]||{}),active:true};
        await window.liftCloudSaveConfig('categories_v1',LIFT_CATEGORY_CONFIG);
+       if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
      }
-     if(typeof rebuildLiftCategories==='function')rebuildLiftCategories();
      window.LIFT_BULK_SELECTED.clear();
-     status.textContent=`✓ ${arr.length} producto${arr.length===1?'':'s'} movido${arr.length===1?'':'s'} a ${target}.`;
+     status.textContent=`✓ ${arr.length} producto${arr.length===1?'':'s'} movido${arr.length===1?'':'s'} al ${label} ${target}.`;
+     if(isBrand&&window.state?.brand&&arr.some(p=>backup.some(b=>b.p===p&&b.value===window.state.brand)))window.state.brand='Todas';
      if(typeof render==='function')render();
-     lafRenderProducts();
+     lafRenderProducts();lafFillLists();
      if(typeof renderFilters==='function')renderFilters();
+     if(isBrand&&typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid('');
    }catch(e){
-     backup.forEach(x=>x.p.category=x.category);
+     backup.forEach(x=>{if(isBrand)x.p.brand=x.value;else x.p.category=x.value});
+     if(isBrand&&previousLabConfig)window.LIFT_LABORATORIES_SUPABASE=previousLabConfig;
+     if(!isBrand&&previousCatConfig)window.LIFT_CATEGORY_CONFIG=LIFT_CATEGORY_CONFIG=previousCatConfig;
      status.textContent='Error: '+(e.message||e);
      alert('No se completó el movimiento masivo en Supabase: '+(e.message||e));
    }finally{if(btn)btn.disabled=false}
