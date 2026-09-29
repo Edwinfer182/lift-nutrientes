@@ -1538,6 +1538,18 @@ function liftGroupCardProduct(g,fallback){
     _isVariantGroupCard:true
   };
 }
+function liftGroupOffers(g){
+  return liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v),o:liftVariantOffer(v)})).filter(x=>x.o);
+}
+function liftGroupCardOffer(p){
+  if(!p?._variantGroupId)return null;
+  const g=liftGroupById(p._variantGroupId); if(!g)return null;
+  const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
+  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
+  if(!offered.length)return null;
+  const lowest=Math.min(...all.map(x=>liftVariantSalePrice(g,x.v,x.p)).filter(Number.isFinite));
+  return {count:offered.length,lowest};
+}
 function liftCatalogGrouped(arr){
   const source=Array.isArray(arr)?arr:[];
   if(!liftVariantGroups().length)return source;
@@ -1564,6 +1576,17 @@ function liftGroupVariants(g){
     .sort((a,b)=>Number(a.orden||0)-Number(b.orden||0)||Number(a.id||0)-Number(b.id||0));
 }
 function liftVariantProduct(v){return PRODUCTS.find(p=>String(p.id)===String(v?.producto_id))||null}
+function liftVariantOffer(v){
+  const p=liftVariantProduct(v);
+  return p&&typeof offerOf==='function'?offerOf(p):null;
+}
+function liftVariantNormalPrice(g,v,p){
+  return (v?.precio!=null&&Number(v.precio)>0)?Number(v.precio):(Number(g?.precio||0)>0?Number(g.precio):Number(p?.price||0));
+}
+function liftVariantSalePrice(g,v,p){
+  const o=liftVariantOffer(v);
+  return o&&Number(o.price)>0?Number(o.price):liftVariantNormalPrice(g,v,p);
+}
 window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
 
 window.liftSelectGroupVariant=function(groupId,variantId){
@@ -1572,10 +1595,14 @@ window.liftSelectGroupVariant=function(groupId,variantId){
   window.LIFT_SELECTED_GROUP_VARIANT[String(groupId)]=String(v.id);
   const p=liftVariantProduct(v);
   const img=String(v.imagen||p?.image||g.imagen||'').trim();
-  const price=(v.precio!=null&&Number(v.precio)>0)?Number(v.precio):(Number(g.precio||0)>0?Number(g.precio):Number(p?.price||0));
+  const normalPrice=liftVariantNormalPrice(g,v,p);
+  const salePrice=liftVariantSalePrice(g,v,p);
+  const vo=liftVariantOffer(v);
   const main=document.getElementById('liftMonoMainImg'); if(main&&img)main.src=img;
   const priceArea=document.querySelector('.liftMonoPriceArea');
-  if(priceArea&&price>0)priceArea.innerHTML=`<div class="liftMonoPrice">${fmt(price)}</div>`;
+  if(priceArea&&salePrice>0)priceArea.innerHTML=vo
+    ? `<div class="offerPrices"><span class="oldPrice">${fmt(normalPrice)}</span><span class="liftMonoPrice">${fmt(salePrice)}</span></div><div class="saving">Oferta en ${esc(v.sabor||'esta variante')}</div>`
+    : `<div class="liftMonoPrice">${fmt(normalPrice)}</div>`;
   document.querySelectorAll('#liftGroupVariantPicker .liftVariantChip').forEach(b=>b.classList.toggle('active',String(b.dataset.variantId)===String(v.id)));
   const sel=document.getElementById('liftGroupVariantSelected'); if(sel)sel.textContent='Seleccionado: '+String(v.sabor||'Variación');
   const addBtn=document.getElementById('liftMonoAdd'); if(addBtn)addBtn.innerHTML=`<span class="liftActionIcon">＋</span><span>Agregar · ${esc(v.sabor||'Variación')}</span>`;
@@ -1590,7 +1617,7 @@ window.liftAddSelectedGroupVariant=function(groupId){
     p.id,
     String(v.sabor||'Variación'),
     String(v.imagen||p.image||g.imagen||''),
-    {groupId:Number(g.id),variantId:Number(v.id)}
+    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:!!liftVariantOffer(v)}
   );
   return true;
 };
@@ -1604,7 +1631,7 @@ function liftInjectGroupVariantPicker(productId){
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
   box.innerHTML=`<div class="liftVariantPickerHead"><b>Elige sabor</b><span>${vv.length} disponibles</span></div>
-  <div class="liftVariantChips">${vv.map(v=>`<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${esc(v.sabor||'Variación')}</button>`).join('')}</div>
+  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=liftVariantOffer(v),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
   <div id="liftGroupVariantSelected" class="liftVariantSelected">Seleccionado: ${esc(current.sabor||'Variación')}</div>`;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
@@ -1616,6 +1643,16 @@ function liftInjectGroupVariantPicker(productId){
   liftSelectGroupVariant(g.id,current.id);
   return true;
 }
+
+const _liftBaseOfferOf=offerOf, _liftBaseHasOffer=hasOffer, _liftBasePriceOf=priceOf, _liftBaseCompareAtOf=compareAtOf, _liftBaseSavingOf=savingOf, _liftBaseOfferBadges=offerBadges, _liftBaseOfferDetails=offerDetails, _liftBasePriceHTML=priceHTML;
+offerOf=function(p){return p?._variantGroupId?null:_liftBaseOfferOf(p)};
+hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
+priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
+compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
+savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
+offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
+offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
+priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);return `<div class="offerPrices"><span class="price">Desde ${fmt(go.lowest)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
   const VISIBLE_PRODUCTS=liftVisibleProducts();
@@ -1918,7 +1955,7 @@ function items(){
       const vv=g&&typeof liftGroupVariants==='function'?liftGroupVariants(g):[];
       const v=vv.find(x=>String(x.id)===String(stored.variantId));
       const vp=v&&typeof liftVariantProduct==='function'?liftVariantProduct(v):base;
-      const vprice=v?.precio!=null&&Number(v.precio)>0?Number(v.precio):(Number(g?.precio||0)>0?Number(g.precio):Number(vp?.price||base.price||0));
+      const vprice=Number(stored.variantPrice||0)>0?Number(stored.variantPrice):(v?.precio!=null&&Number(v.precio)>0?Number(v.precio):(Number(g?.precio||0)>0?Number(g.precio):Number(vp?.price||base.price||0)));
       p={...(vp||base),
         name:String(g?.nombre||base.name||''),
         brand:String(g?.marca||base.brand||''),
@@ -5463,11 +5500,22 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
 .liftVariantPicker{margin:10px 0 14px;padding:12px;border:1px solid #e7e7e7;border-radius:14px;background:#fff}
 .liftVariantPickerHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;font-size:12px}
 .liftVariantPickerHead b{font-weight:650;color:#111}.liftVariantPickerHead span{font-size:10px;color:#777}
-.liftVariantChips{display:flex;flex-wrap:wrap;gap:7px}
-.liftVariantChip{border:1px solid #d8d8d8;background:#fff;color:#222;border-radius:999px;padding:7px 11px;font:500 11px Poppins,Arial;cursor:pointer}
-.liftVariantChip.active{background:#111;color:#fff;border-color:#111}
+.liftVariantChips{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.liftVariantChip{position:relative;min-width:0;border:1px solid #ddd;background:#fff;color:#222;border-radius:12px;padding:6px;font:500 10px Poppins,Arial;cursor:pointer;text-align:center;overflow:hidden}
+.liftVariantChip.active{border:2px solid #111;box-shadow:0 2px 9px rgba(0,0,0,.10)}
+.liftVariantThumb{height:72px;display:grid;place-items:center;background:#fff;border-radius:8px;overflow:hidden}
+.liftVariantThumb img{width:100%;height:100%;object-fit:contain;display:block}
+.liftVariantFlavor{display:block;margin-top:5px;line-height:1.15;min-height:23px}
+.liftVariantOfferBadge{position:absolute;z-index:2;left:4px;top:4px;background:#111;color:#fff;border-radius:999px;padding:3px 5px;font-size:7px;font-weight:700;letter-spacing:.03em}
+.liftVariantPrices{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:8px;line-height:1.1}
+.liftVariantPrices s{color:#999;font-weight:400}.liftVariantPrices b{color:#168451;font-size:9px}
 .liftVariantSelected{font-size:10px;color:#666;margin-top:9px}
-@media(max-width:640px){.liftVariantPicker{padding:10px;margin:8px 0 12px}.liftVariantChip{font-size:10px;padding:6px 9px}}
+@media(max-width:640px){
+ .liftVariantPicker{padding:10px;margin:8px 0 12px}
+ .liftVariantChips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:7px;padding-bottom:5px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+ .liftVariantChip{flex:0 0 82px;width:82px;padding:5px;scroll-snap-align:start}
+ .liftVariantThumb{height:58px}.liftVariantFlavor{font-size:9px;min-height:21px}
+}
 </style>
 <style id="lift-phase3-variant-card-style">
 .liftCardFlavor{font-size:9px!important;font-weight:600!important;color:#555!important;line-height:1.25!important;margin-top:3px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
