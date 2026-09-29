@@ -825,6 +825,155 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 </style>
 
 </head><body>
+
+<script id="lift-mobile-share-fix-v1">
+(function(){
+  let pending = null;
+
+  function isMobile(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ||
+           (navigator.maxTouchPoints || 0) > 1;
+  }
+
+  function ensureModal(){
+    let modal = document.getElementById('liftNativeShareReady');
+    if(modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'liftNativeShareReady';
+    modal.innerHTML = `
+      <div class="liftNativeShareReadyCard">
+        <button type="button" class="liftNativeShareReadyClose" aria-label="Cerrar">×</button>
+        <div class="liftNativeShareReadyIcon">↗</div>
+        <div class="liftNativeShareReadyTitle">Imagen lista</div>
+        <div class="liftNativeShareReadyText">Toca el botón para abrir las opciones de compartir del celular.</div>
+        <button type="button" class="liftNativeShareReadyBtn">Compartir imagen</button>
+        <button type="button" class="liftNativeShareDownloadBtn">Guardar imagen</button>
+      </div>`;
+    document.body.appendChild(modal);
+
+    modal.querySelector('.liftNativeShareReadyClose').onclick = () => {
+      modal.classList.remove('open');
+      pending = null;
+    };
+    modal.addEventListener('click', e => {
+      if(e.target === modal){
+        modal.classList.remove('open');
+        pending = null;
+      }
+    });
+    modal.querySelector('.liftNativeShareReadyBtn').onclick = async () => {
+      if(!pending) return;
+      const data = pending;
+      try{
+        if(navigator.share && (!navigator.canShare || navigator.canShare({files:[data.file]}))){
+          await navigator.share({files:[data.file], title:data.title || data.file.name});
+          modal.classList.remove('open');
+          pending = null;
+          return;
+        }
+        throw new Error('Web Share con archivos no disponible');
+      }catch(err){
+        if(err && err.name === 'AbortError') return;
+        console.warn('LIFT mobile share fallback:', err);
+        download(data.blob, data.file.name);
+      }
+    };
+    modal.querySelector('.liftNativeShareDownloadBtn').onclick = () => {
+      if(!pending) return;
+      download(pending.blob, pending.file.name);
+    };
+    return modal;
+  }
+
+  function download(blob, name){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name || 'lift-imagen.png';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  function showReady(blob, file, title){
+    pending = {blob, file, title};
+    ensureModal().classList.add('open');
+  }
+
+  window.liftShareGeneratedImage = async function(blob, file, title){
+    if(!blob || !file) throw new Error('Imagen no disponible para compartir');
+
+    const canFiles = !!(navigator.share &&
+      (!navigator.canShare || navigator.canShare({files:[file]})));
+
+    if(canFiles){
+      try{
+        await navigator.share({files:[file], title:title || file.name});
+        return true;
+      }catch(err){
+        if(err && err.name === 'AbortError') return false;
+
+        // iOS/Safari y algunos WebViews pierden la activación del toque
+        // durante los await usados para crear el canvas. La imagen ya está
+        // lista: un segundo toque abre navigator.share de forma directa.
+        if(isMobile() || (err && err.name === 'NotAllowedError')){
+          showReady(blob, file, title);
+          return false;
+        }
+        console.warn('LIFT share:', err);
+      }
+    }
+
+    if(isMobile()){
+      showReady(blob, file, title);
+      return false;
+    }
+
+    download(blob, file.name);
+    return false;
+  };
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ensureModal, {once:true});
+  }else{
+    ensureModal();
+  }
+})();
+</script>
+<style id="lift-mobile-share-fix-style-v1">
+#liftNativeShareReady{
+  position:fixed;inset:0;z-index:1000000;display:none;place-items:end center;
+  padding:16px;background:rgba(0,0,0,.48);
+}
+#liftNativeShareReady.open{display:grid}
+.liftNativeShareReadyCard{
+  width:min(100%,440px);background:#fff;border-radius:20px;padding:20px;
+  box-shadow:0 24px 70px rgba(0,0,0,.28);position:relative;text-align:center;
+  font-family:"Poppins",Arial,sans-serif;
+}
+.liftNativeShareReadyClose{
+  position:absolute;right:12px;top:10px;width:36px;height:36px;border:0;
+  border-radius:50%;background:#eee;font-size:22px;cursor:pointer;
+}
+.liftNativeShareReadyIcon{
+  width:52px;height:52px;border-radius:50%;background:#111;color:#fff;
+  display:grid;place-items:center;margin:4px auto 10px;font-size:25px;
+}
+.liftNativeShareReadyTitle{font-size:18px;font-weight:600;color:#111}
+.liftNativeShareReadyText{font-size:12px;line-height:1.45;color:#666;margin:6px 20px 16px}
+.liftNativeShareReadyBtn,.liftNativeShareDownloadBtn{
+  width:100%;min-height:48px;border-radius:12px;font:600 13px "Poppins",Arial;
+  cursor:pointer;
+}
+.liftNativeShareReadyBtn{border:0;background:#111;color:#fff}
+.liftNativeShareDownloadBtn{border:1px solid #ddd;background:#fff;color:#111;margin-top:8px}
+@media(min-width:761px){
+  #liftNativeShareReady{place-items:center}
+}
+</style>
+
 <!-- FASE5 LIMPIEZA V2: 67 duplicados Lift adicionales eliminados; Vitaness conservado como prioridad. -->
 
 <!-- FASE5 LIMPIEZA DUPLICADOS: se conservaron 747 productos Vitaness y se eliminaron 62 productos Lift adicionales detectados como la misma familia/producto ya presente en Vitaness. Total 1313. -->
@@ -4319,7 +4468,7 @@ window.shareLiftProductImage=async function(id){
   ctx.fillStyle='#111';ctx.font='600 42px Poppins,Arial';const words=String(p.name||'').split(/\s+/);let line='',y=1020;for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>940&&line){ctx.fillText(line,70,y);line=word;y+=54}else line=test}if(line)ctx.fillText(line,70,y);
   ctx.font='700 52px Poppins,Arial';ctx.fillText(typeof fmt==='function'?fmt(priceOf(p)):'$'+Number(p.price||0).toLocaleString('es-CO'),70,1238);
   const blob=await new Promise(res=>c.toBlob(res,'image/png',.95));if(!blob)throw new Error('blob');const file=new File([blob],`lift-${String(p.name||'producto').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.png`,{type:'image/png'});
-  if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:p.name})}else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+  await window.liftShareGeneratedImage(blob,file,p.name)
  }catch(e){console.error(e);liftShareToast('No se pudo generar la imagen')}
 };
 </script>
@@ -4643,7 +4792,7 @@ body.liftAdminUnlocked #liftProviderBox{display:block}
  function injectCartShare(){const foot=document.querySelector('#cart .cartfoot');if(!foot||foot.querySelector('.liftCartShareWrap'))return;const w=document.createElement('div');w.className='liftCartShareWrap';w.innerHTML=`<button class="liftCartShareBtn" onclick="shareLiftCartImage()">${shareSvg}<span>Compartir carrito como imagen</span></button>`;foot.insertBefore(w,foot.firstChild)}
  const oldRenderCart=window.renderCart;window.renderCart=function(){const r=oldRenderCart.apply(this,arguments);injectCartShare();return r}
  function wrapLines(ctx,text,maxWidth,maxLines){const words=String(text||'').split(/\s+/);const lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;if(lines.length===maxLines-1)break}else line=test}if(line&&lines.length<maxLines)lines.push(line);return lines}
- async function makeListImage(title,rows,showQty){if(!rows.length){liftShareToast('No hay productos para compartir');return}liftShareToast('Creando imagen…');const W=1080,rowH=210,H=Math.min(8000,230+rows.length*rowH+130);const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,W,125);ctx.fillStyle='#fff';ctx.font='700 40px Poppins,Arial';ctx.fillText('LIFT NUTRIENTES',55,55);ctx.font='500 25px Poppins,Arial';ctx.fillText(title,55,95);let y=160;for(const row of rows){const p=row.p||row;const q=row.q||1;ctx.strokeStyle='#e7e7e7';ctx.beginPath();ctx.moveTo(55,y+rowH-12);ctx.lineTo(1025,y+rowH-12);ctx.stroke();try{const img=await liftLoadShareImage(p.image);if(img){const r=Math.min(145/img.width,145/img.height);ctx.drawImage(img,60+(145-img.width*r)/2,y+10+(145-img.height*r)/2,img.width*r,img.height*r)}}catch(e){}ctx.fillStyle='#777';ctx.font='500 20px Poppins,Arial';ctx.fillText(String(p.brand||'').toUpperCase(),235,y+35);ctx.fillStyle='#111';ctx.font='600 27px Poppins,Arial';const lines=wrapLines(ctx,p.name,720,2);lines.forEach((ln,i)=>ctx.fillText(ln,235,y+75+i*35));ctx.font='700 29px Poppins,Arial';const price=typeof fmt==='function'?fmt(priceOf(p)*q):'$'+Number((p.price||0)*q).toLocaleString('es-CO');ctx.fillText(price,235,y+158);if(showQty&&q>1){ctx.font='500 20px Poppins,Arial';ctx.fillStyle='#666';ctx.fillText('Cantidad: '+q,780,y+158)}y+=rowH}ctx.fillStyle='#666';ctx.font='500 20px Poppins,Arial';ctx.fillText('Precios sujetos a disponibilidad.',55,H-55);const blob=await new Promise(res=>c.toBlob(res,'image/png',.94));if(!blob)throw new Error('blob');const file=new File([blob],`lift-${title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.png`,{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]}))await navigator.share({files:[file],title});else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}}
+ async function makeListImage(title,rows,showQty){if(!rows.length){liftShareToast('No hay productos para compartir');return}liftShareToast('Creando imagen…');const W=1080,rowH=210,H=Math.min(8000,230+rows.length*rowH+130);const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,W,125);ctx.fillStyle='#fff';ctx.font='700 40px Poppins,Arial';ctx.fillText('LIFT NUTRIENTES',55,55);ctx.font='500 25px Poppins,Arial';ctx.fillText(title,55,95);let y=160;for(const row of rows){const p=row.p||row;const q=row.q||1;ctx.strokeStyle='#e7e7e7';ctx.beginPath();ctx.moveTo(55,y+rowH-12);ctx.lineTo(1025,y+rowH-12);ctx.stroke();try{const img=await liftLoadShareImage(p.image);if(img){const r=Math.min(145/img.width,145/img.height);ctx.drawImage(img,60+(145-img.width*r)/2,y+10+(145-img.height*r)/2,img.width*r,img.height*r)}}catch(e){}ctx.fillStyle='#777';ctx.font='500 20px Poppins,Arial';ctx.fillText(String(p.brand||'').toUpperCase(),235,y+35);ctx.fillStyle='#111';ctx.font='600 27px Poppins,Arial';const lines=wrapLines(ctx,p.name,720,2);lines.forEach((ln,i)=>ctx.fillText(ln,235,y+75+i*35));ctx.font='700 29px Poppins,Arial';const price=typeof fmt==='function'?fmt(priceOf(p)*q):'$'+Number((p.price||0)*q).toLocaleString('es-CO');ctx.fillText(price,235,y+158);if(showQty&&q>1){ctx.font='500 20px Poppins,Arial';ctx.fillStyle='#666';ctx.fillText('Cantidad: '+q,780,y+158)}y+=rowH}ctx.fillStyle='#666';ctx.font='500 20px Poppins,Arial';ctx.fillText('Precios sujetos a disponibilidad.',55,H-55);const blob=await new Promise(res=>c.toBlob(res,'image/png',.94));if(!blob)throw new Error('blob');const file=new File([blob],`lift-${title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.png`,{type:'image/png'});await window.liftShareGeneratedImage(blob,file,title)}
  window.shareLiftFavoritesImage=()=>makeListImage('Favoritos',favProducts(),false).catch(e=>{console.error(e);liftShareToast('No se pudo generar la imagen')});
  window.shareLiftCartImage=()=>makeListImage('Tu pedido',typeof items==='function'?items():[],true).catch(e=>{console.error(e);liftShareToast('No se pudo generar la imagen')});
  document.addEventListener('DOMContentLoaded',()=>{addHeaderIcons();injectCartShare();syncFavCount();syncLiftFavoriteButtons()});setTimeout(()=>{addHeaderIcons();injectCartShare();syncFavCount()},100);
@@ -4659,7 +4808,7 @@ body.liftAdminUnlocked #liftProviderBox{display:block}
  const shareSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg>';
  function money(n){return typeof fmt==='function'?fmt(Number(n||0)):'$'+Number(n||0).toLocaleString('es-CO')}
  function wrap(ctx,text,maxWidth,maxLines=99){const words=String(text||'').split(/\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const t=line?line+' '+word:word;if(ctx.measureText(t).width>maxWidth&&line){lines.push(line);line=word;if(lines.length>=maxLines-1)break}else line=t}if(line&&lines.length<maxLines)lines.push(line);return lines}
- async function shareCanvas(canvas,name,title){const blob=await new Promise(r=>canvas.toBlob(r,'image/png',.94));if(!blob)throw new Error('No se pudo crear la imagen');const file=new File([blob],name,{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title})}else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}}
+ async function shareCanvas(canvas,name,title){const blob=await new Promise(r=>canvas.toBlob(r,'image/png',.94));if(!blob)throw new Error('No se pudo crear la imagen');const file=new File([blob],name,{type:'image/png'});await window.liftShareGeneratedImage(blob,file,title)}
  function drawHeader(ctx,W,title){ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,W,128);ctx.fillStyle='#fff';ctx.font='700 40px Poppins,Arial';ctx.fillText('LIFT NUTRIENTES',55,55);ctx.font='500 25px Poppins,Arial';ctx.fillText(title,55,96)}
  async function drawProduct(ctx,p,q,y,W){const rowH=205;ctx.strokeStyle='#e7e7e7';ctx.beginPath();ctx.moveTo(55,y+rowH-10);ctx.lineTo(W-55,y+rowH-10);ctx.stroke();try{const img=await liftLoadShareImage(p.image);if(img){const r=Math.min(140/img.width,140/img.height);ctx.drawImage(img,60+(140-img.width*r)/2,y+10+(140-img.height*r)/2,img.width*r,img.height*r)}}catch(e){}ctx.fillStyle='#777';ctx.font='500 19px Poppins,Arial';ctx.fillText(String(p.brand||'').toUpperCase(),225,y+32);ctx.fillStyle='#111';ctx.font='600 25px Poppins,Arial';wrap(ctx,p.name,720,2).forEach((ln,i)=>ctx.fillText(ln,225,y+70+i*33));if(p._cartFlavor){ctx.fillStyle='#666';ctx.font='500 18px Poppins,Arial';ctx.fillText('Sabor: '+p._cartFlavor,225,y+137)}ctx.fillStyle='#111';ctx.font='700 27px Poppins,Arial';ctx.fillText(money((typeof checkoutUnitPrice==='function'?checkoutUnitPrice(p):priceOf(p))*q),225,y+172);ctx.fillStyle='#666';ctx.font='500 18px Poppins,Arial';ctx.fillText('Cantidad: '+q,W-230,y+172);return rowH}
  // Reemplaza la imagen del carrito de Fase 4 para que siempre muestre el total.
@@ -5224,7 +5373,7 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
   x.fillStyle='#111';x.font='700 20px Poppins,Arial';x.fillText('MEDIOS DE PAGO',pad,y);y+=29;x.font='500 18px Poppins,Arial';x.fillStyle='#555';for(const ln of wrap(x,d.medios_pago,W-pad*2)){x.fillText(ln,pad,y);y+=25}
   x.fillStyle='#888';x.font='500 16px Poppins,Arial';x.fillText('Generada '+new Intl.DateTimeFormat('es-CO',{dateStyle:'medium'}).format(new Date(fecha||Date.now())),pad,H-45);
   const blob=await new Promise(r=>c.toBlob(r,'image/png',0.95));if(!blob)throw new Error('No se pudo generar la imagen de la cotización.');const file=new File([blob],ref+'.png',{type:'image/png'});
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Cotización '+ref})}else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=ref+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+  await window.liftShareGeneratedImage(blob,file,'Cotización '+ref)
  }
  window.liftLoadDueQuotes=async function(){const box=document.getElementById('liftFollowPanel'),badge=document.getElementById('liftFollowBadge');if(!box||!document.body.classList.contains('liftAdminUnlocked'))return;box.innerHTML='<div class="liftClientEmpty">Cargando seguimientos…</div>';try{const j=await call({action:'quotes',due:true}),qs=j.cotizaciones||[];if(badge)badge.textContent=qs.length;if(!qs.length){box.innerHTML='<div class="liftClientEmpty">No tienes seguimientos pendientes para hoy.</div>';return}box.innerHTML=qs.map(q=>`<div class="liftFollowCard"><div class="liftFollowHead"><b>${esc(q.nombre)}</b><span>${esc(q.referencia||'')}</span></div><div>${esc(q.celular||q.whatsapp_usuario||'Sin celular')} · ${esc(q.ciudad)}</div><div class="liftFollowTotal">${money(q.total)} · ${esc(q.estado)}</div>${q.nota_interna?`<div style="margin-top:4px;color:#666">${esc(q.nota_interna)}</div>`:''}<div class="liftFollowActions"><button onclick="liftQuoteWhatsApp('${esc(q.celular)}','${esc(q.nombre)}','${esc(q.whatsapp_usuario||'')}')">WhatsApp</button><button onclick="liftQuoteDone(${q.id},'Ganada')">Ganada</button><button onclick="liftQuoteDone(${q.id},'No compró')">No compró</button></div></div>`).join('')}catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}};
  window.liftQuoteWhatsApp=function(phone,name,user){const p=String(phone||'').replace(/\D/g,'');if(!p){alert('Este cliente está guardado como '+(user||'usuario de WhatsApp')+'. WhatsApp no permite abrir un chat por nickname desde un enlace. Búscalo por su usuario en WhatsApp.');return}const cc=p.startsWith('57')?p:'57'+p;window.open('https://wa.me/'+cc+'?text='+encodeURIComponent('Hola '+name+', ¿cómo estás? Te escribo para hacer seguimiento a la cotización que te envié.'),'_blank')};
