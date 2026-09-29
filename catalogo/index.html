@@ -1141,7 +1141,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 <button class="floating" onclick="openOff('cart')">🛒 Carrito <span id="count2" class="badge">0</span></button>
 <div id="overlay" class="overlay" onclick="closeOff()"></div>
 <aside id="filters" class="off left"><div class="offhead"><h2>Marcas / categorías</h2><button class="close" onclick="closeOff()">×</button></div><div class="offbody"><div id="mobileFilters"></div></div></aside>
-<aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div id="cartShippingProgress"></div><div class="flavorConfirmNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Comprar</button><button class="secondary" onclick="copyOrder()">Copiar pedido</button></div></aside>
+<aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div id="cartShippingProgress"></div><div class="flavorConfirmNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Continuar pedido</button><button class="secondary" onclick="copyOrder()">Copiar pedido</button></div></aside>
 <div id="productModal" class="modal" onclick="if(event.target===this)closeModal()"><div class="modalCard"><button class="modalClose" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
 
 <div id="checkoutModal" class="checkoutModal" onclick="if(event.target===this)closeCheckout()">
@@ -1595,6 +1595,7 @@ function filterHTML(){
   return `<div class="filterTabs"><button class="filterTab ${isBrands?'on':''}" onclick="setFilterView('brands')">Laboratorios</button><button class="filterTab ${!isBrands?'on':''}" onclick="setFilterView('categories')">Categorías</button></div>
 <section class="filterPanel" ${isBrands?'':'hidden'}>
   <div class="labVisualWrap">
+    <div class="labVisualSearchWrap"><input id="labVisualSearch" class="labVisualSearch" type="search" autocomplete="off" placeholder="Buscar laboratorio..."></div>
     <div id="labVisualGrid" class="labVisualGrid">
       ${brands.filter(b=>b!=='Todas').map(b=>`<button class="filterItem ${state.brand===b?'on':''}" onclick='setBrand(${JSON.stringify(b)})'><span>${esc(b)}</span><small>${bc[b]}</small></button>`).join('')}
     </div>
@@ -1833,7 +1834,7 @@ function relatedProductsFor(its,limit=3){
   return chosen.slice(0,limit);
 }
 function relatedHTML(its){const rel=relatedProductsFor(its);if(!rel.length)return '';return `<div class="relatedWrap"><div class="relatedTitle">También te puede interesar</div><div class="relatedGrid">${rel.map(p=>`<div class="relatedItem"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"><div><div class="relatedName">${esc(p.name)} · ${esc(p.brand)}</div><div class="relatedPrice">${fmt(priceOf(p))}</div></div><button class="relatedAdd" onclick="event.stopPropagation();add(${p.id})">Agregar</button></div>`).join('')}</div></div>`}
-function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({key,p,q})=>{const k=JSON.stringify(String(key));return `<div class="cartline"><img src="${p.image}" alt="${esc(p.name)}${p._cartFlavor?' - '+esc(p._cartFlavor):''}"><div><div class="cartname">${esc(p.name)} · ${esc(p.brand)}${p._cartFlavor?`<div class="cartFlavor">Sabor: <b>${esc(p._cartFlavor)}</b></div>`:''}</div><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button onclick='change(${k},-1)'>−</button><b>${q}</b><button onclick='change(${k},1)'>+</button></div></div><button class="trash" onclick='removeItem(${k})'>×</button></div>`}).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
+function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({key,p,q})=>{const k=JSON.stringify(String(key));return `<div class="cartline"><img class="cartProductImg" src="${p.image}" alt="${esc(p.name)}${p._cartFlavor?' - '+esc(p._cartFlavor):''}"><div class="cartProductInfo"><div class="cartname">${esc(p.name)}</div><div class="cartbrand">${esc(p.brand)}</div>${p._cartFlavor?`<div class="cartFlavor">Sabor: <b>${esc(p._cartFlavor)}</b></div>`:''}<div class="cartProductControls"><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button aria-label="Disminuir cantidad" onclick='change(${k},-1)'>−</button><b>${q}</b><button aria-label="Aumentar cantidad" onclick='change(${k},1)'>+</button></div></div></div><button class="trash" aria-label="Eliminar producto" title="Eliminar" onclick='removeItem(${k})'>×</button></div>`}).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
 function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div>${(p.description||p.presentation||p.flavor)?`<div class="modalPdfInfo">${p.description?`<div><b>${esc(p.description)}</b></div>`:''}${p.presentation?`<div>${esc(p.presentation)}</div>`:''}${p.flavor?`<div>Sabor: ${esc(p.flavor)}</div>`:''}</div>`:''}<div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(compareAtOf(p))}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('productModal').classList.remove('open');document.body.style.overflow=''}
 let checkoutMode='cart';
@@ -4585,7 +4586,7 @@ window.shareLiftProductImage=async function(id){
 <aside id="lafPanel">
  <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button type="button" onclick="lockLiftAdmin()" title="Salir del administrador" style="margin-left:auto;border:1px solid #444;background:#1b1b1b;color:#fff;border-radius:9px;height:34px;padding:0 11px;cursor:pointer;font:600 11px Poppins,Arial">Salir</button><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
  <div class="lafTabs">
-  <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="appearance" onclick="lafTab('appearance',this)">Diseño</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
+  <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
  </div>
  <div class="lafBody">
   <section id="laf-products" class="lafPane on">
@@ -4618,60 +4619,6 @@ window.shareLiftProductImage=async function(id){
   <section id="laf-categories" class="lafPane">
   <button type="button" class="labAdminNew liftCatPanelCreate" onclick="liftCategoryCreate()">+ Crear categoría</button>
   <div id="lafCategoryList" class="liftCatPanelGrid"></div>
-</section>
-  
-<section id="laf-appearance" class="lafPane">
- <div class="liftAppearanceHead">
-   <div><b>Diseño de tarjetas</b><small>Los cambios se ven en vivo. Guardar los publica para todos desde Supabase.</small></div>
-   <button type="button" class="lafBtn" onclick="liftAppearanceReset()">Restablecer</button>
-   <button type="button" class="lafBtn primary" onclick="liftAppearanceSave()">Guardar en Supabase</button>
- </div>
- <div id="liftAppearanceStatus" class="lafResult"></div>
- <div class="liftAppearanceGrid">
-  <div class="liftAppearanceGroup"><h3>Tipografía</h3>
-   <label>Fuente<select data-ap-key="fontFamily"><option>Poppins</option><option>Inter</option><option>Montserrat</option><option>Roboto</option></select></label>
-   <label>Grosor general<input type="range" min="300" max="600" step="100" data-ap-key="bodyWeight"><output></output></label>
-   <label>Grosor nombre<input type="range" min="400" max="700" step="100" data-ap-key="titleWeight"><output></output></label>
-   <label>Grosor precio<input type="range" min="400" max="700" step="100" data-ap-key="priceWeight"><output></output></label>
-   <label>Grosor categoría<input type="range" min="400" max="700" step="100" data-ap-key="metaWeight"><output></output></label>
-   <label>Tamaño nombre<input type="range" min="10" max="24" step="1" data-ap-key="productNameSize"><output></output></label>
-   <label>Tamaño categoría<input type="range" min="7" max="18" step="1" data-ap-key="categorySize"><output></output></label>
-   <label>Tamaño presentación<input type="range" min="8" max="18" step="1" data-ap-key="presentationSize"><output></output></label>
-   <label>Tamaño sabores<input type="range" min="8" max="16" step="1" data-ap-key="flavorSize"><output></output></label>
-   <label>Tamaño precio<input type="range" min="13" max="32" step="1" data-ap-key="priceSize"><output></output></label>
-   <label>Interlineado nombre<input type="range" min="1" max="1.8" step=".05" data-ap-key="nameLineHeight"><output></output></label>
-  </div>
-  <div class="liftAppearanceGroup"><h3>Tarjeta e imagen</h3>
-   <label>Altura imagen<input type="range" min="120" max="360" step="5" data-ap-key="imageHeight"><output></output></label>
-   <label>Espacio interno imagen<input type="range" min="0" max="40" step="1" data-ap-key="imagePadding"><output></output></label>
-   <label>Espacio interno texto<input type="range" min="4" max="30" step="1" data-ap-key="bodyPadding"><output></output></label>
-   <label>Espacio entre textos<input type="range" min="0" max="24" step="1" data-ap-key="contentGap"><output></output></label>
-   <label>Alto reservado nombre<input type="range" min="20" max="100" step="2" data-ap-key="nameMinHeight"><output></output></label>
-   <label>Separación antes del precio<input type="range" min="0" max="30" step="1" data-ap-key="priceTopGap"><output></output></label>
-   <label>Radio tarjeta<input type="range" min="0" max="30" step="1" data-ap-key="cardRadius"><output></output></label>
-   <label>Altura mínima tarjeta<input type="range" min="0" max="650" step="10" data-ap-key="cardMinHeight"><output></output></label>
-   <label>Ancho mínimo tarjeta<input type="range" min="120" max="320" step="5" data-ap-key="cardMinWidth"><output></output></label>
-   <label>Espacio entre tarjetas<input type="range" min="4" max="40" step="1" data-ap-key="gridGap"><output></output></label>
-  </div>
-  <div class="liftAppearanceGroup"><h3>Botones</h3>
-   <label>Ubicación<select data-ap-key="actionsAlign"><option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option><option value="space-between">Separados</option></select></label>
-   <label>Tamaño botones<input type="range" min="28" max="58" step="1" data-ap-key="buttonSize"><output></output></label>
-   <label>Radio botones<input type="range" min="0" max="28" step="1" data-ap-key="buttonRadius"><output></output></label>
-   <label>Espacio entre botones<input type="range" min="0" max="25" step="1" data-ap-key="actionsGap"><output></output></label>
-   <label>Tamaño favorito<input type="range" min="24" max="55" step="1" data-ap-key="favoriteSize"><output></output></label>
-   <label>Favorito desde arriba<input type="range" min="0" max="40" step="1" data-ap-key="favoriteTop"><output></output></label>
-   <label>Favorito desde derecha<input type="range" min="0" max="40" step="1" data-ap-key="favoriteRight"><output></output></label>
-  </div>
-  <div class="liftAppearanceGroup"><h3>Colores</h3>
-   <label>Fondo tarjeta<input type="color" data-ap-key="cardBg"></label>
-   <label>Fondo imagen<input type="color" data-ap-key="imageBg"></label>
-   <label>Borde<input type="color" data-ap-key="borderColor"></label>
-   <label>Nombre<input type="color" data-ap-key="nameColor"></label>
-   <label>Categoría<input type="color" data-ap-key="metaColor"></label>
-   <label>Presentación<input type="color" data-ap-key="presentationColor"></label>
-   <label>Precio<input type="color" data-ap-key="priceColor"></label>
-  </div>
- </div>
 </section>
 
 <section id="laf-excel" class="lafPane">
@@ -6319,37 +6266,8 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 </script>
 
 
-<style id="lift-appearance-supabase-v1">
-:root{--lift-font:"Poppins";--lift-body-weight:400;--lift-title-weight:600;--lift-price-weight:600;--lift-meta-weight:700;--lift-product-name-size:16px;--lift-category-size:12px;--lift-price-size:20px;--lift-page-bg:#ffffff;--lift-card-bg:#ffffff;--lift-image-bg:#ffffff;--lift-card-border:#dddddd;--lift-meta-color:#888888;--lift-name-color:#111111;--lift-presentation-color:#666666;--lift-price-color:#111111;--lift-card-radius:13px}
-html,body,.layout,.content{background:var(--lift-page-bg)!important}
-body{font-family:var(--lift-font),ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-weight:var(--lift-body-weight)!important}
-body *:not(svg):not(path){font-family:var(--lift-font),ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
-/* Apariencia especializada de tarjeta: al final para prevalecer sobre estilos históricos. */
-.grid .liftVitanessCard{background:var(--lift-card-bg)!important;border-color:var(--lift-card-border)!important;border-radius:var(--lift-card-radius)!important}
-.grid .liftVitanessCard .pic{background:var(--lift-image-bg)!important}
-.grid .liftVitanessCard .body{background:var(--lift-card-bg)!important}
-.grid .liftVitanessCard .name,.liftMonoTitle,.modalName,.lafName{font-weight:var(--lift-title-weight)!important}
-.grid .liftVitanessCard .name{font-size:var(--lift-product-name-size)!important;color:var(--lift-name-color)!important}
-.grid .liftVitanessCard .priceBox .price,.modalPrice,.liftMonoPrice,.liftMonoPriceArea .price{font-weight:var(--lift-price-weight)!important}
-.grid .liftVitanessCard .priceBox .price{font-size:var(--lift-price-size)!important;color:var(--lift-price-color)!important}
-.grid .liftVitanessCard .liftCardSection{font-size:var(--lift-category-size)!important;color:var(--lift-meta-color)!important;font-weight:var(--lift-meta-weight)!important}
-.grid .liftVitanessCard .liftCardPresentation{color:var(--lift-presentation-color)!important}
-.grid .liftVitanessCard .liftCardPresentation,.grid .liftVitanessCard .liftCardFlavor,.status,.filterItem,.checkItem,.chip{font-weight:var(--lift-body-weight)!important}
-</style>
-<script id="lift-appearance-supabase-readonly-script">
-(function(){
- 'use strict';
- const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
- const DEF={fontFamily:'Poppins',bodyWeight:400,titleWeight:600,priceWeight:600,metaWeight:700,productNameSize:16,categorySize:12,priceSize:20,pageBg:'#ffffff',cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#111111',cardRadius:13};
- const clamp=(v,a,b,d)=>{v=Number(v);return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d};
- const color=(v,d)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):d;
- function clean(x){x=x&&typeof x==='object'?x:{};return {fontFamily:['Poppins','Inter','Montserrat','Roboto'].includes(x.fontFamily)?x.fontFamily:DEF.fontFamily,bodyWeight:clamp(x.bodyWeight,300,600,DEF.bodyWeight),titleWeight:clamp(x.titleWeight,400,700,DEF.titleWeight),priceWeight:clamp(x.priceWeight,400,700,DEF.priceWeight),metaWeight:clamp(x.metaWeight,400,700,DEF.metaWeight),productNameSize:clamp(x.productNameSize,11,24,DEF.productNameSize),categorySize:clamp(x.categorySize,8,18,DEF.categorySize),priceSize:clamp(x.priceSize,14,32,DEF.priceSize),pageBg:color(x.pageBg,DEF.pageBg),cardBg:color(x.cardBg,DEF.cardBg),imageBg:color(x.imageBg,DEF.imageBg),borderColor:color(x.borderColor,DEF.borderColor),metaColor:color(x.metaColor,DEF.metaColor),nameColor:color(x.nameColor,DEF.nameColor),presentationColor:color(x.presentationColor,DEF.presentationColor),priceColor:color(x.priceColor,DEF.priceColor),cardRadius:clamp(x.cardRadius,0,30,DEF.cardRadius)}}
- function apply(x){const cfg=clean(x),r=document.documentElement.style,vars={'--lift-font':'"'+cfg.fontFamily+'"','--lift-body-weight':cfg.bodyWeight,'--lift-title-weight':cfg.titleWeight,'--lift-price-weight':cfg.priceWeight,'--lift-meta-weight':cfg.metaWeight,'--lift-product-name-size':cfg.productNameSize+'px','--lift-category-size':cfg.categorySize+'px','--lift-price-size':cfg.priceSize+'px','--lift-page-bg':cfg.pageBg,'--lift-card-bg':cfg.cardBg,'--lift-image-bg':cfg.imageBg,'--lift-card-border':cfg.borderColor,'--lift-meta-color':cfg.metaColor,'--lift-name-color':cfg.nameColor,'--lift-presentation-color':cfg.presentationColor,'--lift-price-color':cfg.priceColor,'--lift-card-radius':cfg.cardRadius+'px'};Object.entries(vars).forEach(([k,v])=>r.setProperty(k,v));window.LIFT_APPEARANCE=cfg}
- async function load(){try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?clave=eq.appearance_v1&select=valor',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('No se pudo leer appearance_v1');const j=await r.json();apply({...DEF,...(j?.[0]?.valor||{})})}catch(e){console.warn('Apariencia Lift desde Supabase:',e);apply(DEF)}}
- load();
-})();
-</script>\n
+
+\n
 <style id="lift-category-panel-cards-v1">
 #laf-categories .liftCatPanelCreate{display:block!important;margin:0 0 10px!important}
 .liftCatPanelGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -6365,50 +6283,8 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
 </style>
 
 
-<style id="lift-appearance-admin-v2-style">
-.liftAppearanceHead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.liftAppearanceHead>div{flex:1;min-width:220px}.liftAppearanceHead b{display:block;font-size:15px}.liftAppearanceHead small{display:block;color:#777;font-size:10px;margin-top:3px}
-.liftAppearanceGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.liftAppearanceGroup{border:1px solid #e5e5e5;border-radius:13px;padding:12px}.liftAppearanceGroup h3{margin:0 0 10px;font-size:13px}.liftAppearanceGroup label{display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1.2fr) 38px;gap:8px;align-items:center;font-size:10px;margin:8px 0}.liftAppearanceGroup select{grid-column:2/4;height:36px;border:1px solid #ddd;border-radius:9px;padding:0 8px;background:#fff}.liftAppearanceGroup input[type=range]{width:100%}.liftAppearanceGroup output{text-align:right;font-size:9px;color:#777}.liftAppearanceGroup input[type=color]{grid-column:2/4;width:100%;height:34px;border:1px solid #ddd;border-radius:8px;background:#fff;padding:2px}
-@media(max-width:700px){.liftAppearanceGrid{grid-template-columns:1fr}.liftAppearanceGroup label{grid-template-columns:1fr 1fr 34px}}
-.grid{gap:var(--lift-grid-gap,14px)!important;grid-template-columns:repeat(auto-fill,minmax(var(--lift-card-min-width,190px),1fr))!important}
-.grid .liftVitanessCard{min-height:var(--lift-card-min-height,0px)!important}
-.grid .liftVitanessCard .pic{height:var(--lift-image-height,210px)!important;padding:var(--lift-image-padding,14px)!important}
-.grid .liftVitanessCard .body{padding:var(--lift-body-padding,12px)!important;gap:var(--lift-content-gap,6px)!important}
-.grid .liftVitanessCard .name{line-height:var(--lift-name-line-height,1.35)!important;min-height:var(--lift-name-min-height,56px)!important}
-.grid .liftVitanessCard .liftCardPresentation{font-size:var(--lift-presentation-size,11px)!important}
-.grid .liftVitanessCard .liftCardFlavor{font-size:var(--lift-flavor-size,10px)!important}
-.grid .liftVitanessCard .prices{padding-top:var(--lift-price-top-gap,8px)!important}
-.grid .liftVitanessCard .cardQuickActions{gap:var(--lift-actions-gap,7px)!important;justify-content:var(--lift-actions-align,right)!important}
-.grid .liftVitanessCard .cardQuickBuyBtn,.grid .liftVitanessCard .cardShareImageBtn{width:var(--lift-button-size,40px)!important;height:var(--lift-button-size,40px)!important;min-width:var(--lift-button-size,40px)!important;min-height:var(--lift-button-size,40px)!important;border-radius:var(--lift-button-radius,10px)!important}
-.grid .liftVitanessCard .liftCardFav{width:var(--lift-favorite-size,34px)!important;height:var(--lift-favorite-size,34px)!important;top:var(--lift-favorite-top,10px)!important;right:var(--lift-favorite-right,10px)!important}
-</style>
-<script id="lift-appearance-admin-v2-script">
-(function(){
- const DEF={fontFamily:'Poppins',bodyWeight:300,titleWeight:400,priceWeight:400,metaWeight:400,productNameSize:14,categorySize:8,priceSize:19,cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#000000',cardRadius:13,imageHeight:210,imagePadding:14,bodyPadding:12,contentGap:6,nameLineHeight:1.35,nameMinHeight:56,priceTopGap:8,actionsGap:7,actionsAlign:'right',buttonSize:40,buttonRadius:10,favoriteSize:34,favoriteTop:10,favoriteRight:10,cardMinHeight:0,gridGap:14,cardMinWidth:190,presentationSize:11,flavorSize:10};
- const numKeys=new Set(['bodyWeight','titleWeight','priceWeight','metaWeight','productNameSize','categorySize','priceSize','cardRadius','imageHeight','imagePadding','bodyPadding','contentGap','nameLineHeight','nameMinHeight','priceTopGap','actionsGap','buttonSize','buttonRadius','favoriteSize','favoriteTop','favoriteRight','cardMinHeight','gridGap','cardMinWidth','presentationSize','flavorSize']);
- function cfg(){return {...DEF,...(window.LIFT_APPEARANCE||{})}}
- function vars(c){
-   return {'--lift-font':'"'+c.fontFamily+'"','--lift-body-weight':c.bodyWeight,'--lift-title-weight':c.titleWeight,'--lift-price-weight':c.priceWeight,'--lift-meta-weight':c.metaWeight,'--lift-product-name-size':c.productNameSize+'px','--lift-category-size':c.categorySize+'px','--lift-price-size':c.priceSize+'px','--lift-card-bg':c.cardBg,'--lift-image-bg':c.imageBg,'--lift-card-border':c.borderColor,'--lift-meta-color':c.metaColor,'--lift-name-color':c.nameColor,'--lift-presentation-color':c.presentationColor,'--lift-price-color':c.priceColor,'--lift-card-radius':c.cardRadius+'px','--lift-image-height':c.imageHeight+'px','--lift-image-padding':c.imagePadding+'px','--lift-body-padding':c.bodyPadding+'px','--lift-content-gap':c.contentGap+'px','--lift-name-line-height':c.nameLineHeight,'--lift-name-min-height':c.nameMinHeight+'px','--lift-price-top-gap':c.priceTopGap+'px','--lift-actions-gap':c.actionsGap+'px','--lift-actions-align':c.actionsAlign==='space-between'?'space-between':c.actionsAlign==='left'?'flex-start':c.actionsAlign==='center'?'center':'flex-end','--lift-button-size':c.buttonSize+'px','--lift-button-radius':c.buttonRadius+'px','--lift-favorite-size':c.favoriteSize+'px','--lift-favorite-top':c.favoriteTop+'px','--lift-favorite-right':c.favoriteRight+'px','--lift-card-min-height':c.cardMinHeight+'px','--lift-grid-gap':c.gridGap+'px','--lift-card-min-width':c.cardMinWidth+'px','--lift-presentation-size':c.presentationSize+'px','--lift-flavor-size':c.flavorSize+'px'};
- }
- function apply(c){Object.entries(vars(c)).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));window.LIFT_APPEARANCE={...c}}
- function read(){
-   const c=cfg();
-   document.querySelectorAll('[data-ap-key]').forEach(el=>{const k=el.dataset.apKey;c[k]=numKeys.has(k)?Number(el.value):el.value});
-   return c;
- }
- function fill(c){
-   document.querySelectorAll('[data-ap-key]').forEach(el=>{const k=el.dataset.apKey;if(c[k]!==undefined)el.value=c[k];const o=el.parentElement?.querySelector('output');if(o)o.value=c[k]});
- }
- function live(e){const c=read();apply(c);const o=e?.target?.parentElement?.querySelector('output');if(o)o.value=e.target.value}
- window.liftAppearanceReset=function(){const c={...DEF};fill(c);apply(c);document.getElementById('liftAppearanceStatus').textContent='Vista restablecida. Pulsa Guardar para publicarla.'}
- window.liftAppearanceSave=async function(){
-   const st=document.getElementById('liftAppearanceStatus'),c=read();st.textContent='Guardando…';
-   try{if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No está disponible la conexión con Supabase.');await window.liftCloudSaveConfig('appearance_v1',c);apply(c);st.textContent='✓ Diseño guardado en Supabase.'}
-   catch(e){st.textContent='Error: '+(e.message||e)}
- }
- function init(){const c=cfg();fill(c);apply(c);document.querySelectorAll('[data-ap-key]').forEach(el=>{el.addEventListener('input',live);el.addEventListener('change',live)})}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,500));else setTimeout(init,500);
-})();
-</script>
+
+
 
 
 <style id="lift-move-category-brand-v1-style">
@@ -7178,6 +7054,1116 @@ async function liftSecondaryRender(product){
   #liftMonoAdd{width:100%!important;font-size:12px!important}
 }
 </style>
+
+
+<style id="lift-card-design-fixed-v1">
+/* Tarjetas públicas fijas: ya no dependen de appearance_v1 ni del panel Diseño */
+.grid{align-items:stretch!important;gap:14px!important}
+.card,.grid .liftVitanessCard{
+ position:relative!important;height:100%!important;min-height:350px!important;
+ border:1px solid #ececec!important;border-radius:14px!important;background:#fff!important;
+ overflow:hidden!important;box-shadow:0 2px 8px rgba(0,0,0,.025)!important;
+ transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease!important
+}
+.card:hover,.grid .liftVitanessCard:hover{transform:translateY(-2px)!important;border-color:#dedede!important;box-shadow:0 10px 26px rgba(0,0,0,.07)!important}
+.pic,.grid .liftVitanessCard .pic{height:205px!important;padding:14px 13px 9px!important;border-bottom:0!important;background:#fff!important}
+.pic img,.grid .liftVitanessCard .pic img{max-width:84%!important;max-height:88%!important;object-fit:contain!important}
+.body,.grid .liftVitanessCard .body{padding:8px 13px 13px!important;gap:4px!important;min-height:140px!important;background:#fff!important}
+.meta{min-height:16px!important;gap:4px!important;margin-bottom:1px!important}
+.tag,.grid .liftVitanessCard .liftCardSection{
+ background:transparent!important;border:0!important;padding:0!important;font-size:8.5px!important;
+ color:#8b8b8b!important;font-weight:500!important;letter-spacing:.055em!important;text-transform:uppercase!important
+}
+.name,.grid .liftVitanessCard .name{
+ min-height:39px!important;max-height:42px!important;margin:1px 0 0!important;font-size:13.5px!important;
+ line-height:1.42!important;font-weight:400!important;color:#161616!important;display:-webkit-box!important;
+ -webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important
+}
+.grid .liftVitanessCard .liftCardPresentation{font-size:10px!important;color:#666!important}
+.grid .liftVitanessCard .liftCardFlavor,.flavorNote{font-size:9px!important;color:#777!important}
+.productBottom{width:100%!important;margin-top:auto!important;padding-top:7px!important;align-items:center!important;gap:8px!important}
+.price,.grid .liftVitanessCard .priceBox .price{margin:0!important;font-size:18px!important;line-height:1.1!important;font-weight:600!important;letter-spacing:-.025em!important;color:#111!important}
+.actions{margin-left:auto!important;flex:0 0 auto!important}
+.add,.add.topCart,.grid .liftVitanessCard .cardQuickBuyBtn{
+ width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;
+ border:1px solid #111!important;border-radius:11px!important;background:#111!important;color:#fff!important;box-shadow:none!important
+}
+.add.topCart{position:absolute!important;top:9px!important;right:9px!important;z-index:5!important}
+.grid .liftVitanessCard .prices{margin-top:auto!important;padding-top:7px!important}
+.grid .liftVitanessCard .priceBox{padding:0!important;background:transparent!important;border:0!important}
+.grid .liftVitanessCard .cardQuickActions{gap:7px!important;justify-content:flex-end!important}
+.grid .liftVitanessCard .liftCardFav{width:32px!important;height:32px!important;top:9px!important;right:9px!important}
+.inspectBtn{width:29px!important;height:29px!important;top:9px!important;left:9px!important;border-radius:50%!important}
+.card:has(.saleBadge) .inspectBtn{top:39px!important}
+.saleBadge{left:9px!important;top:9px!important;padding:5px 8px!important;border-radius:999px!important;font-size:8px!important}
+@media(max-width:760px){
+ .grid{gap:9px!important;padding:10px 9px 30px!important}
+ .card,.grid .liftVitanessCard{min-height:305px!important;border-radius:12px!important}
+ .pic,.grid .liftVitanessCard .pic{height:166px!important;padding:10px 8px 5px!important}
+ .pic img,.grid .liftVitanessCard .pic img{max-width:86%!important;max-height:90%!important}
+ .body,.grid .liftVitanessCard .body{min-height:134px!important;padding:7px 10px 10px!important}
+ .name,.grid .liftVitanessCard .name{min-height:36px!important;max-height:38px!important;font-size:12px!important;line-height:1.45!important}
+ .price,.grid .liftVitanessCard .priceBox .price{font-size:16px!important}
+ .add,.add.topCart,.grid .liftVitanessCard .cardQuickBuyBtn{width:35px!important;height:35px!important;min-width:35px!important;min-height:35px!important}
+}
+</style>
+
+
+<style id="lift-card-compact-v2">
+/* Compactación final de tarjetas: menos vacío, misma alineación */
+.grid .card,.grid .liftVitanessCard{
+  min-height:300px!important;
+}
+.grid .card .pic,.grid .liftVitanessCard .pic{
+  height:170px!important;
+  padding:10px 12px 5px!important;
+}
+.grid .card .pic img,.grid .liftVitanessCard .pic img{
+  max-width:88%!important;
+  max-height:92%!important;
+}
+.grid .card .body,.grid .liftVitanessCard .body{
+  min-height:122px!important;
+  padding:6px 12px 11px!important;
+  gap:3px!important;
+}
+.grid .card .meta,
+.grid .liftVitanessCard .liftCardSection{
+  min-height:14px!important;
+}
+.grid .card .tag,
+.grid .liftVitanessCard .liftCardSection{
+  font-size:9px!important;
+  line-height:1.25!important;
+}
+.grid .card .name,.grid .liftVitanessCard .name{
+  min-height:36px!important;
+  max-height:38px!important;
+  font-size:13px!important;
+  line-height:1.42!important;
+}
+.grid .card .flavorNote,
+.grid .liftVitanessCard .liftCardPresentation,
+.grid .liftVitanessCard .liftCardFlavor{
+  margin-top:0!important;
+}
+.grid .card .productBottom,
+.grid .liftVitanessCard .prices{
+  margin-top:auto!important;
+  padding-top:3px!important;
+}
+.grid .card .price,
+.grid .liftVitanessCard .priceBox .price{
+  font-size:18px!important;
+}
+.grid .liftVitanessCard .cardQuickActions{
+  margin-top:5px!important;
+}
+
+@media(max-width:760px){
+  .grid .card,.grid .liftVitanessCard{
+    min-height:265px!important;
+  }
+  .grid .card .pic,.grid .liftVitanessCard .pic{
+    height:140px!important;
+    padding:8px 7px 3px!important;
+  }
+  .grid .card .pic img,.grid .liftVitanessCard .pic img{
+    max-width:90%!important;
+    max-height:93%!important;
+  }
+  .grid .card .body,.grid .liftVitanessCard .body{
+    min-height:119px!important;
+    padding:6px 9px 9px!important;
+    gap:2px!important;
+  }
+  .grid .card .tag,
+  .grid .liftVitanessCard .liftCardSection{
+    font-size:8px!important;
+  }
+  .grid .card .name,.grid .liftVitanessCard .name{
+    min-height:34px!important;
+    max-height:36px!important;
+    font-size:11.7px!important;
+  }
+  .grid .card .price,
+  .grid .liftVitanessCard .priceBox .price{
+    font-size:15.5px!important;
+  }
+}
+@media(max-width:390px){
+  .grid .card,.grid .liftVitanessCard{min-height:252px!important}
+  .grid .card .pic,.grid .liftVitanessCard .pic{height:130px!important}
+  .grid .card .body,.grid .liftVitanessCard .body{min-height:116px!important}
+}
+</style>
+
+
+<style id="lift-card-compact-final-v3">
+/* Ajuste final: imagen mayor y bloque comercial más corto */
+.grid .card,.grid .liftVitanessCard{
+  min-height:272px!important;
+}
+.grid .card .pic,.grid .liftVitanessCard .pic{
+  height:162px!important;
+  padding:5px 8px 2px!important;
+}
+.grid .card .pic img,.grid .liftVitanessCard .pic img{
+  max-width:96%!important;
+  max-height:98%!important;
+}
+.grid .card .body,.grid .liftVitanessCard .body{
+  min-height:104px!important;
+  padding:5px 12px 9px!important;
+  gap:2px!important;
+}
+.grid .card .name,.grid .liftVitanessCard .name{
+  min-height:36px!important;
+  max-height:38px!important;
+  margin:0!important;
+}
+.grid .card .productBottom{
+  margin-top:3px!important;
+  padding-top:0!important;
+}
+.grid .liftVitanessCard .prices{
+  margin-top:3px!important;
+  padding-top:0!important;
+}
+.grid .liftVitanessCard .cardQuickActions{
+  margin-top:3px!important;
+}
+.grid .card .price,.grid .liftVitanessCard .priceBox .price{
+  margin-top:0!important;
+}
+
+/* Si la estructura separa precio y acciones, reduce el hueco reservado */
+.grid .liftVitanessCard .body > :empty{display:none!important}
+
+@media(max-width:760px){
+  .grid .card,.grid .liftVitanessCard{min-height:242px!important}
+  .grid .card .pic,.grid .liftVitanessCard .pic{
+    height:132px!important;
+    padding:4px 5px 1px!important;
+  }
+  .grid .card .pic img,.grid .liftVitanessCard .pic img{
+    max-width:97%!important;
+    max-height:99%!important;
+  }
+  .grid .card .body,.grid .liftVitanessCard .body{
+    min-height:104px!important;
+    padding:5px 9px 8px!important;
+  }
+  .grid .card .productBottom,
+  .grid .liftVitanessCard .prices{margin-top:2px!important;padding-top:0!important}
+  .grid .liftVitanessCard .cardQuickActions{margin-top:2px!important}
+}
+@media(max-width:390px){
+  .grid .card,.grid .liftVitanessCard{min-height:232px!important}
+  .grid .card .pic,.grid .liftVitanessCard .pic{height:124px!important}
+  .grid .card .body,.grid .liftVitanessCard .body{min-height:102px!important}
+}
+</style>
+
+
+<style id="lift-card-actions-refined-v4">
+/* Acciones de tarjeta: más discretas y con jerarquía clara */
+.grid .card .actions,
+.grid .liftVitanessCard .cardQuickActions{
+  gap:6px!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+}
+
+/* Carrito = acción principal */
+.grid .card .add,
+.grid .card .add.topCart,
+.grid .liftVitanessCard .cardQuickBuyBtn{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  border-radius:10px!important;
+  padding:0!important;
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid #111!important;
+  box-shadow:none!important;
+}
+.grid .card .add svg,
+.grid .card .add.topCart svg,
+.grid .liftVitanessCard .cardQuickBuyBtn svg{
+  width:15px!important;
+  height:15px!important;
+}
+
+/* Compartir = acción secundaria */
+.grid .card .shareBtn,
+.grid .card .cardShareImageBtn,
+.grid .liftVitanessCard .cardShareImageBtn{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  border-radius:10px!important;
+  padding:0!important;
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #dedede!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.035)!important;
+}
+.grid .card .shareBtn svg,
+.grid .card .cardShareImageBtn svg,
+.grid .liftVitanessCard .cardShareImageBtn svg{
+  width:15px!important;
+  height:15px!important;
+}
+
+/* Feedback de agregado */
+.grid .card .add.liftCardAdded,
+.grid .card .add.topCart.liftCardAdded,
+.grid .liftVitanessCard .cardQuickBuyBtn.liftCardAdded{
+  background:#eef8f0!important;
+  color:#17652b!important;
+  border-color:#82b98e!important;
+}
+
+@media(max-width:760px){
+  .grid .card .actions,
+  .grid .liftVitanessCard .cardQuickActions{gap:5px!important}
+
+  .grid .card .add,
+  .grid .card .add.topCart,
+  .grid .liftVitanessCard .cardQuickBuyBtn,
+  .grid .card .shareBtn,
+  .grid .card .cardShareImageBtn,
+  .grid .liftVitanessCard .cardShareImageBtn{
+    width:33px!important;
+    height:33px!important;
+    min-width:33px!important;
+    min-height:33px!important;
+    border-radius:9px!important;
+  }
+}
+</style>
+
+
+<style id="lift-card-meta-refined-v5">
+/* Marca + categoría: secundaria pero realmente legible */
+.grid .card .meta{
+  min-height:15px!important;
+  margin:0 0 2px!important;
+  display:block!important;
+  overflow:hidden!important;
+}
+.grid .card .tag{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  font-weight:500!important;
+  letter-spacing:.025em!important;
+  color:#7d7d7d!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-transform:uppercase!important;
+}
+
+/* Tarjetas Vitaness / unificadas */
+.grid .liftVitanessCard .liftCardSection{
+  display:block!important;
+  width:100%!important;
+  min-height:15px!important;
+  margin:0 0 2px!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  font-weight:500!important;
+  letter-spacing:.025em!important;
+  color:#7d7d7d!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-transform:uppercase!important;
+}
+
+/* Un poco más de contraste al pasar el mouse, sin convertirlo en protagonista */
+.grid .card:hover .tag,
+.grid .liftVitanessCard:hover .liftCardSection{
+  color:#5f5f5f!important;
+}
+
+@media(max-width:760px){
+  .grid .card .meta,
+  .grid .liftVitanessCard .liftCardSection{
+    min-height:14px!important;
+    margin-bottom:2px!important;
+  }
+  .grid .card .tag,
+  .grid .liftVitanessCard .liftCardSection{
+    font-size:8.2px!important;
+    letter-spacing:.015em!important;
+  }
+}
+</style>
+
+
+<style id="lift-laboratories-ux-v2">
+/* Laboratorios: más compactos, logos más útiles y selección evidente */
+.labVisualWrap{padding:0 1px 10px!important}
+.labVisualSearchWrap{
+  position:sticky!important;top:0!important;z-index:5!important;
+  background:#fff!important;padding:2px 0 9px!important
+}
+.labVisualSearch{
+  width:100%!important;height:38px!important;border:1px solid #dedede!important;
+  border-radius:11px!important;padding:0 11px 0 34px!important;background:#f7f7f7!important;
+  font-size:11px!important;font-weight:300!important;outline:none!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;background-position:11px center!important
+}
+.labVisualSearch:focus{background-color:#fff!important;border-color:#999!important}
+.labVisualGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+.labVisualCard{
+  min-height:86px!important;padding:7px 6px 6px!important;gap:3px!important;
+  border:1px solid #ececec!important;border-radius:11px!important;
+  box-shadow:none!important;background:#fff!important
+}
+.labVisualCard:hover{border-color:#d0d0d0!important;box-shadow:0 4px 12px rgba(0,0,0,.035)!important}
+.labVisualCard.on{
+  border-color:#111!important;background:#f7f7f7!important;
+  box-shadow:0 0 0 1px #111 inset!important
+}
+.labVisualLogoBox{height:42px!important}
+.labVisualLogoBox img{max-width:94%!important;max-height:40px!important;object-fit:contain!important}
+.labVisualInitial{width:38px!important;height:38px!important;border-radius:10px!important;font-size:14px!important}
+.labVisualName{
+  width:100%!important;font-size:10.5px!important;font-weight:600!important;line-height:1.15!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important
+}
+.labVisualCount{font-size:8.5px!important;line-height:1.1!important;color:#999!important}
+@media(max-width:760px){
+ .labVisualWrap{padding:0 0 12px!important}
+ .labVisualSearchWrap{padding:2px 0 8px!important}
+ .labVisualSearch{height:39px!important;font-size:11px!important}
+ .labVisualGrid{gap:7px!important}
+ .labVisualCard{min-height:84px!important;padding:6px 5px!important}
+ .labVisualLogoBox{height:40px!important}
+ .labVisualLogoBox img{max-height:38px!important}
+}
+</style>
+
+<script id="lift-laboratories-ux-v2-script">
+(function(){
+  // El buscador filtra las tarjetas usando la función visual ya existente.
+  document.addEventListener('input',function(e){
+    if(!e.target.matches('.labVisualSearch'))return;
+    const value=e.target.value||'';
+    document.querySelectorAll('.labVisualSearch').forEach(x=>{if(x!==e.target)x.value=value});
+    if(typeof window.renderLaboratoryVisualGrid==='function')window.renderLaboratoryVisualGrid(value);
+  },true);
+
+  // Mejora la selección existente: filtra, cierra panel móvil y lleva al catálogo.
+  const original=window.selectLaboratoryVisual;
+  window.selectLaboratoryVisual=function(name){
+    if(typeof original==='function') original(name);
+    else if(typeof window.setBrand==='function') window.setBrand(name);
+    if(innerWidth<=760 && typeof window.closeOff==='function') window.closeOff();
+    requestAnimationFrame(()=>document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  };
+
+  // Si renderFilters reconstruye el panel, reinyecta el buscador donde haga falta.
+  function ensureSearch(){
+    document.querySelectorAll('.labVisualWrap').forEach(w=>{
+      if(w.querySelector('.labVisualSearch'))return;
+      const d=document.createElement('div');
+      d.className='labVisualSearchWrap';
+      d.innerHTML='<input class="labVisualSearch" type="search" autocomplete="off" placeholder="Buscar laboratorio...">';
+      w.prepend(d);
+    });
+  }
+  new MutationObserver(()=>requestAnimationFrame(ensureSearch)).observe(document.body,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureSearch);else ensureSearch();
+})();
+</script>
+
+
+<style id="lift-categories-ux-v2">
+/* Categorías: lectura rápida, sin convertir cada fila en otra tarjeta */
+.liftCategorySearchWrap{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:#fff;
+  padding:2px 0 8px;
+}
+.liftCategorySearch{
+  width:100%;
+  height:39px;
+  border:1px solid #dedede;
+  border-radius:11px;
+  padding:0 11px 0 34px;
+  outline:none;
+  background-color:#f7f7f7;
+  font:300 11px Poppins,Arial,sans-serif;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:11px center;
+}
+.liftCategorySearch:focus{background-color:#fff;border-color:#999}
+
+/* Sólo afecta las filas del panel público de categorías */
+.filterPanel .liftCatAdminRow{
+  position:relative;
+  margin:0!important;
+  padding:0!important;
+  border-bottom:1px solid #f1f1f1;
+}
+.filterPanel .liftCatAdminRow > .filterItem{
+  position:relative;
+  width:100%!important;
+  min-height:39px!important;
+  margin:0!important;
+  padding:0 8px 0 10px!important;
+  border:0!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  color:#222!important;
+  text-align:left!important;
+  font-size:12px!important;
+  font-weight:300!important;
+  transition:background .12s ease,color .12s ease!important;
+}
+.filterPanel .liftCatAdminRow > .filterItem:hover{
+  background:#f8f8f8!important;
+}
+.filterPanel .liftCatAdminRow > .filterItem span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.filterPanel .liftCatAdminRow > .filterItem small{
+  flex:0 0 auto;
+  min-width:26px;
+  height:20px;
+  padding:0 6px;
+  border-radius:999px;
+  background:#f2f2f2;
+  color:#888;
+  display:grid;
+  place-items:center;
+  font-size:9px!important;
+  font-weight:400!important;
+}
+/* Selección: fondo suave + barra negra, no bloque negro gigante */
+.filterPanel .liftCatAdminRow > .filterItem.on{
+  background:#f4f4f4!important;
+  color:#111!important;
+  font-weight:500!important;
+  padding-left:14px!important;
+}
+.filterPanel .liftCatAdminRow > .filterItem.on::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:7px;
+  bottom:7px;
+  width:3px;
+  border-radius:4px;
+  background:#111;
+}
+.filterPanel .liftCatAdminRow > .filterItem.on small{
+  background:#111;
+  color:#fff;
+}
+.liftCategoryEmpty{
+  padding:22px 8px;
+  color:#888;
+  text-align:center;
+  font-size:11px;
+}
+@media(max-width:760px){
+  .filterPanel .liftCatAdminRow > .filterItem{
+    min-height:38px!important;
+    font-size:11.5px!important;
+  }
+}
+</style>
+
+<script id="lift-categories-ux-v2-script">
+(function(){
+  function categoryPanels(){
+    return [...document.querySelectorAll('.filterPanel')].filter(panel=>{
+      return panel.querySelector('.liftCatAdminRow');
+    });
+  }
+
+  function ensureSearch(){
+    categoryPanels().forEach(panel=>{
+      if(panel.querySelector('.liftCategorySearch')) return;
+      const wrap=document.createElement('div');
+      wrap.className='liftCategorySearchWrap';
+      wrap.innerHTML='<input type="search" class="liftCategorySearch" autocomplete="off" placeholder="Buscar categoría...">';
+      panel.prepend(wrap);
+    });
+  }
+
+  function filterCategories(value){
+    const q=(typeof norm==='function' ? norm(value) : String(value||'').toLowerCase()).trim();
+    categoryPanels().forEach(panel=>{
+      let visible=0;
+      panel.querySelectorAll('.liftCatAdminRow').forEach(row=>{
+        const name=row.querySelector('.filterItem span')?.textContent||'';
+        const hay=typeof norm==='function' ? norm(name) : name.toLowerCase();
+        const show=!q || hay.includes(q);
+        row.style.display=show?'':'none';
+        if(show) visible++;
+      });
+      let empty=panel.querySelector('.liftCategoryEmpty');
+      if(!visible && q){
+        if(!empty){
+          empty=document.createElement('div');
+          empty.className='liftCategoryEmpty';
+          empty.textContent='No encontré esa categoría.';
+          panel.appendChild(empty);
+        }
+      }else empty?.remove();
+    });
+  }
+
+  document.addEventListener('input',e=>{
+    if(!e.target.matches('.liftCategorySearch'))return;
+    const value=e.target.value||'';
+    document.querySelectorAll('.liftCategorySearch').forEach(x=>{
+      if(x!==e.target)x.value=value;
+    });
+    filterCategories(value);
+  },true);
+
+  /* setCat ya cierra el offcanvas móvil en el index. Conservamos esa lógica. */
+  new MutationObserver(()=>requestAnimationFrame(ensureSearch))
+    .observe(document.body,{childList:true,subtree:true});
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',ensureSearch);
+  }else ensureSearch();
+})();
+</script>
+
+
+<style id="lift-header-premium-v1">
+/* Header LIFT: una sola familia visual para todos los controles */
+header{
+  min-height:72px!important;
+  padding:10px 18px!important;
+  gap:10px!important;
+  background:#0d0d0d!important;
+}
+.logo,.brandLogo,.headerLogo{
+  flex:0 0 auto!important;
+}
+header .logo img,
+header .brandLogo img,
+header .headerLogo img{
+  width:42px!important;
+  height:42px!important;
+  object-fit:contain!important;
+}
+
+/* Ofertas */
+.offersBtn,#offersBtn,.offerBtn{
+  min-height:42px!important;
+  height:42px!important;
+  border-radius:13px!important;
+  padding:0 13px!important;
+  gap:7px!important;
+  box-shadow:0 4px 14px rgba(0,180,90,.16)!important;
+}
+.offersBtn small,#offersBtn small,.offerBtn small{
+  min-width:21px!important;
+  height:21px!important;
+  padding:0 5px!important;
+  border-radius:999px!important;
+  display:grid!important;
+  place-items:center!important;
+  font-size:9px!important;
+}
+
+/* Buscador */
+.searchWrap,.search,.headerSearch{
+  position:relative!important;
+  flex:1 1 auto!important;
+}
+header input[type="search"],
+header #q{
+  height:42px!important;
+  border-radius:13px!important;
+  border:1px solid #343434!important;
+  background:#1a1a1a!important;
+  color:#fff!important;
+  padding-left:42px!important;
+  padding-right:14px!important;
+  font-size:13px!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+header input[type="search"]::placeholder,
+header #q::placeholder{color:#777!important}
+header input[type="search"]:focus,
+header #q:focus{
+  background:#1d1d1d!important;
+  border-color:#555!important;
+}
+header .searchWrap::before,
+header .search::before,
+header .headerSearch::before{
+  content:"";
+  position:absolute;
+  z-index:3;
+  left:14px;
+  top:50%;
+  width:16px;
+  height:16px;
+  transform:translateY(-50%);
+  pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* Favoritos + carrito */
+header .iconBtn,
+header .favoritesBtn,
+header .cartBtn{
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  padding:0!important;
+  border-radius:13px!important;
+  border:1px solid #343434!important;
+  background:#111!important;
+  color:#fff!important;
+  display:grid!important;
+  place-items:center!important;
+  position:relative!important;
+}
+header .iconBtn:hover,
+header .favoritesBtn:hover,
+header .cartBtn:hover{
+  background:#1b1b1b!important;
+  border-color:#4a4a4a!important;
+}
+header .badge,
+header .count,
+header .cartCount,
+header .favCount{
+  position:absolute!important;
+  top:-5px!important;
+  right:-5px!important;
+  min-width:18px!important;
+  height:18px!important;
+  padding:0 4px!important;
+  border-radius:999px!important;
+  font-size:9px!important;
+  line-height:18px!important;
+  text-align:center!important;
+  border:2px solid #0d0d0d!important;
+}
+
+/* Móvil: preserva buscador y compacta ofertas */
+@media(max-width:760px){
+  header{
+    min-height:62px!important;
+    padding:8px 9px!important;
+    gap:7px!important;
+  }
+  header .logo img,
+  header .brandLogo img,
+  header .headerLogo img{
+    width:36px!important;
+    height:36px!important;
+  }
+  .offersBtn,#offersBtn,.offerBtn{
+    width:42px!important;
+    min-width:42px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+  .offersBtn .offerText,
+  #offersBtn .offerText,
+  .offerBtn .offerText{display:none!important}
+  header input[type="search"],
+  header #q{
+    height:40px!important;
+    border-radius:12px!important;
+    padding-left:36px!important;
+    font-size:11px!important;
+  }
+  header .searchWrap::before,
+  header .search::before,
+  header .headerSearch::before{left:12px!important}
+  header .iconBtn,
+  header .favoritesBtn,
+  header .cartBtn{
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    min-height:40px!important;
+    border-radius:12px!important;
+  }
+}
+@media(max-width:430px){
+  header{gap:5px!important;padding-left:6px!important;padding-right:6px!important}
+  header .logo img,
+  header .brandLogo img,
+  header .headerLogo img{width:32px!important;height:32px!important}
+  .offersBtn,#offersBtn,.offerBtn{width:38px!important;min-width:38px!important;height:40px!important}
+  header .iconBtn,
+  header .favoritesBtn,
+  header .cartBtn{width:38px!important;min-width:38px!important}
+}
+</style>
+
+<script id="lift-header-premium-v1-script">
+(function(){
+  function refine(){
+    const q=document.getElementById('q');
+    if(q){
+      q.placeholder='Buscar productos, marcas...';
+      /* Añade lupa incluso si el HTML original no tiene wrapper específico */
+      const p=q.parentElement;
+      if(p && !p.classList.contains('liftSearchEnhanced')){
+        p.classList.add('liftSearchEnhanced');
+      }
+    }
+    const offer=document.querySelector('#offersBtn,.offersBtn,.offerBtn');
+    if(offer && !offer.querySelector('.offerText')){
+      [...offer.childNodes].forEach(n=>{
+        if(n.nodeType===3 && /ofertas/i.test(n.textContent||'')){
+          const sp=document.createElement('span');
+          sp.className='offerText';
+          sp.textContent=n.textContent.trim();
+          n.replaceWith(sp);
+        }
+      });
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refine);
+  else refine();
+})();
+</script>
+
+<style id="lift-search-enhanced-fallback">
+header .liftSearchEnhanced{position:relative!important;flex:1 1 auto!important}
+header .liftSearchEnhanced::before{
+ content:"";position:absolute;z-index:4;left:14px;top:50%;width:16px;height:16px;
+ transform:translateY(-50%);pointer-events:none;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat
+}
+</style>
+
+
+<style id="lift-header-mobile-fix-v2">
+@media(max-width:760px){
+  /* Dos filas limpias: navegación arriba, buscador abajo */
+  header{
+    min-height:auto!important;
+    padding:7px 10px 8px!important;
+    gap:7px!important;
+    display:grid!important;
+    grid-template-columns:auto auto 1fr auto auto!important;
+    grid-template-rows:40px 40px!important;
+    align-items:center!important;
+    background:#0d0d0d!important;
+  }
+
+  /* Logo con más presencia y sin parecer otro botón */
+  header .logo,
+  header .brandLogo,
+  header .headerLogo{
+    grid-row:1!important;
+    align-self:center!important;
+  }
+  header .logo img,
+  header .brandLogo img,
+  header .headerLogo img{
+    width:38px!important;
+    height:38px!important;
+  }
+
+  /* Buscador siempre ocupa toda la segunda fila */
+  header .searchWrap,
+  header .search,
+  header .headerSearch,
+  header .liftSearchEnhanced{
+    grid-column:1/-1!important;
+    grid-row:2!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+  header input[type="search"],
+  header #q{
+    width:100%!important;
+    height:40px!important;
+    border-radius:11px!important;
+    padding-left:36px!important;
+    font-size:11px!important;
+  }
+
+  /* Ofertas vuelve a ser legible */
+  .offersBtn,#offersBtn,.offerBtn{
+    width:auto!important;
+    min-width:86px!important;
+    height:38px!important;
+    min-height:38px!important;
+    padding:0 10px!important;
+    border-radius:12px!important;
+    gap:5px!important;
+    white-space:nowrap!important;
+    justify-content:center!important;
+  }
+  .offersBtn .offerText,
+  #offersBtn .offerText,
+  .offerBtn .offerText{
+    display:inline!important;
+    font-size:10px!important;
+  }
+
+  /* Acciones superiores uniformes */
+  header .iconBtn,
+  header .favoritesBtn,
+  header .cartBtn{
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    min-height:38px!important;
+    border-radius:11px!important;
+  }
+
+  /* Menos aire negro entre controles */
+  header > *{margin-top:0!important;margin-bottom:0!important}
+
+  /* Si existe un carrito flotante móvil además del header, se oculta */
+  .floatingCart,
+  .mobileFloatingCart,
+  #floatingCart,
+  #mobileFloatingCart,
+  .cartFloat,
+  .floating-cart{
+    display:none!important;
+  }
+}
+
+@media(max-width:430px){
+  header{
+    padding:6px 7px 7px!important;
+    gap:5px!important;
+    grid-template-columns:auto auto 1fr auto auto!important;
+    grid-template-rows:38px 39px!important;
+  }
+  header .logo img,
+  header .brandLogo img,
+  header .headerLogo img{
+    width:35px!important;
+    height:35px!important;
+  }
+  .offersBtn,#offersBtn,.offerBtn{
+    min-width:76px!important;
+    height:36px!important;
+    min-height:36px!important;
+    padding:0 8px!important;
+  }
+  .offersBtn .offerText,
+  #offersBtn .offerText,
+  .offerBtn .offerText{font-size:9px!important}
+
+  header .iconBtn,
+  header .favoritesBtn,
+  header .cartBtn{
+    width:36px!important;
+    height:36px!important;
+    min-width:36px!important;
+    min-height:36px!important;
+  }
+  header input[type="search"],
+  header #q{height:39px!important}
+}
+</style>
+
+<script id="lift-hide-duplicate-mobile-cart-v1">
+(function(){
+  function hideDuplicateCart(){
+    if(innerWidth>760)return;
+    const header=document.querySelector('header');
+    if(!header)return;
+    const headerCart=header.querySelector('.cartBtn,[aria-label*="carrito" i],[title*="carrito" i]');
+    if(!headerCart)return;
+
+    document.querySelectorAll('button,a').forEach(el=>{
+      if(header.contains(el))return;
+      const label=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.className||'')).toLowerCase();
+      const fixed=getComputedStyle(el).position==='fixed';
+      if(fixed && /cart|carrito/.test(label)){
+        el.style.setProperty('display','none','important');
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideDuplicateCart);
+  else hideDuplicateCart();
+  addEventListener('resize',hideDuplicateCart);
+})();
+</script>
+
+
+<style id="lift-cart-redesign-v1">
+/* Carrito LIFT: compacto arriba, resumen claro abajo */
+#cart{background:#fff!important}
+#cart .offhead{
+  min-height:64px!important;padding:0 15px!important;border-bottom:1px solid #eee!important;
+}
+#cart .offhead h2{font-size:20px!important;font-weight:600!important}
+#cart .offhead .close{
+  width:36px!important;height:36px!important;border-radius:50%!important;background:#f3f3f3!important;
+  font-size:17px!important
+}
+#cartBody{padding:10px 15px!important}
+#cart .cartline{
+  grid-template-columns:58px minmax(0,1fr) 28px!important;
+  gap:10px!important;padding:10px 0!important;align-items:start!important;
+  border-bottom:1px solid #eeeeee!important
+}
+#cart .cartProductImg{
+  width:58px!important;height:58px!important;border:1px solid #ececec!important;
+  border-radius:10px!important;padding:3px!important;background:#fff!important;object-fit:contain!important
+}
+#cart .cartProductInfo{min-width:0!important}
+#cart .cartname{
+  display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;
+  overflow:hidden!important;font-size:12px!important;font-weight:500!important;line-height:1.25!important;
+  color:#171717!important;margin:0!important
+}
+#cart .cartbrand{
+  margin-top:2px!important;font-size:9px!important;line-height:1.2!important;color:#8a8a8a!important;
+  text-transform:uppercase!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important
+}
+#cart .cartFlavor{margin-top:2px!important;font-size:9px!important;color:#777!important}
+#cart .cartProductControls{
+  margin-top:6px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:8px!important
+}
+#cart .cartprice{
+  margin:0!important;font-size:14px!important;font-weight:600!important;line-height:1!important;color:#111!important;
+  transition:opacity .12s ease,transform .12s ease!important
+}
+#cart .qty{margin:0!important;gap:5px!important}
+#cart .qty button{
+  width:27px!important;height:27px!important;border-radius:8px!important;border:1px solid #dedede!important;
+  background:#fff!important;font-size:14px!important;color:#333!important
+}
+#cart .qty b{
+  min-width:16px!important;text-align:center!important;font-size:11px!important;font-weight:500!important
+}
+#cart .trash{
+  width:27px!important;height:27px!important;border:1px solid transparent!important;border-radius:50%!important;
+  background:transparent!important;color:#777!important;font-size:15px!important;display:grid!important;
+  place-items:center!important;padding:0!important;line-height:1!important
+}
+#cart .trash:hover{background:#f5f5f5!important;color:#111!important}
+#cart .flavorConfirmMsg{
+  margin:8px 0 0!important;padding:8px 10px!important;border-radius:9px!important;background:#fafafa!important;
+  font-size:9px!important;line-height:1.35!important;color:#777!important
+}
+
+/* Pie del carrito */
+#cart .cartfoot{
+  position:sticky!important;bottom:0!important;z-index:8!important;
+  padding:11px 15px max(12px,env(safe-area-inset-bottom))!important;
+  border-top:1px solid #e7e7e7!important;background:rgba(255,255,255,.98)!important;
+  box-shadow:0 -8px 24px rgba(0,0,0,.045)!important
+}
+#cartShippingProgress{
+  margin:0 0 7px!important;padding:8px 10px!important;border:1px solid #ececec!important;
+  border-radius:10px!important;background:#fafafa!important;font-size:9px!important;line-height:1.35!important
+}
+#cart .flavorConfirmNote{
+  margin:0 2px 8px!important;font-size:8.5px!important;line-height:1.3!important;color:#999!important
+}
+#cart .totalrow{
+  margin:0 0 9px!important;padding-top:2px!important;font-size:17px!important;font-weight:500!important;
+  align-items:baseline!important
+}
+#cart #subtotal{font-size:19px!important;font-weight:600!important}
+#cart .cartBuy{
+  height:46px!important;border-radius:11px!important;font-size:13px!important;font-weight:500!important
+}
+#cart .secondary{
+  height:39px!important;margin-top:6px!important;border-radius:10px!important;font-size:11px!important
+}
+
+/* Compartir se vuelve acción terciaria y va después de copiar */
+#cart .liftCartShareWrap{margin:6px 0 0!important}
+#cart .liftCartShareBtn{
+  height:36px!important;border:0!important;background:transparent!important;color:#555!important;
+  font-size:10px!important;font-weight:400!important;border-radius:9px!important
+}
+#cart .liftCartShareBtn:hover{background:#f7f7f7!important;color:#111!important}
+
+/* Orden visual: envío -> subtotal -> continuar -> copiar -> compartir */
+#cart .cartfoot{display:flex!important;flex-direction:column!important}
+#cartShippingProgress{order:1}
+#cart .flavorConfirmNote{order:2}
+#cart .totalrow{order:3}
+#cart .cartBuy{order:4}
+#cart .secondary{order:5}
+#cart .liftCartShareWrap{order:6}
+
+@media(max-width:760px){
+  #cart.off.right{
+    width:100vw!important;max-width:100vw!important;height:100dvh!important;
+    border-radius:0!important
+  }
+  #cart .offhead{min-height:60px!important}
+  #cartBody{padding:8px 14px!important}
+  #cart .cartline{
+    grid-template-columns:56px minmax(0,1fr) 26px!important;
+    padding:9px 0!important;gap:9px!important
+  }
+  #cart .cartProductImg{width:56px!important;height:56px!important}
+  #cart .cartname{font-size:11.5px!important}
+  #cart .cartprice{font-size:13.5px!important}
+  #cart .cartfoot{padding:9px 14px max(10px,env(safe-area-inset-bottom))!important}
+}
+</style>
+
+<script id="lift-cart-share-order-v1">
+(function(){
+  /* La función existente inyecta Compartir como primer hijo. Lo movemos al final sin duplicarlo. */
+  function reorder(){
+    const foot=document.querySelector('#cart .cartfoot');
+    const share=foot?.querySelector('.liftCartShareWrap');
+    if(foot&&share&&foot.lastElementChild!==share)foot.appendChild(share);
+  }
+  const mo=new MutationObserver(()=>requestAnimationFrame(reorder));
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{
+      const foot=document.querySelector('#cart .cartfoot');
+      if(foot)mo.observe(foot,{childList:true});
+      reorder();
+    });
+  }else{
+    const foot=document.querySelector('#cart .cartfoot');
+    if(foot)mo.observe(foot,{childList:true});
+    reorder();
+  }
+})();
+</script>
 
 </body>
 </html>
