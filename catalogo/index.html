@@ -838,6 +838,32 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 .grid .liftVitanessCard .priceBox .offerPrices{margin:0!important;}
 </style>
 
+
+<style id="liftSecondaryGalleryFresh">
+.liftMonoImg{position:relative!important}
+.liftSecondaryRail{
+ position:absolute;left:12px;top:12px;bottom:12px;z-index:8;
+ width:58px;display:flex;flex-direction:column;gap:7px;
+ overflow-y:auto;overflow-x:hidden;padding:1px;
+ scrollbar-width:thin;
+}
+.liftSecondaryRail:empty{display:none}
+.liftSecondaryThumb{
+ width:54px;height:54px;min-height:54px;border:1px solid #d9d9d9;border-radius:8px;
+ background:#fff;padding:3px;cursor:pointer;display:grid;place-items:center;
+ box-shadow:0 1px 4px rgba(0,0,0,.04)
+}
+.liftSecondaryThumb img{width:100%;height:100%;object-fit:contain;display:block}
+.liftSecondaryThumb.active{border:2px solid #111}
+.liftMonoImg.hasSecondaryGallery>img{max-width:calc(100% - 68px)!important;margin-left:68px!important}
+@media(max-width:760px){
+ .liftSecondaryRail{left:7px;top:8px;bottom:8px;width:46px;gap:5px}
+ .liftSecondaryThumb{width:42px;height:42px;min-height:42px;border-radius:7px}
+ .liftMonoImg.hasSecondaryGallery{padding-left:8px!important;padding-right:8px!important}
+ .liftMonoImg.hasSecondaryGallery>img{max-width:calc(100% - 54px)!important;margin-left:54px!important}
+}
+</style>
+
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2630,6 +2656,7 @@ function renderProductDetail(p){
           ${relatedProductDetailHTML(p)}
         </div>
       </div>`;
+    liftSecondaryRender(p);
     bindIso100Flavors(p);
     bindPdfFlavors(p);
     bindProductZoom();
@@ -4564,7 +4591,12 @@ window.shareLiftProductImage=async function(id){
   <div id="lafProductList" class="lafList"></div>
 </section>
   <section id="laf-create" class="lafPane"><div class="lafBox"><h3 id="lafFormTitle">Crear producto</h3><div class="lafForm">
-   <label class="lafField full">Nombre<input id="lafName"></label><label class="lafField">Marca<input id="lafBrand" list="lafBrands"></label><label class="lafField">Categoría<input id="lafCategory" list="lafCategories"></label><label class="lafField">Presentación<input id="lafPresentation"></label><label class="lafField">Precio público<input id="lafPrice" inputmode="numeric"></label><label class="lafField">Precio entrenador<input id="lafTrainerPrice" inputmode="numeric" placeholder="Opcional"></label><label class="lafField">Estado<select id="lafStatus"><option value="">Disponible</option><option value="out">Agotado</option></select></label><label class="lafField full">URL imagen<input id="lafImage"></label><label class="lafField full">Descripción<textarea id="lafDescription"></textarea></label><label class="lafField full">Sabores / variantes<textarea id="lafFlavors" placeholder="Uno por línea o separados por coma"></textarea></label>
+   <label class="lafField full">Nombre<input id="lafName"></label><label class="lafField">Marca<input id="lafBrand" list="lafBrands"></label><label class="lafField">Categoría<input id="lafCategory" list="lafCategories"></label><label class="lafField">Presentación<input id="lafPresentation"></label><label class="lafField">Precio público<input id="lafPrice" inputmode="numeric"></label><label class="lafField">Precio entrenador<input id="lafTrainerPrice" inputmode="numeric" placeholder="Opcional"></label><label class="lafField">Estado<select id="lafStatus"><option value="">Disponible</option><option value="out">Agotado</option></select></label><label class="lafField full">URL imagen principal<input id="lafImage"></label>
+<label class="lafField full">Imágenes secundarias
+<textarea id="lafSecondaryImages" placeholder="Una URL por línea"></textarea>
+<small style="display:block;margin-top:5px;color:#777;font-size:10px">Pega una URL por línea. Se guardan en Supabase y aparecen como miniaturas a la izquierda de la imagen principal.</small>
+</label>
+<label class="lafField full">Descripción<textarea id="lafDescription"></textarea></label><label class="lafField full">Sabores / variantes<textarea id="lafFlavors" placeholder="Uno por línea o separados por coma"></textarea></label>
   </div><input type="hidden" id="lafEditId"><datalist id="lafBrands"></datalist><datalist id="lafCategories"></datalist><div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" onclick="lafSaveProduct()">Guardar producto</button><button class="lafBtn" onclick="lafClearForm()">Limpiar</button><button id="lafDeleteBtn" class="lafBtn danger" style="display:none" onclick="lafDeleteCurrent()">Eliminar producto</button></div><div id="lafFormResult" class="lafResult"></div></div></section>
   <section id="laf-offers" class="lafPane"><div class="lafNote">Crea o elimina ofertas con precio promocional y fecha de vencimiento. Al vencer, vuelve automáticamente al precio detal normal.</div><div class="lafTools"><input id="lafOfferSearch" class="lafInput" placeholder="Buscar producto..." oninput="lafRenderOffers()"></div><div id="lafOfferList"></div></section>
   <section id="laf-combos" class="lafPane"><div class="lafNote">Los combos se manejan como productos de la categoría <b>Combos</b>. Puedes crearlos, editar precio, imagen y descripción desde aquí.</div><button class="lafBtn primary" onclick="lafNewCombo()">+ Crear combo</button><div id="lafComboList" class="lafList" style="margin-top:10px"></div></section>
@@ -4751,9 +4783,38 @@ window.shareLiftProductImage=async function(id){
  };
  window.lafRenderProducts();
  window.lafQuickPrice=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;p.price=num($('lafp_'+id).value);patch(p);$('lafp_'+id).value=fmt(p.price);refresh()};
- window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
- window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex'};
- window.lafSaveProduct=function(){const id=$('lafEditId').value;let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;if(!p){p={id:nextId()};PRODUCTS.push(p)}p.name=$('lafName').value.trim();p.brand=$('lafBrand').value.trim();p.category=$('lafCategory').value.trim();p.presentation=$('lafPresentation').value.trim();p.price=num($('lafPrice').value);p.trainerPrice=num($('lafTrainerPrice').value)||null;p.image=$('lafImage').value.trim();p.description=$('lafDescription').value.trim();p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);if(!p.name||!p.price){$('lafFormResult').textContent='Nombre y precio son obligatorios.';return}const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);$('lafFormResult').textContent='Producto guardado.';lafClearForm();refresh()};
+ window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafSecondaryImages','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
+ window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex';liftSecondaryEditorLoad(p.id)};
+ window.lafSaveProduct=async function(){
+ const id=$('lafEditId').value;
+ let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;
+ if(!p){p={id:nextId()};PRODUCTS.push(p)}
+ p.name=$('lafName').value.trim();
+ p.brand=$('lafBrand').value.trim();
+ p.category=$('lafCategory').value.trim();
+ p.presentation=$('lafPresentation').value.trim();
+ p.price=num($('lafPrice').value);
+ p.trainerPrice=num($('lafTrainerPrice').value)||null;
+ p.image=$('lafImage').value.trim();
+ p.description=$('lafDescription').value.trim();
+ p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
+ if(!p.name||!p.price){$('lafFormResult').textContent='Nombre y precio son obligatorios.';return}
+ const secondaryText=$('lafSecondaryImages').value;
+ const m=meta();m.out=m.out||{};
+ if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];
+ saveMeta(m);
+ patch(p);
+ $('lafFormResult').textContent='Guardando producto e imágenes...';
+ try{
+   await liftSecondarySaveUrls(p.id,secondaryText);
+   $('lafFormResult').textContent='Producto e imágenes guardados.';
+   refresh();
+   setTimeout(()=>lafClearForm(),650);
+ }catch(e){
+   $('lafFormResult').textContent='Producto guardado, pero las imágenes secundarias fallaron: '+e.message;
+   refresh();
+ }
+};
  window.lafDeleteCurrent=function(){const id=$('lafEditId').value;if(!id)return;if(!confirm('¿Eliminar este producto del catálogo?'))return;const i=PRODUCTS.findIndex(x=>String(x.id)===String(id));if(i>=0)PRODUCTS.splice(i,1);const o=store();delete o[String(id)];saveStore(o);const m=meta();if(m.out)delete m.out[id];saveMeta(m);lafClearForm();refresh()};
  window.lafNewCombo=function(){lafClearForm();lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafCategory').value='Combos';$('lafBrand').value='COMBOS';$('lafFormTitle').textContent='Crear combo'};
  window.lafRenderCombos=function(){const a=PRODUCTS.filter(p=>norm(p.category)==='combos'||norm(p.brand)==='combos');$('lafComboList').innerHTML=a.map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.description||'Combo')}</div></div><div>$${fmt(p.price)}</div><button class="lafIcon" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>`).join('')||'<div class="lafNote">No hay combos.</div>'};
@@ -6614,6 +6675,80 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,800));else setTimeout(inject,800);new MutationObserver(inject).observe(document.body,{childList:true,subtree:true});
 })();
+</script>
+
+
+<script id="liftSecondaryGalleryLogic">
+const LIFT_SECONDARY_BASE='https://vdxkknftyssjyfbdieqa.supabase.co';
+const LIFT_SECONDARY_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+const liftSecondaryCache=new Map();
+
+async function liftSecondaryGet(productId, force=false){
+ const k=String(productId||'');
+ if(!k)return [];
+ if(!force && liftSecondaryCache.has(k))return liftSecondaryCache.get(k);
+ const u=LIFT_SECONDARY_BASE+'/rest/v1/lift_producto_imagenes?select=id,producto_id,imagen_url,orden&producto_id=eq.'+
+   encodeURIComponent(k)+'&order=orden.asc,id.asc';
+ const r=await fetch(u,{headers:{apikey:LIFT_SECONDARY_KEY,Authorization:'Bearer '+LIFT_SECONDARY_KEY}});
+ if(!r.ok)throw new Error('No se pudieron consultar las imágenes secundarias.');
+ const rows=await r.json();
+ liftSecondaryCache.set(k,rows);
+ return rows;
+}
+async function liftSecondaryEditorLoad(productId){
+ const f=document.getElementById('lafSecondaryImages');
+ if(!f)return;
+ f.disabled=true;f.value='';
+ try{
+   const rows=await liftSecondaryGet(productId,true);
+   f.value=rows.map(x=>x.imagen_url).filter(Boolean).join('\n');
+ }catch(e){console.error(e)}
+ finally{f.disabled=false}
+}
+async function liftSecondarySaveUrls(productId,text){
+ const urls=[...new Set(String(text||'').split(/\n+/).map(x=>x.trim()).filter(Boolean))];
+ const base=LIFT_SECONDARY_BASE+'/rest/v1/lift_producto_imagenes';
+ let r=await fetch(base+'?producto_id=eq.'+encodeURIComponent(productId),{
+   method:'DELETE',
+   headers:{apikey:LIFT_SECONDARY_KEY,Authorization:'Bearer '+LIFT_SECONDARY_KEY,Prefer:'return=minimal'}
+ });
+ if(!r.ok)throw new Error('No se pudieron reemplazar las imágenes anteriores.');
+ if(urls.length){
+   r=await fetch(base,{
+     method:'POST',
+     headers:{apikey:LIFT_SECONDARY_KEY,Authorization:'Bearer '+LIFT_SECONDARY_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+     body:JSON.stringify(urls.map((imagen_url,i)=>({producto_id:Number(productId),imagen_url,orden:i+1})))
+   });
+   if(!r.ok)throw new Error('No se pudieron guardar las imágenes secundarias.');
+ }
+ liftSecondaryCache.delete(String(productId));
+ return urls;
+}
+async function liftSecondaryRender(product){
+ const area=document.getElementById('liftMonoZoomArea');
+ const main=document.getElementById('liftMonoMainImg');
+ if(!area||!main||!product)return;
+ area.querySelector('.liftSecondaryRail')?.remove();
+ area.classList.remove('hasSecondaryGallery');
+ let rows=[];
+ try{rows=await liftSecondaryGet(product.id,true)}catch(e){console.error(e);return}
+ if(!rows.length)return;
+ const images=[{url:product.image||'',main:true},...rows.map(x=>({url:x.imagen_url,main:false}))].filter(x=>x.url);
+ if(images.length<2)return;
+ const rail=document.createElement('div');
+ rail.className='liftSecondaryRail';
+ rail.innerHTML=images.map((x,i)=>`<button type="button" class="liftSecondaryThumb${i===0?' active':''}" data-index="${i}" title="${i===0?'Imagen principal':'Imagen adicional '+i}"><img src="${String(x.url).replace(/"/g,'&quot;')}" alt=""></button>`).join('');
+ area.prepend(rail);
+ area.classList.add('hasSecondaryGallery');
+ rail.querySelectorAll('.liftSecondaryThumb').forEach((b,i)=>{
+   b.addEventListener('click',ev=>{
+     ev.preventDefault();ev.stopPropagation();
+     main.src=images[i].url;
+     rail.querySelectorAll('.liftSecondaryThumb').forEach(x=>x.classList.remove('active'));
+     b.classList.add('active');
+   });
+ });
+}
 </script>
 
 </body>
