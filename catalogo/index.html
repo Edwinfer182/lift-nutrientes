@@ -864,6 +864,18 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 }
 </style>
 
+<style id="lift-mobile-offcanvas-close-fix">
+@media(max-width:640px){
+ #productOffcanvas .offClose,#productOffcanvas .offcanvasClose,#productOffcanvas .liftMonoClose,
+ #productOffcanvas [data-close-product],#productOffcanvas button[aria-label="Cerrar"],#productOffcanvas button[aria-label="Close"]{
+  position:fixed!important;top:max(12px,env(safe-area-inset-top))!important;right:12px!important;
+  z-index:2147483000!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+  display:grid!important;place-items:center!important;padding:0!important;border:1px solid rgba(255,255,255,.3)!important;
+  border-radius:50%!important;background:rgba(17,17,17,.94)!important;color:#fff!important;
+  box-shadow:0 3px 16px rgba(0,0,0,.32)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
+ }
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
