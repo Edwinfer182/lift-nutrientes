@@ -4237,11 +4237,40 @@ function toggleLiftFavorite(id,btn){id=Number(id);liftFavorites.has(id)?liftFavo
 function liftShareToast(msg){let el=document.getElementById('productShareToast');if(!el){el=document.createElement('div');el.id='productShareToast';el.className='productShareToast';document.body.appendChild(el)}el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200)}
 async function liftLoadShareImage(url){
  const raw=String(url||'').trim();
+ if(!raw)return null;
+
+ // 1) Ruta principal: Supabase descarga la imagen del catálogo y la devuelve con CORS correcto.
+ // Evita que iOS/Android bloqueen Google Drive/googleusercontent al dibujar en canvas.
+ if(/^https:\/\//i.test(raw)){
+   try{
+     const proxy='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/share-product-image?url='+encodeURIComponent(raw);
+     const res=await fetch(proxy,{method:'GET',mode:'cors',cache:'force-cache'});
+     if(res.ok){
+       const blob=await res.blob();
+       if(blob.type&&blob.type.startsWith('image/')){
+         const objectUrl=URL.createObjectURL(blob);
+         try{
+           const img=new Image();
+           await new Promise((res,rej)=>{
+             const t=setTimeout(()=>rej(new Error('timeout')),9000);
+             img.onload=()=>{clearTimeout(t);res()};
+             img.onerror=()=>{clearTimeout(t);rej(new Error('image'))};
+             img.src=objectUrl;
+           });
+           if(img.naturalWidth>0&&img.naturalHeight>0){
+             img._liftObjectUrl=objectUrl;
+             return img;
+           }
+         }catch(e){URL.revokeObjectURL(objectUrl)}
+       }
+     }
+   }catch(e){console.warn('LIFT share proxy fallback',e)}
+ }
+
+ // 2) Respaldo para imágenes antiguas/no registradas.
  const candidates=[];
  const add=u=>{if(u&&!candidates.includes(u))candidates.push(u)};
  const driveId=(()=>{let m=raw.match(/[?&]id=([^&]+)/i);if(m)return m[1];m=raw.match(/\/d\/([^/]+)/i);return m?m[1]:''})();
- // Google Drive suele mostrar bien la imagen en <img>, pero bloquear el canvas por CORS.
- // googleusercontent entrega el mismo archivo de forma mucho más compatible con canvas/compartir.
  if(driveId){
    add(`https://lh3.googleusercontent.com/d/${driveId}=w1600`);
    add(`https://drive.google.com/thumbnail?id=${driveId}&sz=w1600`);
