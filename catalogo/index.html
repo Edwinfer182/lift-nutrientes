@@ -4514,19 +4514,89 @@ window.shareLiftProductImage=async function(id){
  const p=PRODUCTS.find(x=>Number(x.id)===Number(id));if(!p)return;
  liftShareToast('Creando imagen…');
  try{
-  const c=document.createElement('canvas');c.width=1080;c.height=1350;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
-  ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,c.width,112);ctx.fillStyle='#fff';ctx.font='700 42px Poppins,Arial';ctx.fillText('LIFT NUTRIENTES',64,72);
+  const c=document.createElement('canvas');c.width=1080;c.height=1350;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+
+  // Encabezado más fino
+  ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,1080,92);
+  ctx.fillStyle='#fff';ctx.font='700 34px Poppins,Arial';
+  ctx.fillText('LIFT NUTRIENTES',58,59);
+
+  // Si se comparte desde el detalle, usa exactamente la imagen visible:
+  // principal, tabla nutricional, ingredientes, reverso, etc.
   const visibleMain=(String(window.currentProductId||'')===String(p.id))
-   ? document.getElementById('liftMonoMainImg')?.src
-   : '';
+    ? document.getElementById('liftMonoMainImg')?.src
+    : '';
   const shareSource=visibleMain||p.image;
-  const img=await liftLoadShareImage(shareSource);if(!img)throw new Error('No se pudo cargar la imagen del producto para compartir');{const box={x:90,y:155,w:900,h:720};const r=Math.min(box.w/img.width,box.h/img.height);const w=img.width*r,h=img.height*r;ctx.drawImage(img,box.x+(box.w-w)/2,box.y+(box.h-h)/2,w,h)}
-  ctx.fillStyle='#777';ctx.font='500 28px Poppins,Arial';ctx.fillText(String(p.brand||'').toUpperCase(),70,960);
-  ctx.fillStyle='#111';ctx.font='600 42px Poppins,Arial';const words=String(p.name||'').split(/\s+/);let line='',y=1020;for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>940&&line){ctx.fillText(line,70,y);line=word;y+=54}else line=test}if(line)ctx.fillText(line,70,y);
-  ctx.font='700 52px Poppins,Arial';ctx.fillText(typeof fmt==='function'?fmt(priceOf(p)):'$'+Number(p.price||0).toLocaleString('es-CO'),70,1238);
-  const blob=await new Promise(res=>c.toBlob(res,'image/png',.95));if(!blob)throw new Error('blob');const file=new File([blob],`lift-${String(p.name||'producto').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.png`,{type:'image/png'});
-  await window.liftShareGeneratedImage(blob,file,p.name)
- }catch(e){console.error(e);liftShareToast('No se pudo generar la imagen')}
+  const img=await liftLoadShareImage(shareSource);
+  if(!img)throw new Error('No se pudo cargar la imagen del producto para compartir');
+
+  // Imagen algo más pequeña y con aire real
+  const box={x:105,y:128,w:870,h:650};
+  const r=Math.min(box.w/img.width,box.h/img.height);
+  const iw=img.width*r,ih=img.height*r;
+  ctx.drawImage(img,box.x+(box.w-iw)/2,box.y+(box.h-ih)/2,iw,ih);
+
+  // Separador sutil
+  ctx.fillStyle='#ededed';ctx.fillRect(58,815,964,2);
+
+  // Laboratorio
+  ctx.fillStyle='#7d7d7d';ctx.font='500 25px Poppins,Arial';
+  ctx.fillText(String(p.brand||'').toUpperCase(),58,865);
+
+  // Nombre máximo dos líneas
+  ctx.fillStyle='#111';ctx.font='600 39px Poppins,Arial';
+  const words=String(p.name||'').split(/\s+/).filter(Boolean);
+  const lines=[];let line='';
+  for(const word of words){
+    const test=line?line+' '+word:word;
+    if(ctx.measureText(test).width>950&&line){
+      lines.push(line);line=word;
+      if(lines.length===1)break;
+    }else line=test;
+  }
+  if(line&&lines.length<2)lines.push(line);
+  lines.forEach((ln,i)=>ctx.fillText(ln,58,925+i*49));
+
+  let infoY=925+lines.length*49+4;
+
+  // Presentación / sabor si existen
+  const meta=[];
+  if(p.presentation)meta.push(String(p.presentation));
+  const selected=(typeof ISO100_SELECTED!=='undefined'&&ISO100_SELECTED[String(p.id)])||null;
+  const selectedFlavor=selected?.name||p.flavor||'';
+  if(selectedFlavor)meta.push('Sabor: '+selectedFlavor);
+  if(meta.length){
+    ctx.fillStyle='#777';ctx.font='400 23px Poppins,Arial';
+    ctx.fillText(meta.join('  ·  '),58,infoY);
+    infoY+=40;
+  }
+
+  // Precio más unido al nombre para formar un solo bloque comercial
+  ctx.fillStyle='#111';ctx.font='700 52px Poppins,Arial';
+  const priceText=typeof fmt==='function'?fmt(priceOf(p)):'$ '+Number(p.price||0).toLocaleString('es-CO');
+  ctx.fillText(priceText,58,infoY+38);
+
+  // Disponibilidad más cerca del precio
+  ctx.fillStyle='#16833b';
+  ctx.beginPath();ctx.arc(67,infoY+78,7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#333';ctx.font='500 22px Poppins,Arial';
+  ctx.fillText('Disponible',86,infoY+86);
+
+  // Pie de marca ligeramente más presente
+  ctx.fillStyle='#0b0b0b';ctx.fillRect(0,1260,1080,90);
+  ctx.fillStyle='#fff';ctx.font='600 23px Poppins,Arial';
+  ctx.fillText('LIFT NUTRIENTES  ·  MEDELLÍN',58,1315);
+
+  const blob=await new Promise(res=>c.toBlob(res,'image/png',.95));
+  if(!blob)throw new Error('blob');
+  const file=new File([blob],`lift-${String(p.name||'producto').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.png`,{type:'image/png'});
+  await window.liftShareGeneratedImage(blob,file,p.name);
+ }catch(e){
+  console.error(e);
+  liftShareToast('No se pudo generar la imagen');
+ }
 };
 </script>
 
