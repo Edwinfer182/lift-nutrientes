@@ -1805,7 +1805,7 @@ function searchProductsAll(value){
   if(!q)return [];
   const words=q.split(/\s+/).filter(Boolean);
   return liftCatalogGrouped(liftVisibleProducts()).map(p=>{
-    const name=norm(p.name), brand=norm(p.brand), category=norm(p.category), description=norm(p.description||''), presentation=norm(p.presentation||''), flavor=norm(p.flavor||''), groupFlavors=norm((p._variantFlavors||[]).join(' ')), pdfName=norm(p.pdfCatalogName||''), pdfFlavors=norm((p.pdfFlavors||[]).join(' ')), offerTerms=hasOffer(p)?(' ofertas oferta sale'+(offerOf(p).gift?' regalo':'')):'', hay=name+' '+brand+' '+category+' '+description+' '+presentation+' '+flavor+' '+groupFlavors+' '+pdfName+' '+pdfFlavors+offerTerms;
+    const name=norm(p.name), brand=norm(p.brand), category=norm(p.category), description=norm(p.description||''), presentation=norm(p.presentation||''), flavor=norm(p.flavor||''), groupFlavors=norm((p._variantFlavors||[]).join(' ')), pdfName=norm(p.pdfCatalogName||''), pdfFlavors=norm((p.pdfFlavors||[]).join(' ')), directOffer=offerOf(p), groupOffer=p._variantGroupId?liftGroupCardOffer(p):null, offerTerms=(directOffer||groupOffer)?(' ofertas oferta sale'+(directOffer?.gift?' regalo':'')+(groupOffer?' sabores promocion promoción':'')):'', hay=name+' '+brand+' '+category+' '+description+' '+presentation+' '+flavor+' '+groupFlavors+' '+pdfName+' '+pdfFlavors+offerTerms;
     if(!words.every(w=>hay.includes(w)))return null;
     let score=hasOffer(p)?5:0;
     if(name.startsWith(q))score+=100;
