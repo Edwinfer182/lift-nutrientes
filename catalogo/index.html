@@ -5807,7 +5807,7 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
      if(mode==='create'||mode==='duplicate'){
        if(!newName||newName==='Todos')throw new Error('Escribe un nombre válido.');
        if(names().includes(newName))throw new Error('Esa categoría ya existe.');
-       LIFT_CATEGORY_CONFIG[newName]={active:true};
+       LIFT_CATEGORY_CONFIG[newName]={...(LIFT_CATEGORY_CONFIG[newName]||{}),active:true};
        await saveConfig();
      }
      if(mode==='rename'){
@@ -5816,7 +5816,7 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
        const arr=byCat(oldName);changed.push(...arr.map(p=>({p,old:p.category})));
        arr.forEach(p=>p.category=newName);
        delete LIFT_CATEGORY_CONFIG[oldName];
-       LIFT_CATEGORY_CONFIG[newName]={active:true};
+       LIFT_CATEGORY_CONFIG[newName]={...(LIFT_CATEGORY_CONFIG[newName]||{}),active:true};
        await saveProducts(arr);
        await saveConfig();
        if(state.cat===oldName)state.cat=newName;
@@ -5827,7 +5827,7 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
        arr.forEach(p=>p.category=target);
        if(arr.length)await saveProducts(arr);
        LIFT_CATEGORY_CONFIG[oldName]={active:false,__deleted:true};
-       if(target)LIFT_CATEGORY_CONFIG[target]={active:true};
+       if(target)LIFT_CATEGORY_CONFIG[target]={...(LIFT_CATEGORY_CONFIG[target]||{}),active:true};
        await saveConfig();
        if(state.cat===oldName)state.cat='Todos';
      }
@@ -5835,7 +5835,7 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
        const p=PRODUCTS.find(x=>String(x.id)===String(productId));if(!p)throw new Error('No encontré el producto.');
        if(!target)throw new Error('Selecciona una categoría.');
        changed.push({p,old:p.category});p.category=target;
-       LIFT_CATEGORY_CONFIG[target]={active:true};
+       LIFT_CATEGORY_CONFIG[target]={...(LIFT_CATEGORY_CONFIG[target]||{}),active:true};
        await window.liftCloudSaveProduct(p);
        await saveConfig();
      }
