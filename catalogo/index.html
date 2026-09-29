@@ -5393,10 +5393,10 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
  async function call(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo guardar la cotización');return j}
  function delivery(city){const n=String(city||'').toLowerCase();const local=['medellín','medellin','bello','itagüí','itagui','envigado','sabaneta','la estrella'].some(x=>n.includes(x));return local?'Ruta local: mismo día para pedidos confirmados antes de las 2:00 p. m., sujeto a disponibilidad.':'Envío nacional: 1 a 3 días hábiles después de generada la guía.'}
  function payments(city){const n=String(city||'').toLowerCase();const metro=['medellín','medellin','bello','itagüí','itagui','envigado','sabaneta','la estrella','copacabana','girardota','barbosa','caldas'].some(x=>n.includes(x));const base='Llave Bre-B · Bancolombia Ahorros · Bold para tarjetas de crédito (+ costo de la transacción por la pasarela)';return metro?base+' · Contraentrega en Área Metropolitana':base+' · Transferencia previa al despacho';}
- function quoteData(){const nombre=document.getElementById('coName')?.value.trim()||'';if(typeof selectedCity==='undefined'||!selectedCity)throw new Error('Selecciona la ciudad / municipio para calcular la cotización.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty())||0,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+envio;const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q,image:p.image||''}));return{nombre,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',subtotal,envio,descuento:trainerCouponActive()?0:descuento,total,items,tiempo_entrega:delivery(selectedCity.name),medios_pago:payments(selectedCity.name)}}
+ function quoteData(){const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';if(!nombre)throw new Error('Escribe el nombre del cliente.');if(!celular&&!whatsapp_usuario)throw new Error('Escribe el celular o @usuario de WhatsApp para guardar el prospecto.');if(typeof selectedCity==='undefined'||!selectedCity)throw new Error('Selecciona la ciudad / municipio para calcular la cotización.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty())||0,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+envio;const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q,image:p.image||''}));return{nombre,celular,whatsapp_usuario,direccion,notas,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',subtotal,envio,descuento:trainerCouponActive()?0:descuento,total,items,tiempo_entrega:delivery(selectedCity.name),medios_pago:payments(selectedCity.name)}}
  window.liftToggleQuote=function(force){const f=document.getElementById('liftQuoteForm');if(!f)return;f.hidden=typeof force==='boolean'?!force:!f.hidden};
  function followISO(v){if(!v)return null;const d=new Date(v+'T12:00:00');return isNaN(d)?null:d.toISOString()}
- window.liftGenerateQuote=async function(){const st=document.getElementById('liftQuoteStatus');try{const d=quoteData(),ref='COT-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(Date.now()).slice(-4);st.textContent='Generando imagen…';await makeImage(d,ref,new Date().toISOString());st.textContent='✓ Cotización generada. No se guardó en Supabase.';}catch(e){st.textContent=e.message||e;alert(e.message||e)}};
+ window.liftGenerateQuote=async function(){const st=document.getElementById('liftQuoteStatus');try{const d=quoteData(),ref='COT-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(Date.now()).slice(-4);st.textContent='Guardando prospecto y cotización…';const saved=await call({action:'save-quote',...d,referencia:ref,estado:'Pendiente',seguimiento_at:null,nota_interna:''});st.textContent='Generando imagen…';await makeImage(d,saved.referencia||ref,saved.fecha||new Date().toISOString());st.textContent='✓ Cotización guardada. Cliente registrado como Cotizado en seguimiento.';if(typeof window.liftCrmRender==='function'){try{await window.liftCrmReload?.()}catch(_){}}}catch(e){st.textContent=e.message||e;alert(e.message||e)}};
  function wrap(ctx,text,max){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){lines.push(line);line=w}else line=t}if(line)lines.push(line);return lines}
  async function liftQuoteLoadImage(src){
   if(!src)return null;
@@ -5455,7 +5455,7 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
  window.liftLoadDueQuotes=async function(){const box=document.getElementById('liftFollowPanel'),badge=document.getElementById('liftFollowBadge');if(!box||!document.body.classList.contains('liftAdminUnlocked'))return;box.innerHTML='<div class="liftClientEmpty">Cargando seguimientos…</div>';try{const j=await call({action:'quotes',due:true}),qs=j.cotizaciones||[];if(badge)badge.textContent=qs.length;if(!qs.length){box.innerHTML='<div class="liftClientEmpty">No tienes seguimientos pendientes para hoy.</div>';return}box.innerHTML=qs.map(q=>`<div class="liftFollowCard"><div class="liftFollowHead"><b>${esc(q.nombre)}</b><span>${esc(q.referencia||'')}</span></div><div>${esc(q.celular||q.whatsapp_usuario||'Sin celular')} · ${esc(q.ciudad)}</div><div class="liftFollowTotal">${money(q.total)} · ${esc(q.estado)}</div>${q.nota_interna?`<div style="margin-top:4px;color:#666">${esc(q.nota_interna)}</div>`:''}<div class="liftFollowActions"><button onclick="liftQuoteWhatsApp('${esc(q.celular)}','${esc(q.nombre)}','${esc(q.whatsapp_usuario||'')}')">WhatsApp</button><button onclick="liftQuoteDone(${q.id},'Ganada')">Ganada</button><button onclick="liftQuoteDone(${q.id},'No compró')">No compró</button></div></div>`).join('')}catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}};
  window.liftQuoteWhatsApp=function(phone,name,user){const p=String(phone||'').replace(/\D/g,'');if(!p){alert('Este cliente está guardado como '+(user||'usuario de WhatsApp')+'. WhatsApp no permite abrir un chat por nickname desde un enlace. Búscalo por su usuario en WhatsApp.');return}const cc=p.startsWith('57')?p:'57'+p;window.open('https://wa.me/'+cc+'?text='+encodeURIComponent('Hola '+name+', ¿cómo estás? Te escribo para hacer seguimiento a la cotización que te envié.'),'_blank')};
  window.liftQuoteDone=async function(id,estado){await call({action:'update-quote',id,estado,seguimiento_at:null});liftLoadDueQuotes()};
- function inject(){const manual=document.getElementById('liftManualProductBox');if(manual&&!document.getElementById('liftQuoteBox')){const box=document.createElement('div');box.id='liftQuoteBox';box.className='liftQuoteBox';box.innerHTML=`<button type="button" class="liftQuoteBtn" onclick="liftToggleQuote()">📄 Cotizar</button><div id="liftQuoteForm" class="liftQuoteForm" hidden><div style="font-size:12px;font-weight:700;margin-bottom:7px">Generar cotización</div><div style="font-size:10px;color:#777;line-height:1.45;margin-bottom:10px">Usa los productos del pedido y la ciudad seleccionada para calcular envío, entrega y medios de pago. No guarda datos del cliente ni la cotización.</div><div class="liftQuoteActions"><button type="button" onclick="liftGenerateQuote()">Generar imagen</button><button type="button" class="light" onclick="liftToggleQuote(false)">Cancelar</button></div><div id="liftQuoteStatus" class="liftQuoteStatus"></div></div>`;manual.insertAdjacentElement('afterend',box)}}
+ function inject(){const manual=document.getElementById('liftManualProductBox');if(manual&&!document.getElementById('liftQuoteBox')){const box=document.createElement('div');box.id='liftQuoteBox';box.className='liftQuoteBox';box.innerHTML=`<button type="button" class="liftQuoteBtn" onclick="liftToggleQuote()">📄 Cotizar</button><div id="liftQuoteForm" class="liftQuoteForm" hidden><div style="font-size:12px;font-weight:700;margin-bottom:7px">Generar cotización</div><div style="font-size:10px;color:#777;line-height:1.45;margin-bottom:10px">Usa los productos del pedido y la ciudad seleccionada para calcular envío, entrega y medios de pago. Guarda automáticamente el cliente/prospecto, la cotización y su estado Cotizado en Supabase.</div><div class="liftQuoteActions"><button type="button" onclick="liftGenerateQuote()">Generar imagen</button><button type="button" class="light" onclick="liftToggleQuote(false)">Cancelar</button></div><div id="liftQuoteStatus" class="liftQuoteStatus"></div></div>`;manual.insertAdjacentElement('afterend',box)}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);else inject();
 })();
 </script>
@@ -6486,6 +6486,91 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,700));else setTimeout(inject,700);
  new MutationObserver(inject).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+
+<style id="lift-crm-v1-style">
+#liftCrmBtn{display:none;width:100%;height:42px;margin:8px 0;border:1px solid #111;border-radius:10px;background:#111;color:#fff;font:600 10px Poppins;cursor:pointer}.liftAdminUnlocked #liftCrmBtn{display:block}
+#liftCrmModal{position:fixed;inset:0;z-index:18000;background:rgba(0,0,0,.46);display:none;align-items:center;justify-content:center;padding:14px}#liftCrmModal.open{display:flex}
+.crmBox{width:min(96vw,900px);max-height:92vh;overflow:auto;background:#fff;border-radius:17px;padding:16px}.crmHead{display:flex;align-items:center;gap:10px}.crmHead h3{margin:0;flex:1;font-size:18px}.crmClose{width:34px;height:34px;border:0;border-radius:50%;background:#eee;font-size:18px}
+.crmTabs{display:flex;gap:6px;overflow:auto;margin:12px 0}.crmTabs button{white-space:nowrap;border:1px solid #ddd;background:#fff;border-radius:20px;padding:8px 11px;font:500 9px Poppins;cursor:pointer}.crmTabs button.active{background:#111;color:#fff;border-color:#111}
+.crmSearch{width:100%;height:40px;border:1px solid #ddd;border-radius:10px;padding:0 11px;font:inherit;margin-bottom:10px}.crmList{display:grid;gap:7px}.crmCard{border:1px solid #e4e4e4;border-radius:12px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:7px;cursor:pointer}.crmCard b{font-size:11px}.crmMeta{font-size:9px;color:#777;margin-top:3px}.crmState{font-size:8px;border-radius:20px;background:#f1f1f1;padding:5px 8px;align-self:start}
+.crmForm{display:none}.crmForm.open{display:block}.crmFields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.crmFields label{display:grid;gap:4px;font-size:9px;color:#666}.crmFields .full{grid-column:1/-1}.crmFields input,.crmFields select,.crmFields textarea{width:100%;border:1px solid #ddd;border-radius:9px;padding:9px;font:inherit;font-size:10px}.crmFields input,.crmFields select{height:40px}.crmFields textarea{min-height:65px}
+.crmActions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}.crmActions button,.crmActions a{height:40px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#111;padding:0 13px;font:600 10px Poppins;display:inline-flex;align-items:center;text-decoration:none;cursor:pointer}.crmActions .primary{background:#111;color:#fff;border-color:#111}.crmHistory{margin-top:13px;border-top:1px solid #eee;padding-top:10px}.crmHistoryRow{padding:8px 0;border-bottom:1px solid #eee;font-size:9px}.crmHistoryRow b{font-size:10px}.crmStatus{font-size:9px;min-height:16px;margin-top:7px;color:#666}
+@media(max-width:650px){.crmFields{grid-template-columns:1fr}.crmFields .full{grid-column:auto}}
+</style>
+<div id="liftCrmModal" onclick="if(event.target===this)liftCrmClose()">
+ <div class="crmBox">
+  <div class="crmHead"><h3>Seguimiento de clientes</h3><button class="crmClose" onclick="liftCrmClose()">×</button></div>
+  <div id="crmBrowse">
+   <div class="crmTabs" id="crmTabs"></div>
+   <input id="crmSearch" class="crmSearch" placeholder="Buscar cliente o celular..." oninput="liftCrmRender()">
+   <div id="crmList" class="crmList"></div>
+  </div>
+  <div id="crmForm" class="crmForm">
+   <div class="crmHead"><button class="crmClose" onclick="liftCrmBack()">‹</button><h3 id="crmClientTitle">Cliente</h3></div>
+   <div class="crmFields">
+    <label>Estado<select id="crmEstado"><option value="nuevo">Nuevo</option><option value="pregunto">Preguntó</option><option value="cotizado">Cotizado</option><option value="seguimiento">Seguimiento</option><option value="compro">Compró</option><option value="no_respondio">No respondió</option><option value="no_interesado">No interesado</option><option value="recompra">Recompra</option></select></label>
+    <label>Próximo seguimiento<input id="crmProximo" type="datetime-local"></label>
+    <label class="full">Producto / interés<input id="crmInteres" placeholder="Ej: ISO100 5 lb"></label>
+    <label>Valor cotizado<input id="crmValor" type="number" min="0" step="1000" placeholder="0"></label>
+    <label class="full">Nota<textarea id="crmNota" placeholder="Qué habló con el cliente, qué está esperando, etc."></textarea></label>
+   </div>
+   <div class="crmActions"><button class="primary" onclick="liftCrmSave()">Guardar seguimiento</button><a id="crmWhatsapp" target="_blank">WhatsApp</a></div>
+   <div id="crmStatus" class="crmStatus"></div>
+   <div class="crmHistory"><b>Historial</b><div id="crmHistory"></div></div>
+  </div>
+ </div>
+</div>
+<script id="lift-crm-v1-script">
+(function(){
+ const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const H={apikey:KEY,'Content-Type':'application/json',Prefer:'return=representation'};
+ let clients=[],followups=[],filter='hoy',current=null;
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=v=>'$ '+Number(v||0).toLocaleString('es-CO');
+ async function api(path,opt={}){const r=await fetch(SB+'/rest/v1/'+path,{...opt,headers:{...H,...(opt.headers||{})},cache:'no-store'});const j=await r.json().catch(()=>[]);if(!r.ok)throw new Error(j.message||j.error||'Error Supabase');return j}
+ function latest(id){return followups.filter(x=>Number(x.cliente_id)===Number(id)).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))[0]||null}
+ function today(d){if(!d)return false;const x=new Date(d),n=new Date();return x.getFullYear()===n.getFullYear()&&x.getMonth()===n.getMonth()&&x.getDate()===n.getDate()}
+ function label(s){return ({nuevo:'Nuevo',pregunto:'Preguntó',cotizado:'Cotizado',seguimiento:'Seguimiento',compro:'Compró',no_respondio:'No respondió',no_interesado:'No interesado',recompra:'Recompra'})[s]||'Nuevo'}
+ async function load(){clients=await api('lift_clientes?select=id,nombre,celular,ultimo_pedido&order=nombre.asc');followups=await api('lift_seguimientos_clientes?select=*&order=fecha.desc&limit=1000')}
+ window.liftCrmOpen=async function(){if(!document.body.classList.contains('liftAdminUnlocked'))return;document.getElementById('liftCrmModal').classList.add('open');document.getElementById('crmBrowse').style.display='';document.getElementById('crmForm').classList.remove('open');try{await load();liftCrmRender()}catch(e){document.getElementById('crmList').innerHTML='<div class="crmStatus">'+esc(e.message)+'</div>'}};
+ window.liftCrmClose=()=>document.getElementById('liftCrmModal').classList.remove('open');
+ window.liftCrmBack=function(){document.getElementById('crmBrowse').style.display='';document.getElementById('crmForm').classList.remove('open');liftCrmRender()};
+ window.liftCrmSetFilter=function(f){filter=f;liftCrmRender()};
+ window.liftCrmRender=function(){
+   const tabs=[['hoy','Hoy'],['pendientes','Pendientes'],['cotizado','Cotizados'],['no_respondio','No respondieron'],['recompra','Recompra'],['todos','Todos']];
+   document.getElementById('crmTabs').innerHTML=tabs.map(([k,t])=>`<button class="${filter===k?'active':''}" onclick="liftCrmSetFilter('${k}')">${t}</button>`).join('');
+   const q=(document.getElementById('crmSearch')?.value||'').toLowerCase().trim(), now=new Date();
+   let rows=clients.map(c=>({c,s:latest(c.id)})).filter(({c,s})=>{
+     if(q&&!((c.nombre||'').toLowerCase().includes(q)||(c.celular||'').includes(q)))return false;
+     if(filter==='todos')return true;
+     if(filter==='hoy')return s&&today(s.proximo_seguimiento);
+     if(filter==='pendientes')return s&&s.proximo_seguimiento&&new Date(s.proximo_seguimiento)<=now&&!['compro','no_interesado'].includes(s.estado);
+     return s&&s.estado===filter;
+   });
+   document.getElementById('crmList').innerHTML=rows.map(({c,s})=>`<div class="crmCard" onclick="liftCrmClient(${c.id})"><div><b>${esc(c.nombre)}</b><div class="crmMeta">${esc(c.celular)}${s?.interes?' · '+esc(s.interes):''}${s?.proximo_seguimiento?' · Próx. '+new Date(s.proximo_seguimiento).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):''}</div></div><span class="crmState">${label(s?.estado)}</span></div>`).join('')||'<div class="crmStatus">No hay clientes en esta vista.</div>';
+ };
+ window.liftCrmClient=function(id){
+   current=clients.find(x=>Number(x.id)===Number(id));if(!current)return;const s=latest(id);
+   document.getElementById('crmBrowse').style.display='none';document.getElementById('crmForm').classList.add('open');document.getElementById('crmClientTitle').textContent=current.nombre+' · '+current.celular;
+   document.getElementById('crmEstado').value=s?.estado||'nuevo';document.getElementById('crmInteres').value=s?.interes||'';document.getElementById('crmValor').value=s?.valor_cotizado||'';document.getElementById('crmNota').value='';document.getElementById('crmProximo').value='';
+   document.getElementById('crmWhatsapp').href='https://wa.me/57'+String(current.celular||'').replace(/\D/g,'');
+   const hs=followups.filter(x=>Number(x.cliente_id)===Number(id)).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+   document.getElementById('crmHistory').innerHTML=hs.map(x=>`<div class="crmHistoryRow"><b>${label(x.estado)} · ${new Date(x.fecha).toLocaleString('es-CO')}</b><br>${x.interes?esc(x.interes)+' · ':''}${x.valor_cotizado?money(x.valor_cotizado)+' · ':''}${esc(x.nota||'')}${x.proximo_seguimiento?'<br>Próximo: '+new Date(x.proximo_seguimiento).toLocaleString('es-CO'):''}</div>`).join('')||'<div class="crmHistoryRow">Sin seguimientos todavía.</div>';
+ };
+ window.liftCrmSave=async function(){
+   if(!current)return;const st=document.getElementById('crmStatus');st.textContent='Guardando…';
+   const row={cliente_id:current.id,celular:current.celular||'',nombre:current.nombre||'',estado:document.getElementById('crmEstado').value,interes:document.getElementById('crmInteres').value.trim(),valor_cotizado:Math.round(Number(document.getElementById('crmValor').value||0)),nota:document.getElementById('crmNota').value.trim(),proximo_seguimiento:document.getElementById('crmProximo').value?new Date(document.getElementById('crmProximo').value).toISOString():null};
+   try{const j=await api('lift_seguimientos_clientes',{method:'POST',body:JSON.stringify(row)});followups.unshift(j[0]||row);st.textContent='✓ Seguimiento guardado en Supabase.';liftCrmClient(current.id)}catch(e){st.textContent=e.message}
+ };
+ function inject(){
+   if(document.getElementById('liftCrmBtn'))return;
+   const anchor=document.getElementById('liftProviderWalletBtn')||document.getElementById('liftAdminCheckoutTools')||document.getElementById('liftAdminPriceMode');if(!anchor)return;
+   const b=document.createElement('button');b.id='liftCrmBtn';b.type='button';b.textContent='Seguimiento clientes';b.onclick=liftCrmOpen;anchor.insertAdjacentElement('afterend',b);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,800));else setTimeout(inject,800);new MutationObserver(inject).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
