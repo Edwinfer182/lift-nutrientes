@@ -5835,9 +5835,9 @@ body.liftAdminUnlocked .liftCatRowActions{display:flex}
        const p=PRODUCTS.find(x=>String(x.id)===String(productId));if(!p)throw new Error('No encontré el producto.');
        if(!target)throw new Error('Selecciona una categoría.');
        changed.push({p,old:p.category});p.category=target;
-       LIFT_CATEGORY_CONFIG[target]={...(LIFT_CATEGORY_CONFIG[target]||{}),active:true};
+       // Mover un producto solo cambia su categoría en lift_productos.
+       // NO reescribir categories_v1: así se conserva active/order en Supabase.
        await window.liftCloudSaveProduct(p);
-       await saveConfig();
      }
      liftCategoryClose();repaint();
    }catch(e){
