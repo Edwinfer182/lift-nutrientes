@@ -4529,7 +4529,7 @@ window.shareLiftProductImage=async function(id){
 <aside id="lafPanel">
  <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button type="button" onclick="lockLiftAdmin()" title="Salir del administrador" style="margin-left:auto;border:1px solid #444;background:#1b1b1b;color:#fff;border-radius:9px;height:34px;padding:0 11px;cursor:pointer;font:600 11px Poppins,Arial">Salir</button><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
  <div class="lafTabs">
-  <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="audit" onclick="lafTab('audit',this)">Auditoría</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
+  <button class="lafTab on" data-pane="products" onclick="lafTab('products',this)">Productos</button><button class="lafTab" data-pane="create" onclick="lafTab('create',this)">+ Crear</button><button class="lafTab" data-pane="offers" onclick="lafTab('offers',this)">Ofertas</button><button class="lafTab" data-pane="combos" onclick="lafTab('combos',this)">Combos</button><button class="lafTab" data-pane="categories" onclick="lafTab('categories',this)">Categorías</button><button class="lafTab" data-pane="appearance" onclick="lafTab('appearance',this)">Diseño</button><button class="lafTab" data-pane="excel" onclick="lafTab('excel',this)">Excel / Datos</button>
  </div>
  <div class="lafBody">
   <section id="laf-products" class="lafPane on">
@@ -4554,8 +4554,66 @@ window.shareLiftProductImage=async function(id){
   </div><input type="hidden" id="lafEditId"><datalist id="lafBrands"></datalist><datalist id="lafCategories"></datalist><div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" onclick="lafSaveProduct()">Guardar producto</button><button class="lafBtn" onclick="lafClearForm()">Limpiar</button><button id="lafDeleteBtn" class="lafBtn danger" style="display:none" onclick="lafDeleteCurrent()">Eliminar producto</button></div><div id="lafFormResult" class="lafResult"></div></div></section>
   <section id="laf-offers" class="lafPane"><div class="lafNote">Crea o elimina ofertas con precio promocional y fecha de vencimiento. Al vencer, vuelve automáticamente al precio detal normal.</div><div class="lafTools"><input id="lafOfferSearch" class="lafInput" placeholder="Buscar producto..." oninput="lafRenderOffers()"></div><div id="lafOfferList"></div></section>
   <section id="laf-combos" class="lafPane"><div class="lafNote">Los combos se manejan como productos de la categoría <b>Combos</b>. Puedes crearlos, editar precio, imagen y descripción desde aquí.</div><button class="lafBtn primary" onclick="lafNewCombo()">+ Crear combo</button><div id="lafComboList" class="lafList" style="margin-top:10px"></div></section>
-  <section id="laf-categories" class="lafPane"><div class="lafNote">Renombra categorías de forma masiva. El cambio se aplica a todos los productos que pertenezcan a esa categoría.</div><div id="lafCategoryList"></div></section>
-  <section id="laf-excel" class="lafPane">
+  <section id="laf-categories" class="lafPane">
+  <button type="button" class="labAdminNew liftCatPanelCreate" onclick="liftCategoryCreate()">+ Crear categoría</button>
+  <div id="lafCategoryList" class="liftCatPanelGrid"></div>
+</section>
+  
+<section id="laf-appearance" class="lafPane">
+ <div class="liftAppearanceHead">
+   <div><b>Diseño de tarjetas</b><small>Los cambios se ven en vivo. Guardar los publica para todos desde Supabase.</small></div>
+   <button type="button" class="lafBtn" onclick="liftAppearanceReset()">Restablecer</button>
+   <button type="button" class="lafBtn primary" onclick="liftAppearanceSave()">Guardar en Supabase</button>
+ </div>
+ <div id="liftAppearanceStatus" class="lafResult"></div>
+ <div class="liftAppearanceGrid">
+  <div class="liftAppearanceGroup"><h3>Tipografía</h3>
+   <label>Fuente<select data-ap-key="fontFamily"><option>Poppins</option><option>Inter</option><option>Montserrat</option><option>Roboto</option></select></label>
+   <label>Grosor general<input type="range" min="300" max="600" step="100" data-ap-key="bodyWeight"><output></output></label>
+   <label>Grosor nombre<input type="range" min="400" max="700" step="100" data-ap-key="titleWeight"><output></output></label>
+   <label>Grosor precio<input type="range" min="400" max="700" step="100" data-ap-key="priceWeight"><output></output></label>
+   <label>Grosor categoría<input type="range" min="400" max="700" step="100" data-ap-key="metaWeight"><output></output></label>
+   <label>Tamaño nombre<input type="range" min="10" max="24" step="1" data-ap-key="productNameSize"><output></output></label>
+   <label>Tamaño categoría<input type="range" min="7" max="18" step="1" data-ap-key="categorySize"><output></output></label>
+   <label>Tamaño presentación<input type="range" min="8" max="18" step="1" data-ap-key="presentationSize"><output></output></label>
+   <label>Tamaño sabores<input type="range" min="8" max="16" step="1" data-ap-key="flavorSize"><output></output></label>
+   <label>Tamaño precio<input type="range" min="13" max="32" step="1" data-ap-key="priceSize"><output></output></label>
+   <label>Interlineado nombre<input type="range" min="1" max="1.8" step=".05" data-ap-key="nameLineHeight"><output></output></label>
+  </div>
+  <div class="liftAppearanceGroup"><h3>Tarjeta e imagen</h3>
+   <label>Altura imagen<input type="range" min="120" max="360" step="5" data-ap-key="imageHeight"><output></output></label>
+   <label>Espacio interno imagen<input type="range" min="0" max="40" step="1" data-ap-key="imagePadding"><output></output></label>
+   <label>Espacio interno texto<input type="range" min="4" max="30" step="1" data-ap-key="bodyPadding"><output></output></label>
+   <label>Espacio entre textos<input type="range" min="0" max="24" step="1" data-ap-key="contentGap"><output></output></label>
+   <label>Alto reservado nombre<input type="range" min="20" max="100" step="2" data-ap-key="nameMinHeight"><output></output></label>
+   <label>Separación antes del precio<input type="range" min="0" max="30" step="1" data-ap-key="priceTopGap"><output></output></label>
+   <label>Radio tarjeta<input type="range" min="0" max="30" step="1" data-ap-key="cardRadius"><output></output></label>
+   <label>Altura mínima tarjeta<input type="range" min="0" max="650" step="10" data-ap-key="cardMinHeight"><output></output></label>
+   <label>Ancho mínimo tarjeta<input type="range" min="120" max="320" step="5" data-ap-key="cardMinWidth"><output></output></label>
+   <label>Espacio entre tarjetas<input type="range" min="4" max="40" step="1" data-ap-key="gridGap"><output></output></label>
+  </div>
+  <div class="liftAppearanceGroup"><h3>Botones</h3>
+   <label>Ubicación<select data-ap-key="actionsAlign"><option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option><option value="space-between">Separados</option></select></label>
+   <label>Tamaño botones<input type="range" min="28" max="58" step="1" data-ap-key="buttonSize"><output></output></label>
+   <label>Radio botones<input type="range" min="0" max="28" step="1" data-ap-key="buttonRadius"><output></output></label>
+   <label>Espacio entre botones<input type="range" min="0" max="25" step="1" data-ap-key="actionsGap"><output></output></label>
+   <label>Tamaño favorito<input type="range" min="24" max="55" step="1" data-ap-key="favoriteSize"><output></output></label>
+   <label>Favorito desde arriba<input type="range" min="0" max="40" step="1" data-ap-key="favoriteTop"><output></output></label>
+   <label>Favorito desde derecha<input type="range" min="0" max="40" step="1" data-ap-key="favoriteRight"><output></output></label>
+  </div>
+  <div class="liftAppearanceGroup"><h3>Colores</h3>
+   <label>Fondo tarjeta<input type="color" data-ap-key="cardBg"></label>
+   <label>Fondo imagen<input type="color" data-ap-key="imageBg"></label>
+   <label>Borde<input type="color" data-ap-key="borderColor"></label>
+   <label>Nombre<input type="color" data-ap-key="nameColor"></label>
+   <label>Categoría<input type="color" data-ap-key="metaColor"></label>
+   <label>Presentación<input type="color" data-ap-key="presentationColor"></label>
+   <label>Precio<input type="color" data-ap-key="priceColor"></label>
+  </div>
+ </div>
+</section>
+
+<section id="laf-excel" class="lafPane">
    <div class="lafBox"><h3>Importar Excel / CSV / JSON</h3><div class="lafNote">Como en Vitaness: Excel puede traer <b>Productos</b>, <b>Ofertas</b> y <b>Combos</b>. Para Lift solo existe un precio comercial: <b>Precio detal</b>.</div><div class="lafForm"><label class="lafField full">Archivo<input id="lafImportFile" type="file" accept=".xlsx,.xls,.csv,.json"></label><label class="lafField">Modo<select id="lafImportMode"><option value="upsert">Agregar + actualizar</option><option value="add">Solo nuevos</option><option value="update">Solo actualizar</option><option value="replace">Reemplazar catálogo</option></select></label></div><div class="lafTools" style="margin-top:12px"><button class="lafBtn" onclick="lafPreviewImport()">Leer archivo</button><button id="lafApplyImport" class="lafBtn primary" disabled onclick="lafApplyImport()">Importar</button></div><div id="lafImportResult" class="lafResult"></div><div id="lafImportPreview" class="lafPreview" style="display:none"></div></div>
    <div class="lafBox"><h3>Exportar base completa</h3><div class="lafNote">El Excel genera tres pestañas: <b>Productos</b>, <b>Ofertas</b> y <b>Combos</b>. Puedes editarlo y volverlo a importar.</div><div class="lafTools"><button class="lafBtn primary" onclick="lafExportXLSX()">Exportar Excel</button><button class="lafBtn" onclick="lafExportCSV()">Exportar CSV</button><button class="lafBtn" onclick="lafExportJSON()">Respaldo JSON</button></div><div id="lafExportResult" class="lafResult"></div></div>
   </section>
@@ -4685,7 +4743,26 @@ window.shareLiftProductImage=async function(id){
  window.lafDeleteCurrent=function(){const id=$('lafEditId').value;if(!id)return;if(!confirm('¿Eliminar este producto del catálogo?'))return;const i=PRODUCTS.findIndex(x=>String(x.id)===String(id));if(i>=0)PRODUCTS.splice(i,1);const o=store();delete o[String(id)];saveStore(o);const m=meta();if(m.out)delete m.out[id];saveMeta(m);lafClearForm();refresh()};
  window.lafNewCombo=function(){lafClearForm();lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafCategory').value='Combos';$('lafBrand').value='COMBOS';$('lafFormTitle').textContent='Crear combo'};
  window.lafRenderCombos=function(){const a=PRODUCTS.filter(p=>norm(p.category)==='combos'||norm(p.brand)==='combos');$('lafComboList').innerHTML=a.map(p=>`<div class="lafRow"><img src="${esc(p.image||'')}"><div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.description||'Combo')}</div></div><div>$${fmt(p.price)}</div><button class="lafIcon" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>`).join('')||'<div class="lafNote">No hay combos.</div>'};
- window.lafRenderCategories=function(){const cs=liftSortBySupabaseOrder([...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))],LIFT_CATEGORY_CONFIG,x=>x);$('lafCategoryList').innerHTML=cs.map((c,i)=>`<div class="lafOfferRow"><div><b>${esc(c)}</b><div class="lafMeta">${PRODUCTS.filter(p=>p.category===c).length} productos</div></div><input class="lafInput" id="lafcat_${i}" value="${esc(c)}"><button class="lafBtn" onclick="lafRenameCategory(${JSON.stringify(c)},'lafcat_${i}')">Renombrar</button></div>`).join('')};
+ window.lafRenderCategories=function(){
+  const fromProducts=[...new Set(PRODUCTS.map(p=>p.category).filter(Boolean))];
+  const fromConfig=Object.entries(LIFT_CATEGORY_CONFIG||{})
+    .filter(([name,cfg])=>name&&name!=='Todos'&&cfg?.active!==false&&!cfg?.__deleted)
+    .map(([name])=>name);
+  const cs=liftSortBySupabaseOrder([...new Set([...fromProducts,...fromConfig])],LIFT_CATEGORY_CONFIG,x=>x);
+  $('lafCategoryList').innerHTML=cs.map(c=>{
+    const count=PRODUCTS.filter(p=>p.category===c).length;
+    return `<div class="liftCatPanelCard">
+      <div class="liftCatPanelActions">
+        <button type="button" title="Duplicar categoría" onclick='event.stopPropagation();liftCategoryDuplicate(${JSON.stringify(c)})'>⧉</button>
+        <button type="button" title="Editar categoría" onclick='event.stopPropagation();liftCategoryRename(${JSON.stringify(c)})'>✎</button>
+        <button type="button" title="Eliminar categoría" onclick='event.stopPropagation();liftCategoryDelete(${JSON.stringify(c)})'>⌫</button>
+      </div>
+      <div class="liftCatPanelIcon">C</div>
+      <div class="liftCatPanelName">${esc(c)}</div>
+      <div class="liftCatPanelMeta">${count} producto${count===1?'':'s'}</div>
+    </div>`;
+  }).join('')||'<div class="lafNote">No hay categorías.</div>';
+};
  window.lafRenameCategory=function(old,id){const n=$(id).value.trim();if(!n||n===old)return;PRODUCTS.filter(p=>p.category===old).forEach(p=>{p.category=n;patch(p)});refresh();lafRenderCategories()};
  window.lafRenderOffers=function(){const q=norm($('lafOfferSearch').value);const a=PRODUCTS.filter(p=>(!q||norm([p.name,p.brand].join(' ')).includes(q))&&(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).concat(PRODUCTS.filter(p=>!q||norm([p.name,p.brand].join(' ')).includes(q)).filter(p=>!(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).slice(0,40));$('lafOfferList').innerHTML=a.slice(0,150).map(p=>{const o=typeof WEEKLY_OFFERS!=='undefined'?WEEKLY_OFFERS[p.id]:null;const date=o?.promoUntil?String(o.promoUntil).slice(0,10):'';return `<div class="lafOfferRow"><div><b style="font-size:11px">${esc(p.name)}</b><div class="lafMeta">Detal $${fmt(p.price)}</div></div><input class="lafPrice" id="lafo_${p.id}" placeholder="Precio oferta" value="${o?fmt(o.price):''}"><input class="lafPrice" type="date" id="lafod_${p.id}" value="${date}"><button class="lafBtn ${o?'danger':'primary'}" onclick="lafToggleOffer(${JSON.stringify(p.id)})">${o?'Quitar':'Guardar'}</button></div>`}).join('')};
  window.lafToggleOffer=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p||typeof WEEKLY_OFFERS==='undefined')return;if(WEEKLY_OFFERS[id]){delete WEEKLY_OFFERS[id]}else{const pr=num($('lafo_'+id).value),d=$('lafod_'+id).value;if(!pr){alert('Escribe el precio de oferta');return}WEEKLY_OFFERS[id]={price:pr,promoUntil:d?d+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:false}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m);refresh();lafRenderOffers()};
@@ -6162,5 +6239,66 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
  async function load(){try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?clave=eq.appearance_v1&select=valor',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('No se pudo leer appearance_v1');const j=await r.json();apply({...DEF,...(j?.[0]?.valor||{})})}catch(e){console.warn('Apariencia Lift desde Supabase:',e);apply(DEF)}}
  load();
 })();
-</script>\n</body>
+</script>\n
+<style id="lift-category-panel-cards-v1">
+#laf-categories .liftCatPanelCreate{display:block!important;margin:0 0 10px!important}
+.liftCatPanelGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.liftCatPanelCard{position:relative;min-height:118px;border:1px solid #dedede;border-radius:13px;background:#fff;padding:34px 9px 11px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.liftCatPanelActions{position:absolute;top:7px;right:7px;display:flex;gap:4px}
+.liftCatPanelActions button{width:27px;height:27px;padding:0;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111;box-shadow:0 2px 7px rgba(0,0,0,.08);cursor:pointer;font:600 13px Poppins,Arial}
+.liftCatPanelActions button:hover{background:#111;color:#fff;border-color:#111}
+.liftCatPanelIcon{width:34px;height:34px;border-radius:10px;background:#111;color:#fff;display:grid;place-items:center;font:600 14px Poppins,Arial;margin-bottom:7px}
+.liftCatPanelName{font-size:11px;font-weight:600;line-height:1.25;color:#111;word-break:break-word}
+.liftCatPanelMeta{font-size:9px;color:#999;margin-top:5px}
+@media(max-width:900px){.liftCatPanelGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.liftCatPanelGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.liftCatPanelCard{min-height:112px}}
+</style>
+
+
+<style id="lift-appearance-admin-v2-style">
+.liftAppearanceHead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.liftAppearanceHead>div{flex:1;min-width:220px}.liftAppearanceHead b{display:block;font-size:15px}.liftAppearanceHead small{display:block;color:#777;font-size:10px;margin-top:3px}
+.liftAppearanceGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.liftAppearanceGroup{border:1px solid #e5e5e5;border-radius:13px;padding:12px}.liftAppearanceGroup h3{margin:0 0 10px;font-size:13px}.liftAppearanceGroup label{display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1.2fr) 38px;gap:8px;align-items:center;font-size:10px;margin:8px 0}.liftAppearanceGroup select{grid-column:2/4;height:36px;border:1px solid #ddd;border-radius:9px;padding:0 8px;background:#fff}.liftAppearanceGroup input[type=range]{width:100%}.liftAppearanceGroup output{text-align:right;font-size:9px;color:#777}.liftAppearanceGroup input[type=color]{grid-column:2/4;width:100%;height:34px;border:1px solid #ddd;border-radius:8px;background:#fff;padding:2px}
+@media(max-width:700px){.liftAppearanceGrid{grid-template-columns:1fr}.liftAppearanceGroup label{grid-template-columns:1fr 1fr 34px}}
+.grid{gap:var(--lift-grid-gap,14px)!important;grid-template-columns:repeat(auto-fill,minmax(var(--lift-card-min-width,190px),1fr))!important}
+.grid .liftVitanessCard{min-height:var(--lift-card-min-height,0px)!important}
+.grid .liftVitanessCard .pic{height:var(--lift-image-height,210px)!important;padding:var(--lift-image-padding,14px)!important}
+.grid .liftVitanessCard .body{padding:var(--lift-body-padding,12px)!important;gap:var(--lift-content-gap,6px)!important}
+.grid .liftVitanessCard .name{line-height:var(--lift-name-line-height,1.35)!important;min-height:var(--lift-name-min-height,56px)!important}
+.grid .liftVitanessCard .liftCardPresentation{font-size:var(--lift-presentation-size,11px)!important}
+.grid .liftVitanessCard .liftCardFlavor{font-size:var(--lift-flavor-size,10px)!important}
+.grid .liftVitanessCard .prices{padding-top:var(--lift-price-top-gap,8px)!important}
+.grid .liftVitanessCard .cardQuickActions{gap:var(--lift-actions-gap,7px)!important;justify-content:var(--lift-actions-align,right)!important}
+.grid .liftVitanessCard .cardQuickBuyBtn,.grid .liftVitanessCard .cardShareImageBtn{width:var(--lift-button-size,40px)!important;height:var(--lift-button-size,40px)!important;min-width:var(--lift-button-size,40px)!important;min-height:var(--lift-button-size,40px)!important;border-radius:var(--lift-button-radius,10px)!important}
+.grid .liftVitanessCard .liftCardFav{width:var(--lift-favorite-size,34px)!important;height:var(--lift-favorite-size,34px)!important;top:var(--lift-favorite-top,10px)!important;right:var(--lift-favorite-right,10px)!important}
+</style>
+<script id="lift-appearance-admin-v2-script">
+(function(){
+ const DEF={fontFamily:'Poppins',bodyWeight:300,titleWeight:400,priceWeight:400,metaWeight:400,productNameSize:14,categorySize:8,priceSize:19,cardBg:'#ffffff',imageBg:'#ffffff',borderColor:'#dddddd',metaColor:'#888888',nameColor:'#111111',presentationColor:'#666666',priceColor:'#000000',cardRadius:13,imageHeight:210,imagePadding:14,bodyPadding:12,contentGap:6,nameLineHeight:1.35,nameMinHeight:56,priceTopGap:8,actionsGap:7,actionsAlign:'right',buttonSize:40,buttonRadius:10,favoriteSize:34,favoriteTop:10,favoriteRight:10,cardMinHeight:0,gridGap:14,cardMinWidth:190,presentationSize:11,flavorSize:10};
+ const numKeys=new Set(['bodyWeight','titleWeight','priceWeight','metaWeight','productNameSize','categorySize','priceSize','cardRadius','imageHeight','imagePadding','bodyPadding','contentGap','nameLineHeight','nameMinHeight','priceTopGap','actionsGap','buttonSize','buttonRadius','favoriteSize','favoriteTop','favoriteRight','cardMinHeight','gridGap','cardMinWidth','presentationSize','flavorSize']);
+ function cfg(){return {...DEF,...(window.LIFT_APPEARANCE||{})}}
+ function vars(c){
+   return {'--lift-font':'"'+c.fontFamily+'"','--lift-body-weight':c.bodyWeight,'--lift-title-weight':c.titleWeight,'--lift-price-weight':c.priceWeight,'--lift-meta-weight':c.metaWeight,'--lift-product-name-size':c.productNameSize+'px','--lift-category-size':c.categorySize+'px','--lift-price-size':c.priceSize+'px','--lift-card-bg':c.cardBg,'--lift-image-bg':c.imageBg,'--lift-card-border':c.borderColor,'--lift-meta-color':c.metaColor,'--lift-name-color':c.nameColor,'--lift-presentation-color':c.presentationColor,'--lift-price-color':c.priceColor,'--lift-card-radius':c.cardRadius+'px','--lift-image-height':c.imageHeight+'px','--lift-image-padding':c.imagePadding+'px','--lift-body-padding':c.bodyPadding+'px','--lift-content-gap':c.contentGap+'px','--lift-name-line-height':c.nameLineHeight,'--lift-name-min-height':c.nameMinHeight+'px','--lift-price-top-gap':c.priceTopGap+'px','--lift-actions-gap':c.actionsGap+'px','--lift-actions-align':c.actionsAlign==='space-between'?'space-between':c.actionsAlign==='left'?'flex-start':c.actionsAlign==='center'?'center':'flex-end','--lift-button-size':c.buttonSize+'px','--lift-button-radius':c.buttonRadius+'px','--lift-favorite-size':c.favoriteSize+'px','--lift-favorite-top':c.favoriteTop+'px','--lift-favorite-right':c.favoriteRight+'px','--lift-card-min-height':c.cardMinHeight+'px','--lift-grid-gap':c.gridGap+'px','--lift-card-min-width':c.cardMinWidth+'px','--lift-presentation-size':c.presentationSize+'px','--lift-flavor-size':c.flavorSize+'px'};
+ }
+ function apply(c){Object.entries(vars(c)).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));window.LIFT_APPEARANCE={...c}}
+ function read(){
+   const c=cfg();
+   document.querySelectorAll('[data-ap-key]').forEach(el=>{const k=el.dataset.apKey;c[k]=numKeys.has(k)?Number(el.value):el.value});
+   return c;
+ }
+ function fill(c){
+   document.querySelectorAll('[data-ap-key]').forEach(el=>{const k=el.dataset.apKey;if(c[k]!==undefined)el.value=c[k];const o=el.parentElement?.querySelector('output');if(o)o.value=c[k]});
+ }
+ function live(e){const c=read();apply(c);const o=e?.target?.parentElement?.querySelector('output');if(o)o.value=e.target.value}
+ window.liftAppearanceReset=function(){const c={...DEF};fill(c);apply(c);document.getElementById('liftAppearanceStatus').textContent='Vista restablecida. Pulsa Guardar para publicarla.'}
+ window.liftAppearanceSave=async function(){
+   const st=document.getElementById('liftAppearanceStatus'),c=read();st.textContent='Guardando…';
+   try{if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No está disponible la conexión con Supabase.');await window.liftCloudSaveConfig('appearance_v1',c);apply(c);st.textContent='✓ Diseño guardado en Supabase.'}
+   catch(e){st.textContent='Error: '+(e.message||e)}
+ }
+ function init(){const c=cfg();fill(c);apply(c);document.querySelectorAll('[data-ap-key]').forEach(el=>{el.addEventListener('input',live);el.addEventListener('change',live)})}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,500));else setTimeout(init,500);
+})();
+</script>
+
+</body>
 </html>
