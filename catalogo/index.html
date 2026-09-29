@@ -6370,5 +6370,124 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
 })();
 </script>
 
+
+<style id="lift-provider-wallet-v1-style">
+.liftProviderWalletBtn{display:none;width:100%;height:42px;margin:8px 0;border:1px solid #111;border-radius:10px;background:#fff;color:#111;font:600 10px Poppins;cursor:pointer}.liftAdminUnlocked .liftProviderWalletBtn{display:block}
+#liftProviderWalletModal{position:fixed;inset:0;z-index:17000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:15px}#liftProviderWalletModal.open{display:flex}
+.lpwBox{width:min(96vw,720px);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:17px}.lpwHead{display:flex;justify-content:space-between;gap:10px;align-items:center}.lpwHead h3{margin:0;font-size:17px}.lpwClose{width:34px;height:34px;border:0;border-radius:50%;background:#f2f2f2;font-size:18px}
+.lpwGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.lpwGrid label{display:grid;gap:4px;font-size:9px;color:#666}.lpwGrid .full{grid-column:1/-1}.lpwGrid input,.lpwGrid select,.lpwGrid textarea{width:100%;border:1px solid #ddd;border-radius:9px;background:#fff;padding:9px;font:inherit;font-size:11px}.lpwGrid input,.lpwGrid select{height:40px}.lpwGrid textarea{min-height:58px}
+.lpwActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.lpwActions button{height:40px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins;cursor:pointer}.lpwActions .dark{background:#111;color:#fff;border-color:#111}.lpwActions .lpwPayoff{grid-column:1/-1}
+.lpwSummary{margin-top:12px;padding:12px;border-radius:12px;background:#f7f7f7}.lpwBalance{font-size:20px;font-weight:600}.lpwBalance small{display:block;font-size:9px;font-weight:400;color:#777;margin-bottom:3px}.lpwList{margin-top:10px;display:grid;gap:6px}.lpwRow{border:1px solid #e5e5e5;border-radius:9px;padding:8px;font-size:9px;display:grid;grid-template-columns:1fr auto;gap:5px}.lpwRow b{font-size:10px}.lpwCredit{color:#111}.lpwStatus{min-height:16px;margin-top:7px;font-size:9px;color:#666}
+@media(max-width:620px){.lpwGrid{grid-template-columns:1fr}.lpwGrid .full{grid-column:auto}.lpwActions{grid-template-columns:1fr}}
+</style>
+<div id="liftProviderWalletModal" onclick="if(event.target===this)liftProviderWalletClose()">
+ <div class="lpwBox">
+  <div class="lpwHead"><h3>Cartera proveedores</h3><button class="lpwClose" onclick="liftProviderWalletClose()">×</button></div>
+  <div class="lpwGrid">
+   <label class="full">Proveedor<select id="lpwProvider" onchange="liftProviderWalletLoad()"></select></label>
+   <label>Valor del movimiento<input id="lpwValue" type="number" min="0" step="1000" placeholder="Ej: 130000"></label>
+   <label>Referencia / pedido<input id="lpwReference" placeholder="Pedido, cliente, factura..."></label>
+   <label class="full">Nota<textarea id="lpwNote" placeholder="Detalle opcional"></textarea></label>
+  </div>
+  <div class="lpwActions">
+   <button class="dark" onclick="liftProviderWalletAdd('compra_credito')">+ Registrar deuda</button>
+   <button onclick="liftProviderWalletAdd('saldo_favor')">+ Saldo a favor</button>
+   <button onclick="liftProviderWalletAdd('pago')">Registrar pago</button><button class="dark lpwPayoff" onclick="liftProviderWalletPayoff()">Saldar cuenta completa</button>
+  </div>
+  <div id="lpwStatus" class="lpwStatus"></div>
+  <div class="lpwSummary"><div id="lpwBalance" class="lpwBalance"></div><div id="lpwList" class="lpwList"></div></div>
+ </div>
+</div>
+<script id="lift-provider-wallet-v1-script">
+(function(){
+ const SB='https://vdxkknftyssjyfbdieqa.supabase.co';
+ const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const FN=SB+'/functions/v1/lift-proveedores', PASS_KEY='liftAdminCloudPasswordV1';
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=v=>'$ '+Math.abs(Number(v||0)).toLocaleString('es-CO');
+ const pass=()=>{try{return sessionStorage.getItem(PASS_KEY)||''}catch(e){return ''}};
+ async function call(payload){
+   const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(j.error||'No se pudo consultar proveedores');
+   return j;
+ }
+ let cache={proveedores:[],movimientos:[]};
+ function signed(m){
+   const v=Number(m.valor||0);
+   if(m.tipo==='compra_credito'||m.tipo==='ajuste_deuda')return v;
+   if(m.tipo==='pago_proveedor'||m.tipo==='ajuste_favor')return -v;
+   if(m.tipo==='efectivo_cobrado')return Number(m.costo_proveedor||0)-Number(m.valor_cobrado||0);
+   return 0;
+ }
+ function renderProvider(){
+   const id=Number(document.getElementById('lpwProvider')?.value||0);
+   const p=cache.proveedores.find(x=>Number(x.id)===id);
+   const ms=cache.movimientos.filter(x=>Number(x.proveedor_id)===id);
+   const balance=Number(p?.balance ?? ms.reduce((a,m)=>a+signed(m),0));
+   const b=document.getElementById('lpwBalance');
+   b.innerHTML=balance>0?`<small>Debes al proveedor</small>${money(balance)}`:balance<0?`<small>Saldo a favor</small>${money(balance)}`:`<small>Saldo</small>$ 0`;
+   document.getElementById('lpwList').innerHTML=ms.map(m=>{
+     const s=signed(m), label=m.tipo==='compra_credito'?'Deuda':m.tipo==='pago_proveedor'?'Pago':m.tipo==='ajuste_favor'?'Saldo a favor':m.tipo==='ajuste_deuda'?'Ajuste deuda':'Efectivo cobrado';
+     return `<div class="lpwRow"><div><b>${esc(label)}</b><br>${esc((m.referencia||'')+(m.nota?' · '+m.nota:''))}</div><div>${s>0?'+':'−'} ${money(Math.abs(s||m.valor||0))}</div></div>`
+   }).join('')||'<div class="lpwRow">Sin movimientos.</div>';
+ }
+ async function refresh(keep=true){
+   const sel=document.getElementById('lpwProvider'), previous=keep?sel.value:'';
+   const j=await call({action:'providers'});cache=j;
+   sel.innerHTML=(j.proveedores||[]).map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+   if(previous&&[...sel.options].some(o=>o.value===previous))sel.value=previous;
+   renderProvider();
+ }
+ window.liftProviderWalletOpen=async function(){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   document.getElementById('liftProviderWalletModal').classList.add('open');
+   const st=document.getElementById('lpwStatus');st.textContent='Cargando proveedores…';
+   try{await refresh(false);st.textContent=''}catch(e){st.textContent=e.message}
+ };
+ window.liftProviderWalletClose=()=>document.getElementById('liftProviderWalletModal').classList.remove('open');
+ window.liftProviderWalletLoad=renderProvider;
+ window.liftProviderWalletAdd=async function(kind){
+   const proveedor_id=Number(document.getElementById('lpwProvider').value);
+   const valueEl=document.getElementById('lpwValue');
+   let valor=Math.round(Number(valueEl.value||0));
+   const referencia=document.getElementById('lpwReference').value.trim(),nota=document.getElementById('lpwNote').value.trim(),st=document.getElementById('lpwStatus');
+   if(!proveedor_id){st.textContent='Selecciona un proveedor.';return}
+   const tipo=kind==='compra_credito'?'compra_credito':kind==='saldo_favor'?'ajuste_favor':'pago_proveedor';
+   const label=kind==='compra_credito'?'deuda':kind==='saldo_favor'?'saldo a favor':'pago';
+   if(valor<=0){
+     const asked=prompt('Valor del '+label+':','');
+     if(asked===null)return;
+     valor=Math.round(Number(String(asked).replace(/[^0-9]/g,''))||0);
+     if(valor<=0){st.textContent='Escribe un valor válido para '+label+'.';valueEl.focus();return}
+     valueEl.value=valor;
+   }
+   st.textContent='Guardando '+label+'…';
+   try{
+     const res=await call({action:'provider-movement',proveedor_id,tipo,valor,referencia,nota});
+     valueEl.value='';document.getElementById('lpwReference').value='';document.getElementById('lpwNote').value='';
+     await refresh(true);
+     st.textContent='✓ '+(kind==='compra_credito'?'Deuda':kind==='saldo_favor'?'Saldo a favor':'Pago')+' registrado: '+money(valor)+'.';
+   }catch(e){st.textContent='No se pudo registrar: '+e.message}
+ };
+ window.liftProviderWalletPayoff=async function(){
+   const proveedor_id=Number(document.getElementById('lpwProvider').value),st=document.getElementById('lpwStatus');
+   if(!proveedor_id)return;
+   st.textContent='Saldando cuenta…';
+   try{
+     await call({action:'provider-payoff',proveedor_id,referencia:document.getElementById('lpwReference').value.trim(),nota:document.getElementById('lpwNote').value.trim()});
+     await refresh(true);st.textContent='✓ Cuenta en cero.';
+   }catch(e){st.textContent=e.message}
+ };
+ function inject(){
+   if(document.getElementById('liftProviderWalletBtn'))return;
+   const tools=document.getElementById('liftAdminCheckoutTools')||document.getElementById('liftAdminPriceMode');if(!tools)return;
+   const b=document.createElement('button');b.id='liftProviderWalletBtn';b.type='button';b.className='liftProviderWalletBtn';b.textContent='Cartera proveedores';b.onclick=liftProviderWalletOpen;tools.insertAdjacentElement('afterend',b);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,700));else setTimeout(inject,700);
+ new MutationObserver(inject).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 </html>
