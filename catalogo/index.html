@@ -1643,7 +1643,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <button class="addBtn cardQuickBuyBtn" type="button" title="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" aria-label="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" onclick="event.stopPropagation();${hasFlavor?`openLiftProductById(${p.id})`:`add(${p.id})`}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button>
         <button class="cardShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button>
         <span class="liftCardAdminIcons">
-          <button class="liftCardAdminIcon move" type="button" title="Mover a otra categoría" aria-label="Mover a otra categoría" onclick="event.stopPropagation();liftCategoryMoveProduct(${p.id})">↪</button>
+          <button class="liftCardAdminIcon move" type="button" title="Mover categoría o laboratorio" aria-label="Mover categoría o laboratorio" onclick="event.stopPropagation();liftMoveProductMenu(${p.id})">↪</button>
           <button class="liftCardAdminIcon duplicate" type="button" title="Duplicar producto" aria-label="Duplicar producto" onclick="event.stopPropagation();liftCardAdminDuplicate(${p.id})">⧉</button>
           <button class="liftCardAdminIcon edit" type="button" title="Editar producto" aria-label="Editar producto" onclick="event.stopPropagation();liftCardAdminEdit(${p.id})">✎</button>
           <button class="liftCardAdminIcon delete" type="button" title="Eliminar producto" aria-label="Eliminar producto" onclick="event.stopPropagation();liftCardAdminDelete(${p.id})">⌫</button>
@@ -6297,6 +6297,76 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
  }
  function init(){const c=cfg();fill(c);apply(c);document.querySelectorAll('[data-ap-key]').forEach(el=>{el.addEventListener('input',live);el.addEventListener('change',live)})}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,500));else setTimeout(init,500);
+})();
+</script>
+
+
+<style id="lift-move-category-brand-v1-style">
+#liftMoveTypeModal{position:fixed;inset:0;z-index:15050;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;padding:18px}
+#liftMoveTypeModal.open{display:flex}
+.liftMoveTypeBox{width:min(92vw,390px);background:#fff;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.liftMoveTypeBox h3{margin:0 0 5px;font-size:17px}.liftMoveTypeBox p{margin:0 0 14px;color:#777;font-size:11px}
+.liftMoveTypeBtns{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftMoveTypeBtns button{height:48px;border:1px solid #ddd;border-radius:12px;background:#fff;font:600 12px Poppins;cursor:pointer}.liftMoveTypeBtns button:first-child{background:#111;color:#fff;border-color:#111}
+.liftMoveBrandSelect{width:100%;height:44px;border:1px solid #ddd;border-radius:10px;padding:0 10px;font:inherit;background:#fff;margin:4px 0 12px}
+.liftMoveTypeFoot{display:flex;justify-content:flex-end;gap:8px}.liftMoveTypeFoot button{height:40px;border:1px solid #ddd;border-radius:10px;background:#fff;padding:0 13px;font:600 11px Poppins;cursor:pointer}.liftMoveTypeFoot .primary{background:#111;color:#fff;border-color:#111}
+</style>
+<div id="liftMoveTypeModal" onclick="if(event.target===this)liftMoveTypeClose()">
+ <div class="liftMoveTypeBox">
+  <div id="liftMoveChoose">
+   <h3>Mover producto</h3><p>¿Qué quieres cambiar?</p>
+   <div class="liftMoveTypeBtns">
+    <button type="button" onclick="liftMoveChooseCategory()">Categoría</button>
+    <button type="button" onclick="liftMoveChooseBrand()">Laboratorio</button>
+   </div>
+  </div>
+  <div id="liftMoveBrandPane" style="display:none">
+   <h3>Mover de laboratorio</h3><p id="liftMoveBrandProduct"></p>
+   <select id="liftMoveBrandTarget" class="liftMoveBrandSelect"></select>
+   <div class="liftMoveTypeFoot"><button onclick="liftMoveBack()">Atrás</button><button class="primary" onclick="liftMoveBrandConfirm()">Mover</button></div>
+   <div id="liftMoveBrandStatus" class="lafResult"></div>
+  </div>
+ </div>
+</div>
+<script id="lift-move-category-brand-v1-script">
+(function(){
+ let productId=null;
+ const modal=()=>document.getElementById('liftMoveTypeModal');
+ function labs(){
+   const a=new Set((window.PRODUCTS||PRODUCTS||[]).map(p=>String(p.brand||'').trim()).filter(Boolean));
+   const cfg=window.LIFT_LABORATORIES_SUPABASE||{};
+   Object.keys(cfg).forEach(x=>x&&a.add(x));
+   return [...a].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+ }
+ window.liftMoveProductMenu=function(id){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   productId=id; document.getElementById('liftMoveChoose').style.display='';
+   document.getElementById('liftMoveBrandPane').style.display='none'; modal().classList.add('open');
+ };
+ window.liftMoveTypeClose=function(){modal().classList.remove('open')};
+ window.liftMoveBack=function(){document.getElementById('liftMoveChoose').style.display='';document.getElementById('liftMoveBrandPane').style.display='none'};
+ window.liftMoveChooseCategory=function(){liftMoveTypeClose(); if(typeof liftCategoryMoveProduct==='function')liftCategoryMoveProduct(productId)};
+ window.liftMoveChooseBrand=function(){
+   const p=PRODUCTS.find(x=>String(x.id)===String(productId));if(!p)return;
+   document.getElementById('liftMoveChoose').style.display='none';document.getElementById('liftMoveBrandPane').style.display='';
+   document.getElementById('liftMoveBrandProduct').textContent=(p.name||'Producto')+' · actual: '+(p.brand||'Sin laboratorio');
+   document.getElementById('liftMoveBrandTarget').innerHTML=labs().map(x=>`<option value="${String(x).replace(/"/g,'&quot;')}" ${x===p.brand?'selected':''}>${x}</option>`).join('');
+   document.getElementById('liftMoveBrandStatus').textContent='';
+ };
+ window.liftMoveBrandConfirm=async function(){
+   const p=PRODUCTS.find(x=>String(x.id)===String(productId));if(!p)return;
+   const target=String(document.getElementById('liftMoveBrandTarget').value||'').trim(),st=document.getElementById('liftMoveBrandStatus');
+   if(!target){st.textContent='Selecciona un laboratorio.';return}
+   const old=p.brand; st.textContent='Moviendo…';
+   try{
+     p.brand=target;
+     if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No está disponible el guardado en Supabase.');
+     await window.liftCloudSaveProduct(p);
+     if(typeof render==='function')render();
+     if(typeof lafRenderProducts==='function')lafRenderProducts();
+     st.textContent='✓ Movido a '+target;
+     setTimeout(liftMoveTypeClose,450);
+   }catch(e){p.brand=old;st.textContent='Error: '+(e.message||e)}
+ };
 })();
 </script>
 
