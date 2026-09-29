@@ -5396,7 +5396,27 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
  function quoteData(){const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';if(!nombre)throw new Error('Escribe el nombre del cliente.');if(!celular&&!whatsapp_usuario)throw new Error('Escribe el celular o @usuario de WhatsApp para guardar el prospecto.');if(typeof selectedCity==='undefined'||!selectedCity)throw new Error('Selecciona la ciudad / municipio para calcular la cotización.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty())||0,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+envio;const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q,image:p.image||''}));return{nombre,celular,whatsapp_usuario,direccion,notas,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',subtotal,envio,descuento:trainerCouponActive()?0:descuento,total,items,tiempo_entrega:delivery(selectedCity.name),medios_pago:payments(selectedCity.name)}}
  window.liftToggleQuote=function(force){const f=document.getElementById('liftQuoteForm');if(!f)return;f.hidden=typeof force==='boolean'?!force:!f.hidden};
  function followISO(v){if(!v)return null;const d=new Date(v+'T12:00:00');return isNaN(d)?null:d.toISOString()}
- window.liftGenerateQuote=async function(){const st=document.getElementById('liftQuoteStatus');try{const d=quoteData(),ref='COT-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(Date.now()).slice(-4);st.textContent='Guardando prospecto y cotización…';const saved=await call({action:'save-quote',...d,referencia:ref,estado:'Pendiente',seguimiento_at:null,nota_interna:''});st.textContent='Generando imagen…';await makeImage(d,saved.referencia||ref,saved.fecha||new Date().toISOString());st.textContent='✓ Cotización guardada. Cliente registrado como Cotizado en seguimiento.';if(typeof window.liftCrmRender==='function'){try{await window.liftCrmReload?.()}catch(_){}}}catch(e){st.textContent=e.message||e;alert(e.message||e)}};
+ window.liftGenerateQuote=async function(){
+ const st=document.getElementById('liftQuoteStatus'),btn=document.getElementById('liftQuoteMainBtn');
+ if(btn?.dataset.saving==='1')return;
+ try{
+   if(btn){btn.dataset.saving='1';btn.disabled=true;btn.textContent='Guardando…'}
+   const d=quoteData(),ref='COT-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(Date.now()).slice(-4);
+   if(st)st.textContent='Guardando cliente, cotización y seguimiento en Supabase…';
+   const saved=await call({action:'save-quote',...d,referencia:ref,estado:'Cotizada',seguimiento_at:null,nota_interna:''});
+   if(!saved?.ok||!saved?.cotizacion_id)throw new Error('Supabase no confirmó el guardado de la cotización.');
+   if(st)st.textContent='✓ Guardada en Supabase. Generando imagen…';
+   try{await makeImage(d,saved.referencia||ref,saved.fecha||new Date().toISOString())}
+   catch(imgErr){if(st)st.textContent='✓ Cotización guardada en Supabase. La imagen no pudo generarse: '+(imgErr.message||imgErr);return}
+   if(typeof window.liftCrmReload==='function')await window.liftCrmReload();
+   if(st)st.textContent='✓ Cotización guardada. Ya aparece en Seguimiento clientes → Cotizados.';
+ }catch(e){
+   if(st)st.textContent='✕ No se guardó: '+(e.message||e);
+   alert('No se guardó la cotización: '+(e.message||e));
+ }finally{
+   if(btn){btn.dataset.saving='0';btn.disabled=false;btn.textContent='📄 Cotizar'}
+ }
+};
  function wrap(ctx,text,max){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){lines.push(line);line=w}else line=t}if(line)lines.push(line);return lines}
  async function liftQuoteLoadImage(src){
   if(!src)return null;
@@ -5455,7 +5475,7 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
  window.liftLoadDueQuotes=async function(){const box=document.getElementById('liftFollowPanel'),badge=document.getElementById('liftFollowBadge');if(!box||!document.body.classList.contains('liftAdminUnlocked'))return;box.innerHTML='<div class="liftClientEmpty">Cargando seguimientos…</div>';try{const j=await call({action:'quotes',due:true}),qs=j.cotizaciones||[];if(badge)badge.textContent=qs.length;if(!qs.length){box.innerHTML='<div class="liftClientEmpty">No tienes seguimientos pendientes para hoy.</div>';return}box.innerHTML=qs.map(q=>`<div class="liftFollowCard"><div class="liftFollowHead"><b>${esc(q.nombre)}</b><span>${esc(q.referencia||'')}</span></div><div>${esc(q.celular||q.whatsapp_usuario||'Sin celular')} · ${esc(q.ciudad)}</div><div class="liftFollowTotal">${money(q.total)} · ${esc(q.estado)}</div>${q.nota_interna?`<div style="margin-top:4px;color:#666">${esc(q.nota_interna)}</div>`:''}<div class="liftFollowActions"><button onclick="liftQuoteWhatsApp('${esc(q.celular)}','${esc(q.nombre)}','${esc(q.whatsapp_usuario||'')}')">WhatsApp</button><button onclick="liftQuoteDone(${q.id},'Ganada')">Ganada</button><button onclick="liftQuoteDone(${q.id},'No compró')">No compró</button></div></div>`).join('')}catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}};
  window.liftQuoteWhatsApp=function(phone,name,user){const p=String(phone||'').replace(/\D/g,'');if(!p){alert('Este cliente está guardado como '+(user||'usuario de WhatsApp')+'. WhatsApp no permite abrir un chat por nickname desde un enlace. Búscalo por su usuario en WhatsApp.');return}const cc=p.startsWith('57')?p:'57'+p;window.open('https://wa.me/'+cc+'?text='+encodeURIComponent('Hola '+name+', ¿cómo estás? Te escribo para hacer seguimiento a la cotización que te envié.'),'_blank')};
  window.liftQuoteDone=async function(id,estado){await call({action:'update-quote',id,estado,seguimiento_at:null});liftLoadDueQuotes()};
- function inject(){const manual=document.getElementById('liftManualProductBox');if(manual&&!document.getElementById('liftQuoteBox')){const box=document.createElement('div');box.id='liftQuoteBox';box.className='liftQuoteBox';box.innerHTML=`<button type="button" class="liftQuoteBtn" onclick="liftToggleQuote()">📄 Cotizar</button><div id="liftQuoteForm" class="liftQuoteForm" hidden><div style="font-size:12px;font-weight:700;margin-bottom:7px">Generar cotización</div><div style="font-size:10px;color:#777;line-height:1.45;margin-bottom:10px">Usa los productos del pedido y la ciudad seleccionada para calcular envío, entrega y medios de pago. Guarda automáticamente el cliente/prospecto, la cotización y su estado Cotizado en Supabase.</div><div class="liftQuoteActions"><button type="button" onclick="liftGenerateQuote()">Generar imagen</button><button type="button" class="light" onclick="liftToggleQuote(false)">Cancelar</button></div><div id="liftQuoteStatus" class="liftQuoteStatus"></div></div>`;manual.insertAdjacentElement('afterend',box)}}
+ function inject(){const manual=document.getElementById('liftManualProductBox');if(manual&&!document.getElementById('liftQuoteBox')){const box=document.createElement('div');box.id='liftQuoteBox';box.className='liftQuoteBox';box.innerHTML=`<button type="button" id="liftQuoteMainBtn" class="liftQuoteBtn" onclick="liftGenerateQuote()">📄 Cotizar</button><div id="liftQuoteForm" class="liftQuoteForm"><div style="font-size:10px;color:#777;line-height:1.45">Al tocar Cotizar se guarda automáticamente el prospecto, productos, total y estado Cotizado en Supabase.</div><div id="liftQuoteStatus" class="liftQuoteStatus"></div></div>`;manual.insertAdjacentElement('afterend',box)}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);else inject();
 })();
 </script>
@@ -6534,7 +6554,15 @@ button,input,select,textarea{font-family:var(--lift-font),sans-serif!important}
  function latest(id){return followups.filter(x=>Number(x.cliente_id)===Number(id)).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))[0]||null}
  function today(d){if(!d)return false;const x=new Date(d),n=new Date();return x.getFullYear()===n.getFullYear()&&x.getMonth()===n.getMonth()&&x.getDate()===n.getDate()}
  function label(s){return ({nuevo:'Nuevo',pregunto:'Preguntó',cotizado:'Cotizado',seguimiento:'Seguimiento',compro:'Compró',no_respondio:'No respondió',no_interesado:'No interesado',recompra:'Recompra'})[s]||'Nuevo'}
- async function load(){clients=await api('lift_clientes?select=id,nombre,celular,ultimo_pedido&order=nombre.asc');followups=await api('lift_seguimientos_clientes?select=*&order=fecha.desc&limit=1000')}
+ async function load(){
+   const password=sessionStorage.getItem('liftAdminCloudPasswordV1')||'';
+   const r=await fetch(SB+'/functions/v1/lift-clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'crm-list',password})});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok||!j.ok)throw new Error(j.error||'No se pudo cargar seguimiento');
+   clients=Array.isArray(j.clientes)?j.clientes:[];
+   followups=Array.isArray(j.seguimientos)?j.seguimientos:[];
+ }
+ window.liftCrmReload=async function(){await load();if(document.getElementById('liftCrmModal')?.classList.contains('open'))liftCrmRender();return true};
  window.liftCrmOpen=async function(){if(!document.body.classList.contains('liftAdminUnlocked'))return;document.getElementById('liftCrmModal').classList.add('open');document.getElementById('crmBrowse').style.display='';document.getElementById('crmForm').classList.remove('open');try{await load();liftCrmRender()}catch(e){document.getElementById('crmList').innerHTML='<div class="crmStatus">'+esc(e.message)+'</div>'}};
  window.liftCrmClose=()=>document.getElementById('liftCrmModal').classList.remove('open');
  window.liftCrmBack=function(){document.getElementById('crmBrowse').style.display='';document.getElementById('crmForm').classList.remove('open');liftCrmRender()};
