@@ -104,7 +104,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 .oldPrice{font-size:12px;color:#8b8b8b;text-decoration:line-through;font-weight:300}
 .saving{font-size:10px;color:#19713a;font-weight:500;width:100%}
 .searchOldPrice{font-size:10px;color:#999;text-decoration:line-through;margin-left:6px}
-.searchSaving{font-size:9px;color:#19713a;font-weight:500;margin-top:1px}
+.searchSaving{font-size:9px;color:#19713a;font-weight:500;margin-top:1px}.offerUntil{font-size:10px;color:#666;font-weight:400;margin-top:3px;width:100%}.cartOfferUntil,.checkoutOfferUntil{font-size:10px;color:#666;margin-top:4px;line-height:1.3}
 .modalOldPrice{font-size:14px;color:#888;text-decoration:line-through;margin-right:8px}
 .modalSaving{font-size:12px;color:#19713a;font-weight:500;margin:3px 0 8px}
 @media(max-width:760px){.saleBadge{left:8px;top:8px;font-size:9px;padding:4px 7px}.giftBadge{font-size:9px;padding:4px 7px}.oldPrice{font-size:11px}.saving{font-size:9px}.flavorNote{font-size:9px}}
@@ -1347,8 +1347,10 @@ function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
 function compareAtOf(p){return p.price}
 function savingOf(p){return Math.max(0,compareAtOf(p)-priceOf(p))}
 function offerBadges(p){const o=offerOf(p);if(!o)return '';return `<span class="saleBadge">OFERTA</span>`}
-function offerDetails(p){const o=offerOf(p);if(!o)return '';const save=savingOf(p);const flavors=o.flavors?.length?`<div class="flavorNote"><b>Sabores en promoción:</b> ${o.flavors.map(esc).join(' · ')}</div>`:'';return `${o.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}${save?`<div class="saving">Ahorras ${fmt(save)}</div>`:''}${flavors}`}
-function priceHTML(p){const current=priceOf(p),save=savingOf(p);return `<div class="offerPrices">${save?`<span class="oldPrice">${fmt(compareAtOf(p))}</span>`:''}<span class="price">${fmt(current)}</span></div>${offerDetails(p)}`}
+function offerUntilText(p){const o=offerOf(p);if(!o?.promoUntil)return '';const d=new Date(o.promoUntil);if(isNaN(d))return '';return new Intl.DateTimeFormat('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}).format(d)}
+function offerUntilHTML(p,cls='offerUntil'){const t=offerUntilText(p);return t?`<div class="${cls}">Oferta hasta ${esc(t)}</div>`:''}
+function offerDetails(p){const o=offerOf(p);if(!o)return '';const save=savingOf(p);const flavors=o.flavors?.length?`<div class="flavorNote"><b>Sabores en promoción:</b> ${o.flavors.map(esc).join(' · ')}</div>`:'';return `${o.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}${save?`<div class="saving">Ahorras ${fmt(save)}</div>`:''}${offerUntilHTML(p)}${flavors}`}
+function priceHTML(p){const current=priceOf(p),save=savingOf(p);return `<div class="offerPrices">${save?`<span class="oldPrice">${fmt(compareAtOf(p))}</span>`:''}<span class="price${save?' promoPrice':''}">${fmt(current)}</span></div>${offerDetails(p)}`}
 
 let state={q:'',cat:'Todos',brand:'Todas',filterView:'brands',offerOnly:false,sort:'recommended'};
 let cart=JSON.parse(localStorage.getItem('liftCartV2')||localStorage.getItem('liftCartV1')||'{}');
@@ -1549,8 +1551,13 @@ function liftGroupCardOffer(p){
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
   const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
   if(!offered.length)return null;
-  const lowest=Math.min(...all.map(x=>liftVariantSalePrice(g,x.v,x.p)).filter(Number.isFinite));
-  return {count:offered.length,lowest};
+  const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
+  const lowest=Math.min(...priced.map(x=>x.sale));
+  const lowestRow=priced.find(x=>x.sale===lowest)||priced[0];
+  const promoRows=priced.filter(x=>x.offer&&x.sale<x.normal);
+  const promoLowest=promoRows.length?Math.min(...promoRows.map(x=>x.sale)):null;
+  const promoRow=promoRows.find(x=>x.sale===promoLowest)||null;
+  return {count:offered.length,lowest,normalLowest:promoRow?promoRow.normal:(lowestRow?.normal||lowest),promoLowest};
 }
 function liftCatalogGrouped(arr){
   const source=Array.isArray(arr)?arr:[];
@@ -1654,7 +1661,7 @@ compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCo
 savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
 offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
 offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
-priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);return `<div class="offerPrices"><span class="price">Desde ${fmt(go.lowest)}</span></div>${offerDetails(p)}`};
+priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
   const VISIBLE_PRODUCTS=liftVisibleProducts();
@@ -2012,7 +2019,7 @@ function relatedProductsFor(its,limit=3){
   return chosen.slice(0,limit);
 }
 function relatedHTML(its){const rel=relatedProductsFor(its);if(!rel.length)return '';return `<div class="relatedWrap"><div class="relatedTitle">También te puede interesar</div><div class="relatedGrid">${rel.map(p=>`<div class="relatedItem"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"><div><div class="relatedName">${esc(p.name)} · ${esc(p.brand)}</div><div class="relatedPrice">${fmt(priceOf(p))}</div></div><button class="relatedAdd" onclick="event.stopPropagation();add(${p.id})">Agregar</button></div>`).join('')}</div></div>`}
-function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({key,p,q})=>{const k=JSON.stringify(String(key));return `<div class="cartline"><img class="cartProductImg" src="${p.image}" alt="${esc(p.name)}${p._cartFlavor?' - '+esc(p._cartFlavor):''}"><div class="cartProductInfo"><div class="cartname">${esc(p.name)}</div><div class="cartbrand">${esc(p.brand)}</div>${p._cartFlavor?`<div class="cartFlavor">Sabor: <b>${esc(p._cartFlavor)}</b></div>`:''}<div class="cartProductControls"><div class="cartprice">${fmt(priceOf(p)*q)}</div><div class="qty"><button aria-label="Disminuir cantidad" onclick='change(${k},-1)'>−</button><b>${q}</b><button aria-label="Aumentar cantidad" onclick='change(${k},1)'>+</button></div></div></div><button class="trash" aria-label="Eliminar producto" title="Eliminar" onclick='removeItem(${k})'>×</button></div>`}).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
+function renderCart(){const its=items(),body=document.getElementById('cartBody');if(!its.length)body.innerHTML='<div class="empty">Tu carrito está vacío.</div>';else{const msg=flavorMessageFor(its);body.innerHTML=its.map(({key,p,q})=>{const k=JSON.stringify(String(key));return `<div class="cartline"><img class="cartProductImg" src="${p.image}" alt="${esc(p.name)}${p._cartFlavor?' - '+esc(p._cartFlavor):''}"><div class="cartProductInfo"><div class="cartname">${esc(p.name)}</div><div class="cartbrand">${esc(p.brand)}</div>${p._cartFlavor?`<div class="cartFlavor">Sabor: <b>${esc(p._cartFlavor)}</b></div>`:''}${hasOffer(p)?offerUntilHTML(p,'cartOfferUntil'):''}<div class="cartProductControls"><div class="cartprice">${savingOf(p)?`<span class="cartOldPrice">${fmt(compareAtOf(p)*q)}</span>`:''}<span class="${savingOf(p)?'promoPrice':''}">${fmt(priceOf(p)*q)}</span></div><div class="qty"><button aria-label="Disminuir cantidad" onclick='change(${k},-1)'>−</button><b>${q}</b><button aria-label="Aumentar cantidad" onclick='change(${k},1)'>+</button></div></div></div><button class="trash" aria-label="Eliminar producto" title="Eliminar" onclick='removeItem(${k})'>×</button></div>`}).join('')+(msg?`<div class="flavorConfirmMsg">${msg}</div>`:'')+relatedHTML(its)}document.getElementById('subtotal').textContent=fmt(its.reduce((s,x)=>s+priceOf(x.p)*x.q,0));const progress=document.getElementById('cartShippingProgress');if(progress)progress.innerHTML=shippingProgressHTML(its.reduce((n,x)=>n+x.q,0));const cb=document.getElementById('cartBuyBtn');if(cb)cb.disabled=!its.length;updateCount()}
 function viewProduct(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;const a=p._attr;document.getElementById('modalContent').innerHTML=`<div class="modalPic"><img src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}"></div><div class="modalMeta"><span class="tag">${esc(p.brand)}</span><span class="tag">${esc(p.category)}</span>${a.weight?`<span class="tag">${esc(a.weight.label)}</span>`:''}${a.services?`<span class="tag">${a.services} servicios</span>`:''}</div><div class="modalName">${esc(p.name)}</div>${(p.description||p.presentation||p.flavor)?`<div class="modalPdfInfo">${p.description?`<div><b>${esc(p.description)}</b></div>`:''}${p.presentation?`<div>${esc(p.presentation)}</div>`:''}${p.flavor?`<div>Sabor: ${esc(p.flavor)}</div>`:''}</div>`:''}<div class="modalPrice">${savingOf(p)?`<span class="modalOldPrice">${fmt(compareAtOf(p))}</span>`:''}${fmt(priceOf(p))}</div>${savingOf(p)?`<div class="modalSaving">Ahorras ${fmt(savingOf(p))}</div>`:''}${offerOf(p)?.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}<button class="add" style="width:100%" onclick="add(${p.id});closeModal()">Agregar al carrito</button>`;document.getElementById('productModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('productModal').classList.remove('open');document.body.style.overflow=''}
 let checkoutMode='cart';
@@ -2102,7 +2109,7 @@ function renderCheckoutSummary(){
   const flavorMsg=flavorMessageFor(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
     const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=(adminTrainerMode()||trainerCouponActive())&&eff<pub;
-    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p.presentation?`<div class="checkoutProductBrand">Presentación: ${esc(x.p.presentation)}</div>`:''}${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b>${x.p._variantId?` <span class="liftVariantConfirmed">✓ seleccionado</span>`:''}</div>`:''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div style="font-size:10px;color:#888;text-decoration:line-through">${fmt(pub*x.q)}</div>`:''}${fmt(eff*x.q)}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
+    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p.presentation?`<div class="checkoutProductBrand">Presentación: ${esc(x.p.presentation)}</div>`:''}${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b>${x.p._variantId?` <span class="liftVariantConfirmed">✓ seleccionado</span>`:''}</div>`:''}${hasOffer(x.p)?offerUntilHTML(x.p,'checkoutOfferUntil'):''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div class="checkoutOldPrice">${fmt(pub*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:(savingOf(x.p)?`<div class="checkoutOldPrice">${fmt(compareAtOf(x.p)*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:fmt(eff*x.q))}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
   }).join('')}</div>`+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');
   const prog=document.getElementById('checkoutShippingProgress');
   if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());
@@ -4780,16 +4787,55 @@ window.shareLiftProductImage=async function(id){
     infoY+=40;
   }
 
-  // Precio más unido al nombre para formar un solo bloque comercial
-  ctx.fillStyle='#111';ctx.font='700 52px Poppins,Arial';
-  const priceText=typeof fmt==='function'?fmt(priceOf(p)):'$ '+Number(p.price||0).toLocaleString('es-CO');
-  ctx.fillText(priceText,58,infoY+38);
+  // Variaciones disponibles: al compartir desde la tarjeta principal mostramos
+  // también los sabores/variaciones del producto, no solo la variante seleccionada.
+  const variationNames=[];
+  const addVariation=v=>{v=String(v||'').trim();if(v&&!variationNames.some(x=>x.toLowerCase()===v.toLowerCase()))variationNames.push(v)};
+  if(grouped&&typeof liftGroupVariants==='function'){
+    liftGroupVariants(grouped).forEach(v=>addVariation(v?.sabor||v?.nombre||''));
+  }
+  if(Array.isArray(rawProduct.pdfFlavors)) rawProduct.pdfFlavors.forEach(v=>addVariation(typeof v==='string'?v:(v?.name||v?.sabor||'')));
+  if(typeof flavorsFor==='function') flavorsFor(rawProduct.id).forEach(addVariation);
+  if(typeof ISO100_FLAVOR_IMAGES!=='undefined'&&Array.isArray(ISO100_FLAVOR_IMAGES[String(rawProduct.id)])){
+    ISO100_FLAVOR_IMAGES[String(rawProduct.id)].forEach(v=>addVariation(v?.name||v?.sabor||''));
+  }
+  if(variationNames.length){
+    ctx.fillStyle='#555';ctx.font='500 20px Poppins,Arial';
+    const label='Sabores: '+variationNames.join(' · ');
+    const vWords=label.split(/\s+/);const vLines=[];let vLine='';
+    for(const word of vWords){
+      const test=vLine?vLine+' '+word:word;
+      if(ctx.measureText(test).width>950&&vLine){vLines.push(vLine);vLine=word}else vLine=test;
+    }
+    if(vLine)vLines.push(vLine);
+    vLines.slice(0,3).forEach((ln,i)=>ctx.fillText(ln,58,infoY+i*28));
+    infoY+=Math.min(vLines.length,3)*28+10;
+  }
+
+  // Vigencia de la promoción en la imagen compartida.
+  const offerProduct=selectedVariant&&typeof liftVariantProduct==='function'?(liftVariantProduct(selectedVariant)||rawProduct):rawProduct;
+  const sharedPromoDate=typeof offerUntilText==='function'?offerUntilText(offerProduct):'';
+  if(sharedPromoDate){ctx.fillStyle='#555';ctx.font='600 20px Poppins,Arial';ctx.fillText('OFERTA HASTA '+sharedPromoDate,58,infoY+18);infoY+=34;}
+
+  // Precio normal visible y tachado + precio promo verde.
+  const shareOfferProduct=offerProduct;
+  const shareHasPromo=typeof savingOf==='function'&&savingOf(shareOfferProduct)>0;
+  let priceBaseY=infoY+38;
+  if(shareHasPromo){
+    const oldText=typeof fmt==='function'?fmt(compareAtOf(shareOfferProduct)):'$ '+Number(compareAtOf(shareOfferProduct)||0).toLocaleString('es-CO');
+    ctx.fillStyle='#8a8a8a';ctx.font='500 27px Poppins,Arial';ctx.fillText(oldText,58,priceBaseY-10);
+    const ow=ctx.measureText(oldText).width;ctx.strokeStyle='#8a8a8a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(58,priceBaseY-20);ctx.lineTo(58+ow,priceBaseY-20);ctx.stroke();
+    priceBaseY+=42;
+  }
+  ctx.fillStyle=shareHasPromo?'#168451':'#111';ctx.font='700 52px Poppins,Arial';
+  const priceText=typeof fmt==='function'?fmt(priceOf(shareOfferProduct)):'$ '+Number(shareOfferProduct.price||0).toLocaleString('es-CO');
+  ctx.fillText(priceText,58,priceBaseY);
 
   // Disponibilidad más cerca del precio
   ctx.fillStyle='#16833b';
-  ctx.beginPath();ctx.arc(67,infoY+78,7,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(67,priceBaseY+40,7,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#333';ctx.font='500 22px Poppins,Arial';
-  ctx.fillText('Disponible',86,infoY+86);
+  ctx.fillText('Disponible',86,priceBaseY+48);
 
   // Pie de marca ligeramente más presente
   ctx.fillStyle='#0b0b0b';ctx.fillRect(0,1260,1080,90);
@@ -5364,7 +5410,7 @@ body.liftAdminUnlocked #liftProviderBox{display:block}
  const heartSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 4.3 13A5.2 5.2 0 0 1 12 6a5.2 5.2 0 0 1 7.7 7L12 20.4Z"></path></svg>';
  function favProducts(){return [...liftFavorites].map(id=>PRODUCTS.find(p=>Number(p.id)===Number(id))).filter(Boolean)}
  function syncFavCount(){const n=liftFavorites.size;document.querySelectorAll('.liftFavCount').forEach(x=>x.textContent=n);const b=document.getElementById('liftShareFavBtn');if(b)b.disabled=!n}
- window.renderLiftFavorites=function(){const body=document.getElementById('liftFavBody');if(!body)return;const ps=favProducts();body.innerHTML=ps.length?ps.map(p=>`<div class="liftFavLine"><img src="${p.image||''}" alt=""><div><div class="liftFavName">${typeof esc==='function'?esc(p.name):p.name}</div><div class="liftFavMeta">${typeof esc==='function'?esc(p.brand||''):p.brand||''}</div><div class="liftFavPrice">${typeof fmt==='function'?fmt(priceOf(p)):'$'+Number(p.price||0).toLocaleString('es-CO')}</div></div><div class="liftFavActions"><button class="liftFavMini" title="Compartir" onclick="shareLiftProductImage(${Number(p.id)})">${shareSvg}</button><button class="liftFavMini" title="Agregar al carrito" onclick="${((typeof flavorsFor==='function'&&flavorsFor(p.id).length)||(Array.isArray(p.pdfFlavors)&&p.pdfFlavors.length))?`openLiftProductById(${Number(p.id)})`:`add(${Number(p.id)})`}">${cartSvg}</button><button class="liftFavMini" title="Quitar de favoritos" onclick="toggleLiftFavorite(${Number(p.id)});renderLiftFavorites();syncLiftFavoriteButtons()">×</button></div></div>`).join(''):'<div class="empty">Todavía no tienes favoritos.</div>';syncFavCount()}
+ window.renderLiftFavorites=function(){const body=document.getElementById('liftFavBody');if(!body)return;const ps=favProducts();body.innerHTML=ps.length?ps.map(p=>`<div class="liftFavLine"><img src="${p.image||''}" alt=""><div><div class="liftFavName">${typeof esc==='function'?esc(p.name):p.name}</div><div class="liftFavMeta">${typeof esc==='function'?esc(p.brand||''):p.brand||''}</div><div class="liftFavPrice${savingOf(p)?' promoPrice':''}">${savingOf(p)?`<span class="oldPrice">${fmt(compareAtOf(p))}</span> `:''}${typeof fmt==='function'?fmt(priceOf(p)):'$'+Number(p.price||0).toLocaleString('es-CO')}</div></div><div class="liftFavActions"><button class="liftFavMini" title="Compartir" onclick="shareLiftProductImage(${Number(p.id)})">${shareSvg}</button><button class="liftFavMini" title="Agregar al carrito" onclick="${((typeof flavorsFor==='function'&&flavorsFor(p.id).length)||(Array.isArray(p.pdfFlavors)&&p.pdfFlavors.length))?`openLiftProductById(${Number(p.id)})`:`add(${Number(p.id)})`}">${cartSvg}</button><button class="liftFavMini" title="Quitar de favoritos" onclick="toggleLiftFavorite(${Number(p.id)});renderLiftFavorites();syncLiftFavoriteButtons()">×</button></div></div>`).join(''):'<div class="empty">Todavía no tienes favoritos.</div>';syncFavCount()}
  window.syncLiftFavoriteButtons=function(){document.querySelectorAll('.liftCardFav').forEach(btn=>{const m=(btn.getAttribute('onclick')||'').match(/toggleLiftFavorite\((\d+)/);if(m)btn.classList.toggle('active',liftFavorites.has(Number(m[1])))})}
  const oldToggle=window.toggleLiftFavorite||toggleLiftFavorite;window.toggleLiftFavorite=function(id,btn){oldToggle(id,btn);syncFavCount();if(document.getElementById('liftFavOff')?.classList.contains('open'))renderLiftFavorites()}
  function addHeaderIcons(){const bar=document.querySelector('.top .bar');if(!bar)return;let cart=bar.querySelector('.cartDesktop');if(cart){cart.innerHTML=cartSvg+'<span id="count" class="badge">0</span>';cart.setAttribute('aria-label','Abrir carrito');cart.setAttribute('title','Carrito');cart.classList.add('liftHeaderIcon')}
@@ -5391,7 +5437,7 @@ body.liftAdminUnlocked #liftProviderBox{display:block}
  function wrap(ctx,text,maxWidth,maxLines=99){const words=String(text||'').split(/\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const t=line?line+' '+word:word;if(ctx.measureText(t).width>maxWidth&&line){lines.push(line);line=word;if(lines.length>=maxLines-1)break}else line=t}if(line&&lines.length<maxLines)lines.push(line);return lines}
  async function shareCanvas(canvas,name,title){const blob=await new Promise(r=>canvas.toBlob(r,'image/png',.94));if(!blob)throw new Error('No se pudo crear la imagen');const file=new File([blob],name,{type:'image/png'});await window.liftShareGeneratedImage(blob,file,title)}
  function drawHeader(ctx,W,title){ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,W,128);ctx.fillStyle='#fff';ctx.font='700 40px Poppins,Arial';ctx.fillText('LIFT NUTRIENTES',55,55);ctx.font='500 25px Poppins,Arial';ctx.fillText(title,55,96)}
- async function drawProduct(ctx,p,q,y,W){const rowH=205;ctx.strokeStyle='#e7e7e7';ctx.beginPath();ctx.moveTo(55,y+rowH-10);ctx.lineTo(W-55,y+rowH-10);ctx.stroke();try{const img=await liftLoadShareImage(p.image);if(img){const r=Math.min(140/img.width,140/img.height);ctx.drawImage(img,60+(140-img.width*r)/2,y+10+(140-img.height*r)/2,img.width*r,img.height*r)}}catch(e){}ctx.fillStyle='#777';ctx.font='500 19px Poppins,Arial';ctx.fillText(String(p.brand||'').toUpperCase(),225,y+32);ctx.fillStyle='#111';ctx.font='600 25px Poppins,Arial';wrap(ctx,p.name,720,2).forEach((ln,i)=>ctx.fillText(ln,225,y+70+i*33));if(p._cartFlavor){ctx.fillStyle='#666';ctx.font='500 18px Poppins,Arial';ctx.fillText('Sabor: '+p._cartFlavor,225,y+137)}ctx.fillStyle='#111';ctx.font='700 27px Poppins,Arial';ctx.fillText(money((typeof checkoutUnitPrice==='function'?checkoutUnitPrice(p):priceOf(p))*q),225,y+172);ctx.fillStyle='#666';ctx.font='500 18px Poppins,Arial';ctx.fillText('Cantidad: '+q,W-230,y+172);return rowH}
+ async function drawProduct(ctx,p,q,y,W){const rowH=205;ctx.strokeStyle='#e7e7e7';ctx.beginPath();ctx.moveTo(55,y+rowH-10);ctx.lineTo(W-55,y+rowH-10);ctx.stroke();try{const img=await liftLoadShareImage(p.image);if(img){const r=Math.min(140/img.width,140/img.height);ctx.drawImage(img,60+(140-img.width*r)/2,y+10+(140-img.height*r)/2,img.width*r,img.height*r)}}catch(e){}ctx.fillStyle='#777';ctx.font='500 19px Poppins,Arial';ctx.fillText(String(p.brand||'').toUpperCase(),225,y+32);ctx.fillStyle='#111';ctx.font='600 25px Poppins,Arial';wrap(ctx,p.name,720,2).forEach((ln,i)=>ctx.fillText(ln,225,y+70+i*33));if(p._cartFlavor){ctx.fillStyle='#666';ctx.font='500 18px Poppins,Arial';ctx.fillText('Sabor: '+p._cartFlavor,225,y+137)}const promoDate=typeof offerUntilText==='function'?offerUntilText(p):'';if(promoDate){ctx.fillStyle='#666';ctx.font='500 16px Poppins,Arial';ctx.fillText('Oferta hasta '+promoDate,225,y+158)}const unit=(typeof checkoutUnitPrice==='function'?checkoutUnitPrice(p):priceOf(p));const promo=(typeof savingOf==='function'&&savingOf(p)>0&&unit===priceOf(p));if(promo){const old=money(compareAtOf(p)*q);ctx.fillStyle='#8a8a8a';ctx.font='500 18px Poppins,Arial';ctx.fillText(old,225,y+178);const ow=ctx.measureText(old).width;ctx.strokeStyle='#8a8a8a';ctx.beginPath();ctx.moveTo(225,y+171);ctx.lineTo(225+ow,y+171);ctx.stroke();ctx.fillStyle='#168451';ctx.font='700 27px Poppins,Arial';ctx.fillText(money(unit*q),225,y+202)}else{ctx.fillStyle='#111';ctx.font='700 27px Poppins,Arial';ctx.fillText(money(unit*q),225,y+190)};ctx.fillStyle='#666';ctx.font='500 18px Poppins,Arial';ctx.fillText('Cantidad: '+q,W-230,y+172);return rowH}
  // Reemplaza la imagen del carrito de Fase 4 para que siempre muestre el total.
  window.shareLiftCartImage=async function(){try{const rows=typeof items==='function'?items():[];if(!rows.length){liftShareToast('No hay productos en el carrito');return}liftShareToast('Creando imagen…');const W=1080,rowH=205,H=128+45+rows.length*rowH+190,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);drawHeader(ctx,W,'Tu carrito');let y=165,total=0;for(const row of rows){const p=row.p,q=row.q||1;total+=priceOf(p)*q;y+=await drawProduct(ctx,p,q,y,W)}ctx.fillStyle='#111';ctx.font='600 24px Poppins,Arial';ctx.fillText('TOTAL',55,H-105);ctx.font='700 38px Poppins,Arial';const txt=money(total);ctx.fillText(txt,W-55-ctx.measureText(txt).width,H-102);ctx.fillStyle='#777';ctx.font='500 18px Poppins,Arial';ctx.fillText('Total de productos. El envío se calcula al finalizar la compra.',55,H-55);await shareCanvas(c,'lift-carrito.png','Carrito Lift Nutrientes')}catch(e){console.error(e);liftShareToast('No se pudo generar la imagen')}};
  function injectCheckoutShare(){const send=document.querySelector('#checkoutModal .checkoutSend');if(!send||document.getElementById('liftCheckoutShareBtn'))return;const b=document.createElement('button');b.id='liftCheckoutShareBtn';b.type='button';b.className='checkoutShareOrder';b.innerHTML=shareSvg+'<span>Compartir pedido con datos</span>';b.onclick=()=>shareLiftCheckoutImage();send.insertAdjacentElement('afterend',b)}
@@ -5934,7 +5980,7 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
  async function call(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo guardar la cotización');return j}
  function delivery(city){const n=String(city||'').toLowerCase();const local=['medellín','medellin','bello','itagüí','itagui','envigado','sabaneta','la estrella'].some(x=>n.includes(x));return local?'Ruta local: mismo día para pedidos confirmados antes de las 2:00 p. m., sujeto a disponibilidad.':'Envío nacional: 1 a 3 días hábiles después de generada la guía.'}
  function payments(city){const n=String(city||'').toLowerCase();const metro=['medellín','medellin','bello','itagüí','itagui','envigado','sabaneta','la estrella','copacabana','girardota','barbosa','caldas'].some(x=>n.includes(x));const base='Llave Bre-B · Bancolombia Ahorros · Bold para tarjetas de crédito (+ costo de la transacción por la pasarela)';return metro?base+' · Contraentrega en Área Metropolitana':base+' · Transferencia previa al despacho';}
- function quoteData(){const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';if(!nombre)throw new Error('Escribe el nombre del cliente.');if(!celular&&!whatsapp_usuario)throw new Error('Escribe el celular o @usuario de WhatsApp para guardar el prospecto.');if(typeof selectedCity==='undefined'||!selectedCity)throw new Error('Selecciona la ciudad / municipio para calcular la cotización.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty())||0,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+envio;const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q,image:p.image||''}));return{nombre,celular,whatsapp_usuario,direccion,notas,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',subtotal,envio,descuento:trainerCouponActive()?0:descuento,total,items,tiempo_entrega:delivery(selectedCity.name),medios_pago:payments(selectedCity.name)}}
+ function quoteData(){const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';if(!nombre)throw new Error('Escribe el nombre del cliente.');if(!celular&&!whatsapp_usuario)throw new Error('Escribe el celular o @usuario de WhatsApp para guardar el prospecto.');if(typeof selectedCity==='undefined'||!selectedCity)throw new Error('Selecciona la ciudad / municipio para calcular la cotización.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty())||0,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+envio;const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q,image:p.image||'',promo_hasta:(typeof offerUntilText==='function'?offerUntilText(p):''),precio_normal:(typeof savingOf==='function'&&savingOf(p)>0?compareAtOf(p):checkoutUnitPrice(p)),en_promo:(typeof savingOf==='function'&&savingOf(p)>0)}));return{nombre,celular,whatsapp_usuario,direccion,notas,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',subtotal,envio,descuento:trainerCouponActive()?0:descuento,total,items,tiempo_entrega:delivery(selectedCity.name),medios_pago:payments(selectedCity.name)}}
  window.liftToggleQuote=function(force){const f=document.getElementById('liftQuoteForm');if(!f)return;f.hidden=typeof force==='boolean'?!force:!f.hidden};
  function followISO(v){if(!v)return null;const d=new Date(v+'T12:00:00');return isNaN(d)?null:d.toISOString()}
  window.liftGenerateQuote=async function(){
@@ -6003,8 +6049,8 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
    x.fillStyle='#f6f6f6';x.fillRect(pad,iy,thumb,thumb);
    if(img){const r=Math.min(thumb/img.width,thumb/img.height),dw=img.width*r,dh=img.height*r;x.drawImage(img,pad+(thumb-dw)/2,iy+(thumb-dh)/2,dw,dh)}
    const tx=pad+thumb+28;x.font='600 21px Poppins,Arial';x.fillStyle='#111';const lines=wrap(x,it.cantidad+' × '+it.nombre,570).slice(0,3);lines.forEach((ln,i)=>x.fillText(ln,tx,y+i*27));
-   if(it.marca){x.font='500 17px Poppins,Arial';x.fillStyle='#777';x.fillText(it.marca,tx,y+lines.length*27+8)}
-   x.textAlign='right';x.font='600 21px Poppins,Arial';x.fillStyle='#111';x.fillText(money(it.total_linea),W-pad,y);x.textAlign='left';y+=rowH;
+   if(it.marca){x.font='500 17px Poppins,Arial';x.fillStyle='#777';x.fillText(it.marca,tx,y+lines.length*27+8)}if(it.promo_hasta){x.font='600 15px Poppins,Arial';x.fillStyle='#555';x.fillText('Oferta hasta '+it.promo_hasta,tx,y+lines.length*27+32)}
+   x.textAlign='right';if(it.en_promo&&Number(it.precio_normal)>Number(it.precio_unitario)){const old=money(Number(it.precio_normal)*Number(it.cantidad||1));x.font='500 15px Poppins,Arial';x.fillStyle='#8a8a8a';x.fillText(old,W-pad,y-20);const ow=x.measureText(old).width;x.strokeStyle='#8a8a8a';x.beginPath();x.moveTo(W-pad-ow,y-26);x.lineTo(W-pad,y-26);x.stroke();x.font='700 21px Poppins,Arial';x.fillStyle='#168451';x.fillText(money(it.total_linea),W-pad,y+8)}else{x.font='600 21px Poppins,Arial';x.fillStyle='#111';x.fillText(money(it.total_linea),W-pad,y)}x.textAlign='left';y+=rowH;
   }
   x.strokeStyle='#ddd';x.beginPath();x.moveTo(pad,y);x.lineTo(W-pad,y);x.stroke();y+=38;x.font='500 20px Poppins,Arial';x.fillStyle='#111';x.fillText('Subtotal',pad,y);x.textAlign='right';x.fillText(money(d.subtotal),W-pad,y);x.textAlign='left';y+=34;x.fillText('Envío',pad,y);x.textAlign='right';x.fillText(money(d.envio),W-pad,y);x.textAlign='left';y+=42;x.font='700 29px Poppins,Arial';x.fillText('TOTAL',pad,y);x.textAlign='right';x.fillText(money(d.total),W-pad,y);x.textAlign='left';y+=58;
   x.font='700 20px Poppins,Arial';x.fillText('ENTREGA ESTIMADA',pad,y);y+=29;x.font='500 18px Poppins,Arial';x.fillStyle='#555';for(const ln of wrap(x,d.tiempo_entrega,W-pad*2)){x.fillText(ln,pad,y);y+=25}y+=18;
@@ -8757,5 +8803,108 @@ header .liftSearchEnhanced::before{
 })();
 </script>
 
+
+<style id="lift-promo-price-system-v2">
+/* Una sola lectura visual para ofertas: normal gris/tachado, promo verde. */
+.oldPrice,.cartOldPrice,.checkoutOldPrice{color:#858585!important;text-decoration:line-through!important;text-decoration-thickness:1.5px!important;text-decoration-color:#777!important;opacity:1!important;font-weight:500!important}
+.promoPrice,.offerPrices .price.promoPrice,.liftMonoPriceArea .liftMonoPrice,.liftVariantPrices b{color:#168451!important}
+.cartOldPrice{display:block;font-size:10px!important;line-height:1.1;margin-bottom:3px}
+#cart .cartprice .promoPrice{color:#168451!important;font-weight:700!important}
+.checkoutOldPrice{font-size:10px!important;line-height:1.15;margin-bottom:3px}
+.checkoutProductPrice .promoPrice{color:#168451!important;font-weight:700!important}
+.searchOldPrice{color:#858585!important;text-decoration:line-through!important;opacity:1!important}
+.searchPrice:has(.searchOldPrice){color:#168451!important}
+.modalOldPrice{color:#858585!important;text-decoration:line-through!important;opacity:1!important;margin-right:8px}
+.modalPrice:has(.modalOldPrice){color:#168451!important}
+.liftFavPrice.promoPrice{color:#168451!important}
+@media(max-width:760px){.oldPrice{font-size:10.5px!important}.cartOldPrice,.checkoutOldPrice{font-size:9px!important}}
+</style>
+
+<style id="lift-card-promo-green-v3">
+.card .offerPrices .price.promoPrice,.card .promoPrice{color:#168451!important;}
+.card .saleBadge{background:#168451!important;color:#fff!important;border-color:#168451!important;}
+.card .flavorNote b{color:#168451!important;}
+.card .oldPrice{color:#858585!important;text-decoration:line-through!important;text-decoration-color:#777!important;opacity:1!important;}
+</style>
+
+<style id="lift-variant-group-editor-v2-style">
+.lafGroupActions{flex-wrap:wrap}.lafGroupActions .primary{background:#111;color:#fff;border-color:#111}
+#lafVariantEditBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:13000;display:none}#lafVariantEditBackdrop.show{display:block}
+#lafVariantEditModal{position:fixed;z-index:13001;inset:4vh max(12px,calc((100vw - 760px)/2));background:#fff;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.28);display:none;flex-direction:column;overflow:hidden}#lafVariantEditModal.show{display:flex}
+.lvgHead{padding:15px 17px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;gap:12px}.lvgHead strong{font-size:17px}.lvgHead small{display:block;color:#777;font-size:10px;margin-top:2px}.lvgClose{width:36px;height:36px;border:0;border-radius:50%;font-size:20px;cursor:pointer}
+.lvgBody{padding:14px 16px 22px;overflow:auto}.lvgGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.lvgField{display:grid;gap:4px;font-size:10px;font-weight:600}.lvgField.full{grid-column:1/-1}.lvgField input{height:40px;border:1px solid #ddd;border-radius:9px;padding:0 10px;font:inherit}.lvgTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:17px 0 8px}.lvgTitle b{font-size:12px}.lvgTitle span{font-size:10px;color:#777}
+.lvgVariant{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid #e8e8e8;border-radius:11px;padding:8px;margin:7px 0}.lvgVariant img{width:44px;height:44px;object-fit:contain;border-radius:7px}.lvgVariantFields{display:grid;grid-template-columns:1fr 1fr;gap:6px}.lvgVariantFields input{height:35px;border:1px solid #ddd;border-radius:8px;padding:0 8px;font:inherit;font-size:10px}.lvgRemove{width:34px;height:34px;border:1px solid #e3bcbc;background:#fff;color:#a11;border-radius:8px;cursor:pointer;font-size:18px}
+.lvgAddBox{border:1px dashed #ccc;border-radius:12px;padding:10px;margin-top:10px}.lvgSearch{width:100%;height:40px;border:1px solid #ddd;border-radius:9px;padding:0 10px;font:inherit}.lvgResults{max-height:210px;overflow:auto;margin-top:7px;display:grid;gap:5px}.lvgResult{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:7px;align-items:center;border:1px solid #eee;border-radius:9px;padding:6px;background:#fff}.lvgResult img{width:38px;height:38px;object-fit:contain}.lvgResult b{font-size:10px}.lvgResult small{display:block;color:#777;font-size:9px}.lvgResult button{height:31px;border:0;border-radius:8px;background:#111;color:#fff;padding:0 9px;font:600 9px Poppins;cursor:pointer}
+.lvgFoot{padding:12px 16px;border-top:1px solid #eee;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.lvgStatus{font-size:10px;color:#666;flex:1;min-width:180px}.lvgSave{height:40px;border:0;border-radius:10px;background:#111;color:#fff;padding:0 15px;font:600 11px Poppins;cursor:pointer}.lvgCancel{height:40px;border:1px solid #ddd;border-radius:10px;background:#fff;padding:0 15px;font:600 11px Poppins;cursor:pointer}
+@media(max-width:700px){#lafVariantEditModal{inset:2vh 8px}.lvgGrid{grid-template-columns:1fr}.lvgField.full{grid-column:auto}.lvgVariantFields{grid-template-columns:1fr}.lvgVariant{grid-template-columns:38px minmax(0,1fr) auto}.lvgVariant img{width:38px;height:38px}}
+</style>
+<div id="lafVariantEditBackdrop" onclick="lafCloseVariantGroupEditor()"></div>
+<div id="lafVariantEditModal" role="dialog" aria-modal="true" aria-label="Editar grupo de variaciones">
+ <div class="lvgHead"><div><strong>Editar grupo de variaciones</strong><small id="lvgSubtitle">Administra el producto principal y sus sabores</small></div><button class="lvgClose" type="button" onclick="lafCloseVariantGroupEditor()">×</button></div>
+ <div class="lvgBody">
+  <div class="lvgGrid">
+   <label class="lvgField full">Nombre principal<input id="lvgName"></label>
+   <label class="lvgField">Marca<input id="lvgBrand"></label><label class="lvgField">Categoría<input id="lvgCategory"></label>
+   <label class="lvgField">Presentación<input id="lvgPresentation"></label><label class="lvgField">Precio principal<input id="lvgPrice" inputmode="numeric"></label>
+   <label class="lvgField full">Imagen principal<input id="lvgImage" placeholder="URL de imagen"></label>
+  </div>
+  <div class="lvgTitle"><b>Productos dentro del grupo</b><span id="lvgCount"></span></div>
+  <div id="lvgVariants"></div>
+  <div class="lvgAddBox"><b style="font-size:11px">Añadir producto existente</b><div style="font-size:9px;color:#777;margin:3px 0 7px">Busca por nombre, marca, ID o presentación. No se duplica el producto.</div><input id="lvgProductSearch" class="lvgSearch" placeholder="Buscar producto…" oninput="lafVariantEditorSearch()"><div id="lvgSearchResults" class="lvgResults"></div></div>
+ </div>
+ <div class="lvgFoot"><div id="lvgStatus" class="lvgStatus"></div><button class="lvgCancel" type="button" onclick="lafCloseVariantGroupEditor()">Cancelar</button><button id="lvgSave" class="lvgSave" type="button" onclick="lafSaveVariantGroupEdit()">Guardar cambios</button></div>
+</div>
+<script id="lift-variant-group-editor-v2-js">
+(function(){
+ let editGroup=null, editVariants=[];
+ const $=id=>document.getElementById(id);
+ const esc2=s=>String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
+ const norm2=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const num2=v=>Number(String(v||'').replace(/[^0-9.-]/g,''))||0;
+ const money2=v=>Number(v||0).toLocaleString('es-CO');
+ function productById(id){return (window.PRODUCTS||PRODUCTS||[]).find(p=>String(p.id)===String(id))}
+ function snapshotVariant(v,i){const p=productById(v.producto_id);return {id:v.id||null,producto_id:Number(v.producto_id),sabor:String(v.sabor||p?.flavor||'Variación'),imagen:String(v.imagen||p?.image||''),precio:v.precio!=null?Number(v.precio):Number(p?.price||0),orden:i,product:p}}
+ function renderEditVariants(){
+   const host=$('lvgVariants'); if(!host)return;
+   $('lvgCount').textContent=editVariants.length+' producto'+(editVariants.length===1?'':'s');
+   host.innerHTML=editVariants.map((v,i)=>{const p=productById(v.producto_id)||v.product||{};return `<div class="lvgVariant" data-id="${esc2(v.producto_id)}"><img src="${esc2(v.imagen||p.image||'')}" onerror="this.style.visibility='hidden'"><div><div style="font-size:10px;font-weight:600;margin-bottom:5px">${esc2(p.name||('Producto ID '+v.producto_id))} <span style="color:#999;font-weight:400">· ID ${esc2(v.producto_id)}</span></div><div class="lvgVariantFields"><input class="lvgFlavor" value="${esc2(v.sabor||'')}" placeholder="Sabor / variación"><input class="lvgVariantImage" value="${esc2(v.imagen||p.image||'')}" placeholder="URL imagen"></div></div><button class="lvgRemove" type="button" title="Sacar del grupo" onclick="lafRemoveVariantFromEditor(${Number(v.producto_id)})">×</button></div>`}).join('');
+ }
+ window.lafOpenVariantGroupEditor=function(id){
+   const g=(window.LIFT_VARIANT_GROUP_ADMIN_CACHE||[]).find(x=>String(x.id)===String(id)); if(!g)return alert('No encontré el grupo. Recarga Variaciones.');
+   editGroup=JSON.parse(JSON.stringify(g)); const vv=Array.isArray(g.lift_producto_variantes)?g.lift_producto_variantes:[]; editVariants=vv.map(snapshotVariant);
+   $('lvgName').value=g.nombre||'';$('lvgBrand').value=g.marca||'';$('lvgCategory').value=g.categoria||'';$('lvgPresentation').value=g.presentacion||'';$('lvgPrice').value=money2(g.precio||0);$('lvgImage').value=g.imagen||'';
+   $('lvgSubtitle').textContent='Grupo ID '+g.id+' · los productos originales siguen intactos';$('lvgStatus').textContent='';$('lvgProductSearch').value='';$('lvgSearchResults').innerHTML='';renderEditVariants();
+   $('lafVariantEditBackdrop').classList.add('show');$('lafVariantEditModal').classList.add('show');document.body.style.overflow='hidden';
+ };
+ window.lafCloseVariantGroupEditor=function(){$('lafVariantEditBackdrop')?.classList.remove('show');$('lafVariantEditModal')?.classList.remove('show');document.body.style.overflow='';editGroup=null;editVariants=[]};
+ window.lafRemoveVariantFromEditor=function(productId){if(editVariants.length<=2){$('lvgStatus').textContent='Un grupo necesita mínimo 2 productos. Para dejar uno solo, desagrupa el grupo.';return}const p=productById(productId);if(!confirm('¿Sacar '+(p?.name||'este producto')+' del grupo? No se eliminará de Supabase.'))return;editVariants=editVariants.filter(v=>String(v.producto_id)!==String(productId));renderEditVariants();lafVariantEditorSearch()};
+ window.lafVariantEditorSearch=function(){const q=norm2($('lvgProductSearch')?.value||'');const host=$('lvgSearchResults');if(!host)return;if(!q){host.innerHTML='';return}const used=new Set(editVariants.map(v=>String(v.producto_id)));const arr=(window.PRODUCTS||PRODUCTS||[]).filter(p=>!used.has(String(p.id))&&norm2([p.id,p.name,p.brand,p.category,p.presentation,p.flavor].join(' ')).includes(q)).slice(0,30);host.innerHTML=arr.length?arr.map(p=>`<div class="lvgResult"><img src="${esc2(p.image||'')}" onerror="this.style.visibility='hidden'"><div><b>${esc2(p.name)}</b><small>ID ${esc2(p.id)} · ${esc2(p.brand||'')} · ${esc2(p.presentation||'')}</small></div><button type="button" onclick="lafAddProductToVariantEditor(${Number(p.id)})">Añadir</button></div>`).join(''):'<div style="font-size:10px;color:#777;padding:7px">No encontré productos.</div>'};
+ window.lafAddProductToVariantEditor=function(id){if(editVariants.some(v=>String(v.producto_id)===String(id)))return;const p=productById(id);if(!p)return;const guess=typeof lafGuessFlavor==='function'?lafGuessFlavor(p):(p.flavor||p.name||'Variación');editVariants.push({id:null,producto_id:Number(p.id),sabor:guess,imagen:p.image||'',precio:Number(p.price||0),orden:editVariants.length,product:p});renderEditVariants();$('lvgProductSearch').value='';$('lvgSearchResults').innerHTML='';$('lvgStatus').textContent='Producto añadido al borrador. Guarda los cambios para aplicarlo.'};
+ function readRows(){return [...document.querySelectorAll('#lvgVariants .lvgVariant')].map((row,i)=>{const id=Number(row.dataset.id),p=productById(id);return {producto_id:id,sabor:row.querySelector('.lvgFlavor').value.trim()||('Variación '+(i+1)),imagen:row.querySelector('.lvgVariantImage').value.trim(),precio:Number(editVariants.find(v=>String(v.producto_id)===String(id))?.precio??p?.price??0),orden:i}})}
+ window.lafSaveVariantGroupEdit=async function(){
+   if(!editGroup)return;const status=$('lvgStatus'),btn=$('lvgSave');const variants=readRows();if(variants.length<2){status.textContent='Necesitas mínimo 2 productos en el grupo.';return}
+   const group={nombre:$('lvgName').value.trim(),marca:$('lvgBrand').value.trim(),categoria:$('lvgCategory').value.trim(),presentacion:$('lvgPresentation').value.trim(),precio:num2($('lvgPrice').value),imagen:$('lvgImage').value.trim(),visible_publico:editGroup.visible_publico!==false};if(!group.nombre){status.textContent='El nombre principal no puede quedar vacío.';return}
+   const seen=new Set(),dup=variants.find(v=>{const k=norm2(v.sabor);if(seen.has(k))return true;seen.add(k);return false});if(dup&&!confirm('Hay sabores/variaciones con el mismo nombre. ¿Guardar así?'))return;
+   if(!window.liftCatalogAdminCall){status.textContent='No encontré la conexión administrativa con Supabase.';return}
+   if(!confirm('¿Guardar los cambios del grupo? Los productos que saques seguirán existiendo como productos independientes.'))return;
+   btn.disabled=true;status.textContent='Actualizando grupo en Supabase…';const oldId=Number(editGroup.id);
+   try{
+     /* Reutiliza las acciones ya existentes: desagrupa y reconstruye el grupo con la composición editada. */
+     await window.liftCatalogAdminCall({action:'delete-variant-group',id:oldId});
+     const res=await window.liftCatalogAdminCall({action:'merge-variants',product_ids:variants.map(v=>v.producto_id),group,variants});
+     status.textContent='✓ Grupo actualizado correctamente · ID '+(res.grupo_id||'nuevo')+'.';
+     if(typeof window.loadLiftPublicVariantGroups==='function')await window.loadLiftPublicVariantGroups().catch(()=>{});
+     await window.lafLoadVariantGroups();if(typeof render==='function')render();setTimeout(()=>lafCloseVariantGroupEditor(),650);
+   }catch(e){status.textContent='No se completó la edición: '+(e.message||e)+'. Los productos originales no se eliminan.';try{await window.lafLoadVariantGroups()}catch(_){}}
+   finally{btn.disabled=false}
+ };
+ const baseLoad=window.lafLoadVariantGroups;
+ window.lafLoadVariantGroups=async function(){
+   const el=$('lafVariantGroups');if(!el)return;if(!window.liftCatalogAdminCall){el.innerHTML='<div class="lafNote">Abre la sesión Admin para consultar los grupos.</div>';return}el.innerHTML='<div class="lafNote">Consultando Supabase…</div>';
+   try{const res=await window.liftCatalogAdminCall({action:'variant-groups'});const groups=Array.isArray(res.grupos)?res.grupos:[];window.LIFT_VARIANT_GROUP_ADMIN_CACHE=groups;if(!groups.length){el.innerHTML='<div class="lafNote">Todavía no hay grupos. Selecciona productos y usa “Agrupar como variaciones”.</div>';return}el.innerHTML=groups.map(g=>{const vv=Array.isArray(g.lift_producto_variantes)?g.lift_producto_variantes:[];return `<div class="lafGroupCard"><div class="lafGroupTop"><img src="${esc2(g.imagen||'')}" onerror="this.style.visibility='hidden'"><div><strong>${esc2(g.nombre||'Producto')}</strong><div class="lafGroupMeta">${esc2(g.marca||'')} · ${esc2(g.presentacion||'')} · ${vv.length} variante${vv.length===1?'':'s'} · ID grupo ${g.id}</div></div></div><div class="lafGroupFlavors">${vv.map(v=>esc2(v.sabor||'Variación')).join(' · ')}</div><div class="lafGroupActions"><button class="lafBtn primary" type="button" onclick="lafOpenVariantGroupEditor(${Number(g.id)})">Editar grupo</button><button class="lafBtn danger" type="button" onclick="lafDeleteVariantGroup(${Number(g.id)})">Desagrupar</button></div></div>`}).join('')}
+   catch(e){el.innerHTML='<div class="lafNote">No se pudieron cargar los grupos: '+esc2(e.message||e)+'</div>'}
+ };
+})();
+</script>
 </body>
 </html>
