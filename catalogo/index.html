@@ -864,18 +864,6 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 }
 </style>
 
-<style id="lift-mobile-offcanvas-close-fix">
-@media(max-width:640px){
- #productOffcanvas .offClose,#productOffcanvas .offcanvasClose,#productOffcanvas .liftMonoClose,
- #productOffcanvas [data-close-product],#productOffcanvas button[aria-label="Cerrar"],#productOffcanvas button[aria-label="Close"]{
-  position:fixed!important;top:max(12px,env(safe-area-inset-top))!important;right:12px!important;
-  z-index:2147483000!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
-  display:grid!important;place-items:center!important;padding:0!important;border:1px solid rgba(255,255,255,.3)!important;
-  border-radius:50%!important;background:rgba(17,17,17,.94)!important;color:#fff!important;
-  box-shadow:0 3px 16px rgba(0,0,0,.32)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
- }
-}
-</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -4682,24 +4670,35 @@ function toggleLiftFavorite(id,btn){id=Number(id);liftFavorites.has(id)?liftFavo
 function liftShareToast(msg){let el=document.getElementById('productShareToast');if(!el){el=document.createElement('div');el.id='productShareToast';el.className='productShareToast';document.body.appendChild(el)}el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200)}
 async function liftLoadShareImage(url){
  const raw=String(url||'').trim();
+ if(!raw)return null;
  const candidates=[];
  const add=u=>{if(u&&!candidates.includes(u))candidates.push(u)};
  const driveId=(()=>{let m=raw.match(/[?&]id=([^&]+)/i);if(m)return m[1];m=raw.match(/\/d\/([^/]+)/i);return m?m[1]:''})();
- // Google Drive suele mostrar bien la imagen en <img>, pero bloquear el canvas por CORS.
- // googleusercontent entrega el mismo archivo de forma mucho más compatible con canvas/compartir.
+ // Primero probamos la URL original/Drive. Si el servidor permite verla pero bloquea
+ // el canvas por CORS, el último candidato pasa por nuestra Edge Function de Supabase.
  if(driveId){
    add(`https://lh3.googleusercontent.com/d/${driveId}=w1600`);
    add(`https://drive.google.com/thumbnail?id=${driveId}&sz=w1600`);
  }
  add(raw.replace(/([?&]sz=)w\d+/i,'$1w1600'));
  add(raw);
+ const proxyBase='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/share-product-image';
+ add(proxyBase+'?url='+encodeURIComponent(raw));
  for(const u of candidates){
    try{
      const img=new Image();
      img.crossOrigin='anonymous';
      img.referrerPolicy='no-referrer';
-     await new Promise((res,rej)=>{const t=setTimeout(()=>rej(new Error('timeout')),9000);img.onload=()=>{clearTimeout(t);res()};img.onerror=()=>{clearTimeout(t);rej(new Error('image'))};img.src=u});
-     if(img.naturalWidth>0&&img.naturalHeight>0)return img;
+     await new Promise((res,rej)=>{const t=setTimeout(()=>rej(new Error('timeout')),12000);img.onload=()=>{clearTimeout(t);res()};img.onerror=()=>{clearTimeout(t);rej(new Error('image'))};img.src=u});
+     if(img.naturalWidth>0&&img.naturalHeight>0){
+       // Fuerza una lectura mínima. Una imagen puede cargar visualmente y aun así
+       // contaminar el canvas; en ese caso seguimos al proxy.
+       try{
+         const test=document.createElement('canvas');test.width=1;test.height=1;
+         const tx=test.getContext('2d');tx.drawImage(img,0,0,1,1);tx.getImageData(0,0,1,1);
+         return img;
+       }catch(e){continue}
+     }
    }catch(e){}
  }
  return null;
@@ -8755,172 +8754,6 @@ header .liftSearchEnhanced::before{
     if(foot)mo.observe(foot,{childList:true});
     reorder();
   }
-})();
-</script>
-
-
-<style id="lift-checkout-flow-v2">
-/* LIFT checkout admin v2: Cliente → Pedido → Pago → Acción */
-.liftAdminFlow{display:none}
-.liftAdminUnlocked #checkoutModal .liftAdminFlow{display:block}
-.liftAdminFlow{margin:0 0 14px}
-.liftFlowStatus{position:sticky;top:59px;z-index:3;background:#111;color:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;box-shadow:0 5px 18px rgba(0,0,0,.12)}
-.liftFlowStatusTop{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.liftFlowStatusName{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.liftFlowStatusState{font-size:8px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:4px 7px;white-space:nowrap}
-.liftFlowStatusMeta{font-size:9px;color:#ccc;margin-top:4px}
-.liftFlowSteps{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
-.liftFlowStep{border:1px solid #ddd;background:#fff;border-radius:9px;padding:7px 5px;text-align:center;font-size:9px;font-weight:600;color:#777}
-.liftFlowStep.done{background:#f4f4f4;color:#111;border-color:#bbb}
-.liftFlowSection{border:1px solid #e3e3e3;border-radius:13px;background:#fff;margin-bottom:9px;overflow:hidden}
-.liftFlowSectionHead{width:100%;border:0;background:#fafafa;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;text-align:left;cursor:pointer;font:600 11px Poppins,Arial}
-.liftFlowSectionHead small{font-size:8px;color:#888;font-weight:400}
-.liftFlowSectionBody{padding:11px}
-.liftFlowSection.collapsed .liftFlowSectionBody{display:none}
-.liftFlowClientSearch{display:grid;grid-template-columns:1fr 40px;gap:6px}
-.liftFlowClientSearch input{height:40px;border:1px solid #d7d7d7;border-radius:9px;padding:0 10px;font:inherit;font-size:11px}
-.liftFlowClientSearch button{border:0;border-radius:9px;background:#111;color:#fff;font-size:17px}
-.liftFlowPayGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.liftFlowPayGrid label{display:grid;gap:4px;font-size:9px;color:#666}
-.liftFlowPayGrid input,.liftFlowPayGrid select{height:38px;border:1px solid #d7d7d7;border-radius:8px;padding:0 9px;background:#fff;font:inherit;font-size:10px}
-.liftFlowActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.liftFlowAction{min-height:45px;border:1px solid #111;border-radius:10px;background:#fff;color:#111;font:600 10px Poppins,Arial;cursor:pointer;padding:7px}
-.liftFlowAction.primary{background:#111;color:#fff}
-.liftFlowAction.credit{background:#f6f6f6}
-.liftFlowMore{margin-top:9px;border-top:1px solid #eee;padding-top:9px}
-.liftFlowMore summary{cursor:pointer;font-size:10px;font-weight:600;color:#555}
-.liftFlowMoreBody{padding-top:9px;display:grid;gap:8px}
-.liftAdminUnlocked #checkoutModal #liftAdminPriceMode,
-.liftAdminUnlocked #checkoutModal #liftAdminCheckoutTools{display:none!important}
-.liftAdminUnlocked #checkoutModal #liftRecurringClientBox{margin:7px 0 0!important}
-.liftAdminUnlocked #checkoutModal .checkoutSummary>.checkoutSend,
-.liftAdminUnlocked #checkoutModal .checkoutSummary>#liftDirectCreditBtn,
-.liftAdminUnlocked #checkoutModal .checkoutSummary>#liftProviderBox{display:none!important}
-.liftAdminUnlocked #checkoutModal #liftManualProductBox{margin:0}
-.liftAdminUnlocked #checkoutModal .checkoutSummary{margin-top:10px}
-@media(max-width:620px){
- .liftFlowStatus{top:56px}
- .liftFlowSteps{grid-template-columns:repeat(4,1fr)}
- .liftFlowPayGrid,.liftFlowActions{grid-template-columns:1fr}
- .liftFlowStep{font-size:8px;padding:6px 2px}
-}
-</style>
-<script id="lift-checkout-flow-v2">
-(function(){
- const $=id=>document.getElementById(id);
- function admin(){return document.body.classList.contains('liftAdminUnlocked')}
- function moneyText(){return $('coTotal')?.textContent||'$0'}
- function qty(){try{return checkoutQty()}catch(e){return 0}}
- function clientReady(){return !!($('coName')?.value.trim()&&($('coPhone')?.value.trim()||$('coWhatsappUser')?.value.trim())&&$('coAddress')?.value.trim())}
- function cityReady(){try{return !!selectedCity}catch(e){return false}}
- function syncFlow(){
-  if(!admin())return;
-  const name=$('coName')?.value.trim()||'Cliente sin seleccionar';
-  const city=$('coCity')?.value.trim()||'Sin ciudad';
-  const pay=$('liftFlowPayment')?.value||$('liftPaymentType')?.value||'pagado';
-  const payLabel=pay==='credito'?'Crédito':pay==='abono'?'Abono + saldo':'Pagado';
-  if($('liftFlowName'))$('liftFlowName').textContent=name+' · '+city;
-  if($('liftFlowMeta'))$('liftFlowMeta').textContent=`${qty()} producto${qty()===1?'':'s'} · ${moneyText()} · ${payLabel}`;
-  if($('liftFlowState'))$('liftFlowState').textContent=clientReady()&&cityReady()?'LISTO PARA GUARDAR':'SIN GUARDAR';
-  $('liftStepClient')?.classList.toggle('done',clientReady());
-  $('liftStepOrder')?.classList.toggle('done',qty()>0);
-  $('liftStepPay')?.classList.toggle('done',true);
-  $('liftStepAction')?.classList.toggle('done',clientReady()&&cityReady()&&qty()>0);
- }
- function toggle(id){$(id)?.classList.toggle('collapsed')}
- function showClient(){
-  const box=$('liftRecurringClientBox');
-  box?.classList.add('liftClientBoxOpen');
-  setTimeout(()=>$('liftClientSearch')?.focus(),30);
- }
- function showCustomerActions(){
-  const original=document.querySelector('#checkoutModal .checkoutSummary>.checkoutSend');
-  if(!original)return;
-  original.click();
- }
- function showProvider(){
-  const p=$('liftProviderBox'); if(!p)return;
-  p.style.setProperty('display','block','important');
-  p.scrollIntoView({behavior:'smooth',block:'center'});
-  setTimeout(()=>p.style.removeProperty('display'),6000);
- }
- async function savePaid(){
-  if(!admin())return;
-  if(!clientReady()){alert('Completa primero los datos del cliente.');return}
-  if(!cityReady()){alert('Selecciona la ciudad del cliente.');return}
-  if(!qty()){alert('El pedido no tiene productos.');return}
-  if($('liftPaymentType')){$('liftPaymentType').value='pagado';window.liftPaymentChanged?.()}
-  if($('liftFlowPayment'))$('liftFlowPayment').value='pagado';
-  const b=$('liftFlowPaid'); if(b){b.disabled=true;b.textContent='Guardando…'}
-  try{
-   const ok=await window.liftSaveOrderHistory?.();
-   if(ok){
-    await window.liftSaveRecurringClient?.();
-    if($('liftFlowState'))$('liftFlowState').textContent='PEDIDO GUARDADO';
-    if(b)b.textContent='✓ Venta guardada';
-    setTimeout(()=>{if(b){b.disabled=false;b.textContent='✓ Confirmar venta'}},1500);
-   }
-  }catch(e){alert('No pude guardar el pedido: '+e.message);if(b){b.disabled=false;b.textContent='✓ Confirmar venta'}}
- }
- async function saveCredit(){
-  if($('liftPaymentType')){
-   const t=$('liftFlowPayment')?.value||'credito';
-   $('liftPaymentType').value=t==='pagado'?'credito':t;
-   window.liftPaymentChanged?.();
-  }
-  await window.liftSendCheckoutToCredit?.();
-  syncFlow();
- }
- function setPay(v){
-  if($('liftPaymentType')){$('liftPaymentType').value=v;window.liftPaymentChanged?.()}
-  const advanced=$('liftFlowCreditAdvanced');
-  if(advanced)advanced.hidden=v==='pagado';
-  syncFlow();
- }
- function syncAdvanced(){
-  const map=[['liftFlowInitial','liftInitialPayment'],['liftFlowDue','liftDueDate'],['liftFlowMethod','liftPaymentMethod'],['liftFlowDate','liftOrderDate']];
-  map.forEach(([a,b])=>{if($(a)&&$(b))$(b).value=$(a).value});
-  window.liftPaymentChanged?.();syncFlow();
- }
- function build(){
-  if(!admin()||$('liftAdminFlow'))return;
-  const body=document.querySelector('#checkoutModal .checkoutBody'); if(!body)return;
-  const flow=document.createElement('div');flow.id='liftAdminFlow';flow.className='liftAdminFlow';
-  flow.innerHTML=`
-   <div class="liftFlowStatus"><div class="liftFlowStatusTop"><div id="liftFlowName" class="liftFlowStatusName">Cliente sin seleccionar</div><div id="liftFlowState" class="liftFlowStatusState">SIN GUARDAR</div></div><div id="liftFlowMeta" class="liftFlowStatusMeta">0 productos · $0 · Pagado</div></div>
-   <div class="liftFlowSteps"><div id="liftStepClient" class="liftFlowStep">1 · Cliente</div><div id="liftStepOrder" class="liftFlowStep">2 · Pedido</div><div id="liftStepPay" class="liftFlowStep">3 · Pago</div><div id="liftStepAction" class="liftFlowStep">4 · Acción</div></div>
-   <div id="liftFlowClientSec" class="liftFlowSection"><button type="button" class="liftFlowSectionHead" onclick="liftFlowToggle('liftFlowClientSec')"><span>👤 1. Cliente</span><small>buscar o editar</small></button><div class="liftFlowSectionBody"><button type="button" class="liftFlowAction" style="width:100%" onclick="liftFlowShowClient()">⌕ Buscar cliente guardado</button><div style="font-size:9px;color:#777;margin-top:6px">Al elegir una dirección se completan los datos del checkout.</div></div></div>
-   <div id="liftFlowOrderSec" class="liftFlowSection collapsed"><button type="button" class="liftFlowSectionHead" onclick="liftFlowToggle('liftFlowOrderSec')"><span>🛒 2. Pedido</span><small id="liftFlowOrderSmall">productos y total</small></button><div class="liftFlowSectionBody"><div style="font-size:10px;color:#555">Los productos y valores están en el resumen inferior. Usa Producto manual solo cuando el artículo no exista en el catálogo.</div></div></div>
-   <div id="liftFlowPaySec" class="liftFlowSection"><button type="button" class="liftFlowSectionHead" onclick="liftFlowToggle('liftFlowPaySec')"><span>💳 3. Pago y fecha</span><small>hoy o pedido anterior</small></button><div class="liftFlowSectionBody">
-    <div class="liftFlowPayGrid"><label>Estado del pago<select id="liftFlowPayment" onchange="liftFlowSetPay(this.value)"><option value="pagado">Pagado</option><option value="credito">Crédito</option><option value="abono">Abono + saldo</option></select></label><label>Fecha del pedido<input id="liftFlowDate" type="date" onchange="liftFlowSyncAdvanced()"></label></div>
-    <div id="liftFlowCreditAdvanced" hidden><div class="liftFlowPayGrid" style="margin-top:8px"><label>Abono inicial<input id="liftFlowInitial" type="number" min="0" step="1000" value="0" oninput="liftFlowSyncAdvanced()"></label><label>Vencimiento<input id="liftFlowDue" type="date" onchange="liftFlowSyncAdvanced()"></label><label style="grid-column:1/-1">Medio del abono<input id="liftFlowMethod" placeholder="Nequi, Bancolombia, efectivo..." oninput="liftFlowSyncAdvanced()"></label></div></div>
-   </div></div>
-   <div class="liftFlowSection"><div class="liftFlowSectionHead" style="cursor:default"><span>⚡ 4. ¿Qué quieres hacer?</span><small>elige una acción</small></div><div class="liftFlowSectionBody">
-    <div class="liftFlowActions"><button id="liftFlowPaid" type="button" class="liftFlowAction primary" onclick="liftFlowSavePaid()">✓ Confirmar venta</button><button type="button" class="liftFlowAction credit" onclick="liftFlowSaveCredit()">💳 Enviar a crédito</button><button type="button" class="liftFlowAction" onclick="liftGenerateQuote()">📄 Crear cotización</button><button type="button" class="liftFlowAction" onclick="liftFlowCustomer()">💬 Enviar al cliente</button><button type="button" class="liftFlowAction" onclick="liftFlowProvider()">📦 Enviar al proveedor</button></div>
-    <details class="liftFlowMore"><summary>Más opciones</summary><div class="liftFlowMoreBody"><button type="button" class="liftFlowAction" onclick="liftToggleManualProduct()">＋ Producto manual</button><button type="button" class="liftFlowAction" onclick="liftToggleCheckoutTool('shipping',this)">🚚 Ajustar envío</button><button type="button" class="liftFlowAction" onclick="liftSetAdminPriceMode('trainer',null)">🏋️ Precio entrenador</button></div></details>
-   </div></div>`;
-  body.insertBefore(flow,body.firstChild);
-  const d=new Date().toISOString().slice(0,10);if($('liftFlowDate'))$('liftFlowDate').value=$('liftOrderDate')?.value||d;
-  body.addEventListener('input',syncFlow);body.addEventListener('change',syncFlow);
-  setTimeout(syncFlow,50);
- }
- window.liftFlowToggle=toggle;
- window.liftFlowShowClient=showClient;
- window.liftFlowCustomer=showCustomerActions;
- window.liftFlowProvider=showProvider;
- window.liftFlowSavePaid=savePaid;
- window.liftFlowSaveCredit=saveCredit;
- window.liftFlowSetPay=setPay;
- window.liftFlowSyncAdvanced=syncAdvanced;
-
- const oldOpen=window.openCheckout;
- if(typeof oldOpen==='function')window.openCheckout=function(){
-   const r=oldOpen.apply(this,arguments);
-   setTimeout(()=>{build();if($('liftAdminFlow')){const d=$('liftOrderDate')?.value||new Date().toISOString().slice(0,10);$('liftFlowDate').value=d;$('liftFlowPayment').value=$('liftPaymentType')?.value||'pagado';setPay($('liftFlowPayment').value);syncFlow()}},20);
-   return r;
- };
- new MutationObserver(()=>{if(admin())build()}).observe(document.body,{attributes:true,attributeFilter:['class']});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(build,100));else setTimeout(build,100);
 })();
 </script>
 
