@@ -1696,7 +1696,9 @@ function filtered(){
   }
   let out=base.filter(p=>!state.offerOnly||hasOffer(p));
   out=liftCatalogGrouped(out);
-  if(state.sort==='priceAsc') out=[...out].sort((a,b)=>priceOf(a)-priceOf(b));
+  if(state.sort==='nameAsc') out=[...out].sort((a,b)=>String(a?.name||'').localeCompare(String(b?.name||''),'es',{sensitivity:'base',numeric:true}));
+  else if(state.sort==='nameDesc') out=[...out].sort((a,b)=>String(b?.name||'').localeCompare(String(a?.name||''),'es',{sensitivity:'base',numeric:true}));
+  else if(state.sort==='priceAsc') out=[...out].sort((a,b)=>priceOf(a)-priceOf(b));
   else if(state.sort==='priceDesc') out=[...out].sort((a,b)=>priceOf(b)-priceOf(a));
   else if(state.sort==='offers') out=[...out].sort((a,b)=>(hasOffer(b)?1:0)-(hasOffer(a)?1:0)||Number(savingOf(b)||0)-Number(savingOf(a)||0));
   return out;
@@ -3227,7 +3229,7 @@ function renderProductDetail(p){
     if(document.getElementById('liftDiscovery')) return;
     const status=document.getElementById('status'); if(!status) return;
     const bar=document.createElement('div'); bar.id='liftDiscovery'; bar.className='liftDiscovery';
-    bar.innerHTML=`<div class="liftDiscoveryInner"><div class="liftQuickCats">${cats.map(([v,l])=>`<button class="liftQuickCat" data-cat="${v}">${l}</button>`).join('')}<button class="liftQuickCat" data-offers="1">🔥 Ofertas</button></div><select id="liftSort" class="liftSort" aria-label="Ordenar productos"><option value="recommended">Recomendados</option><option value="priceAsc">Menor precio</option><option value="priceDesc">Mayor precio</option><option value="offers">Ofertas primero</option></select></div>`;
+    bar.innerHTML=`<div class="liftDiscoveryInner"><div class="liftQuickCats">${cats.map(([v,l])=>`<button class="liftQuickCat" data-cat="${v}">${l}</button>`).join('')}<button class="liftQuickCat" data-offers="1">🔥 Ofertas</button></div><select id="liftSort" class="liftSort" aria-label="Ordenar productos"><option value="recommended">Recomendados</option><option value="nameAsc">Nombre A → Z</option><option value="nameDesc">Nombre Z → A</option><option value="priceAsc">Menor precio</option><option value="priceDesc">Mayor precio</option><option value="offers">Ofertas primero</option></select></div>`;
     status.parentNode.insertBefore(bar,status);
     bar.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{state.sort=document.getElementById('liftSort').value;setCat(b.dataset.cat);syncDiscovery()});
     bar.querySelector('[data-offers]').onclick=()=>{if(!state.offerOnly)showOffers();syncDiscovery()};
