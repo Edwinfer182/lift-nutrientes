@@ -2115,11 +2115,14 @@ function renderCheckoutSummary(){
   }).join('')}</div>`+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');
   const prog=document.getElementById('checkoutShippingProgress');
   if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());
-  document.getElementById('coSubtotal').textContent=fmt(sub);
+  const trainerActive=adminTrainerMode()||trainerCouponActive();
+  document.getElementById('coSubtotal').textContent=fmt(trainerActive?effectiveSub:sub);
+  const subtotalLabel=document.querySelector('#coSubtotal')?.closest('.checkoutLine')?.querySelector('span');
+  if(subtotalLabel)subtotalLabel.textContent=trainerActive?'Subtotal entrenador':'Subtotal';
   const dl=document.getElementById('coDiscountLine');
-  if(dl)dl.style.display=discount?'flex':'none';
-  if(discount){
-    document.getElementById('coDiscountLabel').textContent=adminTrainerMode()?'Precio entrenador':(trainerCouponActive()?`Precio entrenador · ${appliedCoupon.code}`:`Cupón ${appliedCoupon.code}`);
+  if(dl)dl.style.display=(!trainerActive&&discount)?'flex':'none';
+  if(discount&&!trainerActive){
+    document.getElementById('coDiscountLabel').textContent=`Cupón ${appliedCoupon.code}`;
     document.getElementById('coDiscount').textContent='-'+fmt(discount);
   }
   document.getElementById('coShipping').textContent=ship===null?'Selecciona ciudad':(ship===0?'Gratis':fmt(ship));
@@ -2139,12 +2142,14 @@ function checkoutText(){
   its.forEach(({p,q})=>{
     const pub=priceOf(p),eff=checkoutUnitPrice(p),flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
     const presentation=p.presentation?' · '+p.presentation:'';
-    const productName=`${p.name}${presentation}${flavor}`;
+    const brand=p.brand||p.marca||'';
+    const productName=`${p.name}${brand?' · '+brand:''}${presentation}${flavor}`;
     if(q>1) lines.push(`${q} -  ${productName}  · (${moneySpace(eff)} c/u) - ${moneySpace(eff*q)}`);
     else lines.push(`${q} -  ${productName}  · ${moneySpace(eff)} c/u`);
   });
-  lines.push('',`Subtotal público: ${moneySpace(sub)}`);
-  if(appliedCoupon&&discount)lines.push(`${trainerCouponActive()?'Precio entrenador':'Cupón'} ${appliedCoupon.code}: -${moneySpace(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);
+  const trainerActive=adminTrainerMode()||trainerCouponActive();
+  lines.push('',`${trainerActive?'Subtotal entrenador':'Subtotal público'}: ${moneySpace(trainerActive?effectiveSub:sub)}`);
+  if(appliedCoupon&&discount&&!trainerCouponActive())lines.push(`Cupón ${appliedCoupon.code}: -${moneySpace(discount)}${appliedCoupon.type==='referido'?' (Referido)':''}`);
   lines.push(`Envío: ${ship===0?'GRATIS':moneySpace(ship)}`,`Total: ${moneySpace(total)}`);
   return lines.filter((v,i)=>v!=='' || i===1 || i===7 || i===lines.length-4).join('\n');
 }
@@ -2162,26 +2167,28 @@ function providerCheckoutText(){
   const greeting=document.getElementById('liftProviderGreeting')?.value.trim()||'';
   const name=document.getElementById('coName')?.value.trim()||'',phone=document.getElementById('coPhone')?.value.trim()||'',address=document.getElementById('coAddress')?.value.trim()||'',notes=document.getElementById('coNotes')?.value.trim()||'';
   const its=checkoutItemsList();if(!its.length){alert('Agrega al menos un producto al pedido.');return ''}
-  const complete=providerCheckoutComplete(),lines=[];
+  const lines=[];
   if(greeting)lines.push(greeting,'');
-  if(complete){
-    lines.push(`Nombre: ${name}`,`Celular: ${phone}`,`Dirección: ${address}`,`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`);
-    if(notes)lines.push(`Notas: ${notes}`);
-    lines.push('');
-  }else if(notes){
-    lines.push(`Notas: ${notes}`,'');
-  }
+  // Siempre arma el mensaje con los datos disponibles, aunque el pedido esté incompleto.
+  if(name)lines.push(`Nombre: ${name}`);
+  if(phone)lines.push(`Celular: ${phone}`);
+  if(address)lines.push(`Dirección: ${address}`);
+  if(selectedCity?.name)lines.push(`Ciudad: ${selectedCity.name}${selectedCity.department?' · '+selectedCity.department:''}`);
+  if(notes)lines.push(`Notas: ${notes}`);
+  if(name||phone||address||selectedCity?.name||notes)lines.push('');
   lines.push(`Pedido:`);
   its.forEach(({p,q})=>{
+    const brand=p.brand||p.marca||'';
     const presentation=p.presentation?' · '+p.presentation:'';
     const flavor=p._cartFlavor?' · Sabor: '+p._cartFlavor:'';
-    lines.push(`${q} -  ${p.name}${presentation}${flavor}`);
+    lines.push(`${q} -  ${p.name}${brand?' · '+brand:''}${presentation}${flavor}`);
   });
-  // Los datos de pago solo tienen sentido cuando ya hay datos completos de entrega.
-  if(complete){
-    const sub=checkoutPublicSubtotal(its);
-    lines.push(``,``,`Cancela en efectivo ${fmt(sub)} contra entrega`,`Cancela ${fmt(sub)}  por transferencia contra entrega a esta cuenta:`,``,`Titular: Edwin Fernando Muñoz Tobon`,`🏦 Bancolombia ahorros`,`# 36655023431  / 🔑Llave  @edwin4518`);
-  }
+  // El valor a cobrar incluye el domicilio configurado en checkout.
+  const productSub=checkoutEffectiveSubtotal(its);
+  const autoShip=adminTrainerMode()?11000:shippingFor(selectedCity?.name||'',checkoutQty());
+  const ship=(typeof window.liftAdminShippingValue==='function')?window.liftAdminShippingValue(autoShip):autoShip;
+  const totalCobro=productSub+(Number(ship)||0);
+  lines.push('','',`Cancela en efectivo ${fmt(totalCobro)} contra entrega`,`Cancela ${fmt(totalCobro)} por transferencia contra entrega a esta cuenta:`,'',`Titular: Edwin Fernando Muñoz Tobon`,`🏦 Bancolombia ahorros`,`# 36655023431  / 🔑Llave  @edwin4518`);
   return lines.join('\n');
 }
 const LIFT_PROVIDERS=[
@@ -2206,7 +2213,15 @@ async function finishProviderCheckout(providerIndex){
   if(!document.body.classList.contains('liftAdminUnlocked'))return;
   const provider=LIFT_PROVIDERS[Number(providerIndex)];if(!provider)return;
   const t=providerCheckoutText();if(!t)return;
-  // Cotización: puede enviarse solo con productos. Pedido completo: además se registra una vez en Supabase.
+  const url=`https://wa.me/${provider.phone}?text=${encodeURIComponent(t)}`;
+  const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(navigator.maxTouchPoints||0)>1;
+  // En móvil WhatsApp debe abrir directamente desde el toque, sin esperar Supabase ni portapapeles.
+  if(mobile){
+    try{navigator.clipboard?.writeText(t).catch(()=>{})}catch(e){}
+    window.location.href=url;
+    return;
+  }
+  // En PC conservamos el flujo que ya funcionaba, incluido el guardado del pedido completo.
   if(providerCheckoutComplete()&&typeof window.liftSaveOrderHistory==='function'){
     const its=checkoutItemsList();
     const signature=JSON.stringify({name:document.getElementById('coName')?.value.trim(),phone:document.getElementById('coPhone')?.value.trim(),address:document.getElementById('coAddress')?.value.trim(),city:selectedCity?.name,items:its.map(x=>[x.p.id,x.p._cartFlavor||'',x.q]),total:document.getElementById('coTotal')?.textContent||''});
@@ -2217,7 +2232,7 @@ async function finishProviderCheckout(providerIndex){
     }
   }
   try{await navigator.clipboard.writeText(t)}catch(e){}
-  window.open(`https://wa.me/${provider.phone}?text=${encodeURIComponent(t)}`,'_blank','noopener');
+  window.open(url,'_blank','noopener');
 }
 window.LIFT_PROVIDERS=LIFT_PROVIDERS;
 window.renderProviderButtons=renderProviderButtons;
