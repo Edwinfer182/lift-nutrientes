@@ -1646,8 +1646,25 @@ hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBase
 priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
 compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
 savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
-offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
-offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
+offerBadges=function(p){
+  const go=p?._variantGroupId?liftGroupCardOffer(p):null;
+  if(!go)return _liftBaseOfferBadges(p);
+  const g=liftGroupById(p._variantGroupId);
+  const hasGift=!!(g&&liftGroupOffers(g).some(x=>x.o?.gift&&x.o?.giftProductId!=null));
+  return `<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA${hasGift?' · 🎁 REGALO':''}</span>`
+};
+offerDetails=function(p){
+  const go=p?._variantGroupId?liftGroupCardOffer(p):null;
+  if(!go)return _liftBaseOfferDetails(p);
+  const g=liftGroupById(p._variantGroupId);
+  const rows=g?liftGroupOffers(g):[];
+  const giftRows=rows.filter(x=>x.o?.gift&&x.o?.giftProductId!=null);
+  const labels=[...new Set(giftRows.map(x=>{
+    try{return typeof window.liftOfferGiftLabel==='function'?window.liftOfferGiftLabel(x.o):''}catch(e){return ''}
+  }).filter(Boolean))];
+  const giftHtml=giftRows.length?`<div class="giftBadge">🎁 ${labels.length===1?'Regalo: '+esc(labels[0]):'Incluye regalo'}</div>`:'';
+  return `${giftHtml}<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b>${giftRows.length&&giftRows.length!==go.count?` · ${giftRows.length} con regalo`:''}</div>`
+};
 priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
