@@ -5379,13 +5379,22 @@ body.liftAdminUnlocked #liftProviderBox{display:block}
  window.openLiftAdminAccess=function(){if(unlocked()){if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull();return}const m=$('liftAdminAccessModal');if(m)m.classList.add('open');const i=$('liftAdminAccessPassword');if(i){i.value='';setTimeout(()=>i.focus(),40)}const e=$('liftAdminAccessError');if(e)e.textContent=''};
  window.closeLiftAdminAccess=function(){const m=$('liftAdminAccessModal');if(m)m.classList.remove('open')};
  window.unlockLiftAdmin=function(){const i=$('liftAdminAccessPassword'),e=$('liftAdminAccessError');if(!i)return;if(i.value===ADMIN_PASSWORD){try{sessionStorage.setItem(SESSION_KEY,'1')}catch(x){}sync();closeLiftAdminAccess();if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull()}else{if(e)e.textContent='Clave incorrecta.';i.select()}};
- window.lockLiftAdmin=function(){try{sessionStorage.removeItem(SESSION_KEY);sessionStorage.removeItem('liftAdminCloudPasswordV1')}catch(e){}sync();if(typeof window.closeLiftAdminFull==='function')window.closeLiftAdminFull();try{const u=new URL(location.href);u.searchParams.delete('admin');history.replaceState(null,'',u.pathname+u.search+u.hash)}catch(e){}};
+ window.lockLiftAdmin=function(){try{sessionStorage.removeItem(SESSION_KEY);sessionStorage.removeItem('liftAdminCloudPasswordV1')}catch(e){}sync();if(typeof window.closeLiftAdminFull==='function')window.closeLiftAdminFull();try{const u=new URL(location.href);u.searchParams.delete('admin');u.searchParams.delete('fer');history.replaceState(null,'',u.pathname+u.search+u.hash)}catch(e){}};
  function initPrivateAdmin(){
-  sync();
   const params=new URLSearchParams(location.search);
+  const ferRoute=params.has('fer') || (params.get('admin')||'').toLowerCase()==='fer';
   const adminRoute=(params.get('admin')||'').toLowerCase()==='lift';
-  if(adminRoute){
-    if(unlocked()){ if(typeof window.openLiftAdminFull==='function') setTimeout(()=>window.openLiftAdminFull(),80); }
+  if(ferRoute){
+    try{
+      sessionStorage.setItem(SESSION_KEY,'1');
+      sessionStorage.setItem('liftAdminCloudPasswordV1',ADMIN_PASSWORD);
+    }catch(e){}
+  }
+  sync();
+  if(ferRoute){
+    if(typeof window.openLiftAdminFull==='function')setTimeout(()=>window.openLiftAdminFull(),120);
+  }else if(adminRoute){
+    if(unlocked()){if(typeof window.openLiftAdminFull==='function')setTimeout(()=>window.openLiftAdminFull(),80);}
     else setTimeout(()=>window.openLiftAdminAccess(),80);
   }
  }
@@ -7085,6 +7094,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 
 <style id="lift-crm-v1-style">
 #liftCrmBtn{display:none;width:100%;height:42px;margin:8px 0;border:1px solid #111;border-radius:10px;background:#111;color:#fff;font:600 10px Poppins;cursor:pointer}.liftAdminUnlocked #liftCrmBtn{display:block}
+#liftCrmFloatingBtn{display:none;position:fixed;right:18px;bottom:92px;z-index:16000;border:0;border-radius:999px;background:#111;color:#fff;padding:13px 17px;font:600 11px Poppins,Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.22);cursor:pointer}.liftAdminUnlocked #liftCrmFloatingBtn{display:block!important}@media(max-width:650px){#liftCrmFloatingBtn{right:12px;bottom:78px;padding:12px 14px;font-size:10px}}
 #liftCrmModal{position:fixed;inset:0;z-index:18000;background:rgba(0,0,0,.46);display:none;align-items:center;justify-content:center;padding:14px}#liftCrmModal.open{display:flex}
 .crmBox{width:min(96vw,900px);max-height:92vh;overflow:auto;background:#fff;border-radius:17px;padding:16px}.crmHead{display:flex;align-items:center;gap:10px}.crmHead h3{margin:0;flex:1;font-size:18px}.crmClose{width:34px;height:34px;border:0;border-radius:50%;background:#eee;font-size:18px}
 .crmTabs{display:flex;gap:6px;overflow:auto;margin:12px 0}.crmTabs button{white-space:nowrap;border:1px solid #ddd;background:#fff;border-radius:20px;padding:8px 11px;font:500 9px Poppins;cursor:pointer}.crmTabs button.active{background:#111;color:#fff;border-color:#111}
@@ -7120,7 +7130,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 (function(){
  const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const H={apikey:KEY,'Content-Type':'application/json',Prefer:'return=representation'};
- let clients=[],followups=[],filter='hoy',current=null;
+ let clients=[],followups=[],filter='todos',current=null;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=v=>'$ '+Number(v||0).toLocaleString('es-CO');
  async function api(path,opt={}){const r=await fetch(SB+'/rest/v1/'+path,{...opt,headers:{...H,...(opt.headers||{})},cache:'no-store'});const j=await r.json().catch(()=>[]);if(!r.ok)throw new Error(j.message||j.error||'Error Supabase');return j}
@@ -7167,9 +7177,14 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
    try{const j=await api('lift_seguimientos_clientes',{method:'POST',body:JSON.stringify(row)});followups.unshift(j[0]||row);st.textContent='✓ Seguimiento guardado en Supabase.';liftCrmClient(current.id)}catch(e){st.textContent=e.message}
  };
  function inject(){
-   if(document.getElementById('liftCrmBtn'))return;
-   const anchor=document.getElementById('liftProviderWalletBtn')||document.getElementById('liftAdminCheckoutTools')||document.getElementById('liftAdminPriceMode');if(!anchor)return;
-   const b=document.createElement('button');b.id='liftCrmBtn';b.type='button';b.textContent='Seguimiento clientes';b.onclick=liftCrmOpen;anchor.insertAdjacentElement('afterend',b);
+   let b=document.getElementById('liftCrmBtn');
+   if(!b){
+     const anchor=document.getElementById('liftProviderWalletBtn')||document.getElementById('liftAdminCheckoutTools')||document.getElementById('liftAdminPriceMode');
+     if(anchor){b=document.createElement('button');b.id='liftCrmBtn';b.type='button';b.textContent='CRM · Seguimiento clientes';b.onclick=()=>window.liftCrmOpen();anchor.insertAdjacentElement('afterend',b);}
+   }
+   if(!document.getElementById('liftCrmFloatingBtn')){
+     const f=document.createElement('button');f.id='liftCrmFloatingBtn';f.type='button';f.textContent='CRM · Clientes';f.onclick=()=>window.liftCrmOpen();document.body.appendChild(f);
+   }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,800));else setTimeout(inject,800);new MutationObserver(inject).observe(document.body,{childList:true,subtree:true});
 })();
@@ -9364,6 +9379,70 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
 <script id="lift-disable-automatic-order-save-v2">
 (function(){window.liftSaveOrderHistory=async function(){return true};})();
 </script>
+
+<style id="lift-crm-smart-v3-style">
+#liftCrmModal .crmBox{width:min(97vw,1080px)}
+.crmSmartStats{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}.crmSmartStat{border:1px solid #e5e5e5;border-radius:12px;padding:10px;background:#fafafa}.crmSmartStat b{display:block;font-size:20px}.crmSmartStat span{font-size:9px;color:#777}.crmDue{font-size:9px;font-weight:600;margin-top:5px}.crmDue.overdue{color:#b42318}.crmDue.today{color:#9a6700}.crmDue.future{color:#277142}.crmReason{font-size:9px;color:#555;margin-top:3px}.crmCard.crmHot{border-color:#f1c2bd;background:#fffafa}.crmCard.crmToday{border-color:#efd78a;background:#fffdf5}.crmSmartBox{margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.crmSmartBox h4{margin:0 0 5px;font-size:12px}.crmSmartBox p{margin:3px 0;font-size:10px;line-height:1.45}.crmMessage{width:100%;min-height:92px;border:1px solid #ddd;border-radius:10px;padding:10px;font:400 10px Poppins;resize:vertical;background:#fff}.crmQuick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.crmQuick button{border:1px solid #ddd;background:#fff;border-radius:999px;padding:7px 10px;font:600 9px Poppins;cursor:pointer}.crmSmartActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.crmSmartActions button,.crmSmartActions a{height:40px;border:0;border-radius:9px;font:600 10px Poppins;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}.crmCopyMsg{background:#111;color:#fff}.crmWaMsg{background:#18a558;color:#fff}.crmMini{font-size:8px;color:#888;margin-top:5px}.crmState.smart{background:#111;color:#fff}
+@media(max-width:650px){.crmSmartStats{grid-template-columns:1fr 1fr}.crmSmartActions{grid-template-columns:1fr}.crmBox{padding:12px!important}.crmCard{grid-template-columns:1fr!important}}
+
+.crmOrderSync{font-size:9px;color:#111;margin-top:4px;font-weight:600}
+@media(max-width:900px){.crmSmartStats{grid-template-columns:repeat(3,1fr)}}
+</style>
+<script id="lift-crm-smart-v3-script">
+(function(){
+ const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh', PASS='liftAdminCloudPasswordV1';
+ let S={clients:[],followups:[],orders:[],quotes:[],filter:'todos',current:null,recs:new Map()};
+ const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const day=86400000, now=()=>new Date(), start=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x}, add=(d,n)=>new Date(new Date(d).getTime()+n*day);
+ const fmt=d=>d?new Date(d).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}):'';
+ const money=n=>'$ '+Number(n||0).toLocaleString('es-CO');
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ async function call(payload){const r=await fetch(SB+'/functions/v1/lift-clientes',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:sessionStorage.getItem(PASS)||''}),cache:'no-store'});const j=await r.json().catch(()=>({}));if(!r.ok||j?.error)throw new Error(j?.error||'No se pudo cargar CRM');return j}
+ function latestFollow(id){return S.followups.filter(x=>+x.cliente_id===+id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))[0]||null}
+ function clientOrders(id){return S.orders.filter(x=>+x.cliente_id===+id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))}
+ function clientQuotes(id){return S.quotes.filter(x=>+x.cliente_id===+id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))}
+ function servings(name){const n=norm(name),m=n.match(/(\d{1,3})\s*(serv|servicios|porciones)/);if(m)return +m[1];const caps=n.match(/(\d{2,3})\s*(caps|capsulas|softgels|gomitas)/);if(caps)return +caps[1];const g=n.match(/(\d{2,4})\s*(g|gr|gramos)\b/);if(g&&n.includes('creatin'))return Math.max(1,Math.round(+g[1]/5));const lb=n.match(/([123456])\s*(lb|lbs|libras?)/);if(lb&&(n.includes('whey')||n.includes('protein')||n.includes('iso')||n.includes('bipro')||n.includes('nitro')))return +lb[1]*14;return 0}
+ function useDays(item){const n=norm(item?.nombre),sv=servings(n);if(n.includes('pre entren')||n.includes('pre-work')||n.includes('prework'))return sv?Math.round(sv/4*7):35;if(n.includes('creatin'))return sv||60;if(n.includes('protein')||n.includes('whey')||n.includes('isolate')||n.includes('iso100')||n.includes('iso xp')||n.includes('bipro'))return sv||30;if(n.includes('omega')||n.includes('multivit')||n.includes('magnes')||n.includes('zinc')||n.includes('ashwag')||n.includes('probio')||n.includes('melatonin'))return sv||60;return sv||30}
+ function productName(order){return order?.lift_pedido_productos?.[0]?.nombre||'tu último pedido'}
+ function recommendation(c){
+   const f=latestFollow(c.id), os=clientOrders(c.id), qs=clientQuotes(c.id), o=os[0], q=qs.find(x=>!['Ganada','No compró'].includes(String(x.estado||'')))||null, today=start(now());
+   const debt=os.find(x=>Number(x.saldo_pendiente||0)>0 && x.fecha_vencimiento);
+   let due=null,reason='',type='sin_contacto',product=o?productName(o):(f?.interes||'');
+   if(debt && start(debt.fecha_vencimiento)<=today){due=today;reason='Cartera vencida · saldo '+money(debt.saldo_pendiente);type='cartera'}
+   else if(f?.proximo_seguimiento && !['compro','no_interesado'].includes(f.estado)){due=new Date(f.proximo_seguimiento);reason='Seguimiento programado';type=f.estado||'seguimiento';product=f.interes||product}
+   else if(q){due=q.seguimiento_at?new Date(q.seguimiento_at):add(q.fecha,1);reason='Cotización pendiente'+(q.referencia?' · '+q.referencia:'');type='cotizado';product=q.lift_cotizacion_productos?.[0]?.nombre||f?.interes||product}
+   else if(o){
+     const age=Math.floor((today-start(o.fecha))/day);
+     if(age<=3){due=add(o.fecha,2);reason='Postventa · confirmar recepción y experiencia';type='postventa'}
+     else {const items=o.lift_pedido_productos||[], estimates=items.map(it=>({it,days:useDays(it)})).sort((a,b)=>a.days-b.days), e=estimates[0]||{it:{nombre:product},days:30};due=add(o.fecha,Math.max(7,e.days-5));product=e.it.nombre||product;reason='Recompra estimada · '+e.days+' días de uso aprox.';type='recompra'}
+   } else if(f){due=f.fecha?add(f.fecha,3):today;reason='Retomar conversación';type=f.estado||'seguimiento';product=f.interes||product}
+   else {due=today;reason='Cliente sin gestión comercial registrada';type='sin_contacto'}
+   const diff=Math.floor((start(due)-today)/day);return {due,reason,type,product,diff,overdue:diff<0,today:diff===0};
+ }
+ function message(c,r){const name=String(c.nombre||'').trim().split(/\s+/)[0]||'';const p=r.product||'tu producto';if(r.type==='cartera')return `Hola ${name}, ¿cómo estás? Te escribo de Lift Nutrientes para recordarte el saldo pendiente de tu pedido. Si ya realizaste el pago, me compartes el comprobante para actualizarlo. Gracias.`;if(r.type==='cotizado')return `Hola ${name}, ¿cómo estás? Te escribo por la cotización que te envié de ${p}. Quería saber si todavía lo estás buscando o si te ayudo a revisar disponibilidad y entrega.`;if(r.type==='postventa')return `Hola ${name}, ¿cómo te fue con tu pedido de ${p}? Quería confirmar que lo recibiste todo bien y que quedaste conforme con el producto.`;if(r.type==='recompra')return `Hola ${name}, ¿cómo estás? Por la fecha de tu último pedido de ${p}, es posible que ya estés cerca de terminarlo. Te escribo para revisar si necesitas reposición y confirmarte disponibilidad.`;if(r.type==='no_respondio')return `Hola ${name}, paso por acá porque habíamos hablado de ${p}. Si todavía lo estás buscando, te confirmo disponibilidad y entrega. Si ya lo resolviste, tranquilo.`;return `Hola ${name}, ¿cómo estás? Te escribo de Lift Nutrientes${p?' por '+p:''}. Quería saber si todavía lo estás buscando y si te puedo ayudar con disponibilidad o entrega.`}
+ function wa(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '#';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
+ async function load(){const j=await call({action:'crm-list'});S.clients=Array.isArray(j.clientes)?j.clientes:[];S.followups=Array.isArray(j.seguimientos)?j.seguimientos:[];S.orders=Array.isArray(j.pedidos)?j.pedidos:[];S.quotes=Array.isArray(j.cotizaciones)?j.cotizaciones:[];S.recs=new Map(S.clients.map(c=>[+c.id,recommendation(c)]));if(!S.clients.length&&S.orders.length)throw new Error('Supabase devolvió pedidos pero no clientes. Recarga el CRM.')}
+ function ensureStats(){const browse=$('crmBrowse');if(!browse)return;if(!$('crmSmartStats')){const d=document.createElement('div');d.id='crmSmartStats';d.className='crmSmartStats';browse.insertBefore(d,browse.firstChild)}}
+ function counts(){const rs=[...S.recs.values()],today=rs.filter(r=>r.today).length,late=rs.filter(r=>r.overdue).length,rep=rs.filter(r=>r.type==='recompra'&&r.diff<=7).length,quotes=rs.filter(r=>r.type==='cotizado'&&r.diff<=7).length;return {today,late,rep,quotes,clients:S.clients.length,orders:S.orders.length}}
+ function render(){ensureStats();const C=counts();$('crmSmartStats').innerHTML=`<div class="crmSmartStat"><b>${C.clients}</b><span>Clientes sincronizados</span></div><div class="crmSmartStat"><b>${C.orders}</b><span>Pedidos sincronizados</span></div><div class="crmSmartStat"><b>${C.today}</b><span>Contactar hoy</span></div><div class="crmSmartStat"><b>${C.late}</b><span>Atrasados</span></div><div class="crmSmartStat"><b>${C.rep}</b><span>Recompra próxima</span></div><div class="crmSmartStat"><b>${C.quotes}</b><span>Cotizaciones activas</span></div>`;
+   const tabs=[['hoy','Hoy'],['atrasados','Atrasados'],['recompra','Recompra'],['cotizado','Cotizados'],['cartera','Cartera'],['sin_contacto','Sin gestión'],['todos','Todos']];$('crmTabs').innerHTML=tabs.map(([k,t])=>`<button class="${S.filter===k?'active':''}" onclick="liftCrmSetFilter('${k}')">${t}</button>`).join('');
+   const q=norm($('crmSearch')?.value||'');let rows=S.clients.map(c=>({c,r:S.recs.get(+c.id)})).filter(({c,r})=>{if(q&&!norm((c.nombre||'')+' '+(c.celular||'')).includes(q))return false;if(S.filter==='todos')return true;if(S.filter==='hoy')return r.today;if(S.filter==='atrasados')return r.overdue;if(S.filter==='recompra')return r.type==='recompra'&&r.diff<=7;if(S.filter==='cotizado')return r.type==='cotizado';if(S.filter==='cartera')return r.type==='cartera';if(S.filter==='sin_contacto')return r.type==='sin_contacto';return true}).sort((a,b)=>a.r.due-b.r.due);
+   $('crmList').innerHTML=rows.map(({c,r})=>{const due=r.overdue?`Atrasado ${Math.abs(r.diff)} d`:r.today?'Contactar hoy':r.diff===1?'Mañana':`En ${r.diff} d`,os=clientOrders(c.id),last=os[0],orderInfo=os.length?`${os.length} pedido${os.length===1?'':'s'} · Último ${fmt(last.fecha)}`:'Sin pedidos guardados';return `<div class="crmCard ${r.overdue?'crmHot':r.today?'crmToday':''}" onclick="liftCrmClient(${c.id})"><div><b>${esc(c.nombre||'Sin nombre')}</b><div class="crmMeta">${esc(c.celular||'')}</div><div class="crmOrderSync">🛒 ${esc(orderInfo)}${last?' · '+esc(productName(last)):''}</div><div class="crmReason">${esc(r.reason)}</div><div class="crmDue ${r.overdue?'overdue':r.today?'today':'future'}">${due} · ${fmt(r.due)}</div></div><span class="crmState smart">${esc(r.type.replace('_',' '))}</span></div>`}).join('')||'<div class="crmStatus">No hay clientes en esta vista.</div>';
+ }
+ function ensureSmartBox(){if($('crmSmartBox'))return;const fields=$('crmForm')?.querySelector('.crmFields');if(!fields)return;const box=document.createElement('div');box.id='crmSmartBox';box.className='crmSmartBox';fields.insertAdjacentElement('beforebegin',box)}
+ function client(id){S.current=S.clients.find(x=>+x.id===+id);if(!S.current)return;const r=S.recs.get(+id),f=latestFollow(id),os=clientOrders(id),last=os[0];$('crmBrowse').style.display='none';$('crmForm').classList.add('open');$('crmClientTitle').textContent=S.current.nombre+' · '+S.current.celular;$('crmEstado').value=f?.estado||'seguimiento';$('crmInteres').value=f?.interes||r.product||'';$('crmValor').value=f?.valor_cotizado||'';$('crmNota').value='';$('crmProximo').value='';ensureSmartBox();const msg=message(S.current,r);$('crmSmartBox').innerHTML=`<h4>Próximo contacto recomendado: ${r.overdue?'AHORA':r.today?'HOY':fmt(r.due)}</h4><p><b>Motivo:</b> ${esc(r.reason)}</p><p><b>Producto:</b> ${esc(r.product||'Sin producto identificado')}</p><p><b>Pedidos sincronizados:</b> ${os.length}${last?' · Último '+fmt(last.fecha)+' · '+esc(productName(last)):''}</p><div class="crmQuick"><button onclick="liftCrmQuickDate(1)">+1 día</button><button onclick="liftCrmQuickDate(3)">+3 días</button><button onclick="liftCrmQuickDate(7)">+7 días</button><button onclick="liftCrmQuickDate(30)">+30 días</button></div><textarea id="crmSmartMessage" class="crmMessage">${esc(msg)}</textarea><div class="crmSmartActions"><button class="crmCopyMsg" onclick="liftCrmCopyMessage()">Copiar mensaje</button><a id="crmSmartWa" class="crmWaMsg" target="_blank" href="${wa(S.current.celular,msg)}">Abrir WhatsApp</a></div><div class="crmMini">La fecha de recompra es una estimación según el producto y la presentación. El seguimiento manual siempre tiene prioridad.</div>`;
+   const hs=S.followups.filter(x=>+x.cliente_id===+id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));$('crmHistory').innerHTML=hs.map(x=>`<div class="crmHistoryRow"><b>${esc(x.estado||'Seguimiento')} · ${new Date(x.fecha).toLocaleString('es-CO')}</b><br>${x.interes?esc(x.interes)+' · ':''}${x.valor_cotizado?money(x.valor_cotizado)+' · ':''}${esc(x.nota||'')}${x.proximo_seguimiento?'<br>Próximo: '+new Date(x.proximo_seguimiento).toLocaleString('es-CO'):''}</div>`).join('')||'<div class="crmHistoryRow">Sin seguimientos todavía.</div>';
+ }
+ window.liftCrmQuickDate=n=>{const d=add(now(),Number(n));d.setHours(10,0,0,0);const pad=x=>String(x).padStart(2,'0');$('crmProximo').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
+ window.liftCrmCopyMessage=async()=>{const t=$('crmSmartMessage')?.value||'';try{await navigator.clipboard.writeText(t)}catch(e){}const a=$('crmSmartWa');if(a&&S.current)a.href=wa(S.current.celular,t);const b=document.querySelector('.crmCopyMsg');if(b){const old=b.textContent;b.textContent='✓ Copiado';setTimeout(()=>b.textContent=old,1200)}};
+ window.liftCrmSetFilter=f=>{S.filter=f;render()};window.liftCrmRender=render;window.liftCrmClient=client;
+ window.liftCrmBack=function(){$('crmBrowse').style.display='';$('crmForm').classList.remove('open');render()};
+ window.liftCrmOpen=async function(){if(!document.body.classList.contains('liftAdminUnlocked'))return;$('liftCrmModal').classList.add('open');$('crmBrowse').style.display='';$('crmForm').classList.remove('open');ensureStats();$('crmSmartStats').innerHTML='<div class="crmSmartStat"><b>…</b><span>Sincronizando Supabase</span></div>';$('crmList').innerHTML='<div class="crmStatus">Cargando clientes, pedidos y seguimientos desde Supabase…</div>';try{await load();S.filter='todos';render()}catch(e){$('crmSmartStats').innerHTML='<div class="crmSmartStat"><b>!</b><span>Error de sincronización</span></div>';$('crmList').innerHTML='<div class="crmStatus">No se pudo sincronizar: '+esc(e.message)+'</div>'}};
+ window.liftCrmReload=async function(){await load();if($('liftCrmModal')?.classList.contains('open'))render();return true};
+ const oldSave=window.liftCrmSave;window.liftCrmSave=async function(){if(typeof oldSave==='function')await oldSave();try{await load();if(S.current)client(S.current.id)}catch(e){}};
+})();
+</script>
+
 </body>
 </html>
 <style id="lift-client-directory-v1">
