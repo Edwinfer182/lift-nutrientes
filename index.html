@@ -2254,6 +2254,12 @@ async function registerCouponUse(){
 }
 async function finishCheckout(){
   const t=checkoutText();if(!t)return;
+  if(document.body.classList.contains('liftAdminUnlocked')){
+    if(typeof window.liftSaveOrderHistory!=='function'){alert('No se pudo guardar: el módulo de Supabase no está disponible.');return}
+    const saved=await window.liftSaveOrderHistory();
+    if(saved!==true)return;
+    if(typeof window.liftSaveRecurringClient==='function')await window.liftSaveRecurringClient();
+  }
   const popup=window.open('about:blank','_blank');
   const ok=await registerCouponUse();
   if(!ok){if(popup)popup.close();return}
@@ -6703,13 +6709,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
    return true;
   }catch(e){console.error(e);alert('No pude guardar el pedido en Supabase: '+e.message);return false}
  };
- // Guardar desde cualquiera de los dos cierres administrativos, sin duplicar el guardado.
- function install(){
-  const wrap=name=>{const old=window[name];if(typeof old!=='function'||old.__liftCreditWrapped)return;const f=async function(){const r=await old.apply(this,arguments);await window.liftSaveOrderHistory();return r};f.__liftCreditWrapped=true;window[name]=f};
-  wrap('finishCheckout');
-  // finishProviderCheckout ya venía envuelto por historial en el archivo; reemplazamos su guardado con la función nueva.
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,50));else setTimeout(install,50);
+ // El checkout base llama explícitamente a liftSaveOrderHistory. Sin wrappers ni dobles guardados.
 })();
 </script>\n
 
