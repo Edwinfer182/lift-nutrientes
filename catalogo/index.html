@@ -1330,19 +1330,10 @@ PRODUCTS.forEach(p=>Object.assign(p,{_attr:attrs(p)}));
   IMPORTANTE: costos de proveedor y márgenes NO se guardan aquí porque este
   archivo se ejecuta en el navegador y el cliente podría inspeccionarlos.
 */
-const WEEKLY_OFFERS={
-  618:{promoUntil:"2026-09-13T23:59:59-05:00",price:149000,gift:false,flavors:["Cherry Limeade","Green Apple Jolly Rancher"]}, // C4 Pack x12
-  166:{promoUntil:"2026-09-13T23:59:59-05:00",price:79000,gift:false},                    // Simply Creatina 300 g
-  123:{promoUntil:"2026-09-13T23:59:59-05:00",price:199000,gift:false,flavors:["Cocoa Pebbles"]}, // ISO 100 1.3 lb
-  96:{promoUntil:"2026-09-13T23:59:59-05:00",price:225000,gift:false},                    // Cell Tech 6 lb
-  126:{promoUntil:"2026-09-13T23:59:59-05:00",price:550000,gift:true,flavors:["Brownie","Cookies","Birthday Cake"]}, // ISO 100 5 lb
-  142:{promoUntil:"2026-09-13T23:59:59-05:00",price:149000,gift:false,flavors:["Dubai Chocolate","Boston Cream Donut","Dulce de Leche"]}, // Basic Whey 2 lb
-  127:{promoUntil:"2026-09-13T23:59:59-05:00",price:250000,gift:true,flavors:["Chocolate"]}, // Super Mass Gainer 6 lb
-  559:{promoUntil:"2026-09-13T23:59:59-05:00",price:99000,gift:true},                     // Creatina Iron 500 g
-  101:{promoUntil:"2026-09-13T23:59:59-05:00",price:119000,gift:false},                   // Creatina Chews 90 tabs
-  605:{promoUntil:"2026-09-13T23:59:59-05:00",price:55000,gift:false},                    // Protein Pancake Wakeup
-  90:{promoUntil:"2026-09-13T23:59:59-05:00",price:69000,gift:false}                      // Multivitamínico Platinum 90 caps
-}
+// OFERTAS: estado de ejecución únicamente.
+// La fuente persistente y única es Supabase: lift_catalog_config.clave = "weekly_offers".
+const WEEKLY_OFFERS={}
+
 function offerOf(p){const o=WEEKLY_OFFERS[p.id]||null;if(!o)return null;if(o.promoUntil&&Date.now()>new Date(o.promoUntil).getTime())return null;return o}
 function hasOffer(p){return !!offerOf(p)}
 function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
@@ -5326,8 +5317,8 @@ window.shareLiftProductImage=async function(id){
 };
  window.lafRenameCategory=function(old,id){const n=$(id).value.trim();if(!n||n===old)return;PRODUCTS.filter(p=>p.category===old).forEach(p=>{p.category=n;patch(p)});refresh();lafRenderCategories()};
  window.lafRenderOffers=function(){const q=norm($('lafOfferSearch').value);const a=PRODUCTS.filter(p=>(!q||norm([p.name,p.brand].join(' ')).includes(q))&&(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).concat(PRODUCTS.filter(p=>!q||norm([p.name,p.brand].join(' ')).includes(q)).filter(p=>!(typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id])).slice(0,40));$('lafOfferList').innerHTML=a.slice(0,150).map(p=>{const o=typeof WEEKLY_OFFERS!=='undefined'?WEEKLY_OFFERS[p.id]:null;const date=o?.promoUntil?String(o.promoUntil).slice(0,10):'';return `<div class="lafOfferRow"><div><b style="font-size:11px">${esc(p.name)}</b><div class="lafMeta">Detal $${fmt(p.price)}</div></div><input class="lafPrice" id="lafo_${p.id}" placeholder="Precio oferta" value="${o?fmt(o.price):''}"><input class="lafPrice" type="date" id="lafod_${p.id}" value="${date}"><button class="lafBtn ${o?'danger':'primary'}" onclick="lafToggleOffer(${JSON.stringify(p.id)})">${o?'Quitar':'Guardar'}</button></div>`}).join('')};
- window.lafToggleOffer=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p||typeof WEEKLY_OFFERS==='undefined')return;if(WEEKLY_OFFERS[id]){delete WEEKLY_OFFERS[id]}else{const pr=num($('lafo_'+id).value),d=$('lafod_'+id).value;if(!pr){alert('Escribe el precio de oferta');return}WEEKLY_OFFERS[id]={price:pr,promoUntil:d?d+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:false}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m);refresh();lafRenderOffers()};
- function loadSavedOffers(){const m=meta();if(typeof WEEKLY_OFFERS!=='undefined'&&m.offers)Object.assign(WEEKLY_OFFERS,m.offers)}
+ window.lafToggleOffer=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p||typeof WEEKLY_OFFERS==='undefined')return;if(WEEKLY_OFFERS[id]){delete WEEKLY_OFFERS[id]}else{const pr=num($('lafo_'+id).value),d=$('lafod_'+id).value;if(!pr){alert('Escribe el precio de oferta');return}WEEKLY_OFFERS[id]={price:pr,promoUntil:d?d+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:false}}refresh();lafRenderOffers()};
+ function loadSavedOffers(){/* Sin localStorage: las ofertas llegan exclusivamente desde Supabase. */}
  function ensureXLSX(cb){if(window.XLSX)return cb();let sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';sc.onload=cb;sc.onerror=()=>alert('No se pudo cargar el lector de Excel. Revisa la conexión.');document.head.appendChild(sc)}
  function productRows(list=PRODUCTS){const m=meta();return list.map(p=>({ID:p.id,Producto:p.name,Marca:p.brand||'',Categoria:p.category||'',Presentacion:p.presentation||'',Precio_detal:Number(p.price)||0,Estado:m.out?.[p.id]?'Agotado':'Disponible',Imagen:p.image||'',Descripcion:p.description||'',Sabores:Array.isArray(p.flavors)?p.flavors.join(' | '):''}))}
  function offerRows(){if(typeof WEEKLY_OFFERS==='undefined')return[];return Object.entries(WEEKLY_OFFERS).map(([id,o])=>{const p=PRODUCTS.find(x=>String(x.id)===String(id));return {ID:Number(id),Producto:p?.name||'',Precio_normal:p?.price||0,Precio_oferta:o.price||0,Fecha_fin:o.promoUntil||'',Regalo:o.gift?'SI':'NO'}})}
@@ -5340,7 +5331,7 @@ window.shareLiftProductImage=async function(id){
  function normalizeRow(r){return {id:num(rowVal(r,['id','codigo','sku']))||null,name:String(rowVal(r,['producto','nombre','name'])||'').trim(),brand:String(rowVal(r,['marca','brand'])||'').trim(),category:String(rowVal(r,['categoria','category'])||'').trim(),presentation:String(rowVal(r,['presentacion','presentation'])||'').trim(),price:num(rowVal(r,['precio_detal','precio','price','precio_publico'])),status:norm(rowVal(r,['estado','status'])),image:String(rowVal(r,['imagen','image','url_imagen'])||'').trim(),description:String(rowVal(r,['descripcion','description'])||'').trim(),flavors:String(rowVal(r,['sabores','sabor','flavors'])||'').split(/[|,;]+/).map(x=>x.trim()).filter(Boolean)}}
  function previewTable(rows){if(!rows.length)return '<div class="lafNote">Sin filas.</div>';const ks=Object.keys(rows[0]);return '<table><thead><tr>'+ks.map(k=>`<th>${esc(k)}</th>`).join('')+'</tr></thead><tbody>'+rows.slice(0,30).map(r=>'<tr>'+ks.map(k=>`<td>${esc(r[k])}</td>`).join('')+'</tr>').join('')+'</tbody></table>'}
  window.lafPreviewImport=function(){const f=$('lafImportFile').files[0];if(!f)return alert('Selecciona un archivo.');const ext=f.name.split('.').pop().toLowerCase();const done=data=>{pending=data;$('lafImportPreview').style.display='block';$('lafImportPreview').innerHTML=previewTable(data.products);$('lafImportResult').textContent=`Listo: ${data.products.length} productos, ${data.offers.length} ofertas, ${data.combos.length} combos.`;$('lafApplyImport').disabled=false};if(ext==='json'){const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);done({products:(j.products||j.Productos||[]).map(normalizeRow),offers:j.offers||j.Ofertas||[],combos:(j.combos||j.Combos||[]).map(normalizeRow)})}catch(e){alert('JSON inválido')}};rd.readAsText(f);return}ensureXLSX(()=>{const rd=new FileReader();rd.onload=()=>{const wb=XLSX.read(rd.result,{type:'array'});const get=n=>{const sh=wb.Sheets[wb.SheetNames.find(x=>norm(x)===norm(n))||wb.SheetNames[0]];return sh?XLSX.utils.sheet_to_json(sh,{defval:''}):[]};const products=get('Productos').map(normalizeRow);let offers=[];const os=wb.Sheets[wb.SheetNames.find(x=>norm(x)==='ofertas')];if(os)offers=XLSX.utils.sheet_to_json(os,{defval:''});let combos=[];const cs=wb.Sheets[wb.SheetNames.find(x=>norm(x)==='combos')];if(cs)combos=XLSX.utils.sheet_to_json(cs,{defval:''}).map(normalizeRow);done({products,offers,combos})};rd.readAsArrayBuffer(f)})};
- window.lafApplyImport=function(){const mode=$('lafImportMode').value;let added=0,updated=0;if(mode==='replace'){PRODUCTS.splice(0,PRODUCTS.length);localStorage.removeItem(KEY)}const all=[...pending.products,...pending.combos];for(const r of all){if(!r.name)continue;let p=r.id?PRODUCTS.find(x=>String(x.id)===String(r.id)):PRODUCTS.find(x=>norm(x.name)===norm(r.name)&&norm(x.brand)===norm(r.brand));if(p){if(mode==='add')continue;Object.assign(p,{name:r.name||p.name,brand:r.brand||p.brand,category:r.category||p.category,presentation:r.presentation||p.presentation,price:r.price||p.price,image:r.image||p.image,description:r.description||p.description,flavors:r.flavors?.length?r.flavors:p.flavors});patch(p);updated++}else{if(mode==='update')continue;p={id:r.id||nextId(),name:r.name,brand:r.brand,category:r.category,presentation:r.presentation,price:r.price,image:r.image,description:r.description,flavors:r.flavors};PRODUCTS.push(p);patch(p);added++}const m=meta();m.out=m.out||{};if(r.status.includes('agot'))m.out[p.id]=true;else delete m.out[p.id];saveMeta(m)}if(typeof WEEKLY_OFFERS!=='undefined'){for(const r of pending.offers){const id=num(r.ID??r.id),pr=num(r.Precio_oferta??r.precio_oferta??r.price),date=r.Fecha_fin??r.fecha_fin??r.promoUntil;if(id&&pr)WEEKLY_OFFERS[id]={price:pr,promoUntil:date||'2099-12-31T23:59:59-05:00',gift:norm(r.Regalo??r.gift)==='si'}}const m=meta();m.offers={};Object.keys(WEEKLY_OFFERS).forEach(k=>m.offers[k]=WEEKLY_OFFERS[k]);saveMeta(m)}$('lafImportResult').textContent=`Importación terminada: ${added} nuevos, ${updated} actualizados.`;if(typeof rebuildLiftExcelFilters==='function')rebuildLiftExcelFilters();refresh();if(typeof syncLiftCategoryUI==='function')syncLiftCategoryUI();lafFillLists();lafRenderProducts();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
+ window.lafApplyImport=function(){const mode=$('lafImportMode').value;let added=0,updated=0;if(mode==='replace'){PRODUCTS.splice(0,PRODUCTS.length);localStorage.removeItem(KEY)}const all=[...pending.products,...pending.combos];for(const r of all){if(!r.name)continue;let p=r.id?PRODUCTS.find(x=>String(x.id)===String(r.id)):PRODUCTS.find(x=>norm(x.name)===norm(r.name)&&norm(x.brand)===norm(r.brand));if(p){if(mode==='add')continue;Object.assign(p,{name:r.name||p.name,brand:r.brand||p.brand,category:r.category||p.category,presentation:r.presentation||p.presentation,price:r.price||p.price,image:r.image||p.image,description:r.description||p.description,flavors:r.flavors?.length?r.flavors:p.flavors});patch(p);updated++}else{if(mode==='update')continue;p={id:r.id||nextId(),name:r.name,brand:r.brand,category:r.category,presentation:r.presentation,price:r.price,image:r.image,description:r.description,flavors:r.flavors};PRODUCTS.push(p);patch(p);added++}const m=meta();m.out=m.out||{};if(r.status.includes('agot'))m.out[p.id]=true;else delete m.out[p.id];saveMeta(m)}if(typeof WEEKLY_OFFERS!=='undefined'){for(const r of pending.offers){const id=num(r.ID??r.id),pr=num(r.Precio_oferta??r.precio_oferta??r.price),date=r.Fecha_fin??r.fecha_fin??r.promoUntil;if(id&&pr)WEEKLY_OFFERS[id]={price:pr,promoUntil:date||'2099-12-31T23:59:59-05:00',gift:norm(r.Regalo??r.gift)==='si'}}}$('lafImportResult').textContent=`Importación terminada: ${added} nuevos, ${updated} actualizados.`;if(typeof rebuildLiftExcelFilters==='function')rebuildLiftExcelFilters();refresh();if(typeof syncLiftCategoryUI==='function')syncLiftCategoryUI();lafFillLists();lafRenderProducts();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  function addButton(){const bar=document.querySelector('.top .bar');if(!bar||$('liftAdminFullBtn'))return;const b=document.createElement('button');b.id='liftAdminFullBtn';b.textContent='⚙ Administrar';b.onclick=openLiftAdminFull;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
  loadSavedOffers();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButton);else addButton();
 })();
@@ -5681,22 +5672,20 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    try{
      const cached=readCatalogCache();
      let rows,cfg,fromCache=false;
+     // La configuración, especialmente weekly_offers, SIEMPRE se consulta fresca en Supabase.
+     // El navegador puede cachear productos por rendimiento, pero nunca es fuente de ofertas.
+     state(cached?'⚡ catálogo en caché · sincronizando configuración…':'☁ sincronizando…');
+     const rcPromise=fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'});
      if(cached){
        rows=cached.rows;
-       cfg=cached.cfg;
        fromCache=true;
-       state('⚡ catálogo en caché','ok');
      }else{
-       state('☁ sincronizando…');
-       const [allProducts,rc]=await Promise.all([
-         fetchAllProducts(),
-         fetch(SB_URL+'/rest/v1/lift_catalog_config?select=clave,valor',{headers:headers(),cache:'no-store'})
-       ]);
-       if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
-       rows=allProducts;
-       cfg=await rc.json();
-       writeCatalogCache(rows,cfg);
+       rows=await fetchAllProducts();
      }
+     const rc=await rcPromise;
+     if(!rc.ok)throw new Error('No se pudo leer configuración de Supabase');
+     cfg=await rc.json();
+     if(!cached)writeCatalogCache(rows,cfg);
      // FUENTE ÚNICA: nada de cachés, RPC antiguos ni productos incrustados.
      PRODUCTS.splice(0,PRODUCTS.length);
      rows.forEach(r=>{
@@ -8988,7 +8977,7 @@ header .liftSearchEnhanced::before{
  function product(id){return (window.PRODUCTS||PRODUCTS||[]).find(p=>String(p.id)===String(id))||null}
  function variantProduct(v){return product(v?.producto_id)}
  function flavor(v){return String(v?.sabor||variantProduct(v)?.flavor||'Variación').trim()}
- function persist(){try{const k='liftAdminFullMetaV2',m=JSON.parse(localStorage.getItem(k)||'{}');m.offers={};Object.keys(WEEKLY_OFFERS||{}).forEach(id=>m.offers[id]=WEEKLY_OFFERS[id]);localStorage.setItem(k,JSON.stringify(m))}catch(e){console.warn('Lift ofertas: no se pudo guardar caché',e)}}
+ async function persist(){if(typeof window.liftCloudSaveConfig!=='function')throw new Error('No está disponible el guardado de ofertas en Supabase.');await window.liftCloudSaveConfig('weekly_offers',WEEKLY_OFFERS)}
  function giftProduct(o){return o?.giftProductId!=null?product(o.giftProductId):null}
  function giftVariant(o){if(!o?.giftVariantId)return null;const gp=giftProduct(o),g=gp?groupForProduct(gp.id):null;return variants(g).find(v=>String(v.id)===String(o.giftVariantId))||null}
  function giftLabel(o){const gp=giftProduct(o);if(!gp)return '';const gv=giftVariant(o);const qty=Math.max(1,Number(o.giftQty||1));return `${qty>1?qty+' × ':''}${gp.name||'Producto'}${gv?' · '+flavor(gv):o.giftChoice?' · sabor a elección':''}`}
@@ -9003,10 +8992,10 @@ header .liftSearchEnhanced::before{
  window.liftGiftSearch=function(){const q=norm($('liftGiftSearch')?.value);const box=$('liftGiftSearchResults');if(!box)return;if(q.length<2){box.style.display='none';box.innerHTML='';return}const seen=new Set(),rows=[];for(const p of (window.PRODUCTS||PRODUCTS||[])){if(!norm([p.name,p.brand,p.presentation,p.flavor].join(' ')).includes(q))continue;const g=groupForProduct(p.id);const key=g?'g:'+g.id:'p:'+p.id;if(seen.has(key))continue;seen.add(key);const base=g?variantProduct(variants(g)[0])||p:p;rows.push({p:base,g});if(rows.length>=25)break}box.innerHTML=rows.map(({p,g})=>`<div class="liftGiftSearchItem"><img src="${esc(g?.imagen||p.image||'')}" onerror="this.style.visibility='hidden'"><div><b>${esc(g?.nombre||p.name||'')}</b><small>${esc(g?.marca||p.brand||'')}${(g?.presentacion||p.presentation)?' · '+esc(g?.presentacion||p.presentation):''}${g?' · '+variants(g).length+' sabores':''}</small></div><button class="lafBtn" type="button" onclick="liftSelectGiftProduct(${Number(p.id)})">Elegir</button></div>`).join('')||'<div class="lafNote" style="padding:10px">Sin resultados.</div>';box.style.display='block'}
  window.liftSelectGiftProduct=function(id){selectedGiftId=String(id);const o=WEEKLY_OFFERS?.[editId]||{};$('liftGiftSelectedSlot').innerHTML=selectedGiftHTML(o);$('liftGiftSearchResults').style.display='none';$('liftGiftSearch').value=''}
  window.liftClearGiftProduct=function(){selectedGiftId=null;$('liftGiftSelectedSlot').innerHTML='<div class="lafNote">Sin producto de regalo seleccionado.</div>'}
- window.liftSaveGiftOffer=function(){if(!editId)return;const p=product(editId);const price=nval($('liftOfferPrice')?.value),date=$('liftOfferDate')?.value;if(!price){alert('Escribe el precio de oferta.');return}const ids=offerIdsForScope(editId);if(!ids.length){alert('Selecciona al menos un sabor.');return}const gp=selectedGiftId?product(selectedGiftId):null;let giftVariantId=$('liftGiftVariant')?.value||null;const qty=Math.max(1,nval($('liftGiftQty')?.value)||1);const template={price,promoUntil:date?date+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:!!gp,giftProductId:gp?Number(gp.id):null,giftVariantId:gp&&giftVariantId?Number(giftVariantId):null,giftChoice:!!(gp&&groupForProduct(gp.id)&&!giftVariantId),giftQty:qty};ids.forEach(id=>WEEKLY_OFFERS[id]={...(WEEKLY_OFFERS[id]||{}),...template});persist();if(typeof refresh==='function')refresh();if(typeof window.lafRenderOffers==='function')window.lafRenderOffers();liftCloseGiftOfferEditor()}
+ window.liftSaveGiftOffer=async function(){if(!editId)return;const p=product(editId);const price=nval($('liftOfferPrice')?.value),date=$('liftOfferDate')?.value;if(!price){alert('Escribe el precio de oferta.');return}const ids=offerIdsForScope(editId);if(!ids.length){alert('Selecciona al menos un sabor.');return}const gp=selectedGiftId?product(selectedGiftId):null;let giftVariantId=$('liftGiftVariant')?.value||null;const qty=Math.max(1,nval($('liftGiftQty')?.value)||1);const template={price,promoUntil:date?date+'T23:59:59-05:00':'2099-12-31T23:59:59-05:00',gift:!!gp,giftProductId:gp?Number(gp.id):null,giftVariantId:gp&&giftVariantId?Number(giftVariantId):null,giftChoice:!!(gp&&groupForProduct(gp.id)&&!giftVariantId),giftQty:qty};const backup={};ids.forEach(id=>{backup[id]=WEEKLY_OFFERS[id]?{...WEEKLY_OFFERS[id]}:null;WEEKLY_OFFERS[id]={...(WEEKLY_OFFERS[id]||{}),...template}});try{await persist();if(typeof refresh==='function')refresh();if(typeof window.lafRenderOffers==='function')window.lafRenderOffers();liftCloseGiftOfferEditor()}catch(e){ids.forEach(id=>{if(backup[id])WEEKLY_OFFERS[id]=backup[id];else delete WEEKLY_OFFERS[id]});alert('No se pudo guardar la oferta en Supabase: '+(e.message||e))}}
  const baseRender=window.lafRenderOffers;
  window.lafRenderOffers=function(){const input=$('lafOfferSearch');const q=norm(input?.value);const all=(window.PRODUCTS||PRODUCTS||[]);const offered=all.filter(p=>(!q||norm([p.name,p.brand,p.flavor].join(' ')).includes(q))&&WEEKLY_OFFERS?.[p.id]);const rest=all.filter(p=>(!q||norm([p.name,p.brand,p.flavor].join(' ')).includes(q))&&!WEEKLY_OFFERS?.[p.id]).slice(0,40);const a=[...offered,...rest].slice(0,150);const box=$('lafOfferList');if(!box)return;box.innerHTML=a.map(p=>{const o=WEEKLY_OFFERS?.[p.id]||null;const g=groupForProduct(p.id);const gl=o?giftLabel(o):'';return `<div class="lafOfferRow"><div><b style="font-size:11px">${esc(p.name)}</b><div class="lafMeta">${p.flavor?'Sabor: '+esc(p.flavor)+' · ':''}Detal ${money(p.price)}${g?' · grupo de '+variants(g).length+' sabores':''}</div>${gl?`<div class="liftOfferGiftText">🎁 ${esc(gl)}</div>`:''}</div><input class="lafPrice" id="lafo_${esc(p.id)}" placeholder="Precio oferta" value="${o?Number(o.price||0).toLocaleString('es-CO'):''}"><input class="lafPrice" type="date" id="lafod_${esc(p.id)}" value="${o?.promoUntil?String(o.promoUntil).slice(0,10):''}"><div style="display:flex;gap:5px"><button class="liftGiftOfferBtn" type="button" onclick="liftOpenGiftOfferEditor(${Number(p.id)})">${o?'Editar':'Configurar'}</button>${o?`<button class="lafBtn danger" type="button" onclick="liftRemoveOfferV2(${Number(p.id)})">Quitar</button>`:''}</div></div>`}).join('')};
- window.liftRemoveOfferV2=function(id){delete WEEKLY_OFFERS[id];persist();if(typeof refresh==='function')refresh();window.lafRenderOffers()}
+ window.liftRemoveOfferV2=async function(id){const backup=WEEKLY_OFFERS[id]?{...WEEKLY_OFFERS[id]}:null;delete WEEKLY_OFFERS[id];try{await persist();if(typeof refresh==='function')refresh();window.lafRenderOffers()}catch(e){if(backup)WEEKLY_OFFERS[id]=backup;alert('No se pudo quitar la oferta en Supabase: '+(e.message||e))}}
  // Texto de regalo en tarjeta y demás superficies que reutilizan offerDetails.
  if(typeof window.offerDetails==='function'||typeof offerDetails==='function'){
    const old=offerDetails; offerDetails=function(p){const html=old(p);const o=typeof offerOf==='function'?offerOf(p):null;const label=giftLabel(o);return html+(label?`<div class="liftGiftTextOnly">🎁 Regalo: ${esc(label)}</div>`:'')}; window.offerDetails=offerDetails;
@@ -9374,55 +9363,6 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
 
 <script id="lift-disable-automatic-order-save-v2">
 (function(){window.liftSaveOrderHistory=async function(){return true};})();
-</script>
-
-<style id="lift-order-confirm-ux-v2">
-#liftConfirmOrderBtn{min-height:54px!important;border-radius:14px!important;font-size:13px!important;transition:.18s ease!important;box-shadow:0 5px 16px rgba(0,0,0,.10)!important}
-#liftConfirmOrderBtn:disabled{cursor:wait!important;opacity:.78!important}
-#liftConfirmOrderBtn.saved{background:#19713a!important;color:#fff!important;cursor:default!important}
-#liftOrderSaveState{display:none!important}
-.liftOrderNotice{position:fixed;left:50%;top:22px;transform:translate(-50%,-16px);z-index:99999;width:min(92vw,520px);padding:15px 17px;border-radius:14px;background:#111;color:#fff;box-shadow:0 18px 50px rgba(0,0,0,.28);font:400 13px/1.45 Poppins,Arial,sans-serif;opacity:0;pointer-events:none;transition:.22s ease}
-.liftOrderNotice.show{opacity:1;transform:translate(-50%,0)}
-.liftOrderNotice.ok{background:#19713a}.liftOrderNotice.warn{background:#8a5a00}.liftOrderNotice.err{background:#a61b1b}
-.liftOrderNotice b{display:block;font-size:15px;font-weight:600;margin-bottom:2px}
-.liftOrderSavedCard{margin:9px 0 4px;padding:11px 13px;border:1px solid #b9dec6;background:#effaf3;border-radius:12px;color:#145c2d;font:400 11px/1.45 Poppins,Arial,sans-serif;text-align:center}
-</style>
-<script id="lift-order-confirm-ux-v2">
-(function(){
- const $=id=>document.getElementById(id);
- function notice(type,title,msg){let n=$('liftOrderNoticeV2');if(!n){n=document.createElement('div');n.id='liftOrderNoticeV2';n.className='liftOrderNotice';document.body.appendChild(n)}n.className='liftOrderNotice '+(type||'');n.innerHTML='<b>'+String(title||'')+'</b><span>'+String(msg||'')+'</span>';requestAnimationFrame(()=>n.classList.add('show'));clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),4300)}
- function norm(v){return String(v??'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ')}
- function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
- function fingerprint(payload){const items=(payload.items||[]).map(x=>[Number(x.producto_id)||0,norm(x.nombre),norm(x.marca),Number(x.cantidad)||0,Number(x.precio_unitario)||0,Number(x.total_linea)||0]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));const bucket=Math.floor(Date.now()/300000);return 'checkout-'+bucket+'-'+hash(JSON.stringify([norm(payload.celular),norm(payload.direccion),norm(payload.ciudad),Number(payload.total)||0,items]))}
- function savedCard(id,dedup){let c=$('liftOrderSavedCardV2');const b=$('liftConfirmOrderBtn');if(!c&&b){c=document.createElement('div');c.id='liftOrderSavedCardV2';c.className='liftOrderSavedCard';b.insertAdjacentElement('afterend',c)}if(c)c.innerHTML=dedup?'⚠ Este mismo pedido ya estaba guardado como <b>#'+id+'</b>. No se creó otro.':'✓ Pedido <b>#'+id+'</b> guardado correctamente en Supabase.'}
- function clearCard(){const c=$('liftOrderSavedCardV2');if(c)c.remove()}
- const old=window.liftConfirmCurrentOrder;
- window.liftConfirmCurrentOrder=async function(){
-   const b=$('liftConfirmOrderBtn');if(!b)return false;
-   if(b.dataset.savedId){notice('warn','Pedido ya guardado','Este pedido ya está registrado como #'+b.dataset.savedId+'. No se creó otro.');return true}
-   const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'';
-   if(!nombre||!celular||!direccion){notice('err','Faltan datos','Completa nombre, celular y dirección antes de confirmar.');return false}
-   if(typeof selectedCity==='undefined'||!selectedCity){notice('err','Falta la ciudad','Selecciona la ciudad del cliente antes de confirmar.');return false}
-   const its=typeof checkoutItemsList==='function'?checkoutItemsList():[];if(!its.length){notice('err','Pedido vacío','Agrega al menos un producto.');return false}
-   const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=typeof liftAdminShippingValue==='function'?liftAdminShippingValue(autoShip):autoShip,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-((adminTrainerMode()||trainerCouponActive())?0:descuento))+(envio||0);
-   const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q}));
-   const m=typeof liftCreditOrderMeta==='function'?liftCreditOrderMeta():{forma_pago:'pagado',abono_inicial:0,fecha_vencimiento:null,fecha:new Date().toISOString().slice(0,10),envio_modo:'automatico'};
-   const origin=['admin','forma='+encodeURIComponent(m.forma_pago||'pagado'),'abono='+Math.max(0,Math.round(Number(m.abono_inicial||0))),'vence='+(m.fecha_vencimiento||''),'envio='+encodeURIComponent(m.envio_modo||'automatico'),'fecha='+(m.fecha||'')].join('|');
-   const payload={action:'save-order',nombre,celular,direccion,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',notas,subtotal,envio:envio||0,descuento:(adminTrainerMode()||trainerCouponActive())?0:descuento,total,origen,items};payload.request_key=fingerprint(payload);
-   b.disabled=true;b.textContent='⏳ GUARDANDO EN SUPABASE…';notice('warn','Guardando pedido','Validando datos y comprobando que no exista un pedido igual…');
-   try{
-     const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',PASS='liftAdminCloudPasswordV1';let pass='';try{pass=sessionStorage.getItem(PASS)||''}catch(e){}
-     const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass})});const j=await r.json().catch(()=>({}));if(!r.ok||j?.error||j?.ok===false)throw new Error(j?.error||'Supabase no confirmó el guardado');
-     const id=Number(j.pedido_id||0);b.dataset.savedId=String(id);b.classList.add('saved');b.textContent='✓ PEDIDO #'+id+' GUARDADO';b.disabled=true;savedCard(id,!!j.deduplicated);
-     if(j.deduplicated)notice('warn','Este pedido ya estaba guardado','Se encontró el mismo cliente, dirección, productos y total. Pedido #'+id+'. No se creó un duplicado.');else notice('ok','Pedido guardado correctamente','Supabase confirmó el pedido #'+id+'.');
-     try{if(typeof window.liftSaveRecurringClient==='function')await window.liftSaveRecurringClient();if(typeof window.liftLoadAlphabeticalClients==='function')await window.liftLoadAlphabeticalClients();if(typeof window.liftCrmReload==='function')await window.liftCrmReload()}catch(e){console.warn(e)}
-     return true;
-   }catch(e){b.disabled=false;b.textContent='✓ CONFIRMAR PEDIDO';notice('err','No se guardó el pedido',e.message||'Error desconocido');return false}
- };
- function reset(){const b=$('liftConfirmOrderBtn');if(b){delete b.dataset.savedId;b.disabled=false;b.classList.remove('saved');b.textContent='✓ CONFIRMAR PEDIDO'}clearCard()}
- const prevOpen=window.openCheckout;window.openCheckout=function(){const r=typeof prevOpen==='function'?prevOpen.apply(this,arguments):undefined;setTimeout(reset,0);return r};
- window.addEventListener('DOMContentLoaded',()=>{const b=$('liftConfirmOrderBtn');if(b){b.textContent='✓ CONFIRMAR PEDIDO';const st=$('liftOrderSaveState');if(st)st.remove()}});
-})();
 </script>
 </body>
 </html>
