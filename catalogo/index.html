@@ -9460,7 +9460,7 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
    $('crmList').innerHTML=rows.map(({c,r})=>{const due=r.overdue?`Atrasado ${Math.abs(r.diff)} d`:r.today?'Contactar hoy':r.diff===1?'Mañana':`En ${r.diff} d`,os=clientOrders(c.id),last=os[0],orderInfo=os.length?`${os.length} pedido${os.length===1?'':'s'} · Último ${fmt(last.fecha)}`:'Sin pedidos guardados';return `<div class="crmCard ${r.overdue?'crmHot':r.today?'crmToday':''}" onclick="liftCrmClient(${c.id})"><div><b>${esc(c.nombre||'Sin nombre')}</b><div class="crmMeta">${esc(c.celular||'')}</div><div class="crmOrderSync">🛒 ${esc(orderInfo)}${last?' · '+esc(productName(last)):''}</div><div class="crmReason">${esc(r.reason)}</div><div class="crmDue ${r.overdue?'overdue':r.today?'today':'future'}">${due} · ${fmt(r.due)}</div></div><span class="crmState smart">${esc(r.type.replace('_',' '))}</span></div>`}).join('')||'<div class="crmStatus">No hay clientes en esta vista.</div>';
  }
  function ensureSmartBox(){if($('crmSmartBox'))return;const fields=$('crmForm')?.querySelector('.crmFields');if(!fields)return;const box=document.createElement('div');box.id='crmSmartBox';box.className='crmSmartBox';fields.insertAdjacentElement('beforebegin',box)}
- function client(id){S.current=S.clients.find(x=>+x.id===+id);if(!S.current)return;const r=S.recs.get(+id),f=latestFollow(id),os=clientOrders(id),last=os[0];$('crmBrowse').style.display='none';$('crmForm').classList.add('open');$('crmClientTitle').textContent=S.current.nombre+' · '+S.current.celular;$('crmEstado').value=f?.estado||'seguimiento';$('crmInteres').value=f?.interes||r.product||'';$('crmValor').value=f?.valor_cotizado||'';$('crmNota').value='';$('crmProximo').value='';ensureSmartBox();const msg=message(S.current,r);$('crmSmartBox').innerHTML=`<h4>Próximo contacto recomendado: ${r.overdue?'AHORA':r.today?'HOY':fmt(r.due)}</h4><p><b>Motivo:</b> ${esc(r.reason)}</p><p><b>Producto:</b> ${esc(r.product||'Sin producto identificado')}</p><p><b>Pedidos sincronizados:</b> ${os.length}${last?' · Último '+fmt(last.fecha)+' · '+esc(productName(last)):''}</p><div class="crmQuick"><button onclick="liftCrmQuickDate(1)">+1 día</button><button onclick="liftCrmQuickDate(3)">+3 días</button><button onclick="liftCrmQuickDate(7)">+7 días</button><button onclick="liftCrmQuickDate(30)">+30 días</button></div><textarea id="crmSmartMessage" class="crmMessage">${esc(msg)}</textarea><div class="crmSmartActions"><button class="crmCopyMsg" onclick="liftCrmCopyMessage()">Copiar mensaje</button><a id="crmSmartWa" class="crmWaMsg" target="_blank" href="${wa(S.current.celular,msg)}">Abrir WhatsApp</a></div><div class="crmMini">La fecha de recompra es una estimación según el producto y la presentación. El seguimiento manual siempre tiene prioridad.</div>`;
+ function client(id){S.current=S.clients.find(x=>+x.id===+id);if(!S.current)return;const r=S.recs.get(+id),f=latestFollow(id),os=clientOrders(id),last=os[0];$('crmBrowse').style.display='none';$('crmForm').classList.add('open');$('crmClientTitle').textContent=S.current.nombre+' · '+S.current.celular;$('crmEstado').value=f?.estado||'seguimiento';$('crmInteres').value=f?.interes||r.product||'';$('crmValor').value=f?.valor_cotizado||'';$('crmNota').value='';$('crmProximo').value=f?.proximo_seguimiento?(()=>{const d=new Date(f.proximo_seguimiento),pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`})():'';ensureSmartBox();const msg=message(S.current,r);$('crmSmartBox').innerHTML=`<h4>Próximo contacto recomendado: ${r.overdue?'AHORA':r.today?'HOY':fmt(r.due)}</h4><p><b>Motivo:</b> ${esc(r.reason)}</p><p><b>Producto:</b> ${esc(r.product||'Sin producto identificado')}</p><p><b>Pedidos sincronizados:</b> ${os.length}${last?' · Último '+fmt(last.fecha)+' · '+esc(productName(last)):''}</p><div class="crmQuick"><button onclick="liftCrmQuickDate(1)">+1 día</button><button onclick="liftCrmQuickDate(3)">+3 días</button><button onclick="liftCrmQuickDate(7)">+7 días</button><button onclick="liftCrmQuickDate(30)">+30 días</button></div><textarea id="crmSmartMessage" class="crmMessage">${esc(msg)}</textarea><div class="crmSmartActions"><button class="crmCopyMsg" onclick="liftCrmCopyMessage()">Copiar mensaje</button><a id="crmSmartWa" class="crmWaMsg" target="_blank" href="${wa(S.current.celular,msg)}">Abrir WhatsApp</a></div><div class="crmMini">La fecha de recompra es una estimación según el producto y la presentación. El seguimiento manual siempre tiene prioridad.</div>`;
    const hs=S.followups.filter(x=>+x.cliente_id===+id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));$('crmHistory').innerHTML=hs.map(x=>`<div class="crmHistoryRow"><b>${esc(x.estado||'Seguimiento')} · ${new Date(x.fecha).toLocaleString('es-CO')}</b><br>${x.interes?esc(x.interes)+' · ':''}${x.valor_cotizado?money(x.valor_cotizado)+' · ':''}${esc(x.nota||'')}${x.proximo_seguimiento?'<br>Próximo: '+new Date(x.proximo_seguimiento).toLocaleString('es-CO'):''}</div>`).join('')||'<div class="crmHistoryRow">Sin seguimientos todavía.</div>';
  }
  window.liftCrmQuickDate=n=>{const d=add(now(),Number(n));d.setHours(10,0,0,0);const pad=x=>String(x).padStart(2,'0');$('crmProximo').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
@@ -9469,7 +9469,41 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
  window.liftCrmBack=function(){$('crmBrowse').style.display='';$('crmForm').classList.remove('open');render()};
  window.liftCrmOpen=async function(){if(!document.body.classList.contains('liftAdminUnlocked'))return;$('liftCrmModal').classList.add('open');$('crmBrowse').style.display='';$('crmForm').classList.remove('open');ensureStats();$('crmSmartStats').innerHTML='<div class="crmSmartStat"><b>…</b><span>Sincronizando Supabase</span></div>';$('crmList').innerHTML='<div class="crmStatus">Cargando clientes, pedidos y seguimientos desde Supabase…</div>';try{await load();S.filter='todos';render()}catch(e){$('crmSmartStats').innerHTML='<div class="crmSmartStat"><b>!</b><span>Error de sincronización</span></div>';$('crmList').innerHTML='<div class="crmStatus">No se pudo sincronizar: '+esc(e.message)+'</div>'}};
  window.liftCrmReload=async function(){await load();if($('liftCrmModal')?.classList.contains('open'))render();return true};
- const oldSave=window.liftCrmSave;window.liftCrmSave=async function(){if(typeof oldSave==='function')await oldSave();try{await load();if(S.current)client(S.current.id)}catch(e){}};
+ window.liftCrmSave=async function(){
+   if(!S.current){const st=$('crmStatus');if(st)st.textContent='✕ Selecciona un cliente antes de guardar.';return}
+   const st=$('crmStatus'),btn=document.querySelector('#crmForm .crmActions .primary');
+   if(btn?.dataset.saving==='1')return;
+   const raw=$('crmProximo')?.value||'';
+   const row={
+     cliente_id:S.current.id,
+     celular:S.current.celular||'',
+     nombre:S.current.nombre||'',
+     estado:$('crmEstado')?.value||'seguimiento',
+     interes:($('crmInteres')?.value||'').trim(),
+     valor_cotizado:Math.max(0,Math.round(Number($('crmValor')?.value||0))),
+     nota:($('crmNota')?.value||'').trim(),
+     proximo_seguimiento:raw?new Date(raw).toISOString():null
+   };
+   try{
+     if(btn){btn.dataset.saving='1';btn.disabled=true;btn.textContent='Guardando…'}
+     if(st)st.textContent='Guardando seguimiento en Supabase…';
+     const r=await fetch(SB+'/rest/v1/lift_seguimientos_clientes',{
+       method:'POST',
+       headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json',Prefer:'return=representation'},
+       body:JSON.stringify(row),cache:'no-store'
+     });
+     const j=await r.json().catch(()=>[]);
+     if(!r.ok)throw new Error(j?.message||j?.error||'Supabase rechazó el seguimiento');
+     const savedId=Array.isArray(j)?j[0]?.id:null;
+     if(!savedId)throw new Error('Supabase no confirmó el seguimiento guardado.');
+     await load();
+     const saved=S.followups.find(x=>+x.id===+savedId);
+     if(!saved)throw new Error('Se guardó el registro, pero crm-list no lo está devolviendo. Revisa la Edge Function lift-clientes.');
+     client(S.current.id);
+     if(st)st.textContent='✓ Seguimiento guardado en Supabase y cargado en el historial.';
+   }catch(e){if(st)st.textContent='✕ No se guardó: '+(e?.message||e);console.error('LIFT CRM save',e)}
+   finally{if(btn){btn.dataset.saving='0';btn.disabled=false;btn.textContent='Guardar seguimiento'}}
+ };
 })();
 </script>
 
