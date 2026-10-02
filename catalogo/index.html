@@ -9375,6 +9375,55 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
 <script id="lift-disable-automatic-order-save-v2">
 (function(){window.liftSaveOrderHistory=async function(){return true};})();
 </script>
+
+<style id="lift-order-confirm-ux-v2">
+#liftConfirmOrderBtn{min-height:54px!important;border-radius:14px!important;font-size:13px!important;transition:.18s ease!important;box-shadow:0 5px 16px rgba(0,0,0,.10)!important}
+#liftConfirmOrderBtn:disabled{cursor:wait!important;opacity:.78!important}
+#liftConfirmOrderBtn.saved{background:#19713a!important;color:#fff!important;cursor:default!important}
+#liftOrderSaveState{display:none!important}
+.liftOrderNotice{position:fixed;left:50%;top:22px;transform:translate(-50%,-16px);z-index:99999;width:min(92vw,520px);padding:15px 17px;border-radius:14px;background:#111;color:#fff;box-shadow:0 18px 50px rgba(0,0,0,.28);font:400 13px/1.45 Poppins,Arial,sans-serif;opacity:0;pointer-events:none;transition:.22s ease}
+.liftOrderNotice.show{opacity:1;transform:translate(-50%,0)}
+.liftOrderNotice.ok{background:#19713a}.liftOrderNotice.warn{background:#8a5a00}.liftOrderNotice.err{background:#a61b1b}
+.liftOrderNotice b{display:block;font-size:15px;font-weight:600;margin-bottom:2px}
+.liftOrderSavedCard{margin:9px 0 4px;padding:11px 13px;border:1px solid #b9dec6;background:#effaf3;border-radius:12px;color:#145c2d;font:400 11px/1.45 Poppins,Arial,sans-serif;text-align:center}
+</style>
+<script id="lift-order-confirm-ux-v2">
+(function(){
+ const $=id=>document.getElementById(id);
+ function notice(type,title,msg){let n=$('liftOrderNoticeV2');if(!n){n=document.createElement('div');n.id='liftOrderNoticeV2';n.className='liftOrderNotice';document.body.appendChild(n)}n.className='liftOrderNotice '+(type||'');n.innerHTML='<b>'+String(title||'')+'</b><span>'+String(msg||'')+'</span>';requestAnimationFrame(()=>n.classList.add('show'));clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),4300)}
+ function norm(v){return String(v??'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ')}
+ function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
+ function fingerprint(payload){const items=(payload.items||[]).map(x=>[Number(x.producto_id)||0,norm(x.nombre),norm(x.marca),Number(x.cantidad)||0,Number(x.precio_unitario)||0,Number(x.total_linea)||0]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));const bucket=Math.floor(Date.now()/300000);return 'checkout-'+bucket+'-'+hash(JSON.stringify([norm(payload.celular),norm(payload.direccion),norm(payload.ciudad),Number(payload.total)||0,items]))}
+ function savedCard(id,dedup){let c=$('liftOrderSavedCardV2');const b=$('liftConfirmOrderBtn');if(!c&&b){c=document.createElement('div');c.id='liftOrderSavedCardV2';c.className='liftOrderSavedCard';b.insertAdjacentElement('afterend',c)}if(c)c.innerHTML=dedup?'⚠ Este mismo pedido ya estaba guardado como <b>#'+id+'</b>. No se creó otro.':'✓ Pedido <b>#'+id+'</b> guardado correctamente en Supabase.'}
+ function clearCard(){const c=$('liftOrderSavedCardV2');if(c)c.remove()}
+ const old=window.liftConfirmCurrentOrder;
+ window.liftConfirmCurrentOrder=async function(){
+   const b=$('liftConfirmOrderBtn');if(!b)return false;
+   if(b.dataset.savedId){notice('warn','Pedido ya guardado','Este pedido ya está registrado como #'+b.dataset.savedId+'. No se creó otro.');return true}
+   const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'';
+   if(!nombre||!celular||!direccion){notice('err','Faltan datos','Completa nombre, celular y dirección antes de confirmar.');return false}
+   if(typeof selectedCity==='undefined'||!selectedCity){notice('err','Falta la ciudad','Selecciona la ciudad del cliente antes de confirmar.');return false}
+   const its=typeof checkoutItemsList==='function'?checkoutItemsList():[];if(!its.length){notice('err','Pedido vacío','Agrega al menos un producto.');return false}
+   const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=typeof liftAdminShippingValue==='function'?liftAdminShippingValue(autoShip):autoShip,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-((adminTrainerMode()||trainerCouponActive())?0:descuento))+(envio||0);
+   const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q}));
+   const m=typeof liftCreditOrderMeta==='function'?liftCreditOrderMeta():{forma_pago:'pagado',abono_inicial:0,fecha_vencimiento:null,fecha:new Date().toISOString().slice(0,10),envio_modo:'automatico'};
+   const origin=['admin','forma='+encodeURIComponent(m.forma_pago||'pagado'),'abono='+Math.max(0,Math.round(Number(m.abono_inicial||0))),'vence='+(m.fecha_vencimiento||''),'envio='+encodeURIComponent(m.envio_modo||'automatico'),'fecha='+(m.fecha||'')].join('|');
+   const payload={action:'save-order',nombre,celular,direccion,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',notas,subtotal,envio:envio||0,descuento:(adminTrainerMode()||trainerCouponActive())?0:descuento,total,origen,items};payload.request_key=fingerprint(payload);
+   b.disabled=true;b.textContent='⏳ GUARDANDO EN SUPABASE…';notice('warn','Guardando pedido','Validando datos y comprobando que no exista un pedido igual…');
+   try{
+     const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',PASS='liftAdminCloudPasswordV1';let pass='';try{pass=sessionStorage.getItem(PASS)||''}catch(e){}
+     const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass})});const j=await r.json().catch(()=>({}));if(!r.ok||j?.error||j?.ok===false)throw new Error(j?.error||'Supabase no confirmó el guardado');
+     const id=Number(j.pedido_id||0);b.dataset.savedId=String(id);b.classList.add('saved');b.textContent='✓ PEDIDO #'+id+' GUARDADO';b.disabled=true;savedCard(id,!!j.deduplicated);
+     if(j.deduplicated)notice('warn','Este pedido ya estaba guardado','Se encontró el mismo cliente, dirección, productos y total. Pedido #'+id+'. No se creó un duplicado.');else notice('ok','Pedido guardado correctamente','Supabase confirmó el pedido #'+id+'.');
+     try{if(typeof window.liftSaveRecurringClient==='function')await window.liftSaveRecurringClient();if(typeof window.liftLoadAlphabeticalClients==='function')await window.liftLoadAlphabeticalClients();if(typeof window.liftCrmReload==='function')await window.liftCrmReload()}catch(e){console.warn(e)}
+     return true;
+   }catch(e){b.disabled=false;b.textContent='✓ CONFIRMAR PEDIDO';notice('err','No se guardó el pedido',e.message||'Error desconocido');return false}
+ };
+ function reset(){const b=$('liftConfirmOrderBtn');if(b){delete b.dataset.savedId;b.disabled=false;b.classList.remove('saved');b.textContent='✓ CONFIRMAR PEDIDO'}clearCard()}
+ const prevOpen=window.openCheckout;window.openCheckout=function(){const r=typeof prevOpen==='function'?prevOpen.apply(this,arguments):undefined;setTimeout(reset,0);return r};
+ window.addEventListener('DOMContentLoaded',()=>{const b=$('liftConfirmOrderBtn');if(b){b.textContent='✓ CONFIRMAR PEDIDO';const st=$('liftOrderSaveState');if(st)st.remove()}});
+})();
+</script>
 </body>
 </html>
 <style id="lift-client-directory-v1">
