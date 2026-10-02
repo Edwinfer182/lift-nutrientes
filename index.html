@@ -7136,7 +7136,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 (function(){
  const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const H={apikey:KEY,'Content-Type':'application/json',Prefer:'return=representation'};
- let clients=[],followups=[],filter='hoy',current=null;
+ let clients=[],followups=[],filter='todos',current=null;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=v=>'$ '+Number(v||0).toLocaleString('es-CO');
  async function api(path,opt={}){const r=await fetch(SB+'/rest/v1/'+path,{...opt,headers:{...H,...(opt.headers||{})},cache:'no-store'});const j=await r.json().catch(()=>[]);if(!r.ok)throw new Error(j.message||j.error||'Error Supabase');return j}
@@ -7180,7 +7180,15 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  window.liftCrmSave=async function(){
    if(!current)return;const st=document.getElementById('crmStatus');st.textContent='Guardando…';
    const row={cliente_id:current.id,celular:current.celular||'',nombre:current.nombre||'',estado:document.getElementById('crmEstado').value,interes:document.getElementById('crmInteres').value.trim(),valor_cotizado:Math.round(Number(document.getElementById('crmValor').value||0)),nota:document.getElementById('crmNota').value.trim(),proximo_seguimiento:document.getElementById('crmProximo').value?new Date(document.getElementById('crmProximo').value).toISOString():null};
-   try{const j=await api('lift_seguimientos_clientes',{method:'POST',body:JSON.stringify(row)});followups.unshift(j[0]||row);st.textContent='✓ Seguimiento guardado en Supabase.';liftCrmClient(current.id)}catch(e){st.textContent=e.message}
+   try{
+     const password=sessionStorage.getItem('liftAdminCloudPasswordV1')||'';
+     const r=await fetch(SB+'/functions/v1/lift-clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'crm-save',password,...row})});
+     const j=await r.json().catch(()=>({}));
+     if(!r.ok||!j.ok||!j.seguimiento?.id)throw new Error(j.error||'Supabase no confirmó el seguimiento');
+     await load();
+     st.textContent='✓ Seguimiento guardado en Supabase y agregado al historial.';
+     liftCrmClient(current.id);
+   }catch(e){st.textContent='✕ No se guardó: '+(e.message||e)}
  };
  function inject(){
    if(document.getElementById('liftCrmBtn'))return;
