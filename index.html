@@ -5892,44 +5892,9 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
 <style id="lift-order-history-style-v1">
 .liftOrderHistory{margin-top:9px;display:grid;gap:8px}.liftHistoryBtn{width:100%;height:34px;border:1px solid #ddd;border-radius:8px;background:#111;color:#fff;font:inherit;font-size:10px;cursor:pointer;margin-top:7px}.liftHistoryCard{border:1px solid #ddd;border-radius:11px;background:#fff;padding:10px}.liftHistoryHead{display:flex;justify-content:space-between;gap:8px;align-items:center}.liftHistoryHead b{font-size:11px}.liftHistoryHead span{font-size:9px;color:#777}.liftHistoryItems{font-size:10px;line-height:1.5;margin-top:6px;color:#333}.liftHistoryTotal{font-size:11px;font-weight:600;margin-top:6px}.liftRepeatOrder{width:100%;height:34px;border:0;border-radius:8px;background:#111;color:#fff;font:inherit;font-size:10px;cursor:pointer;margin-top:8px}.liftHistoryTitle{font-size:11px;font-weight:600;margin:10px 0 3px}.liftHistoryEmpty{font-size:10px;color:#777;padding:7px 2px}
 </style>
-<script id="lift-order-history-supabase-v1">
-(function(){
- const SB_URL='https://vdxkknftyssjyfbdieqa.supabase.co', SB_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh', FN=SB_URL+'/functions/v1/lift-clientes', PASS_KEY='liftAdminCloudPasswordV1';
- const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const pass=()=>{try{return sessionStorage.getItem(PASS_KEY)||''}catch(e){return ''}};
- async function call(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo consultar el historial');return j}
- let activeClientId=null, historyCache={};
- const money=v=>typeof fmt==='function'?fmt(Number(v||0)):'$ '+Number(v||0).toLocaleString('es-CO');
- const date=v=>{try{return new Intl.DateTimeFormat('es-CO',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(v))}catch(e){return v||''}};
- window.liftLoadHistory=async function(clientId, targetId){
-   activeClientId=Number(clientId); const box=document.getElementById(targetId||('liftHistory-'+clientId)); if(!box)return;
-   box.innerHTML='<div class="liftHistoryEmpty">Cargando pedidos…</div>';
-   try{const j=await call({action:'history',cliente_id:activeClientId});const ps=j.pedidos||[];historyCache[activeClientId]=ps;if(!ps.length){box.innerHTML='<div class="liftHistoryEmpty">Este cliente todavía no tiene pedidos guardados.</div>';return}
-     box.innerHTML='<div class="liftHistoryTitle">Último pedido</div>'+ps.slice(0,1).map(p=>historyCard(p,activeClientId)).join('')+(ps.length>1?`<details style="margin-top:7px"><summary style="font-size:10px;cursor:pointer">Ver historial (${ps.length})</summary><div class="liftOrderHistory">${ps.slice(1).map(p=>historyCard(p,activeClientId)).join('')}</div></details>`:'');
-   }catch(e){box.innerHTML='<div class="liftHistoryEmpty">'+esc(e.message)+'</div>'}
- };
- function historyCard(p,cid){const items=p.lift_pedido_productos||[];return `<div class="liftHistoryCard"><div class="liftHistoryHead"><b>Pedido #${p.id}</b><span>${date(p.fecha)}</span></div><div class="liftHistoryItems">${items.map(x=>`${x.cantidad} × ${esc(x.nombre)}${x.marca?' · '+esc(x.marca):''}`).join('<br>')}</div><div class="liftHistoryTotal">Total: ${money(p.total)}</div><button type="button" class="liftRepeatOrder" onclick="liftRepeatOrder(${cid},${p.id})">↻ Repetir pedido</button></div>`}
- window.liftRepeatOrder=function(cid,pid){const p=(historyCache[cid]||[]).find(x=>Number(x.id)===Number(pid));if(!p)return;let added=0,missing=[];(p.lift_pedido_productos||[]).forEach(x=>{const current=(window.PRODUCTS||[]).find(z=>String(z.id)===String(x.producto_id));if(!current){missing.push(x.nombre);return}for(let i=0;i<Number(x.cantidad||1);i++){if(typeof add==='function')add(current.id);added++}});if(added&&typeof renderCheckoutSummary==='function')renderCheckoutSummary();if(missing.length)alert('Se agregaron los productos disponibles. Ya no encontré en el catálogo: '+missing.join(', '));};
- // Mejora la búsqueda de clientes: cada cliente muestra direcciones + último pedido/historial.
- window.liftFindClient=async function(){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return;
-   const q=document.getElementById('liftClientSearch')?.value.trim()||'', box=document.getElementById('liftClientResults');if(!box)return;if(q.length<2){box.innerHTML='<div class="liftClientEmpty">Escribe un nombre o celular.</div>';return}box.innerHTML='<div class="liftClientEmpty">Buscando…</div>';
-   try{const j=await call({action:'find',q});const cs=j.clientes||[];if(!cs.length){box.innerHTML='<div class="liftClientEmpty">No encontré ese cliente.</div>';return}
-     box.innerHTML=cs.map(c=>`<div class="liftClientResult"><div class="liftClientResultHead"><b>${esc(c.nombre)}</b><span>${esc(c.celular)}</span></div>${(c.lift_direcciones_cliente||[]).sort((a,b)=>Number(b.predeterminada)-Number(a.predeterminada)).map(d=>`<button type="button" class="liftClientAddress" data-client='${esc(JSON.stringify({cliente_id:c.id,nombre:c.nombre,celular:c.celular,...d}))}'>${d.predeterminada?'★ ':''}${esc(d.etiqueta||'Dirección')}: ${esc(d.direccion)} · ${esc(d.ciudad)}${d.departamento?' · '+esc(d.departamento):''}</button>`).join('')}<button type="button" class="liftHistoryBtn" onclick="liftLoadHistory(${c.id},'liftHistory-${c.id}')">🧾 Último pedido / historial</button><div id="liftHistory-${c.id}" class="liftOrderHistory"></div></div>`).join('');
-     box.querySelectorAll('.liftClientAddress').forEach(b=>b.onclick=()=>{const d=JSON.parse(b.dataset.client);activeClientId=Number(d.cliente_id);document.getElementById('coName').value=d.nombre||'';document.getElementById('coPhone').value=d.celular||'';document.getElementById('coAddress').value=d.direccion||'';if(document.getElementById('coNotes')&&!document.getElementById('coNotes').value)document.getElementById('coNotes').value=d.notas||'';const city=document.getElementById('coCity');if(city)city.value=d.ciudad+(d.departamento?' · '+d.departamento:'');if(typeof selectedCity!=='undefined')selectedCity={name:d.ciudad,department:d.departamento||''};if(typeof renderCheckoutSummary==='function')renderCheckoutSummary();liftLoadHistory(activeClientId,'liftHistory-'+activeClientId);});
-   }catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}
- };
- window.liftSaveOrderHistory=async function(){
-   if(!document.body.classList.contains('liftAdminUnlocked'))return true;
-   const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',whatsapp_usuario=document.getElementById('coWhatsappUser')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)return true;
-   const its=typeof checkoutItemsList==='function'?checkoutItemsList():[];if(!its.length)return true;const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),envio=shippingFor(selectedCity.name,checkoutQty()),descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-(trainerCouponActive()?0:descuento))+(envio||0);
-   const items=its.map(({p,q})=>({producto_id:p.id,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q}));
-   try{await call({action:'save-order',nombre,celular,direccion,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',notas,subtotal,envio:envio||0,descuento:trainerCouponActive()?0:descuento,total,origen:'proveedor',items});return true}catch(e){console.error('Historial pedido:',e);alert('El pedido se copió, pero no pude guardar el historial: '+e.message);return false}
- };
- const install=()=>{const pr=window.finishProviderCheckout;if(typeof pr==='function'&&!pr.__liftHistoryWrapped){const f=async function(){const r=await pr.apply(this,arguments);await window.liftSaveOrderHistory();return r};f.__liftHistoryWrapped=true;window.finishProviderCheckout=f}};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
-})();
-</script>
+
+<!-- lift-order-history-supabase-v1 eliminado: guardado de pedidos consolidado en Supabase -->
+
 
 
 <style id="lift-manual-checkout-style-v1">
@@ -6723,15 +6688,18 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  window.liftSaveOrderHistory=async function(){
   if(!document.body.classList.contains('liftAdminUnlocked'))return true;
   const nombre=document.getElementById('coName')?.value.trim()||'',celular=document.getElementById('coPhone')?.value.trim()||'',direccion=document.getElementById('coAddress')?.value.trim()||'',notas=document.getElementById('coNotes')?.value.trim()||'';
-  if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)return true;
-  const its=checkoutItemsList();if(!its.length)return true;
+  const faltan=[];if(!nombre)faltan.push('nombre');if(!celular)faltan.push('celular');if(!direccion)faltan.push('dirección');if(typeof selectedCity==='undefined'||!selectedCity)faltan.push('ciudad');
+  if(faltan.length){alert('No se guardó el pedido. Falta: '+faltan.join(', ')+'.');return false}
+  const its=checkoutItemsList();if(!its.length){alert('No se guardó el pedido. El carrito está vacío.');return false}
   const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=typeof liftAdminShippingValue==='function'?liftAdminShippingValue(autoShip):autoShip,descuento=checkoutCouponDiscount(its),total=Math.max(0,effective-((adminTrainerMode()||trainerCouponActive())?0:descuento))+(envio||0);
   const items=its.map(({p,q})=>({producto_id:Number.isFinite(Number(p.id))?Number(p.id):null,nombre:p.name+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||'',cantidad:q,precio_unitario:checkoutUnitPrice(p),total_linea:checkoutUnitPrice(p)*q}));
   const m=typeof liftCreditOrderMeta==='function'?liftCreditOrderMeta():{forma_pago:'pagado',abono_inicial:0,fecha_vencimiento:null,fecha:new Date().toISOString().slice(0,10),envio_modo:'automatico'};
   const origin=['admin','forma='+encodeURIComponent(m.forma_pago||'pagado'),'abono='+Math.max(0,Math.round(Number(m.abono_inicial||0))),'vence='+(m.fecha_vencimiento||''),'envio='+encodeURIComponent(m.envio_modo||'automatico'),'fecha='+(m.fecha||'')].join('|');
   try{const j=await call({action:'save-order',nombre,celular,direccion,ciudad:selectedCity.name||'',departamento:selectedCity.department||'',notas,subtotal,envio:envio||0,descuento:trainerCouponActive()?0:descuento,total,origen:origin,items});
+   if(!j?.pedido_id)throw new Error('Supabase no confirmó el pedido');
    const saldo=Math.max(0,total-Math.min(total,Math.max(0,Math.round(Number(m.abono_inicial||0)))));
-   if(m.forma_pago!=='pagado')alert('Pedido #'+j.pedido_id+' guardado. Saldo en cartera: '+fmt(saldo));
+   alert('✓ Pedido #'+j.pedido_id+' guardado en Supabase.'+(m.forma_pago!=='pagado'?' Saldo en cartera: '+fmt(saldo):''));
+   if(typeof window.liftCrmReload==='function')window.liftCrmReload().catch(()=>{});
    return true;
   }catch(e){console.error(e);alert('No pude guardar el pedido en Supabase: '+e.message);return false}
  };
