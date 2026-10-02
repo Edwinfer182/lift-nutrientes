@@ -1220,11 +1220,17 @@ const PRODUCTS=[];
 // ===== LIFT · CUPONES Y PRECIOS ENTRENADOR =====
 const LIFT_COUPON_SUPABASE_URL='https://lethnvyuvnhekoudmqgy.supabase.co';
 const LIFT_COUPON_SUPABASE_KEY='sb_publishable_jaBDvCiunGGwMakqL_-TIg_LZcgHgk8';
-// Precio entrenador: única fuente = product.trainerPrice cargado desde lift_productos en Supabase.
+// Coincidencias seguras tomadas del panel Proveedores.
+const TRAINER_PRICE_BY_ID={"6":115500,"7":147000,"8":115500,"19":349000,"37":129000,"68":49500,"84":172000,"85":281500,"86":167000,"87":315000,"88":281500,"89":90400,"90":66000,"91":109000,"92":84600,"95":135500,"96":212000,"97":112000,"98":132000,"99":100500,"100":132000,"101":132000,"103":15100,"104":99700,"105":213100,"106":338000,"107":404500,"108":724900,"109":119100,"110":385300,"111":344600,"112":474600,"113":103700,"114":189900,"115":95400,"116":156300,"120":78300,"121":109900,"123":205700,"124":15100,"125":371500,"126":518000,"127":218500,"128":188500,"129":368000,"130":115500,"131":147000,"132":15100,"133":115500,"134":305800,"135":545200,"136":103700,"137":189900,"138":123600,"139":208000,"141":275000,"142":147000,"143":448000,"144":152000,"145":112000,"146":163500,"147":77500,"148":79000,"149":82500,"150":82500,"152":349000,"153":104000,"154":147000,"155":14100,"156":97500,"157":48100,"158":61000,"159":91400,"160":71000,"161":71000,"162":56000,"165":107500,"166":82500,"167":56000,"169":120500,"170":120500,"171":120500,"172":120500,"173":160000,"176":99100,"178":80060,"182":135500,"195":84000,"197":58300,"198":91900,"217":285000,"226":86660,"236":140000,"237":274700,"238":169900,"239":317100,"240":91900,"241":104100,"242":115600,"243":61600,"244":71800,"245":103400,"246":128200,"252":64570,"259":115500,"309":109000,"429":108300,"438":88700,"440":178200,"441":325500,"442":63000,"444":66100,"446":156750,"447":104775,"448":75900,"449":90750,"451":107600,"452":111375,"453":111375,"454":416300,"455":12600,"456":13600,"457":237100,"458":131900,"460":103900,"461":103900,"463":11300,"465":94500,"468":168400,"469":298000,"473":73900,"480":43600,"485":58100,"529":317625,"530":391875,"531":193875,"532":147675,"533":144375,"534":297000,"537":49500,"538":202125,"539":107250,"540":49500,"541":80850,"544":56700,"548":56700,"550":48100,"554":50200,"555":355822,"556":156750,"557":68475,"558":99825,"559":106900,"560":42900,"564":123400,"567":90600,"571":101300,"572":68900,"577":321500,"578":188500,"579":104000,"580":107500,"581":68300,"620":160000,"621":123500,"655":74250,"656":395175,"658":132000,"659":6600,"660":3390,"661":3810,"662":3300,"663":58575,"664":49500,"665":140250,"666":53625,"669":177375,"670":99000,"671":90750,"673":49500,"674":74250,"675":63300,"676":9200,"677":10900,"679":79000,"680":68900,"685":64600,"689":46200,"691":75400,"692":44500,"693":44500,"694":3800,"698":79000,"699":228000,"702":68900,"703":201500,"707":79500,"709":74900,"719":73100,"720":64000,"721":58900,"725":18600,"727":53800,"728":41600,"733":82600,"734":61000,"737":78400,"741":71800,"742":75400,"743":62300,"744":48900,"746":70000,"749":53100,"752":45300,"753":40000,"755":68200,"756":44300,"759":42900,"760":70500,"761":58300,"764":94875,"765":49500,"766":78375,"767":123400,"768":94875,"769":235125,"770":144375,"771":75900,"772":35200,"773":37950,"775":60225,"781":7550,"783":50400,"786":46800,"791":54600,"794":20700,"795":54300,"799":22500,"800":22500,"801":213675,"802":53625,"803":156750,"804":56530,"805":62305,"806":95305,"807":43330,"808":56530,"809":81675,"810":82500,"811":66825,"812":39240,"814":78375,"815":56100,"816":119625,"817":156750,"818":47850,"838":6600,"839":61700,"840":94875,"841":50325,"842":16500,"843":16500,"844":16500,"845":38775,"846":38775,"847":28875,"848":61050,"849":135300,"850":236775,"851":206250,"852":61050,"853":135300,"854":236775,"855":94050,"856":41250,"857":28875,"858":177375,"859":101475,"860":74250,"861":79200,"862":288750,"864":66000,"865":6600,"866":38775,"867":49500,"868":81675,"869":89100,"870":4950,"871":115500,"872":61700,"873":5810,"874":103125,"875":52800,"876":8250,"877":8250,"878":49500,"880":62200,"881":99000,"882":34500,"883":42300,"884":32300,"885":38000,"887":61600,"888":49500,"889":82900,"890":37500,"891":40500,"892":40500,"893":61600,"894":37500,"895":37500,"896":37500,"897":37500,"898":37500,"899":57750,"900":107250,"901":115500,"902":4250,"903":86625,"904":103300,"905":71100,"906":68475,"907":145630,"908":82500,"909":95288,"910":68475,"917":46000,"928":13600,"929":13600,"930":15600,"931":12600,"932":14300,"933":111800,"934":16600,"935":307000,"938":3950,"939":74600,"941":162000,"942":14200,"943":6450,"946":64400,"948":148500,"949":219000,"952":73900,"953":110600,"954":175000,"955":78400,"956":84000,"957":84200,"958":66000,"959":74800,"960":95500,"961":44600,"966":5450,"967":5450,"968":25800,"970":77600,"971":105000,"972":68000};
+// Respaldo para productos sin coincidencia segura: mediana del descuento entrenador del panel.
+const TRAINER_FALLBACK_DISCOUNT=0.175;
 function trainerPriceOf(p){
   const publicPrice=Number(priceOf(p)||0);
   const saved=Number(p?.trainerPrice||0);
-  return saved>0?Math.min(publicPrice,saved):publicPrice;
+  const legacy=Number(TRAINER_PRICE_BY_ID[String(p.id)]||0);
+  const fallback=Math.round((publicPrice*(1-TRAINER_FALLBACK_DISCOUNT))/1000)*1000;
+  const candidate=saved>0?saved:(legacy>0?legacy:fallback);
+  return Math.max(0,Math.min(publicPrice,candidate));
 }
 function trainerCouponActive(){
   return !!(appliedCoupon&&appliedCoupon.discountType==='trainer_price');
@@ -1646,25 +1652,8 @@ hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBase
 priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
 compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
 savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
-offerBadges=function(p){
-  const go=p?._variantGroupId?liftGroupCardOffer(p):null;
-  if(!go)return _liftBaseOfferBadges(p);
-  const g=liftGroupById(p._variantGroupId);
-  const hasGift=!!(g&&liftGroupOffers(g).some(x=>x.o?.gift&&x.o?.giftProductId!=null));
-  return `<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA${hasGift?' · 🎁 REGALO':''}</span>`
-};
-offerDetails=function(p){
-  const go=p?._variantGroupId?liftGroupCardOffer(p):null;
-  if(!go)return _liftBaseOfferDetails(p);
-  const g=liftGroupById(p._variantGroupId);
-  const rows=g?liftGroupOffers(g):[];
-  const giftRows=rows.filter(x=>x.o?.gift&&x.o?.giftProductId!=null);
-  const labels=[...new Set(giftRows.map(x=>{
-    try{return typeof window.liftOfferGiftLabel==='function'?window.liftOfferGiftLabel(x.o):''}catch(e){return ''}
-  }).filter(Boolean))];
-  const giftHtml=giftRows.length?`<div class="giftBadge">🎁 ${labels.length===1?'Regalo: '+esc(labels[0]):'Incluye regalo'}</div>`:'';
-  return `${giftHtml}<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b>${giftRows.length&&giftRows.length!==go.count?` · ${giftRows.length} con regalo`:''}</div>`
-};
+offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
+offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
 priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
@@ -4887,7 +4876,44 @@ window.shareLiftProductImage=async function(id){
 
 
 
-
+<style id="lift-admin-detal-v1">
+#liftAdminBtn{height:44px;border:1px solid #343434;background:#111;color:#fff;border-radius:13px;padding:0 14px;font:600 12px Poppins,Arial;cursor:pointer;white-space:nowrap}
+#liftAdminBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.46);z-index:8998;opacity:0;pointer-events:none;transition:.2s}
+#liftAdminBackdrop.open{opacity:1;pointer-events:auto}
+#liftAdminPanel{position:fixed;top:0;right:0;width:min(720px,100vw);height:100dvh;background:#f7f7f7;z-index:8999;transform:translateX(105%);transition:transform .25s ease;box-shadow:-18px 0 48px rgba(0,0,0,.18);display:flex;flex-direction:column}
+#liftAdminPanel.open{transform:translateX(0)}
+.liftAdminHead{background:#0a0a0a;color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px}.liftAdminHead strong{font-size:18px}.liftAdminHead small{color:#aaa;display:block;font-size:10px}.liftAdminClose{margin-left:auto;width:36px;height:36px;border:0;border-radius:50%;background:#252525;color:#fff;font-size:22px;cursor:pointer}
+.liftAdminTools{padding:12px;background:#fff;border-bottom:1px solid #ddd;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}.liftAdminSearch{height:42px;border:1px solid #d5d5d5;border-radius:10px;padding:0 12px;outline:none}.liftAdminToolBtn{height:42px;border:0;border-radius:10px;background:#111;color:#fff;padding:0 13px;font-weight:600;cursor:pointer}.liftAdminToolBtn.light{background:#eee;color:#111}
+.liftAdminBody{padding:12px;overflow:auto;flex:1}.liftAdminCount{font-size:11px;color:#777;margin:0 2px 10px}.liftAdminRow{display:grid;grid-template-columns:64px minmax(0,1fr) 135px 38px;gap:10px;align-items:center;background:#fff;border:1px solid #e1e1e1;border-radius:12px;padding:9px;margin-bottom:8px}.liftAdminRow img{width:64px;height:64px;object-fit:contain;background:#fff;border-radius:8px}.liftAdminName{font-size:12px;font-weight:600;line-height:1.25}.liftAdminMeta{font-size:9px;color:#888;margin-top:4px}.liftAdminPrice{width:100%;height:38px;border:1px solid #d3d3d3;border-radius:9px;padding:0 9px;font-weight:650;text-align:right}.liftAdminSave{width:38px;height:38px;border:0;border-radius:9px;background:#111;color:#fff;cursor:pointer;font-size:16px}.liftAdminSaved{outline:2px solid #22a06b!important}
+.liftAdminNote{padding:9px 12px;background:#fff8df;border:1px solid #f0dfa4;border-radius:10px;font-size:10px;line-height:1.4;color:#5c4a12;margin-bottom:10px}
+#liftAdminEditor{display:none;background:#fff;border:1px solid #ddd;border-radius:13px;padding:12px;margin-bottom:12px}#liftAdminEditor.open{display:block}.liftAdminGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.liftAdminField{display:flex;flex-direction:column;gap:4px}.liftAdminField.full{grid-column:1/-1}.liftAdminField label{font-size:10px;color:#666}.liftAdminField input{height:40px;border:1px solid #d4d4d4;border-radius:9px;padding:0 10px}.liftAdminEditorActions{display:flex;gap:8px;margin-top:10px}.liftAdminEditorActions button{height:40px;border:0;border-radius:9px;padding:0 14px;cursor:pointer;font-weight:600}.liftAdminPrimary{background:#111;color:#fff}.liftAdminCancel{background:#eee;color:#111}
+@media(max-width:760px){#liftAdminBtn{height:40px;padding:0 10px;font-size:0}#liftAdminBtn:after{content:'⚙';font-size:18px}.liftAdminTools{grid-template-columns:1fr auto}.liftAdminTools .exportBtn{display:none}.liftAdminRow{grid-template-columns:50px minmax(0,1fr) 105px 36px;gap:7px;padding:7px}.liftAdminRow img{width:50px;height:50px}.liftAdminPrice{font-size:12px;padding:0 6px}.liftAdminGrid{grid-template-columns:1fr}}
+</style>
+<div id="liftAdminBackdrop" onclick="closeLiftAdmin()"></div>
+<aside id="liftAdminPanel" aria-label="Panel administrativo Lift">
+ <div class="liftAdminHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal</small></div><button class="liftAdminClose" onclick="closeLiftAdmin()">×</button></div>
+ <div class="liftAdminTools"><input id="liftAdminSearch" class="liftAdminSearch" placeholder="Buscar producto, marca..." oninput="renderLiftAdmin()"><button class="liftAdminToolBtn" onclick="openLiftAdminEditor()">+ Producto</button><button class="liftAdminToolBtn light exportBtn" onclick="exportLiftAdminCSV()">Exportar CSV</button></div>
+ <div class="liftAdminBody"><div class="liftAdminNote">Este panel maneja <b>un solo precio: detal</b>. Los cambios quedan guardados en este navegador y se reflejan inmediatamente en catálogo, carrito y búsqueda.</div><div id="liftAdminEditor"></div><div id="liftAdminCount" class="liftAdminCount"></div><div id="liftAdminList"></div></div>
+</aside>
+<script id="lift-admin-detal-js">
+(function(){
+ const KEY='liftAdminDetalV1';
+ const saved=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+ const persist=o=>localStorage.setItem(KEY,JSON.stringify(o));
+ function applySaved(){const o=saved();for(const p of PRODUCTS){const x=o[String(p.id)];if(x)Object.assign(p,x)}if(typeof render==='function')render();if(typeof renderCart==='function')renderCart()}
+ window.openLiftAdmin=function(){document.getElementById('liftAdminPanel').classList.add('open');document.getElementById('liftAdminBackdrop').classList.add('open');document.body.style.overflow='hidden';renderLiftAdmin()}
+ window.closeLiftAdmin=function(){document.getElementById('liftAdminPanel').classList.remove('open');document.getElementById('liftAdminBackdrop').classList.remove('open');document.body.style.overflow=''}
+ function moneyInput(v){return Number(v||0).toLocaleString('es-CO')}
+ function parseMoney(v){return Number(String(v||'').replace(/[^0-9]/g,''))||0}
+ window.renderLiftAdmin=function(){const q=norm(document.getElementById('liftAdminSearch')?.value||'');const arr=PRODUCTS.filter(p=>!q||norm([p.name,p.brand,p.category].join(' ')).includes(q));document.getElementById('liftAdminCount').textContent=`${arr.length} productos · precio detal`;document.getElementById('liftAdminList').innerHTML=arr.slice(0,500).map(p=>`<div class="liftAdminRow"><img src="${p.image||''}" alt=""><div><div class="liftAdminName">${esc(p.name)}</div><div class="liftAdminMeta">${esc(p.brand||'')} · ${esc(p.category||'')}</div></div><input class="liftAdminPrice" id="adminPrice_${p.id}" inputmode="numeric" value="${moneyInput(p.price)}" onfocus="this.value=String(this.value).replace(/[^0-9]/g,'')" onblur="this.value=Number(String(this.value).replace(/[^0-9]/g,'')||0).toLocaleString('es-CO')"><button class="liftAdminSave" title="Guardar precio" onclick="saveLiftRetailPrice(${JSON.stringify(p.id)},this)">✓</button></div>`).join('')+(arr.length>500?`<div class="liftAdminCount">Mostrando 500. Usa el buscador para encontrar los demás.</div>`:'')}
+ window.saveLiftRetailPrice=function(id,btn){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;const input=document.getElementById('adminPrice_'+id);const price=parseMoney(input.value);p.price=price;const o=saved();o[String(id)]={...(o[String(id)]||{}),price};persist(o);input.value=moneyInput(price);btn.classList.add('liftAdminSaved');setTimeout(()=>btn.classList.remove('liftAdminSaved'),700);if(typeof render==='function')render();if(typeof renderCart==='function')renderCart()}
+ window.openLiftAdminEditor=function(id){const p=id!=null?PRODUCTS.find(x=>String(x.id)===String(id)):null;const e=document.getElementById('liftAdminEditor');e.classList.add('open');e.innerHTML=`<div class="liftAdminGrid"><div class="liftAdminField full"><label>Nombre</label><input id="laName" value="${esc(p?.name||'')}"></div><div class="liftAdminField"><label>Marca</label><input id="laBrand" value="${esc(p?.brand||'')}"></div><div class="liftAdminField"><label>Categoría</label><input id="laCat" value="${esc(p?.category||'')}"></div><div class="liftAdminField"><label>Precio detal</label><input id="laPrice" inputmode="numeric" value="${p?moneyInput(p.price):''}"></div><div class="liftAdminField"><label>Imagen URL</label><input id="laImage" value="${esc(p?.image||'')}"></div></div><div class="liftAdminEditorActions"><button class="liftAdminPrimary" onclick="saveLiftAdminProduct(${p?JSON.stringify(p.id):'null'})">Guardar</button><button class="liftAdminCancel" onclick="document.getElementById('liftAdminEditor').classList.remove('open')">Cancelar</button></div>`;e.scrollIntoView({behavior:'smooth',block:'nearest'})}
+ window.saveLiftAdminProduct=function(id){const data={name:document.getElementById('laName').value.trim(),brand:document.getElementById('laBrand').value.trim(),category:document.getElementById('laCat').value.trim(),price:parseMoney(document.getElementById('laPrice').value),image:document.getElementById('laImage').value.trim()};if(!data.name||!data.price)return alert('Pon nombre y precio detal.');let p;if(id==null){let max=PRODUCTS.reduce((m,x)=>Math.max(m,Number(x.id)||0),0);p={id:max+1,...data};PRODUCTS.push(p)}else{p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;Object.assign(p,data)}const o=saved();o[String(p.id)]={...(o[String(p.id)]||{}),...data};persist(o);if(!cats.includes(data.category))cats.push(data.category);if(!brands.includes(data.brand))brands.push(data.brand);document.getElementById('liftAdminEditor').classList.remove('open');renderLiftAdmin();render();renderCart()}
+ window.exportLiftAdminCSV=function(){const rows=[['ID','Producto','Marca','Categoria','Precio detal'],...PRODUCTS.map(p=>[p.id,p.name,p.brand,p.category,p.price])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lift-precios-detal.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+ function addButton(){const bar=document.querySelector('.top .bar');if(!bar||document.getElementById('liftAdminBtn'))return;const b=document.createElement('button');b.id='liftAdminBtn';b.type='button';b.textContent='⚙ Administrar';b.onclick=openLiftAdmin;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
+ applySaved();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButton);else addButton();
+})();
+</script>
 
 
 <style id="lift-admin-completo-v2-style">
@@ -4989,11 +5015,10 @@ window.shareLiftProductImage=async function(id){
  const $=id=>document.getElementById(id), norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const num=v=>Number(String(v??'').replace(/[^0-9]/g,''))||0, fmt=n=>Number(n||0).toLocaleString('es-CO');
  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
- // Compatibilidad UI solamente. Los productos NO se persisten en localStorage.
- function store(){return {}} function saveStore(o){}
- function meta(){try{const m=JSON.parse(localStorage.getItem(META)||'{"out":{}}');if(m&&m.offers)delete m.offers;return m}catch(e){return {out:{}}}}
- function saveMeta(o){try{const clean={...(o||{})};delete clean.offers;localStorage.setItem(META,JSON.stringify(clean))}catch(e){}}
- function patch(p){/* Sin persistencia local: el wrapper cloud guarda en Supabase. */}
+ function store(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}} function saveStore(o){localStorage.setItem(KEY,JSON.stringify(o))}
+ function meta(){try{return JSON.parse(localStorage.getItem(META)||'{"out":{}}')}catch(e){return {out:{}}}} function saveMeta(o){localStorage.setItem(META,JSON.stringify(o))}
+ function refresh(){try{render()}catch(e){} try{renderCart()}catch(e){} try{renderQuickSearch()}catch(e){} try{renderFilters()}catch(e){} lafRenderProducts(); lafFillLists();}
+ function patch(p){const o=store();o[String(p.id)]={...(o[String(p.id)]||{}),name:p.name,brand:p.brand,category:p.category,price:p.price,trainerPrice:p.trainerPrice||null,image:p.image,description:p.description||'',flavors:p.flavors||[]};saveStore(o)}
  function nextId(){return Math.max(0,...PRODUCTS.map(p=>Number(p.id)||0))+1}
  window.openLiftAdminFull=function(){ $('lafBackdrop').classList.add('show');$('lafPanel').classList.add('open');lafRenderProducts();lafFillLists();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  window.closeLiftAdminFull=function(){$('lafBackdrop').classList.remove('show');$('lafPanel').classList.remove('open')};
@@ -5325,7 +5350,7 @@ window.shareLiftProductImage=async function(id){
  function normalizeRow(r){return {id:num(rowVal(r,['id','codigo','sku']))||null,name:String(rowVal(r,['producto','nombre','name'])||'').trim(),brand:String(rowVal(r,['marca','brand'])||'').trim(),category:String(rowVal(r,['categoria','category'])||'').trim(),presentation:String(rowVal(r,['presentacion','presentation'])||'').trim(),price:num(rowVal(r,['precio_detal','precio','price','precio_publico'])),status:norm(rowVal(r,['estado','status'])),image:String(rowVal(r,['imagen','image','url_imagen'])||'').trim(),description:String(rowVal(r,['descripcion','description'])||'').trim(),flavors:String(rowVal(r,['sabores','sabor','flavors'])||'').split(/[|,;]+/).map(x=>x.trim()).filter(Boolean)}}
  function previewTable(rows){if(!rows.length)return '<div class="lafNote">Sin filas.</div>';const ks=Object.keys(rows[0]);return '<table><thead><tr>'+ks.map(k=>`<th>${esc(k)}</th>`).join('')+'</tr></thead><tbody>'+rows.slice(0,30).map(r=>'<tr>'+ks.map(k=>`<td>${esc(r[k])}</td>`).join('')+'</tr>').join('')+'</tbody></table>'}
  window.lafPreviewImport=function(){const f=$('lafImportFile').files[0];if(!f)return alert('Selecciona un archivo.');const ext=f.name.split('.').pop().toLowerCase();const done=data=>{pending=data;$('lafImportPreview').style.display='block';$('lafImportPreview').innerHTML=previewTable(data.products);$('lafImportResult').textContent=`Listo: ${data.products.length} productos, ${data.offers.length} ofertas, ${data.combos.length} combos.`;$('lafApplyImport').disabled=false};if(ext==='json'){const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);done({products:(j.products||j.Productos||[]).map(normalizeRow),offers:j.offers||j.Ofertas||[],combos:(j.combos||j.Combos||[]).map(normalizeRow)})}catch(e){alert('JSON inválido')}};rd.readAsText(f);return}ensureXLSX(()=>{const rd=new FileReader();rd.onload=()=>{const wb=XLSX.read(rd.result,{type:'array'});const get=n=>{const sh=wb.Sheets[wb.SheetNames.find(x=>norm(x)===norm(n))||wb.SheetNames[0]];return sh?XLSX.utils.sheet_to_json(sh,{defval:''}):[]};const products=get('Productos').map(normalizeRow);let offers=[];const os=wb.Sheets[wb.SheetNames.find(x=>norm(x)==='ofertas')];if(os)offers=XLSX.utils.sheet_to_json(os,{defval:''});let combos=[];const cs=wb.Sheets[wb.SheetNames.find(x=>norm(x)==='combos')];if(cs)combos=XLSX.utils.sheet_to_json(cs,{defval:''}).map(normalizeRow);done({products,offers,combos})};rd.readAsArrayBuffer(f)})};
- window.lafApplyImport=function(){const mode=$('lafImportMode').value;let added=0,updated=0;if(mode==='replace'){PRODUCTS.splice(0,PRODUCTS.length)}const all=[...pending.products,...pending.combos];for(const r of all){if(!r.name)continue;let p=r.id?PRODUCTS.find(x=>String(x.id)===String(r.id)):PRODUCTS.find(x=>norm(x.name)===norm(r.name)&&norm(x.brand)===norm(r.brand));if(p){if(mode==='add')continue;Object.assign(p,{name:r.name||p.name,brand:r.brand||p.brand,category:r.category||p.category,presentation:r.presentation||p.presentation,price:r.price||p.price,image:r.image||p.image,description:r.description||p.description,flavors:r.flavors?.length?r.flavors:p.flavors});patch(p);updated++}else{if(mode==='update')continue;p={id:r.id||nextId(),name:r.name,brand:r.brand,category:r.category,presentation:r.presentation,price:r.price,image:r.image,description:r.description,flavors:r.flavors};PRODUCTS.push(p);patch(p);added++}const m=meta();m.out=m.out||{};if(r.status.includes('agot'))m.out[p.id]=true;else delete m.out[p.id];saveMeta(m)}/* PROTECCIÓN SUPABASE: la importación de productos NO modifica weekly_offers. Las ofertas se administran únicamente desde el editor de ofertas. */$('lafImportResult').textContent=`Importación terminada: ${added} nuevos, ${updated} actualizados.`;if(typeof rebuildLiftExcelFilters==='function')rebuildLiftExcelFilters();refresh();if(typeof syncLiftCategoryUI==='function')syncLiftCategoryUI();lafFillLists();lafRenderProducts();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
+ window.lafApplyImport=function(){const mode=$('lafImportMode').value;let added=0,updated=0;if(mode==='replace'){PRODUCTS.splice(0,PRODUCTS.length);localStorage.removeItem(KEY)}const all=[...pending.products,...pending.combos];for(const r of all){if(!r.name)continue;let p=r.id?PRODUCTS.find(x=>String(x.id)===String(r.id)):PRODUCTS.find(x=>norm(x.name)===norm(r.name)&&norm(x.brand)===norm(r.brand));if(p){if(mode==='add')continue;Object.assign(p,{name:r.name||p.name,brand:r.brand||p.brand,category:r.category||p.category,presentation:r.presentation||p.presentation,price:r.price||p.price,image:r.image||p.image,description:r.description||p.description,flavors:r.flavors?.length?r.flavors:p.flavors});patch(p);updated++}else{if(mode==='update')continue;p={id:r.id||nextId(),name:r.name,brand:r.brand,category:r.category,presentation:r.presentation,price:r.price,image:r.image,description:r.description,flavors:r.flavors};PRODUCTS.push(p);patch(p);added++}const m=meta();m.out=m.out||{};if(r.status.includes('agot'))m.out[p.id]=true;else delete m.out[p.id];saveMeta(m)}/* PROTECCIÓN SUPABASE: la importación de productos NO modifica weekly_offers. Las ofertas se administran únicamente desde el editor de ofertas. */$('lafImportResult').textContent=`Importación terminada: ${added} nuevos, ${updated} actualizados.`;if(typeof rebuildLiftExcelFilters==='function')rebuildLiftExcelFilters();refresh();if(typeof syncLiftCategoryUI==='function')syncLiftCategoryUI();lafFillLists();lafRenderProducts();lafRenderOffers();lafRenderCombos();lafRenderCategories()};
  function addButton(){const bar=document.querySelector('.top .bar');if(!bar||$('liftAdminFullBtn'))return;const b=document.createElement('button');b.id='liftAdminFullBtn';b.textContent='⚙ Administrar';b.onclick=openLiftAdminFull;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
  loadSavedOffers();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButton);else addButton();
 })();
@@ -5510,6 +5535,12 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    PRODUCTS.push(copy);
 
    try{
+     const o=JSON.parse(localStorage.getItem('liftAdminDetalV1')||'{}');
+     o[String(newId)]={name:copy.name,brand:copy.brand||'',category:copy.category||'',price:Number(copy.price)||0,image:copy.image||''};
+     localStorage.setItem('liftAdminDetalV1',JSON.stringify(o));
+   }catch(e){}
+
+   try{
      if(typeof window.liftCloudSaveProduct==='function') await window.liftCloudSaveProduct(copy);
    }catch(e){
      alert('El producto se duplicó en pantalla, pero no pudo guardarse en Supabase: '+e.message);
@@ -5528,7 +5559,7 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    if(!confirm('¿Eliminar este producto del catálogo?'))return;
    const ids=deleted(); ids.push(String(id)); saveDeleted(ids);
    const i=PRODUCTS.findIndex(x=>String(x.id)===String(id)); if(i>=0)PRODUCTS.splice(i,1);
-   
+   try{const o=JSON.parse(localStorage.getItem('liftAdminDetalV1')||'{}');delete o[String(id)];localStorage.setItem('liftAdminDetalV1',JSON.stringify(o))}catch(e){}
    try{const m=JSON.parse(localStorage.getItem('liftAdminFullMetaV2')||'{}');if(m.out)delete m.out[String(id)];localStorage.setItem('liftAdminFullMetaV2',JSON.stringify(m))}catch(e){}
    if(typeof render==='function')render(); if(typeof renderCart==='function')renderCart(); if(typeof lafRenderProducts==='function')lafRenderProducts();
  };
@@ -5601,9 +5632,20 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    }
    return all;
  }
- function readCatalogCache(){return null}
- function writeCatalogCache(rows,cfg){}
- function clearCatalogCache(){}
+ function readCatalogCache(){
+   try{
+     const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+     if(!c||!Array.isArray(c.rows)||!Array.isArray(c.cfg)||!c.savedAt)return null;
+     if(Date.now()-Number(c.savedAt)>CACHE_TTL)return null;
+     return c;
+   }catch(e){return null}
+ }
+ function writeCatalogCache(rows,cfg){
+   try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),rows,cfg}))}catch(e){}
+ }
+ function clearCatalogCache(){
+   try{localStorage.removeItem(CACHE_KEY)}catch(e){}
+ }
  const getPass=()=>{try{return sessionStorage.getItem(PASS_KEY)||''}catch(e){return ''}};
  function state(msg,kind=''){
    let e=document.getElementById('liftCloudState');
@@ -7103,7 +7145,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 <script id="lift-crm-v1-script">
 (function(){
  const SB='https://vdxkknftyssjyfbdieqa.supabase.co', KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
- const H={apikey:KEY,'Content-Type':'application/json',Prefer:'return=representation'};
+ const H={apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json',Prefer:'return=representation'};
  let clients=[],followups=[],filter='todos',current=null;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=v=>'$ '+Number(v||0).toLocaleString('es-CO');
@@ -7131,7 +7173,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
    let rows=clients.map(c=>({c,s:latest(c.id)})).filter(({c,s})=>{
      if(q&&!((c.nombre||'').toLowerCase().includes(q)||(c.celular||'').includes(q)))return false;
      if(filter==='todos')return true;
-     if(filter==='hoy')return s&&today(s.proximo_seguimiento);
+     if(filter==='hoy')return s&&s.proximo_seguimiento&&new Date(s.proximo_seguimiento)<=new Date(new Date().setHours(23,59,59,999))&&!['compro','no_interesado'].includes(s.estado);
      if(filter==='pendientes')return s&&s.proximo_seguimiento&&new Date(s.proximo_seguimiento)<=now&&!['compro','no_interesado'].includes(s.estado);
      return s&&s.estado===filter;
    });
@@ -7140,15 +7182,29 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  window.liftCrmClient=function(id){
    current=clients.find(x=>Number(x.id)===Number(id));if(!current)return;const s=latest(id);
    document.getElementById('crmBrowse').style.display='none';document.getElementById('crmForm').classList.add('open');document.getElementById('crmClientTitle').textContent=current.nombre+' · '+current.celular;
-   document.getElementById('crmEstado').value=s?.estado||'nuevo';document.getElementById('crmInteres').value=s?.interes||'';document.getElementById('crmValor').value=s?.valor_cotizado||'';document.getElementById('crmNota').value='';document.getElementById('crmProximo').value='';
-   document.getElementById('crmWhatsapp').href='https://wa.me/57'+String(current.celular||'').replace(/\D/g,'');
+   document.getElementById('crmEstado').value=s?.estado||'nuevo';document.getElementById('crmInteres').value=s?.interes||'';document.getElementById('crmValor').value=s?.valor_cotizado||'';document.getElementById('crmNota').value='';document.getElementById('crmProximo').value=s?.proximo_seguimiento?(()=>{const d=new Date(s.proximo_seguimiento),z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes())})():'';
+   {let n=String(current.celular||'').replace(/\D/g,'');if(n.length===10)n='57'+n;document.getElementById('crmWhatsapp').href=n?'https://wa.me/'+n:'#';}
    const hs=followups.filter(x=>Number(x.cliente_id)===Number(id)).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
    document.getElementById('crmHistory').innerHTML=hs.map(x=>`<div class="crmHistoryRow"><b>${label(x.estado)} · ${new Date(x.fecha).toLocaleString('es-CO')}</b><br>${x.interes?esc(x.interes)+' · ':''}${x.valor_cotizado?money(x.valor_cotizado)+' · ':''}${esc(x.nota||'')}${x.proximo_seguimiento?'<br>Próximo: '+new Date(x.proximo_seguimiento).toLocaleString('es-CO'):''}</div>`).join('')||'<div class="crmHistoryRow">Sin seguimientos todavía.</div>';
  };
  window.liftCrmSave=async function(){
-   if(!current)return;const st=document.getElementById('crmStatus');st.textContent='Guardando…';
-   const row={cliente_id:current.id,celular:current.celular||'',nombre:current.nombre||'',estado:document.getElementById('crmEstado').value,interes:document.getElementById('crmInteres').value.trim(),valor_cotizado:Math.round(Number(document.getElementById('crmValor').value||0)),nota:document.getElementById('crmNota').value.trim(),proximo_seguimiento:document.getElementById('crmProximo').value?new Date(document.getElementById('crmProximo').value).toISOString():null};
-   try{const j=await api('lift_seguimientos_clientes',{method:'POST',body:JSON.stringify(row)});followups.unshift(j[0]||row);st.textContent='✓ Seguimiento guardado en Supabase.';liftCrmClient(current.id)}catch(e){st.textContent=e.message}
+   if(!current)return;
+   const st=document.getElementById('crmStatus'),btn=document.querySelector('#crmForm .crmActions .primary');
+   if(btn?.dataset.saving==='1')return;
+   const raw=document.getElementById('crmProximo').value;
+   const row={cliente_id:current.id,celular:current.celular||'',nombre:current.nombre||'',estado:document.getElementById('crmEstado').value,interes:document.getElementById('crmInteres').value.trim(),valor_cotizado:Math.max(0,Math.round(Number(document.getElementById('crmValor').value||0))),nota:document.getElementById('crmNota').value.trim(),proximo_seguimiento:raw?new Date(raw).toISOString():null};
+   try{
+     if(btn){btn.dataset.saving='1';btn.disabled=true;btn.textContent='Guardando…'}
+     st.textContent='Guardando en Supabase…';
+     const j=await api('lift_seguimientos_clientes',{method:'POST',body:JSON.stringify(row)});
+     if(!Array.isArray(j)||!j[0]?.id)throw new Error('Supabase no confirmó el seguimiento.');
+     await load();
+     const saved=followups.find(x=>Number(x.id)===Number(j[0].id));
+     if(!saved)throw new Error('Se recibió respuesta, pero el seguimiento no apareció al volver a consultar Supabase.');
+     liftCrmClient(current.id);
+     st.textContent='✓ Seguimiento guardado en Supabase y visible en el historial.';
+   }catch(e){st.textContent='✕ No se guardó: '+(e.message||e)}
+   finally{if(btn){btn.dataset.saving='0';btn.disabled=false;btn.textContent='Guardar seguimiento'}}
  };
  function inject(){
    let b=document.getElementById('liftCrmBtn');
@@ -9505,17 +9561,6 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
 })();
 </script>
 
-
-<script id="lift-supabase-cleanup-v2">
-(function(){
-  // El catálogo autoritativo vive en Supabase. Borramos restos históricos que podían pisar datos al iniciar.
-  try{localStorage.removeItem('liftAdminDetalV1')}catch(e){}
-  try{
-    const k='liftAdminFullMetaV2',m=JSON.parse(localStorage.getItem(k)||'{}');
-    if(m&&typeof m==='object'&&m.offers){delete m.offers;localStorage.setItem(k,JSON.stringify(m))}
-  }catch(e){}
-})();
-</script>
 </body>
 </html>
 <style id="lift-client-directory-v1">
