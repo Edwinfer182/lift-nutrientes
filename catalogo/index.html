@@ -868,6 +868,59 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 <style id="lift-track-premium-v2">
 .liftTrackCustomer{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin:12px 0}.liftTrackCustomer>div{border:1px solid #e8e8e8;border-radius:12px;padding:11px;background:#fafafa;display:flex;flex-direction:column;gap:3px}.liftTrackCustomer small,.liftTrackNotes small{font-size:8px;letter-spacing:.08em;color:#999;font-weight:600}.liftTrackCustomer b{font-size:11px;line-height:1.35}.liftTrackCustomer span{font-size:9px;color:#777;line-height:1.35}.liftTrackProducts{display:grid;gap:8px;margin-top:12px}.liftTrackProduct{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px;border:1px solid #e8e8e8;border-radius:13px;background:#fff}.liftTrackProduct img,.liftTrackNoImg{width:62px;height:62px;object-fit:contain;border-radius:10px;background:#fff;border:1px solid #f0f0f0}.liftTrackNoImg{display:grid;place-items:center;font-size:10px;font-weight:700;color:#bbb}.liftTrackProductInfo{min-width:0;display:flex;flex-direction:column;gap:2px}.liftTrackProductInfo b{font-size:11px;line-height:1.3}.liftTrackProductInfo span,.liftTrackProductInfo small{font-size:9px;color:#777}.liftTrackProductPrice{font-size:11px;font-weight:600;white-space:nowrap}.liftTrackTotals{margin-top:11px;border-top:1px solid #eee;padding-top:8px}.liftTrackTotals>div{display:flex;justify-content:space-between;gap:12px;padding:4px 2px;font-size:10px}.liftTrackTotals .discount{color:#168451}.liftTrackTotals .grand{font-size:14px;border-top:1px solid #eee;margin-top:4px;padding-top:9px}.liftTrackTotals .grand b{font-size:17px}.liftTrackNotes{margin-top:10px;padding:10px 11px;border-radius:10px;background:#fafafa;border:1px solid #eee;font-size:10px;line-height:1.45}.liftTrackNotes small{display:block;margin-bottom:4px}.liftTrackEmpty{padding:15px;text-align:center;color:#888;font-size:10px}@media(max-width:560px){.liftTrackCustomer{grid-template-columns:1fr}.liftTrackProduct{grid-template-columns:54px minmax(0,1fr) auto}.liftTrackProduct img,.liftTrackNoImg{width:54px;height:54px}.liftTrackProductPrice{font-size:10px}}
 </style>
+
+<style id="lift-final-logistics-css">
+#liftCourierApp .lcWrap{max-width:680px;padding:10px 9px 28px}#liftCourierApp .lcHead{padding:15px 18px;border-radius:15px;margin-bottom:8px}#liftCourierApp .lcCard{padding:10px 12px;margin-top:7px;border-radius:12px}
+.lcTopGrid{display:grid;grid-template-columns:.9fr 1.35fr;gap:7px}.lcTopGrid .lcCard{margin-top:0}.lcMini{min-height:56px}.lcPayInline{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:11px}.lcPayInline.paid{color:#08783e}.lcPayInline span{font-weight:800;font-size:14px}
+.lcInfoGrid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:10px}.lcInfoGrid .lcValue{font-size:12px}.lcInfoGrid a{color:#111}.lcAddress{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.lcAddress small{display:block;color:#777;font-size:9px}.lcMapCompact{margin:0!important;border:1px solid #ddd;border-radius:8px;padding:7px 9px!important;text-decoration:none!important}.lcFull{grid-column:1/-1}
+.lcProduct{display:grid;grid-template-columns:44px 1fr auto;gap:9px;align-items:center;padding:6px 0;border-bottom:1px solid #eee}.lcProduct:last-child{border:0}.lcProductImg{width:44px;height:44px;border-radius:8px;background:#f7f7f7;display:grid;place-items:center;overflow:hidden}.lcProductImg img{width:100%;height:100%;object-fit:contain}.lcProductText b{display:block;font-size:10px;line-height:1.25}.lcProductText small{display:block;font-size:8px;color:#777}.lcQty{font-weight:800;font-size:12px}
+.lcPayDetails{margin-top:7px}.lcPayDetails summary{font-size:9px;font-weight:700;cursor:pointer}.lcAccount{font-size:9px;line-height:1.55;margin-top:6px}.lcPayNote{font-size:9px}
+.lcSteps{display:flex;margin-bottom:9px}.lcStep{flex:1;text-align:center;position:relative;font-size:7px;color:#888}.lcStep:not(:last-child):after{content:"";position:absolute;top:11px;left:58%;right:-42%;height:2px;background:#ddd}.lcDot{position:relative;z-index:1;width:23px;height:23px;border-radius:50%;background:#ddd;display:grid;place-items:center;margin:auto auto 3px;font-size:9px;font-weight:800}.lcStep.done .lcDot,.lcStep.active .lcDot{background:#16a34a;color:#fff}.lcStep.done:not(:last-child):after{background:#16a34a}
+.lcCompactDelivery{display:grid;grid-template-columns:1fr 1fr;gap:6px}.lcCompactDelivery button{height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font:700 8px Poppins,Arial}.lcCompactDelivery button.on{background:#111;color:#fff}.hideExtra{display:none}.lcActionGrid{display:grid!important;grid-template-columns:1fr .7fr 1fr;gap:6px}.lcActionGrid .lcBtn{min-height:37px!important;padding:5px!important;font-size:8px!important}
+.liftFlowControls{margin:8px 0;padding:9px;border:1px solid #e2e2e2;border-radius:10px;background:#fafafa}.liftFlowTitle{font-size:8px;font-weight:700;margin-bottom:5px}.liftFlowPay{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.liftFlowPay button{height:30px;border:1px solid #ddd;border-radius:7px;background:#fff;font:700 7px Poppins,Arial}.liftFlowPay button.on{background:#16a34a;color:#fff}.liftFlowProvider{display:grid;grid-template-columns:1fr 1.4fr;gap:5px;margin-top:6px}.liftFlowProvider select,.liftFlowProvider button{height:32px;border:1px solid #ddd;border-radius:7px;background:#fff;font:600 8px Poppins,Arial;padding:0 6px}.liftFlowProvider button{background:#111;color:#fff}
+#liftProviderAvailability{display:none;position:fixed;inset:0;z-index:2147483600;background:#f4f4f4;overflow:auto;font-family:Poppins,Arial}#liftProviderAvailability.open{display:block}.lpaWrap{max-width:540px;margin:auto;padding:12px}.lpaHead{background:#080808;color:#fff;padding:17px;border-radius:14px}.lpaHead b{display:block}.lpaHead small{color:#aaa}.lpaCard{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:12px;margin-top:9px}.lpaItem{padding:10px 0;border-bottom:1px solid #eee}.lpaItem>b,.lpaItem>small{display:block}.lpaItem>b{font-size:11px}.lpaItem>small{font-size:8px;color:#777}.lpaBtns{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}.lpaBtns button{height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font:700 9px Poppins,Arial}.lpaBtns button.on[data-v="1"]{background:#16a34a;color:#fff}.lpaBtns button.on[data-v="0"]{background:#b42318;color:#fff}.lpaItem input{width:100%;height:32px;border:1px solid #ddd;border-radius:7px;padding:0 8px;margin-top:5px;font:9px Poppins,Arial}#lpaSend{width:100%;height:44px;border:0;border-radius:10px;background:#111;color:#fff;margin-top:9px;font:700 10px Poppins,Arial}
+@media(max-width:520px){.lcInfoGrid{grid-template-columns:1.25fr 1fr}.liftFlowPay{grid-template-columns:1fr 1fr}.liftFlowProvider{grid-template-columns:1fr}}
+</style>
+
+
+<style id="lift-courier-workorder-v4">
+#liftCourierApp{background:#f4f4f4!important}
+#liftCourierApp .lcWrap{max-width:650px!important;padding:8px 9px 22px!important}
+#liftCourierApp .lcHead{padding:14px 16px!important;border-radius:14px!important;margin-bottom:7px!important}
+#liftCourierApp .lcHead b{font-size:16px!important}
+#liftCourierApp .lcHead small{font-size:10px!important;color:#aaa!important}
+#liftCourierApp .lcCard{padding:10px 12px!important;margin-top:7px!important;border-radius:12px!important}
+.lcClientLine,.lcAddressLine{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.lcClientLine{padding-bottom:8px;border-bottom:1px solid #eee}
+.lcAddressLine{padding-top:8px}
+.lcClientLine b,.lcAddressLine b{font-size:11px;line-height:1.3}
+.lcAddressLine small{display:block;color:#777;font-size:8px;margin-top:2px}
+.lcPhone,.lcMapCompact{display:inline-flex;align-items:center;justify-content:center;min-height:31px;padding:0 9px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111!important;text-decoration:none!important;font-size:9px;font-weight:700;white-space:nowrap}
+.lcOrderNote{margin-top:8px;padding:7px 9px;border-radius:8px;background:#f7f7f7;font-size:9px}
+.lcProductsCard .lcLabel{margin-bottom:3px}
+.lcProduct{display:grid!important;grid-template-columns:46px 1fr auto!important;gap:9px!important;align-items:center!important;padding:6px 0!important;border-bottom:1px solid #eee!important}
+.lcProduct:last-child{border-bottom:0!important}
+.lcProductImg{width:46px!important;height:46px!important;border-radius:8px!important;background:#f7f7f7!important;display:grid!important;place-items:center!important;overflow:hidden!important}
+.lcProductImg img{width:100%!important;height:100%!important;object-fit:contain!important}
+.lcProductImg span{width:100%;height:100%;place-items:center}
+.lcProductText b{display:block;font-size:10px!important;line-height:1.25}.lcProductText small{display:block;font-size:8px!important;color:#777}.lcQty{font-size:12px!important;font-weight:800}
+.lcChargeCard{border:1px solid #f0d98c!important;background:#fff8d9!important}
+.lcChargeTop{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}.lcChargeTop b{font-size:11px}.lcChargeTop strong{font-size:19px}.lcChargeCard>small{display:block;font-size:8px;margin-top:2px;color:#6f5b17}
+.lcPayDetails{margin-top:7px}.lcPayDetails summary{font-size:9px;font-weight:700;cursor:pointer}.lcAccount{font-size:9px;line-height:1.55;margin-top:6px;padding:7px 9px;background:#fff;border-radius:8px}
+.lcProofBtn{width:100%;height:33px;margin-top:7px;border:1px solid #ddd;border-radius:8px;background:#fff;font:700 8px Poppins,Arial}
+.lcFlowCard{padding:13px 10px!important}
+.lcSequence{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr;align-items:start}
+.lcSeqStep{appearance:none;border:0;background:transparent;padding:0;color:#888;font:700 7px Poppins,Arial;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
+.lcSeqStep:disabled{cursor:default}
+.lcSeqDot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#dedede;color:#777;font-size:11px;font-weight:800;box-shadow:0 0 0 4px #f4f4f4}
+.lcSeqStep.current .lcSeqDot{background:#16a34a;color:#fff;box-shadow:0 0 0 4px #dcfce7}
+.lcSeqStep.done .lcSeqDot{background:#16a34a;color:#fff;box-shadow:0 0 0 4px #dcfce7}
+.lcSeqStep.current{color:#111}.lcSeqStep.done{color:#168451}
+.lcSeqLine{height:3px;background:#ddd;margin-top:16px;border-radius:999px}.lcSeqLine.done{background:#16a34a}
+#lcMsg{font-size:9px;text-align:center;margin-top:7px}
+@media(max-width:420px){.lcSequence{grid-template-columns:1fr 22px 1fr 22px 1fr}.lcSeqDot{width:31px;height:31px}.lcSeqLine{margin-top:15px}.lcClientLine b,.lcAddressLine b{font-size:10px}}
+</style>
+
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -10546,6 +10599,14 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    if(medio==='transferencia')return {kind:'collect',title:'TRANSFERENCIA',detail:'El cliente puede transferir al momento de la entrega',amount:due||Number(p.total||0),transfer:true};
    return {kind:'collect',title:'PAGO PENDIENTE',detail:'Confirma el pago antes de cerrar la entrega',amount:due||Number(p.total||0),transfer:true};
  }
+ // Exclusivo del portal del mensajero. No modifica la lógica ni las tarjetas del panel administrativo.
+ function courierPayInfo(p){
+   const norm=v=>String(v??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[_-]+/g,' ').trim();
+   const values=[p.no_cobrar,p.cobrar,p.pago_estado,p.forma_pago,p.medio_pago_cliente,p.estado_pago,p.tipo_pago,p.instruccion_cobro,p.cobro_mensajero].map(norm);
+   const explicitNoCharge = p.no_cobrar===true || p.cobrar===false || values.some(v=>['no cobrar','nocobrar','pagado','pago aprobado','aprobado','credito','venta a credito'].includes(v));
+   if(explicitNoCharge) return {kind:'paid',title:'NO COBRAR',detail:'No recibir dinero en esta entrega.',amount:0};
+   return payInfo(p);
+ }
  window.liftAdminCourierAccess=async function(id){try{const password=sessionStorage.getItem(PASS)||'';if(!password)throw new Error('Vuelve a entrar al administrador.');const j=await api({action:'courier-link',password,pedido_id:Number(id)}),u=base()+'?entrega='+encodeURIComponent(j.token);if(await copy(u))alert('✓ Link del proveedor/mensajero copiado');else window.prompt('Copia el enlace:',u)}catch(e){alert('Mensajero: '+e.message)}};
 
  // Estado de pago visible en cada tarjeta administrativa.
@@ -10558,6 +10619,13 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    const map=window.__liftDispatchMap;if(!map)return;
    document.querySelectorAll('.liftOpsCard').forEach(card=>{
      const m=(card.textContent||'').match(/Pedido\s*#(\d+)/i);if(!m)return;const p=map.get(m[1]);if(!p)return;
+     if(!card.querySelector('.liftFlowControls')){
+       const controls=document.createElement('div');controls.className='liftFlowControls';
+       controls.innerHTML=`<div class="liftFlowTitle">PAGO DEL PEDIDO</div><div class="liftFlowPay"><button data-pay="pagado">✓ PAGADO</button><button data-pay="efectivo">💵 EFECTIVO</button><button data-pay="transferencia">🏦 TRANSFERENCIA</button><button data-pay="credito">◷ CRÉDITO</button></div><div class="liftFlowProvider"><select>${['Daniel','Andrés','Golem Nutrition','Mutantes','Suas','Vitaness Distribuidor','MAXFITNESS','Cooper 3','Evolución Muscular','Tópico'].map(x=>`<option>${x}</option>`).join('')}</select><button class="ask">📦 CONSULTAR DISPONIBILIDAD</button></div>`;
+       controls.querySelectorAll('[data-pay]').forEach(btn=>btn.onclick=async()=>{try{await api({action:'admin-set-payment',password:sessionStorage.getItem(PASS)||'',pedido_id:Number(m[1]),medio:btn.dataset.pay});controls.querySelectorAll('[data-pay]').forEach(x=>x.classList.remove('on'));btn.classList.add('on');refreshDispatchSoon(250)}catch(e){alert(e.message)}});
+       controls.querySelector('.ask').onclick=async()=>{try{const proveedor=controls.querySelector('select').value,j=await api({action:'provider-availability-create',password:sessionStorage.getItem(PASS)||'',pedido_id:Number(m[1]),proveedor}),u=base()+'?disponibilidad='+encodeURIComponent(j.token);if(await copy(u))alert('✓ Link para '+proveedor+' copiado');else window.prompt('Copia el enlace:',u)}catch(e){alert(e.message)}};
+       const at=card.querySelector('.liftOpsItems')||card.querySelector('.liftOpsTop');at?.insertAdjacentElement('afterend',controls);
+     }
      let box=card.querySelector('.liftDispatchBadge');if(!box){box=document.createElement('div');box.className='liftDispatchBadge';const items=card.querySelector('.liftOpsItems');(items||card.querySelector('.liftOpsTop'))?.insertAdjacentElement('afterend',box)}
      const info=payInfo(p),proof=Boolean(p.comprobante_path||p.pago_mensajero_path),delivery=Boolean(p.entrega_foto_path);
      box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}`;
@@ -10579,22 +10647,82 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
  const courierToken=new URL(location.href).searchParams.get('entrega')||'';
  async function loadCourier(){
    if(!courierToken)return;$('liftCourierApp').classList.add('open');document.body.style.overflow='hidden';
-   try{const j=await api({action:'courier-view',token:courierToken}),p=j.pedido,c=p.cliente||{},pi=payInfo(p),done=p.estado==='entregado',route=p.estado==='en_ruta';
-    $('lcRef').textContent=(p.referencia||('#'+p.id))+' · '+state(p.estado);
+   try{
+    const j=await api({action:'courier-view',token:courierToken}),p=j.pedido,c=p.cliente||{},pi=courierPayInfo(p),done=p.estado==='entregado',route=p.estado==='en_ruta';
+    $('lcRef').textContent=p.referencia||('#'+p.id);
+    const mustCharge=pi.kind!=='paid';
     $('lcBody').innerHTML=`
-    <div class="lcCard"><div class="lcLabel">Estado</div><span class="lcStatus">${esc(state(p.estado))}</span></div>
-    <div class="lcCard"><div class="lcLabel">Cliente</div><div class="lcValue">${esc(c.nombre||'')}</div><div class="lcGrid"><div><div class="lcLabel">Celular</div><div class="lcValue"><a style="color:#111" href="tel:${String(c.celular||'').replace(/\D/g,'')}">${esc(c.celular||'')}</a></div></div><div><div class="lcLabel">Total pedido</div><div class="lcValue">${money(p.total)}</div></div></div></div>
-    <div class="lcCard"><div class="lcLabel">Dirección</div><div class="lcValue">${esc(p.direccion||'')}</div><div style="font-size:10px;color:#777">${esc(p.ciudad||'')}</div><a class="lcMap" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.direccion,p.ciudad].filter(Boolean).join(', '))}">ABRIR EN GOOGLE MAPS ↗</a>${p.notas?`<div class="lcMsg"><b>Observaciones:</b> ${esc(p.notas)}</div>`:''}</div>
-    <div class="lcCard"><div class="lcLabel">Productos</div><ul class="lcItems">${(p.items||[]).map(x=>`<li><b>${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}</b>${x.marca?' · '+esc(x.marca):''}</li>`).join('')}</ul></div>
-    <div class="lcCard"><div class="lcLabel">Cobro</div><div class="lcPayBox ${pi.kind}"><b>${esc(pi.title)}</b>${pi.amount?`<div class="lcMoney">${money(pi.amount)}</div>`:''}<div style="font-size:10px">${esc(pi.detail)}</div>${pi.transfer?`<div class="lcAccount"><b>Datos para transferencia</b><br>Titular: Edwin Fernando Muñoz Tobon<br>🏦 Bancolombia ahorros<br><b># 36655023431</b><br>🔑 Llave Bre-B: <b>@edwin4518</b></div>`:''}</div>${pi.transfer?`<div class="lcActions"><button id="lcPayProofBtn" class="lcBtn lcLight">📎 SUBIR COMPROBANTE DE PAGO</button><input id="lcPayProof" type="file" accept="image/*" capture="environment" hidden></div>`:''}</div>
-    <div class="lcCard"><div class="lcLabel">Entrega</div><select id="lcDeliveryType" class="lcSelect"><option value="directa" ${p.entrega_tipo!=='porteria'?'selected':''}>Entrega directa</option><option value="porteria" ${p.entrega_tipo==='porteria'?'selected':''}>Dejar en portería</option></select><input id="lcReceiver" class="lcField" placeholder="Quién recibe (opcional)" value="${esc(p.entrega_recibido_por||'')}"><input id="lcDeliveryNote" class="lcField" placeholder="Nota de entrega (opcional)" value="${esc(p.entrega_nota||'')}"><div class="lcActions"><button id="lcRoute" class="lcBtn lcDark" ${route||done?'disabled':''}>🚚 MARCAR EN RUTA</button><button id="lcPhotoBtn" class="lcBtn lcLight">📷 SUBIR FOTO DE ENTREGA</button><input id="lcPhoto" type="file" accept="image/*" capture="environment" hidden><button id="lcDone" class="lcBtn lcDark" ${done?'disabled':''}>✓ MARCAR ENTREGADO</button></div><div id="lcMsg"></div></div>`;
-    $('lcRoute').onclick=()=>setStatus('en_ruta');$('lcDone').onclick=()=>setStatus('entregado');$('lcPhotoBtn').onclick=()=>$('lcPhoto').click();$('lcPhoto').onchange=e=>upload(e,'courier-photo');if($('lcPayProofBtn')){$('lcPayProofBtn').onclick=()=>$('lcPayProof').click();$('lcPayProof').onchange=e=>upload(e,'courier-payment-proof')}
+      <div class="lcCard lcJob">
+        <div class="lcClientLine">
+          <div><div class="lcLabel">CLIENTE</div><b>${esc(c.nombre||'')}</b></div>
+          <a class="lcPhone" href="tel:${String(c.celular||'').replace(/\D/g,'')}">${esc(c.celular||'')}</a>
+        </div>
+        <div class="lcAddressLine">
+          <div><div class="lcLabel">ENTREGAR EN</div><b>${esc(p.direccion||'')}</b><small>${esc(p.ciudad||'')}</small></div>
+          <a class="lcMapCompact" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.direccion,p.ciudad].filter(Boolean).join(', '))}">MAPS ↗</a>
+        </div>
+        ${p.notas?`<div class="lcOrderNote">${esc(p.notas)}</div>`:''}
+      </div>
+
+      <div class="lcCard lcProductsCard">
+        <div class="lcLabel">PRODUCTOS</div>
+        <div class="lcProductList">${(p.items||[]).map(x=>`<div class="lcProduct">
+          <div class="lcProductImg">${(x.imagen||x.imagen_url||x.image)?`<img src="${esc(x.imagen||x.imagen_url||x.image)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span style="display:none">📦</span>`:'<span>📦</span>'}</div>
+          <div class="lcProductText"><b>${esc(x.nombre||'Producto')}</b><small>${esc(x.marca||'')}</small></div>
+          <div class="lcQty">×${Number(x.cantidad||1)}</div>
+        </div>`).join('')}</div>
+      </div>
+
+      ${mustCharge?`<div class="lcCard lcChargeCard ${pi.kind}">
+        <div class="lcChargeTop"><div><div class="lcLabel">COBRO</div><b>${esc(pi.title)}</b></div>${pi.amount?`<strong>${money(pi.amount)}</strong>`:''}</div>
+        <small>${esc(pi.detail)}</small>
+        ${pi.transfer?`<details class="lcPayDetails"><summary>Datos para transferencia / QR ▾</summary><div class="lcAccount"><b>Edwin Fernando Muñoz Tobon</b><br>Bancolombia ahorros · <b>36655023431</b><br>Llave Bre-B · <b>@edwin4518</b></div></details><button id="lcPayProofBtn" class="lcProofBtn">📎 SUBIR COMPROBANTE</button><input id="lcPayProof" type="file" accept="image/*" capture="environment" hidden>`:''}
+      </div>`:''}
+
+      <div class="lcCard lcFlowCard">
+        <div class="lcSequence">
+          <button id="lcRoute" class="lcSeqStep ${route||done?'done':'current'}" ${route||done?'disabled':''}>
+            <span class="lcSeqDot">${route||done?'✓':'1'}</span><span>EN RUTA</span>
+          </button>
+          <span class="lcSeqLine ${route||done?'done':''}"></span>
+          <button id="lcPhotoBtn" class="lcSeqStep ${p.tiene_foto?'done':(route&&!done?'current':'')}" ${!route||done?'disabled':''}>
+            <span class="lcSeqDot">${p.tiene_foto?'✓':'2'}</span><span>SUBIR FOTO</span>
+          </button>
+          <span class="lcSeqLine ${p.tiene_foto?'done':''}"></span>
+          <button id="lcDone" class="lcSeqStep ${done?'done':(p.tiene_foto?'current':'')}" ${!p.tiene_foto||done?'disabled':''}>
+            <span class="lcSeqDot">${done?'✓':'3'}</span><span>ENTREGADO</span>
+          </button>
+        </div>
+        <input id="lcPhoto" type="file" accept="image/*" capture="environment" hidden>
+        <div id="lcMsg"></div>
+      </div>`;
+    $('lcRoute').onclick=()=>setStatus('en_ruta');
+    $('lcPhotoBtn').onclick=()=>$('lcPhoto').click();
+    $('lcPhoto').onchange=e=>upload(e,'courier-photo');
+    $('lcDone').onclick=()=>setStatus('entregado');
+    if($('lcPayProofBtn')){$('lcPayProofBtn').onclick=()=>$('lcPayProof').click();$('lcPayProof').onchange=e=>upload(e,'courier-payment-proof')}
    }catch(e){$('lcBody').innerHTML='<div class="lcCard"><b>No se pudo abrir la entrega.</b><div class="lcMsg">'+esc(e.message)+'</div></div>'}
  }
  async function setStatus(s){const m=$('lcMsg');if(m)m.innerHTML='<div class="lcMsg">Guardando…</div>';try{const extra=s==='entregado'?{entrega_tipo:$('lcDeliveryType')?.value||'directa',recibido_por:$('lcReceiver')?.value||'',entrega_nota:$('lcDeliveryNote')?.value||''}:{};await api({action:'courier-status',token:courierToken,estado:s,...extra});if(m)m.innerHTML='<div class="lcMsg">✓ Estado actualizado.</div>';setTimeout(loadCourier,450)}catch(e){if(m)m.innerHTML='<div class="lcMsg">'+esc(e.message)+'</div>'}}
  async function resize(f){const im=await new Promise((ok,no)=>{const i=new Image;i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(f)}),k=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.72)}
  async function upload(e,action){const f=e.target.files?.[0];if(!f)return;const m=$('lcMsg');if(m)m.innerHTML='<div class="lcMsg">Subiendo evidencia…</div>';try{await api({action,token:courierToken,image_base64:await resize(f),mime:'image/jpeg'});if(m)m.innerHTML='<div class="lcMsg">✓ Evidencia guardada en Supabase.</div>';setTimeout(loadCourier,450)}catch(err){if(m)m.innerHTML='<div class="lcMsg">'+esc(err.message)+'</div>'}}
  if(courierToken)loadCourier()
+})();
+</script>
+
+
+<div id="liftProviderAvailability"><div class="lpaWrap"><div class="lpaHead"><b>LIFT · DISPONIBILIDAD</b><small id="lpaRef">Consultando…</small></div><div id="lpaBody"></div></div></div>
+<script id="lift-provider-portal-final">
+(function(){
+ const token=new URL(location.href).searchParams.get('disponibilidad')||'';if(!token)return;
+ const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ async function api(d){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(d),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||'Error');return j}
+ const app=document.getElementById('liftProviderAvailability');app.classList.add('open');document.body.style.overflow='hidden';
+ (async()=>{try{const j=await api({action:'provider-availability-view',token}),q=j.consulta,ans={};document.getElementById('lpaRef').textContent=q.proveedor+' · '+q.referencia;const b=document.getElementById('lpaBody');if(q.estado!=='pendiente'){b.innerHTML='<div class="lpaCard"><b>✓ RESPUESTA ENVIADA</b></div>';return}
+ b.innerHTML=`<div class="lpaCard"><small>Marca cada producto. No se muestran datos del cliente.</small>${q.items.map(x=>`<div class="lpaItem" data-id="${x.id}"><b>${Number(x.cantidad||1)} × ${esc(x.nombre)}</b><small>${esc(x.marca||'')}</small><div class="lpaBtns"><button data-v="1">✓ TENGO</button><button data-v="0">✕ NO TENGO</button></div><input placeholder="Nota opcional"></div>`).join('')}</div><button id="lpaSend">ENVIAR RESPUESTA</button>`;
+ b.querySelectorAll('.lpaItem').forEach(row=>row.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{row.querySelectorAll('button').forEach(x=>x.classList.remove('on'));bt.classList.add('on');ans[row.dataset.id]=bt.dataset.v==='1'}));
+ document.getElementById('lpaSend').onclick=async()=>{const rows=[...b.querySelectorAll('.lpaItem')];if(rows.some(r=>typeof ans[r.dataset.id]!=='boolean'))return alert('Marca todos los productos.');const respuestas=rows.map(r=>({id:Number(r.dataset.id),disponible:ans[r.dataset.id],nota:r.querySelector('input').value})),z=await api({action:'provider-availability-submit',token,respuestas});b.innerHTML=`<div class="lpaCard"><b>${z.todo_disponible?'✓ TODO DISPONIBLE':'⚠ DISPONIBILIDAD PARCIAL'}</b><small>Respuesta enviada a LIFT.</small></div>`}
+ }catch(e){document.getElementById('lpaBody').innerHTML='<div class="lpaCard">'+esc(e.message)+'</div>'}})();
 })();
 </script>
 
