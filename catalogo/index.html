@@ -9267,17 +9267,10 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
  let rows=[],quick='pendientes';
  const pass=()=>{try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}};
  async function rpc(action,payload={}){const r=await fetch(RPC,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass(),p_action:action,p_payload:payload})});const j=await r.json().catch(()=>null);if(!r.ok)throw new Error(j?.message||j?.error||'No se pudo consultar pedidos');return j}
- function inject(){const tabs=document.querySelector('.liftOrdersTabs');if(!tabs||$('liftOrdersTabAll'))return;const b=document.createElement('button');b.id='liftOrdersTabAll';b.textContent='Todos';b.onclick=()=>liftOrdersTab('all');tabs.insertBefore(b,tabs.firstChild);const pay=document.createElement('button');pay.id='liftOrdersTabPayments';pay.type='button';pay.textContent='💳 Pagos';pay.onclick=()=>window.liftOpenPaymentsAdmin?.();tabs.appendChild(pay);const hist=$('liftOrdersHistory');if(!hist)return;const v=document.createElement('div');v.id='liftOrdersAll';v.className='liftOrdersView';v.innerHTML=`<div class="liftOpsToolbar"><input id="liftOpsSearch" placeholder="Buscar pedido, cliente, celular, producto o dirección" oninput="liftRenderAllOrders()"><select id="liftOpsStatusFilter" onchange="liftRenderAllOrders()"><option value="">Todos los estados</option><option value="nuevo">Nuevo</option><option value="programado">Programado</option><option value="en_ruta">En ruta</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select></div><div class="liftOpsQuick"><button data-q="pendientes" onclick="liftOpsQuick('pendientes')">Pendientes</button><button data-q="hoy" onclick="liftOpsQuick('hoy')">Hoy</button><button data-q="ruta" onclick="liftOpsQuick('ruta')">En ruta</button><button data-q="seguimiento" onclick="liftOpsQuick('seguimiento')">Seguimientos</button><button data-q="todos" onclick="liftOpsQuick('todos')">Todos</button></div><div id="liftOpsStats" class="liftOpsStats"></div><div id="liftOpsList"><div class="liftOpsEmpty">Cargando pedidos…</div></div>`;hist.parentNode.insertBefore(v,hist);}
+ function inject(){const tabs=document.querySelector('.liftOrdersTabs');if(!tabs||$('liftOrdersTabAll'))return;const b=document.createElement('button');b.id='liftOrdersTabAll';b.textContent='Todos';b.onclick=()=>liftOrdersTab('all');tabs.insertBefore(b,tabs.firstChild);const hist=$('liftOrdersHistory');if(!hist)return;const v=document.createElement('div');v.id='liftOrdersAll';v.className='liftOrdersView';v.innerHTML=`<div class="liftOpsToolbar"><input id="liftOpsSearch" placeholder="Buscar pedido, cliente, celular, producto o dirección" oninput="liftRenderAllOrders()"><select id="liftOpsStatusFilter" onchange="liftRenderAllOrders()"><option value="">Todos los estados</option><option value="nuevo">Nuevo</option><option value="programado">Programado</option><option value="en_ruta">En ruta</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select></div><div class="liftOpsQuick"><button data-q="pendientes" onclick="liftOpsQuick('pendientes')">Pendientes</button><button data-q="hoy" onclick="liftOpsQuick('hoy')">Hoy</button><button data-q="ruta" onclick="liftOpsQuick('ruta')">En ruta</button><button data-q="seguimiento" onclick="liftOpsQuick('seguimiento')">Seguimientos</button><button data-q="todos" onclick="liftOpsQuick('todos')">Todos</button></div><div id="liftOpsStats" class="liftOpsStats"></div><div id="liftOpsList"><div class="liftOpsEmpty">Cargando pedidos…</div></div>`;hist.parentNode.insertBefore(v,hist);}
  const oldTab=window.liftOrdersTab;window.liftOrdersTab=function(tab){inject();['All','History','Old'].forEach(x=>$('liftOrders'+x)?.classList.remove('active'));['All','History','Old'].forEach(x=>$('liftOrdersTab'+x)?.classList.remove('active'));if(tab==='all'){$('liftOrdersAll')?.classList.add('active');$('liftOrdersTabAll')?.classList.add('active');liftLoadAllOrders();return}if(typeof oldTab==='function')return oldTab(tab)};
  const oldOpen=window.liftOpenOrders;window.liftOpenOrders=function(){const r=typeof oldOpen==='function'?oldOpen.apply(this,arguments):($('liftOrdersModal')?.classList.add('open'));setTimeout(()=>liftOrdersTab('all'),0);return r};
- window.liftLoadAllOrders=async function(){inject();const box=$('liftOpsList');if(box)box.innerHTML='<div class="liftOpsEmpty">Cargando pedidos…</div>';try{const j=await rpc('list');rows=Array.isArray(j)?j:[];
-const payBtn=$('liftOrdersTabPayments');
-if(payBtn){
- const n=rows.filter(p=>p.comprobante_subido||['por_verificar','rechazado'].includes(String(p.pago_estado||''))).length;
- payBtn.textContent=n?`💳 Pagos (${n})`:'💳 Pagos';
- payBtn.classList.toggle('hasPending',n>0);
-}
-liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'+esc(e.message)+'</div>'}};
+ window.liftLoadAllOrders=async function(){inject();const box=$('liftOpsList');if(box)box.innerHTML='<div class="liftOpsEmpty">Cargando pedidos…</div>';try{const j=await rpc('list');rows=Array.isArray(j)?j:[];liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'+esc(e.message)+'</div>'}};
  const day=v=>{if(!v)return'';try{return new Date(v).toLocaleDateString('sv-SE',{timeZone:'America/Bogota'})}catch(e){return String(v).slice(0,10)}};
  const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  function followDue(p){if(p.estado_operativo!=='entregado'||p.seguimiento_realizado||!p.fecha_entregado)return false;const d=new Date(p.fecha_entregado);d.setDate(d.getDate()+1);return day(d)<=today()}
@@ -10184,20 +10177,6 @@ window.liftAdminAvailability=async function(id,available,btn){
  }
 };
 </script>
-
-
-<style id="lift-payments-visible-tab-v1">
-#liftOrdersTabPayments{position:relative}
-#liftOrdersTabPayments.hasPending{background:#fff7d6!important;color:#7a5a00!important;border-color:#ead98e!important}
-#liftOrdersTabPayments.hasPending:after{content:"";position:absolute;right:8px;top:8px;width:7px;height:7px;border-radius:50%;background:#16a34a}
-#liftPaymentsAdminModal .liftPaymentAdminRow{padding:14px 0;border-bottom:1px solid #eee}
-#liftPaymentsAdminModal .liftPaymentAdminRow>b{display:block;font-size:13px;margin-bottom:3px}
-#liftPaymentsAdminModal .liftPaymentAdminRow>small{display:block;color:#777;font-size:10px;margin-bottom:10px}
-#liftPaymentsAdminModal .liftPaymentAdminActions{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px}
-#liftPaymentsAdminModal .liftPaymentAdminActions button{min-height:40px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins,Arial;cursor:pointer}
-#liftPaymentsAdminModal .liftPaymentAdminActions .approve{background:#16a34a;color:#fff;border-color:#16a34a}
-@media(max-width:620px){#liftPaymentsAdminModal .liftPaymentAdminActions{grid-template-columns:1fr}}
-</style>
 
 </body>
 </html>
