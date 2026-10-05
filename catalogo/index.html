@@ -868,6 +868,32 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 <style id="lift-track-premium-v2">
 .liftTrackCustomer{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin:12px 0}.liftTrackCustomer>div{border:1px solid #e8e8e8;border-radius:12px;padding:11px;background:#fafafa;display:flex;flex-direction:column;gap:3px}.liftTrackCustomer small,.liftTrackNotes small{font-size:8px;letter-spacing:.08em;color:#999;font-weight:600}.liftTrackCustomer b{font-size:11px;line-height:1.35}.liftTrackCustomer span{font-size:9px;color:#777;line-height:1.35}.liftTrackProducts{display:grid;gap:8px;margin-top:12px}.liftTrackProduct{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px;border:1px solid #e8e8e8;border-radius:13px;background:#fff}.liftTrackProduct img,.liftTrackNoImg{width:62px;height:62px;object-fit:contain;border-radius:10px;background:#fff;border:1px solid #f0f0f0}.liftTrackNoImg{display:grid;place-items:center;font-size:10px;font-weight:700;color:#bbb}.liftTrackProductInfo{min-width:0;display:flex;flex-direction:column;gap:2px}.liftTrackProductInfo b{font-size:11px;line-height:1.3}.liftTrackProductInfo span,.liftTrackProductInfo small{font-size:9px;color:#777}.liftTrackProductPrice{font-size:11px;font-weight:600;white-space:nowrap}.liftTrackTotals{margin-top:11px;border-top:1px solid #eee;padding-top:8px}.liftTrackTotals>div{display:flex;justify-content:space-between;gap:12px;padding:4px 2px;font-size:10px}.liftTrackTotals .discount{color:#168451}.liftTrackTotals .grand{font-size:14px;border-top:1px solid #eee;margin-top:4px;padding-top:9px}.liftTrackTotals .grand b{font-size:17px}.liftTrackNotes{margin-top:10px;padding:10px 11px;border-radius:10px;background:#fafafa;border:1px solid #eee;font-size:10px;line-height:1.45}.liftTrackNotes small{display:block;margin-bottom:4px}.liftTrackEmpty{padding:15px;text-align:center;color:#888;font-size:10px}@media(max-width:560px){.liftTrackCustomer{grid-template-columns:1fr}.liftTrackProduct{grid-template-columns:54px minmax(0,1fr) auto}.liftTrackProduct img,.liftTrackNoImg{width:54px;height:54px}.liftTrackProductPrice{font-size:10px}}
 </style>
+
+<style id="lift-direct-share-real-style">
+.liftDirectShareBtn{
+ flex:0 0 30px;width:30px;height:30px;padding:0;border:1px solid #ddd;border-radius:8px;
+ background:#fff;color:#111;display:grid;place-items:center;cursor:pointer;font:700 14px Arial;
+ box-shadow:0 2px 7px rgba(0,0,0,.06)
+}
+.liftDirectShareBtn:hover{background:#111;color:#fff;border-color:#111}
+</style>
+<script id="lift-direct-share-real-script">
+window.liftDirectShare=async function(type,name){
+ const base='https://lift-nutrientes.vercel.app/catalogo/';
+ const url=base+'?'+type+'='+encodeURIComponent(String(name||'').trim());
+ const data={title:'LIFT · '+name,text:'Mira '+name+' en LIFT Nutrientes',url:url};
+ try{
+   if(navigator.share){await navigator.share(data);return}
+   await navigator.clipboard.writeText(url);
+   alert('Link copiado: '+url);
+ }catch(e){
+   if(e && e.name==='AbortError')return;
+   try{await navigator.clipboard.writeText(url);alert('Link copiado: '+url)}
+   catch(_){prompt('Copia este link:',url)}
+ }
+};
+</script>
+
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -1765,6 +1791,9 @@ function filterHTML(){
 <section class="filterPanel" ${!isBrands?'':'hidden'}>
   ${cats.map(c=>`<div class="liftCatAdminRow">
     <button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button>
+    ${document.body.classList.contains('liftAdminUnlocked') && c!=='Todos'
+      ? `<button type="button" class="liftDirectShareBtn" title="Compartir ${esc(c)}" onclick='event.stopPropagation();liftDirectShare("categoria",${JSON.stringify(c)})'>↗</button>`
+      : ''}
   </div>`).join('')}
 </section>`;
 }
@@ -6380,12 +6409,13 @@ body.liftAdminUnlocked .labAdminNew{display:block}
 
         const actions = document.createElement('span');
         actions.className = 'labAdminActions';
-        actions.innerHTML = '<button type="button" class="labAdminBtn" title="Duplicar laboratorio">⧉</button><button type="button" class="labAdminBtn" title="Editar laboratorio">✎</button><button type="button" class="labAdminBtn" title="Eliminar laboratorio">⌫</button>';
+        actions.innerHTML = '<button type="button" class="labAdminBtn" title="Duplicar laboratorio">⧉</button><button type="button" class="labAdminBtn" title="Editar laboratorio">✎</button><button type="button" class="labAdminBtn" title="Compartir laboratorio">↗</button><button type="button" class="labAdminBtn" title="Eliminar laboratorio">⌫</button>';
 
         const buttons = actions.querySelectorAll('button');
         buttons[0].onclick = e => { e.stopPropagation(); window.liftLabAdminDuplicate(name); };
         buttons[1].onclick = e => { e.stopPropagation(); window.liftLabAdminOpen(name); };
-        buttons[2].onclick = e => { e.stopPropagation(); window.liftLabAdminDelete(name); };
+        buttons[2].onclick = e => { e.stopPropagation(); window.liftDirectShare('marca',name); };
+        buttons[3].onclick = e => { e.stopPropagation(); window.liftLabAdminDelete(name); };
 
         card.appendChild(actions);
       });
@@ -10258,6 +10288,238 @@ window.liftAdminAvailability=async function(id,available,btn){
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openPublicOrderFromUrl,{once:true});
   else openPublicOrderFromUrl();
+})();
+</script>
+
+
+<script id="lift-deep-links-v1">
+(function(){
+  function clean(v){
+    return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+  }
+  function findCategory(raw){
+    const q=clean(raw);
+    const aliases={
+      'creatina':'Creatina','creatine':'Creatina',
+      'proteina':'Proteína','protein':'Proteína',
+      'preentreno':'Pre entreno','pre entreno':'Pre entreno','pre-workout':'Pre entreno',
+      'vitaminas':'Vitaminas','vitamina':'Vitaminas',
+      'bienestar':'Bienestar'
+    };
+    if(aliases[q]) return aliases[q];
+    const list=(window.cats||[]);
+    return list.find(x=>clean(x)===q)||raw;
+  }
+  function runDeepLink(){
+    const q=new URLSearchParams(location.search);
+    if(q.get('pedido')) return; // Mi pedido conserva su flujo propio.
+
+    const category=q.get('categoria');
+    const brand=q.get('marca');
+    const offers=q.get('ofertas');
+    const product=q.get('producto');
+
+    if(category && typeof window.liftViewCategory==='function'){
+      window.liftViewCategory(findCategory(category));
+      return true;
+    }
+    if(brand && typeof window.liftViewBrand==='function'){
+      const wanted=clean(brand);
+      const brands=(window.PRODUCTS||[]).map(p=>p.brand).filter(Boolean);
+      const exact=brands.find(b=>clean(b)===wanted);
+      window.liftViewBrand(exact||brand);
+      return true;
+    }
+    if(offers==='1' && typeof window.showOffers==='function'){
+      if(!window.state?.offerOnly) window.showOffers();
+      document.getElementById('grid')?.scrollIntoView({behavior:'auto',block:'start'});
+      return true;
+    }
+    if(product && typeof window.viewProduct==='function'){
+      const id=Number(String(product).replace(/\D/g,''));
+      if(id && (window.PRODUCTS||[]).some(p=>Number(p.id)===id)){
+        window.viewProduct(id);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function boot(){
+    let tries=0;
+    const timer=setInterval(()=>{
+      tries++;
+      if(runDeepLink() || tries>30) clearInterval(timer);
+    },200);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+})();
+</script>
+
+
+<style id="lift-category-share-v1">
+.lift-cat-share{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-left:7px;border:1px solid #ddd;border-radius:50%;background:#fff;color:#111;cursor:pointer;vertical-align:middle;font-size:14px;line-height:1}
+.lift-cat-share:hover{background:#111;color:#fff;border-color:#111}
+.lift-cat-share:active{transform:scale(.94)}
+</style>
+<script id="lift-category-share-script-v1">
+(function(){
+ const BASE='https://lift-nutrientes.vercel.app/catalogo/';
+ const clean=v=>String(v||'').trim();
+
+ async function shareCategory(cat){
+   const name=clean(cat);
+   const url=BASE+'?categoria='+encodeURIComponent(name.toLowerCase());
+   const data={title:'LIFT · '+name,text:'Mira '+name+' disponibles en LIFT Nutrientes',url};
+   try{
+     if(navigator.share){await navigator.share(data);return}
+     await navigator.clipboard.writeText(url);
+     alert('Link copiado: '+url);
+   }catch(e){
+     if(e && e.name==='AbortError')return;
+     try{await navigator.clipboard.writeText(url);alert('Link copiado: '+url)}catch(_){prompt('Copia este link:',url)}
+   }
+ }
+ window.liftShareCategory=shareCategory;
+
+ function addButtons(){
+   document.querySelectorAll('[onclick*="liftViewCategory"]').forEach(el=>{
+     if(el.parentElement?.querySelector(':scope > .lift-cat-share'))return;
+     const m=(el.getAttribute('onclick')||'').match(/liftViewCategory\((['"])(.*?)\1\)/);
+     if(!m)return;
+     const cat=m[2];
+     const b=document.createElement('button');
+     b.type='button';
+     b.className='lift-cat-share';
+     b.title='Compartir '+cat;
+     b.setAttribute('aria-label','Compartir '+cat);
+     b.innerHTML='↗';
+     b.onclick=function(ev){ev.preventDefault();ev.stopPropagation();shareCategory(cat)};
+     el.insertAdjacentElement('afterend',b);
+   });
+ }
+ let n=0,t=setInterval(()=>{addButtons();if(++n>30)clearInterval(t)},250);
+ document.addEventListener('click',()=>setTimeout(addButtons,80),true);
+})();
+</script>
+
+
+<style id="lift-admin-share-links-v2">
+body:not(.admin-mode) .lift-cat-share,
+body:not(.admin-mode) .lift-brand-share{display:none!important}
+.lift-brand-share{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-left:7px;border:1px solid #ddd;border-radius:50%;background:#fff;color:#111;cursor:pointer;vertical-align:middle;font-size:14px;line-height:1}
+.lift-brand-share:hover{background:#111;color:#fff;border-color:#111}
+.lift-brand-share:active{transform:scale(.94)}
+</style>
+<script id="lift-admin-share-links-script-v2">
+(function(){
+ const BASE='https://lift-nutrientes.vercel.app/catalogo/';
+ const isAdmin=()=>new URLSearchParams(location.search).has('fer') || document.body.classList.contains('admin-mode') || !!document.getElementById('adminPanel');
+ const share=async(type,name)=>{
+   const url=BASE+'?'+type+'='+encodeURIComponent(String(name||'').trim());
+   const data={title:'LIFT · '+name,text:'Mira '+name+' en LIFT Nutrientes',url};
+   try{
+     if(navigator.share){await navigator.share(data);return}
+     await navigator.clipboard.writeText(url);alert('Link copiado: '+url)
+   }catch(e){
+     if(e?.name==='AbortError')return;
+     try{await navigator.clipboard.writeText(url);alert('Link copiado: '+url)}catch(_){prompt('Copia este link:',url)}
+   }
+ };
+ window.liftShareBrand=name=>share('marca',name);
+
+ function syncAdminOnly(){
+   document.querySelectorAll('.lift-cat-share,.lift-brand-share').forEach(b=>b.style.display=isAdmin()?'inline-flex':'none');
+ }
+ function addBrandButtons(){
+   if(!isAdmin()){syncAdminOnly();return}
+   document.querySelectorAll('[onclick*="liftViewBrand"]').forEach(el=>{
+     if(el.parentElement?.querySelector(':scope > .lift-brand-share'))return;
+     const m=(el.getAttribute('onclick')||'').match(/liftViewBrand\((['"])(.*?)\1\)/);
+     if(!m)return;
+     const brand=m[2];
+     const b=document.createElement('button');
+     b.type='button';b.className='lift-brand-share';b.title='Compartir '+brand;
+     b.setAttribute('aria-label','Compartir '+brand);b.innerHTML='↗';
+     b.onclick=ev=>{ev.preventDefault();ev.stopPropagation();share('marca',brand)};
+     el.insertAdjacentElement('afterend',b);
+   });
+   syncAdminOnly();
+ }
+ let n=0,t=setInterval(()=>{addBrandButtons();syncAdminOnly();if(++n>35)clearInterval(t)},250);
+ document.addEventListener('click',()=>setTimeout(()=>{addBrandButtons();syncAdminOnly()},100),true);
+})();
+</script>
+
+
+<style id="lift-share-admin-visible-fix">
+.liftAdminShareReal{
+ width:28px;height:28px;border:1px solid #d8d8d8;border-radius:8px;background:#fff;color:#111;
+ display:inline-grid;place-items:center;cursor:pointer;font-size:14px;font-weight:700;padding:0
+}
+.liftAdminShareReal:hover{background:#111;color:#fff;border-color:#111}
+</style>
+<script id="lift-share-admin-visible-fix-script">
+(function(){
+ const BASE='https://lift-nutrientes.vercel.app/catalogo/';
+ async function share(type,name){
+   const url=BASE+'?'+type+'='+encodeURIComponent(String(name||'').trim());
+   try{
+     if(navigator.share){
+       await navigator.share({title:'LIFT · '+name,text:'Mira '+name+' en LIFT Nutrientes',url});
+       return;
+     }
+     await navigator.clipboard.writeText(url);
+     alert('Link copiado: '+url);
+   }catch(e){
+     if(e?.name==='AbortError')return;
+     try{await navigator.clipboard.writeText(url);alert('Link copiado: '+url)}
+     catch(_){prompt('Copia este link:',url)}
+   }
+ }
+ window.liftShareAdminCategory=n=>share('categoria',n);
+ window.liftShareAdminBrand=n=>share('marca',n);
+
+ // Categorías del panel administrador: añade el cuarto botón directamente
+ // al bloque que ya tiene duplicar, editar y eliminar.
+ function fixCategories(){
+   document.querySelectorAll('.liftCatPanelCard').forEach(card=>{
+     const actions=card.querySelector('.liftCatPanelActions');
+     const name=card.querySelector('.liftCatPanelName')?.textContent?.trim();
+     if(!actions||!name||actions.querySelector('.liftAdminShareReal'))return;
+     const b=document.createElement('button');
+     b.type='button'; b.className='liftAdminShareReal';
+     b.title='Compartir categoría'; b.setAttribute('aria-label','Compartir '+name);
+     b.textContent='↗';
+     b.onclick=e=>{e.preventDefault();e.stopPropagation();share('categoria',name)};
+     actions.appendChild(b);
+   });
+ }
+
+ // Laboratorios del panel administrador: mismo sitio donde están ⧉ ✎ ⌫.
+ function fixLabs(){
+   document.querySelectorAll('.labVisualCard').forEach(card=>{
+     const actions=card.querySelector('.labAdminActions');
+     const name=card.querySelector('.labVisualName')?.textContent?.trim();
+     if(!actions||!name||actions.querySelector('.liftAdminShareReal'))return;
+     const b=document.createElement('button');
+     b.type='button'; b.className='labAdminBtn liftAdminShareReal';
+     b.title='Compartir laboratorio'; b.setAttribute('aria-label','Compartir '+name);
+     b.textContent='↗';
+     b.onclick=e=>{e.preventDefault();e.stopPropagation();share('marca',name)};
+     actions.appendChild(b);
+   });
+ }
+
+ function apply(){fixCategories();fixLabs()}
+ const oldCats=window.lafRenderCategories;
+ if(typeof oldCats==='function'){
+   window.lafRenderCategories=function(){const r=oldCats.apply(this,arguments);setTimeout(fixCategories,0);return r}
+ }
+ let tries=0;
+ const timer=setInterval(()=>{apply();if(++tries>=24)clearInterval(timer)},250);
+ document.addEventListener('click',()=>setTimeout(apply,80),true);
 })();
 </script>
 
