@@ -9756,6 +9756,17 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
    const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(admin?{...payload,password:adminPass()}:payload)});
    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo completar la operación');return j
  }
+ async function liftOrderProductImages(rows){
+   const ids=[...new Set((rows||[]).map(x=>Number(x?.producto_id)).filter(Number.isFinite))];
+   if(!ids.length)return new Map();
+   try{
+     const url='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos?select=id,imagen,product&id=in.('+ids.join(',')+')';
+     const r=await fetch(url,{headers:{apikey:KEY,Authorization:'Bearer '+KEY},cache:'no-store'});
+     if(!r.ok)return new Map();
+     const data=await r.json();
+     return new Map((Array.isArray(data)?data:[]).map(p=>[String(p.id),String(p.imagen||p.product?.image||p.product?.imagen||'').trim()]));
+   }catch(e){return new Map()}
+ }
  function orderUrl(id,token){const u=new URL('https://lift-nutrientes.vercel.app/catalogo/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
  function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
 
@@ -9820,8 +9831,9 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
     const catalog=Array.isArray(window.PRODUCTS)?window.PRODUCTS:(Array.isArray(window.products)?window.products:[]);
     const clean=v=>norm(v).replace(/[^a-z0-9]+/g,' ').trim();
     const rows=p.items||[];
+    const directImages=await liftOrderProductImages(rows);
     const itemSummary=rows.map(i=>`${esc(String(i.nombre||'Producto').replace(/\s*·\s*Sabor:.*/i,''))} × ${Number(i.cantidad||1)}`).join('<br>');
-    const products=rows.map(i=>{const z=catalog.find(q=>String(q.id)===String(i.producto_id))||catalog.find(q=>clean(q.name||q.nombre)===clean(String(i.nombre||'').replace(/\s*·\s*Sabor:.*/i,'')))||{};const img=i.imagen||z.image||z.imagen_url||z.imagen||'',line=Number(i.total_linea||0)||Number(i.precio_unitario||0)*Number(i.cantidad||1);return `<div class="liftTrackProduct">${img?`<img src="${esc(img)}" alt="${esc(i.nombre||'Producto')}">`:`<div class="liftTrackNoImg">LIFT</div>`}<div class="liftTrackProductInfo"><b>${esc(i.nombre||'Producto')}</b>${i.marca?`<span>${esc(i.marca)}</span>`:''}<small>Cantidad: ${Number(i.cantidad||1)}</small></div><div class="liftTrackProductPrice">${money(line)}</div></div>`}).join('');
+    const products=rows.map(i=>{const z=catalog.find(q=>String(q.id)===String(i.producto_id))||catalog.find(q=>clean(q.name||q.nombre)===clean(String(i.nombre||'').replace(/\s*·\s*Sabor:.*/i,'')))||{};const img=i.imagen||directImages.get(String(i.producto_id))||z.image||z.imagen_url||z.imagen||'',line=Number(i.total_linea||0)||Number(i.precio_unitario||0)*Number(i.cantidad||1);return `<div class="liftTrackProduct">${img?`<img src="${esc(img)}" alt="${esc(i.nombre||'Producto')}">`:`<div class="liftTrackNoImg">LIFT</div>`}<div class="liftTrackProductInfo"><b>${esc(i.nombre||'Producto')}</b>${i.marca?`<span>${esc(i.marca)}</span>`:''}<small>Cantidad: ${Number(i.cantidad||1)}</small></div><div class="liftTrackProductPrice">${money(line)}</div></div>`}).join('');
     const sub=Number(p.subtotal||0),ship=Number(p.envio||0),disc=Number(p.descuento||0),total=Number(p.total||0);
     const medellin=clean(p.ciudad).includes('medellin');
     let action='';
