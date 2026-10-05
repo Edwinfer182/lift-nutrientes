@@ -10463,6 +10463,35 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 .liftTokenLink button:first-child{background:#111;color:#fff;border-color:#111}
 @media(max-width:560px){.liftTokenAccessHead{align-items:flex-start;flex-direction:column}.liftTokenAccessHead button{width:100%}.liftTokenLink{display:grid;grid-template-columns:1fr}.liftTokenLink button{width:100%}}
 </style>
+
+<!-- LIFT · FIX ABRIR PEDIDOS DESDE ENLACE · 2026-10-05 -->
+<script id="lift-order-link-autoload-fix">
+(function(){
+ async function openOrderFromUrl(){
+  try{
+   const u=new URL(location.href);
+   const ref=String(u.searchParams.get('pedido')||'').trim();
+   const token=String(u.searchParams.get('token')||'').trim();
+   if(!ref) return;
+   const modal=document.getElementById('liftTrackModal');
+   const refEl=document.getElementById('liftTrackRef');
+   const phoneEl=document.getElementById('liftTrackPhone');
+   if(!modal||!refEl||typeof window.liftTrackOrder!=='function') return;
+   refEl.value=ref;
+   if(token && phoneEl) phoneEl.value='';
+   modal.classList.add('open');
+   modal.setAttribute('aria-hidden','false');
+   const out=document.getElementById('liftTrackResult');
+   if(out) out.innerHTML='<div style="font-size:11px;color:#777;padding:12px 0">Cargando pedido…</div>';
+   await window.liftTrackOrder(token||undefined);
+  }catch(e){console.warn('LIFT order URL:',e)}
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(openOrderFromUrl,350));
+ else setTimeout(openOrderFromUrl,350);
+ window.addEventListener('pageshow',()=>setTimeout(openOrderFromUrl,250));
+})();
+</script>
+
 </body>
 </html>
 <style id="lift-client-directory-v1">
@@ -10730,5 +10759,83 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
     const id=m[1];
     /* Si la función original funciona, no interferimos. Este listener solo evita que un segundo handler rompa el clic. */
   },true);
+})();
+</script>
+
+
+<!-- LIFT FINAL: consulta pública solo por número de pedido + celular -->
+<style id="lift-order-phone-only-final-css">
+.liftTokenAccess,.liftTokenLink,[onclick^="liftCopyToken("],[onclick^="liftCopyOrderLink("],[onclick^="liftCopyFriendlyOrderLink("],[onclick^="liftAdminCopyAccess("]{display:none!important}
+</style>
+<script id="lift-order-phone-only-final-js">
+(function(){
+  const $=id=>document.getElementById(id);
+  const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes';
+  const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+  const cleanRef=v=>String(v||'').trim().replace(/^#/, '').replace(/^pedido\s*/i,'').trim();
+  const cleanPhone=v=>{
+    let n=String(v||'').replace(/\D/g,'');
+    if(n.length===12 && n.startsWith('57')) n=n.slice(2);
+    if(n.length===13 && n.startsWith('057')) n=n.slice(3);
+    return n;
+  };
+
+  // El cliente ya no usa ni ve tokens. Conservamos solo pedido + celular.
+  try{
+    const old=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}');
+    if(old && typeof old==='object'){
+      localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:cleanRef(old.ref),phone:cleanPhone(old.phone)}));
+    }
+  }catch(e){}
+
+  try{
+    const u=new URL(location.href);
+    if(u.searchParams.has('token')){
+      u.searchParams.delete('token');
+      history.replaceState({},'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);
+    }
+  }catch(e){}
+
+  window.liftCopyToken=function(){};
+  window.liftCopyOrderLink=function(){};
+  window.liftCopyFriendlyOrderLink=function(){};
+  window.liftAdminCopyAccess=function(){alert('El acceso al pedido ahora se hace con número de pedido y celular.');};
+
+  async function api(payload){
+    const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error||'No encontramos un pedido con esos datos');
+    return j;
+  }
+
+  const previousTrack=window.liftTrackOrder;
+  window.liftTrackOrder=async function(){
+    const refEl=$('liftTrackRef'), phoneEl=$('liftTrackPhone'), out=$('liftTrackResult');
+    const ref=cleanRef(refEl?.value||'');
+    const phone=cleanPhone(phoneEl?.value||'');
+    if(refEl) refEl.value=ref;
+    if(phoneEl) phoneEl.value=phone;
+    if(!ref||!phone){if(out)out.innerHTML='<div style="color:#b42318;font-size:11px">Escribe número de pedido y celular.</div>';return;}
+    // El tracker moderno ya sabe renderizar todo el pedido. Le damos únicamente
+    // pedido + celular y eliminamos cualquier token guardado antes.
+    try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref,phone}))}catch(e){}
+    if(typeof previousTrack==='function') return previousTrack.call(this, undefined);
+    try{
+      if(out)out.innerHTML='<div style="font-size:11px;color:#777">Consultando…</div>';
+      await api({action:'public-track-order',referencia:ref,celular:phone});
+    }catch(e){if(out)out.innerHTML='<div style="color:#b42318;font-size:11px">'+String(e.message||e)+'</div>';}
+  };
+
+  // Enlaces viejos con ?pedido= solo rellenan el número. El celular lo escribe el cliente.
+  function boot(){
+    let u;try{u=new URL(location.href)}catch(e){return}
+    const pedido=cleanRef(u.searchParams.get('pedido')||'');
+    if(!pedido)return;
+    const refEl=$('liftTrackRef'); if(refEl) refEl.value=pedido;
+    const phoneEl=$('liftTrackPhone'); if(phoneEl) phoneEl.value='';
+    const modal=$('liftTrackModal'); if(modal){modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+    if($('liftTrackResult')) $('liftTrackResult').innerHTML='<div style="font-size:11px;color:#777;padding:8px 0">Escribe el celular usado en el pedido para consultarlo.</div>';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
 })();
 </script>
