@@ -6709,13 +6709,21 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  window.liftPaymentChanged=function(){const t=$('liftPaymentType')?.value||'pagado', credit=t!=='pagado';if($('liftInitialPaymentWrap'))$('liftInitialPaymentWrap').hidden=t!=='abono';if($('liftDueDateWrap'))$('liftDueDateWrap').hidden=!credit;if($('liftPaymentMethodWrap'))$('liftPaymentMethodWrap').hidden=t!=='abono';liftRefreshCreditSummary()};
  window.liftRefreshCreditSummary=function(){const el=$('liftCreditSummary');if(!el)return;const t=$('liftPaymentType')?.value||'pagado';if(t==='pagado'){el.classList.remove('show');return}const total=num(($('coTotal')?.textContent||'').replace(/\D/g,'')),ab=t==='abono'?Math.min(total,num($('liftInitialPayment')?.value)):0;el.innerHTML=`Total: <b>${typeof fmt==='function'?fmt(total):total}</b> · Abono: <b>${typeof fmt==='function'?fmt(ab):ab}</b> · Saldo: <b>${typeof fmt==='function'?fmt(total-ab):total-ab}</b>`;el.classList.add('show')};
  window.liftCreditOrderMeta=function(){const t=$('liftPaymentType')?.value||'pagado';return {forma_pago:t,abono_inicial:t==='abono'?num($('liftInitialPayment')?.value):0,fecha_vencimiento:t==='pagado'?null:($('liftDueDate')?.value||null),medio_abono:$('liftPaymentMethod')?.value?.trim()||'',fecha:$('liftOrderDate')?.value||new Date().toISOString().slice(0,10),envio_modo:shipMode}};
- window.liftSendCheckoutToCredit=function(){
+ window.liftSendCheckoutToCredit=async function(){
    if(!admin())return;
    inject();
+   const btn=$('liftDirectCreditBtn');
+   if(btn?.dataset.busy==='1')return;
    if($('liftPaymentType'))$('liftPaymentType').value='credito';
    liftPaymentChanged();
-   const btn=$('liftDirectCreditBtn');if(btn)btn.textContent='✓ Marcado como crédito';
-   alert('Crédito seleccionado para este checkout.');
+   try{
+     if(btn){btn.dataset.busy='1';btn.disabled=true;btn.textContent='Enviando a cartera…'}
+     if(typeof window.liftSaveCurrentOrderV2!=='function')throw new Error('No está disponible la función para guardar el pedido.');
+     const result=await window.liftSaveCurrentOrderV2({creditAction:true});
+     if(!result?.ok||result?.cartera!==true)throw new Error(result?.error||'El pedido se guardó, pero Supabase no confirmó su registro en cartera.');
+     if(btn){btn.textContent='✓ Pedido #'+result.pedido_id+' enviado a cartera';btn.classList.add('saved')}
+   }catch(e){console.error('Enviar checkout a crédito:',e);if(btn){btn.classList.remove('saved');btn.textContent='↻ Reintentar enviar a crédito'}}
+   finally{if(btn){btn.dataset.busy='0';btn.disabled=false}}
   };
 
   // Recalcula envío sin duplicar la función base.
@@ -9591,7 +9599,7 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
  }
  function status(msg,type){const el=$('liftSaveOrderStatusV2');if(!el)return;el.textContent=msg;el.className='liftSaveOrderStatusV2 show '+(type||'')}
  function digits(v){return String(v||'').replace(/\D/g,'')}
- window.liftSaveCurrentOrderV2=async function(){
+ window.liftSaveCurrentOrderV2=async function(options={}){
    if(!document.body.classList.contains('liftAdminUnlocked'))return;
    const btn=$('liftSaveOrderBtnV2');
    if(btn?.dataset.busy==='1')return;
@@ -9628,10 +9636,12 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
      if(btn){btn.classList.add('saved');btn.textContent='✓ Pedido #'+pedidoId+' guardado'}
      status('✓ Guardado y verificado en Supabase. Ya aparece en el historial del cliente.','ok');
      if(typeof window.liftCrmRefresh==='function')window.liftCrmRefresh().catch(()=>{});
+     return {ok:true,pedido_id:pedidoId,forma_pago:meta.forma_pago,total};
    }catch(e){
      console.error('Guardar pedido V2:',e);
      if(btn){btn.classList.remove('saved');btn.textContent='↻ Reintentar guardar pedido'}
      status('No se guardó: '+e.message,'err');
+     return {ok:false,error:e.message};
    }finally{if(btn){btn.dataset.busy='0';btn.disabled=false}}
  };
 })();
