@@ -10563,7 +10563,18 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
      box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}`;
    })
  }
- const mo=new MutationObserver(()=>decorateAdmin());mo.observe(document.documentElement,{childList:true,subtree:true});setInterval(loadAdminDispatch,12000);setTimeout(loadAdminDispatch,700);
+ // Sin observadores globales ni consultas periódicas: evita consumo continuo de CPU.
+ let liftDispatchTimer=0;
+ function refreshDispatchSoon(delay=450){
+   clearTimeout(liftDispatchTimer);
+   liftDispatchTimer=setTimeout(loadAdminDispatch,delay);
+ }
+ setTimeout(loadAdminDispatch,900);
+ window.addEventListener('focus',()=>refreshDispatchSoon(250),{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshDispatchSoon(250)},{passive:true});
+ document.addEventListener('click',e=>{
+   if(e.target.closest?.('.liftOpsCard button,.liftOpsCard select'))refreshDispatchSoon(900);
+ },{passive:true});
 
  const courierToken=new URL(location.href).searchParams.get('entrega')||'';
  async function loadCourier(){
