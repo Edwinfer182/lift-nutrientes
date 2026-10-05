@@ -9291,8 +9291,8 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
   if(!token)return alert('Este pedido no devolvió token. Recarga Pedidos para consultar el dato actualizado de Supabase.');
   const phone=String(p.celular||'').replace(/\D/g,'');
   const num=phone?(phone.startsWith('57')?phone:'57'+phone):'';
-  const url=orderUrl(p.id,token);
-  const msg=`Hola ${p.nombre||''} 👋\n\nTu pedido #${p.id} ya tiene acceso privado.\n\nToken de acceso: ${token}\n\nGuárdalo para consultar tu pedido y continuar con el pago.\n\nEnlace privado:\n${url}`;
+  const url=liftFriendlyOrderUrl(p.id,p.nombre||'cliente');
+  const msg=`Hola ${p.nombre||''} 👋\n\nTu pedido #${p.id} está listo para continuar.\n\nPuedes consultar tu pedido y continuar con el pago aquí:\n${url}`;
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
   else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 };
@@ -9788,8 +9788,11 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
  window.liftToggleOrderDetails=()=>$('liftCompactDetails')?.classList.toggle('open');
 
  window.liftCopyOrderLink=async(id,token)=>{const u=orderUrl(id,token);try{await navigator.clipboard.writeText(u);alert('Link del pedido copiado.')}catch(e){prompt('Copia el enlace:',u)}};
- window.liftCopyToken=async function(token){if(!token)return;try{await navigator.clipboard.writeText(String(token));alert('Token copiado. Guárdalo para volver a consultar tu pedido.')}catch(e){prompt('Copia tu token:',String(token))}};
- window.liftShareOrderData=(id,token)=>window.open('https://wa.me/?text='+encodeURIComponent('Mi pedido #'+id+' en Lift Nutrientes:\nToken de acceso: '+token+'\n\n'+orderUrl(id,token)),'_blank');
+ function liftSlugName(name){return String(name||'cliente').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'')||'cliente'}
+ function liftFriendlyOrderUrl(id,name){return 'https://lift-nutrientes.vercel.app/catalogo/'+liftSlugName(name)+String(id)}
+ window.liftCopyToken=async function(token){if(!token)return;try{await navigator.clipboard.writeText(String(token));alert('Token copiado.')}catch(e){prompt('Copia tu token:',String(token))}};
+ window.liftCopyFriendlyOrderLink=async function(id,name){const u=liftFriendlyOrderUrl(id,name);try{await navigator.clipboard.writeText(u);alert('Enlace del pedido copiado.')}catch(e){prompt('Copia el enlace:',u)}};
+ window.liftShareOrderData=(id,token,name)=>window.open('https://wa.me/?text='+encodeURIComponent('Mi pedido #'+id+' en Lift Nutrientes:\n'+liftFriendlyOrderUrl(id,name)),'_blank');
 
  window.liftTrackOrder=async function(forceToken){
    const x=stored(),ref=$('liftTrackRef')?.value.trim()||x.ref||'',phone=$('liftTrackPhone')?.value.trim()||x.phone||'',token=typeof forceToken==='string'?forceToken:(x.token||''),out=$('liftTrackResult');
@@ -9820,7 +9823,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
       <div class="liftNextCard"><div class="liftNextEyebrow">QUÉ SIGUE AHORA</div><div class="liftNextTitle">${esc(n.title)}</div><div class="liftNextText">${esc(n.text)}</div>${action}</div>
       <div class="liftCompactPurchase"><div class="liftCompactPurchaseHead"><b>TU COMPRA</b><strong>${money(total)}</strong></div><div class="liftCompactItems">${itemSummary}</div><button class="liftCompactToggle" onclick="liftToggleOrderDetails()" type="button">Ver detalles ▾</button>
       <div id="liftCompactDetails" class="liftCompactDetails"><div class="liftTrackCustomer"><div><small>CLIENTE</small><b>${esc(p.nombre||'')}</b>${p.celular?`<span>${esc(p.celular)}</span>`:''}</div><div><small>ENTREGA</small><b>${esc(p.direccion||'Dirección registrada')}</b><span>${esc(p.ciudad||'')}</span></div></div><div class="liftTrackProducts">${products}</div><div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}<div><span>Envío</span><b>${ship?money(ship):'GRATIS'}</b></div>${disc?`<div class="discount"><span>Descuento</span><b>− ${money(disc)}</b></div>`:''}<div class="grand"><span>Total</span><b>${money(total)}</b></div></div></div></div>
-      ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>TOKEN DE ACCESO</small><b>${esc(tok)}</b></div><button type="button" onclick="liftCopyToken('${esc(tok)}')">Copiar token</button></div><p>Guarda este código. Identifica de forma privada tu pedido y te permite volver a consultarlo y continuar con el pago.</p><div class="liftTokenLink"><button type="button" onclick="liftCopyOrderLink('${id}','${esc(tok)}')">🔗 Copiar enlace privado</button><button type="button" onclick="liftShareOrderData('${id}','${esc(tok)}')">WhatsApp</button></div></div>`:''}`;
+      ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>TU ENLACE DE PEDIDO</small><b>${esc(liftFriendlyOrderUrl(id,o.cliente?.nombre||o.nombre||'cliente'))}</b></div><button type="button" onclick="liftCopyFriendlyOrderLink('${id}','${esc(o.cliente?.nombre||o.nombre||'cliente')}')">Copiar enlace</button></div><p>Guarda este enlace para volver a consultar tu pedido.</p></div>`:''}`;
    }catch(e){out.innerHTML='<div style="color:#b42318;font-size:11px">'+esc(e.message)+'</div>'}
  };
 
@@ -10440,13 +10443,32 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 .liftTokenAccess{margin-top:12px;padding:13px;border:1px solid #dedede;border-radius:13px;background:#fafafa}
 .liftTokenAccessHead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .liftTokenAccessHead small{display:block;font-size:9px;letter-spacing:.08em;color:#777;margin-bottom:4px}
-.liftTokenAccessHead b{display:block;font:600 12px/1.35 monospace;word-break:break-all;color:#111}
+.liftTokenAccessHead b{display:block;font:500 11px/1.45 Poppins,Arial;word-break:break-all;color:#111}
 .liftTokenAccessHead button,.liftTokenLink button{border:1px solid #d5d5d5;background:#fff;color:#111;border-radius:9px;min-height:36px;padding:0 11px;font:500 10px Poppins,Arial;cursor:pointer}
 .liftTokenAccess p{font-size:10px;line-height:1.45;color:#666;margin:9px 0}
 .liftTokenLink{display:flex;gap:7px;flex-wrap:wrap}
 .liftTokenLink button:first-child{background:#111;color:#fff;border-color:#111}
 @media(max-width:560px){.liftTokenAccessHead{align-items:flex-start;flex-direction:column}.liftTokenAccessHead button{width:100%}.liftTokenLink{display:grid;grid-template-columns:1fr}.liftTokenLink button{width:100%}}
 </style>
+
+
+<script id="lift-friendly-order-route-v1">
+(function(){
+ const p=location.pathname.replace(/\/+$/,'');
+ const m=p.match(/\/catalogo\/([a-z0-9]+?)(\d+)$/i);
+ if(!m)return;
+ const id=m[2];
+ window.addEventListener('DOMContentLoaded',function(){
+   setTimeout(function(){
+     try{
+       if(typeof window.openLiftTrack==='function')window.openLiftTrack();
+       const n=document.getElementById('liftTrackOrder');if(n)n.value=id;
+       const ph=document.getElementById('liftTrackPhone');if(ph)ph.focus();
+     }catch(e){}
+   },500);
+ });
+})();
+</script>
 
 </body>
 </html>
