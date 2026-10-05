@@ -5403,7 +5403,7 @@ body.liftAdminUnlocked #liftProviderBox{display:block}
  function sync(){document.body.classList.toggle('liftAdminUnlocked',unlocked())}
  window.openLiftAdminAccess=function(){if(unlocked()){if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull();return}const m=$('liftAdminAccessModal');if(m)m.classList.add('open');const i=$('liftAdminAccessPassword');if(i){i.value='';setTimeout(()=>i.focus(),40)}const e=$('liftAdminAccessError');if(e)e.textContent=''};
  window.closeLiftAdminAccess=function(){const m=$('liftAdminAccessModal');if(m)m.classList.remove('open')};
- window.unlockLiftAdmin=function(){const i=$('liftAdminAccessPassword'),e=$('liftAdminAccessError');if(!i)return;if(i.value===ADMIN_PASSWORD){try{sessionStorage.setItem(SESSION_KEY,'1')}catch(x){}sync();closeLiftAdminAccess();if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull()}else{if(e)e.textContent='Clave incorrecta.';i.select()}};
+ window.unlockLiftAdmin=function(){const i=$('liftAdminAccessPassword'),e=$('liftAdminAccessError');if(!i)return;if(i.value===ADMIN_PASSWORD){try{sessionStorage.setItem(SESSION_KEY,'1');sessionStorage.setItem('liftAdminCloudPasswordV1',ADMIN_PASSWORD)}catch(x){}sync();closeLiftAdminAccess();if(typeof window.openLiftAdminFull==='function')window.openLiftAdminFull()}else{if(e)e.textContent='Clave incorrecta.';i.select()}};
  window.lockLiftAdmin=function(){try{sessionStorage.removeItem(SESSION_KEY);sessionStorage.removeItem('liftAdminCloudPasswordV1')}catch(e){}sync();if(typeof window.closeLiftAdminFull==='function')window.closeLiftAdminFull();try{const u=new URL(location.href);u.searchParams.delete('admin');u.searchParams.delete('fer');history.replaceState(null,'',u.pathname+u.search+u.hash)}catch(e){}};
  function initPrivateAdmin(){
   const params=new URLSearchParams(location.search);
@@ -9306,7 +9306,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
   else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 };
- function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><select onchange="liftSetOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminCopyAccess(${p.id})" class="wa">📋 Copiar enlace</button><button onclick="liftAdminShareAccess(${p.id})" class="wa">🔗 Compartir acceso</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
+ function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><select onchange="liftSetOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
  window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedido_id:id,estado});const p=rows.find(x=>Number(x.id)===Number(id));if(p){p.estado_operativo=estado;const now=new Date().toISOString();if(estado==='programado'&&!p.fecha_programado)p.fecha_programado=now;if(estado==='en_ruta'&&!p.fecha_en_ruta)p.fecha_en_ruta=now;if(estado==='entregado'&&!p.fecha_entregado)p.fecha_entregado=now}if(['programado','en_ruta'].includes(estado)){try{const er=await fetch(EMAIL_FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'notify-order-status',password:pass(),pedido_id:id,estado})});const ej=await er.json().catch(()=>({}));if(!er.ok)console.warn('Correo de estado no enviado:',ej.error||er.status)}catch(mailErr){console.warn('Correo de estado no enviado:',mailErr)}}liftRenderAllOrders()}catch(e){alert('No pude cambiar el estado: '+e.message);await liftLoadAllOrders()}};
  window.liftMarkFollowup=async function(id){try{await rpc('seguimiento',{pedido_id:id,realizado:true});const p=rows.find(x=>Number(x.id)===Number(id));if(p){p.seguimiento_realizado=true;p.fecha_seguimiento=new Date().toISOString()}liftRenderAllOrders()}catch(e){alert('No pude guardar el seguimiento: '+e.message)}};
  window.liftOpsWhatsApp=function(id,follow){const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;const phone=String(p.celular||'').replace(/\D/g,'');if(!phone){alert('Este pedido no tiene celular.');return}const first=(p.items||[])[0]?.nombre||'tu pedido';const text=follow?`Hola ${p.nombre||''}, ¿cómo te fue con tu pedido de ${first}? Quería confirmar que lo recibiste todo bien. 💪`:`Hola ${p.nombre||''}, te escribo por tu pedido #${p.id}.`;const num=phone.startsWith('57')?phone:'57'+phone;window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`,'_blank')};
@@ -10506,6 +10506,99 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(openOrderFromUrl,350));
  else setTimeout(openOrderFromUrl,350);
  window.addEventListener('pageshow',()=>setTimeout(openOrderFromUrl,250));
+})();
+</script>
+
+
+<style id="lift-courier-fix-css">
+.liftOpsActions .liftCourierAdminBtn{background:#111!important;color:#fff!important;border:1px solid #111!important}
+#liftCourierApp{display:none;position:fixed;inset:0;z-index:2147483000;background:#f4f4f4;color:#111;font-family:Poppins,Arial,sans-serif;overflow:auto}
+#liftCourierApp.open{display:block}
+.lcWrap{max-width:620px;margin:auto;padding:14px 12px 40px}.lcHead{background:#080808;color:#fff;border-radius:16px;padding:20px}.lcHead b{font-size:19px}.lcHead small{display:block;color:#aaa;margin-top:4px}
+.lcCard{background:#fff;border:1px solid #e4e4e4;border-radius:14px;padding:15px;margin-top:11px}.lcLabel{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.08em}.lcValue{font-size:14px;font-weight:600;margin-top:3px}
+.lcGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.lcItems{padding:0;margin:7px 0 0;list-style:none}.lcItems li{font-size:11px;padding:8px 0;border-bottom:1px solid #eee}
+.lcStatus{display:inline-block;background:#eee;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:700;margin-top:5px}.lcActions{display:grid;gap:9px;margin-top:10px}
+.lcBtn{min-height:48px;border:0;border-radius:12px;font:700 12px Poppins,Arial;cursor:pointer}.lcRoute,.lcDone{background:#111;color:#fff}.lcPhoto{background:#ededed;color:#111}.lcBtn:disabled{opacity:.4}
+.lcMap{display:inline-block;color:#111;font-size:11px;font-weight:700;margin-top:10px}.lcMsg{background:#f1f1f1;border-radius:10px;padding:10px;font-size:10px;margin-top:9px;line-height:1.4}
+@media(max-width:520px){.lcGrid{grid-template-columns:1fr}.lcHead,.lcCard{border-radius:12px}}
+</style>
+<div id="liftCourierApp"><div class="lcWrap"><div class="lcHead"><b>LIFT · ENTREGA</b><small id="lcRef">Consultando pedido…</small></div><div id="lcBody"><div class="lcCard">Cargando…</div></div></div></div>
+<script id="lift-courier-fix-js">
+(function(){
+ const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes';
+ const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const PASS='liftAdminCloudPasswordV1';
+ const $=id=>document.getElementById(id);
+ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const state=s=>({verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'})[s]||s||'Pedido';
+ async function api(data){
+   const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok||j.error)throw new Error(j.error||j.message||('Error '+r.status));
+   return j
+ }
+ async function copy(t){
+   try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}
+   const x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();let ok=false;
+   try{ok=document.execCommand('copy')}catch(e){}x.remove();return ok
+ }
+ function base(){return (location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:'https://lift-nutrientes.vercel.app/catalogo/'}
+
+ window.liftAdminClientAccess=function(id){
+   const p=(typeof rows!=='undefined'&&Array.isArray(rows))?rows.find(x=>Number(x.id)===Number(id)):null;
+   const raw=String(p?.celular||'').replace(/\D/g,''),num=raw?(raw.startsWith('57')?raw:'57'+raw):'';
+   const u=base()+'?pedido='+encodeURIComponent(id);
+   const msg=`Hola ${p?.nombre||''} 👋\n\nConsulta el estado de tu pedido #${id} aquí:\n${u}\n\nIngresa el número del pedido y tu celular.`;
+   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank')
+ };
+
+ window.liftAdminCourierAccess=async function(id){
+   try{
+     let password='';
+     try{password=sessionStorage.getItem(PASS)||''}catch(e){}
+     if(!password){
+       alert('La sesión administrativa necesita volver a validarse. Cierra el administrador y entra de nuevo.');
+       return
+     }
+     const j=await api({action:'courier-link',password,pedido_id:Number(id)});
+     const u=base()+'?entrega='+encodeURIComponent(j.token);
+     const ok=await copy(u);
+     if(ok)alert('✓ Link del mensajero copiado');
+     else window.prompt('Copia este link para el mensajero:',u)
+   }catch(e){alert('Mensajero: '+e.message)}
+ };
+
+ const courierToken=new URL(location.href).searchParams.get('entrega')||'';
+ async function loadCourier(){
+   if(!courierToken)return;
+   $('liftCourierApp').classList.add('open');document.body.style.overflow='hidden';
+   try{
+     const j=await api({action:'courier-view',token:courierToken}),p=j.pedido,c=p.cliente||{},done=p.estado==='entregado',route=p.estado==='en_ruta';
+     $('lcRef').textContent=(p.referencia||('#'+p.id))+' · '+state(p.estado);
+     $('lcBody').innerHTML=`
+      <div class="lcCard"><div class="lcLabel">Estado</div><span class="lcStatus">${esc(state(p.estado))}</span></div>
+      <div class="lcCard"><div class="lcLabel">Cliente</div><div class="lcValue">${esc(c.nombre||'')}</div><div class="lcGrid"><div><div class="lcLabel">Celular</div><div class="lcValue"><a style="color:#111" href="tel:${String(c.celular||'').replace(/\D/g,'')}">${esc(c.celular||'')}</a></div></div><div><div class="lcLabel">Total</div><div class="lcValue">$ ${Number(p.total||0).toLocaleString('es-CO')}</div></div></div></div>
+      <div class="lcCard"><div class="lcLabel">Dirección</div><div class="lcValue">${esc(p.direccion||'')}</div><div style="font-size:10px;color:#777">${esc(p.ciudad||'')}</div><a class="lcMap" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.direccion,p.ciudad].filter(Boolean).join(', '))}">ABRIR EN GOOGLE MAPS ↗</a>${p.notas?`<div class="lcMsg"><b>Observaciones:</b> ${esc(p.notas)}</div>`:''}</div>
+      <div class="lcCard"><div class="lcLabel">Pedido</div><ul class="lcItems">${(p.items||[]).map(x=>`<li><b>${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}</b>${x.marca?' · '+esc(x.marca):''}</li>`).join('')}</ul></div>
+      <div class="lcCard"><div class="lcLabel">Actualizar entrega</div><div class="lcActions"><button id="lcRoute" class="lcBtn lcRoute" ${route||done?'disabled':''}>🚚 MARCAR EN RUTA</button><button id="lcPhotoBtn" class="lcBtn lcPhoto">📷 TOMAR / SUBIR FOTO</button><input id="lcPhotoInput" type="file" accept="image/*" capture="environment" hidden><button id="lcDone" class="lcBtn lcDone" ${done?'disabled':''}>✓ MARCAR ENTREGADO</button></div><div id="lcMsg"></div></div>`;
+     $('lcRoute').onclick=()=>setStatus('en_ruta');$('lcDone').onclick=()=>setStatus('entregado');$('lcPhotoBtn').onclick=()=>$('lcPhotoInput').click();$('lcPhotoInput').onchange=uploadPhoto
+   }catch(e){$('lcBody').innerHTML='<div class="lcCard"><b>No se pudo abrir la entrega.</b><div class="lcMsg">'+esc(e.message)+'</div></div>'}
+ }
+ async function setStatus(s){
+   const m=$('lcMsg');if(m)m.innerHTML='<div class="lcMsg">Guardando en Supabase…</div>';
+   try{await api({action:'courier-status',token:courierToken,estado:s});if(m)m.innerHTML='<div class="lcMsg">✓ Estado actualizado.</div>';setTimeout(loadCourier,400)}
+   catch(e){if(m)m.innerHTML='<div class="lcMsg">'+esc(e.message)+'</div>'}
+ }
+ async function resize(f){
+   const im=await new Promise((ok,no)=>{const i=new Image;i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(f)});
+   const k=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.72)
+ }
+ async function uploadPhoto(e){
+   const f=e.target.files?.[0];if(!f)return;const m=$('lcMsg');if(m)m.innerHTML='<div class="lcMsg">Subiendo foto…</div>';
+   try{await api({action:'courier-photo',token:courierToken,image_base64:await resize(f),mime:'image/jpeg'});if(m)m.innerHTML='<div class="lcMsg">✓ Foto guardada.</div>'}
+   catch(err){if(m)m.innerHTML='<div class="lcMsg">'+esc(err.message)+'</div>'}
+ }
+ if(courierToken)loadCourier()
 })();
 </script>
 
