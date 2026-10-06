@@ -946,6 +946,19 @@ window.liftToggleCouponBox=function(btn){
   if(!closed)setTimeout(()=>document.getElementById('coCoupon')?.focus(),60);
 };
 </script>
+
+<style id="lift-delivery-evidence-client-courier-v1">
+.liftDeliveryProof{margin-top:12px;padding:12px;border:1px solid #dfe7df;border-radius:13px;background:#f8fcf8}
+.liftDeliveryProofHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.liftDeliveryProofHead b{font-size:11px;color:#166534}.liftDeliveryProofHead small{display:block;margin-top:2px;font-size:9px;color:#777}
+.liftDeliveryProofBtn{border:0;border-radius:9px;background:#111;color:#fff;min-height:36px;padding:0 12px;font:600 9px Poppins,Arial;cursor:pointer;white-space:nowrap}
+.liftProofViewer{margin-top:10px;display:none}.liftProofViewer.open{display:block}.liftProofViewer img{display:block;width:100%;max-height:520px;object-fit:contain;border-radius:11px;background:#f2f2f2}
+.liftProofViewerMsg{padding:12px;text-align:center;font-size:10px;color:#777}
+.lcEvidenceSaved{margin-top:12px;padding:11px 12px;border:1px solid #cfe4d3;border-radius:11px;background:#f5fbf6}
+.lcEvidenceSavedHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.lcEvidenceSaved b{font-size:10px;color:#166534}.lcEvidenceSaved small{display:block;font-size:9px;color:#777;margin-top:2px}
+.lcEvidenceView{border:0;border-radius:8px;background:#111;color:#fff;min-height:34px;padding:0 11px;font:600 9px Poppins,Arial;cursor:pointer}
+</style>
+
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -9967,8 +9980,23 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
       <div class="liftNextCard"><div class="liftNextEyebrow">QUÉ SIGUE AHORA</div><div class="liftNextTitle">${esc(n.title)}</div><div class="liftNextText">${esc(n.text)}</div>${action}</div>
       <div class="liftCompactPurchase"><div class="liftCompactPurchaseHead"><b>TU COMPRA</b><strong>${money(total)}</strong></div><div class="liftCompactItems">${itemSummary}</div><button class="liftCompactToggle" onclick="liftToggleOrderDetails()" type="button">Ver detalles ▾</button>
       <div id="liftCompactDetails" class="liftCompactDetails"><div class="liftTrackCustomer"><div><small>CLIENTE</small><b>${esc(p.nombre||'')}</b>${p.celular?`<span>${esc(p.celular)}</span>`:''}</div><div><small>ENTREGA</small><b>${esc(p.direccion||'Dirección registrada')}</b><span>${esc(p.ciudad||'')}</span></div></div><div class="liftTrackProducts">${products}</div><div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}<div><span>Envío</span><b>${ship?money(ship):'GRATIS'}</b></div>${disc?`<div class="discount"><span>Descuento</span><b>− ${money(disc)}</b></div>`:''}<div class="grand"><span>Total</span><b>${money(total)}</b></div></div></div></div>
+      ${p.tiene_evidencia_entrega?`<div class="liftDeliveryProof"><div class="liftDeliveryProofHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><small>La foto se carga únicamente cuando la abras.</small></div><button id="liftPublicEvidenceBtn-${esc(id)}" class="liftDeliveryProofBtn" type="button" onclick="liftViewPublicEvidence('${esc(id)}','${esc(tok)}','${esc(p.celular||phone)}')">📷 VER FOTO</button></div><div id="liftPublicEvidenceViewer-${esc(id)}" class="liftProofViewer"></div></div>`:''}
       ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>ENLACE DE TU PEDIDO</small><b>${esc(orderUrl(id,tok))}</b></div><button type="button" onclick="liftCopyOrderLink('${id}','${esc(tok)}')">Copiar enlace</button></div><p>Guarda este enlace para volver a consultar tu pedido y continuar con el pago.</p></div>`:''}`;
    }catch(e){out.innerHTML='<div style="color:#b42318;font-size:11px">'+esc(e.message)+'</div>'}
+ };
+
+
+ window.liftViewPublicEvidence=async function(id,token,phone){
+   const box=$('liftPublicEvidenceViewer-'+id),btn=$('liftPublicEvidenceBtn-'+id);if(!box)return;
+   if(box.classList.contains('open')){box.classList.remove('open');box.innerHTML='';if(btn)btn.textContent='📷 VER FOTO';return}
+   box.classList.add('open');box.innerHTML='<div class="liftProofViewerMsg">Cargando evidencia…</div>';if(btn)btn.disabled=true;
+   try{
+     const j=await api({action:'public-delivery-evidence-url',referencia:id,token:token||'',celular:phone||''});
+     if(!j.url)throw new Error('La evidencia todavía no está disponible.');
+     box.innerHTML=`<img src="${esc(j.url)}" alt="Evidencia de entrega del pedido #${esc(id)}">`;
+     if(btn)btn.textContent='OCULTAR FOTO';
+   }catch(e){box.innerHTML='<div class="liftProofViewerMsg">'+esc(e.message||'No se pudo abrir la evidencia.')+'</div>'}
+   finally{if(btn)btn.disabled=false}
  };
 
  window.liftChoosePayment=async function(id,token,medio){
@@ -10642,21 +10670,6 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 .lcFlowCard{padding:17px 15px 15px!important}.lcFlowIntro{text-align:center;margin-bottom:15px}.lcFlowIntro b{display:block;font-size:14px}.lcFlowIntro small{display:block;color:#777;font-size:10px;margin-top:3px}.lcSequence{display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr;align-items:start}.lcSeqStep{appearance:none;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px;font:700 9px Poppins,Arial;color:#777;cursor:pointer}.lcSeqStep:disabled{cursor:default}.lcSeqDot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#eee;border:4px solid #f5f5f5;color:#777;font-size:14px}.lcSeqStep.current .lcSeqDot{background:#111;color:#fff}.lcSeqStep.done .lcSeqDot{background:#16a34a;color:#fff}.lcSeqLine{height:3px;background:#ddd;margin-top:21px;border-radius:99px}.lcSeqLine.done{background:#16a34a}.lcSeqHint{font-size:8px;font-weight:400;color:#999;line-height:1.25;text-align:center;max-width:92px}.lcCameraIcon{font-size:18px;line-height:1}.lcFlowHelp{margin-top:15px;padding:10px 12px;background:#f6f6f6;border-radius:10px;font-size:10px;line-height:1.45;color:#555}.lcFlowHelp b{color:#111}.lcMsg:empty{display:none}
 @media(max-width:520px){.lcWrap{padding:10px 9px 30px}.lcProduct{grid-template-columns:58px minmax(0,1fr) auto}.lcProductImg{width:58px;height:58px}.lcSeqDot{width:42px;height:42px}.lcSequence{grid-template-columns:1fr 18px 1fr 18px 1fr}}
 
-
-/* Evidencia de entrega visible desde el panel administrador */
-.liftDeliveryEvidence{margin-top:9px;padding:10px 11px;border:1px solid #dfe8df;border-radius:11px;background:#f7fcf7}
-.liftDeliveryEvidenceHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.liftDeliveryEvidenceHead b{font-size:11px;color:#166534}
-.liftDeliveryEvidenceMeta{margin-top:4px;font-size:9px;line-height:1.45;color:#667085}
-.liftDeliveryEvidenceBtn{min-height:34px;border:0;border-radius:9px;background:#111;color:#fff;padding:0 12px;font:600 9px Poppins,Arial;cursor:pointer;white-space:nowrap}
-.liftEvidenceModal{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px}
-.liftEvidenceModal.open{display:flex}
-.liftEvidenceCard{width:min(94vw,760px);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:14px;box-shadow:0 24px 70px rgba(0,0,0,.3)}
-.liftEvidenceTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.liftEvidenceTop b{font-size:14px}
-.liftEvidenceClose{width:36px;height:36px;border:0;border-radius:50%;background:#eee;font-size:18px;cursor:pointer}
-.liftEvidenceImg{display:block;width:100%;max-height:72vh;object-fit:contain;background:#f5f5f5;border-radius:12px}
-.liftEvidenceEmpty{padding:30px;text-align:center;font-size:11px;color:#777}
-
 /* LIFT proveedor/mensajero v4: solo amplía el portal de entrega */
 .lcOrderNote{white-space:pre-wrap!important;overflow:visible!important;max-height:none!important;word-break:break-word!important;font-size:11px!important}
 .lcFullAddress{white-space:normal;overflow-wrap:anywhere}
@@ -10718,64 +10731,6 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    let password='';try{password=sessionStorage.getItem(PASS)||''}catch(e){}if(!password)return;
    try{const j=await api({action:'admin-dispatch-list',password});window.__liftDispatchMap=new Map((j.pedidos||[]).map(p=>[String(p.id),p]));decorateAdmin()}catch(e){}
  }
-
- function liftEvidenceUrl(p){
-   return p.entrega_foto_url||p.evidencia_entrega_url||p.foto_entrega_url||p.entrega_foto_public_url||p.entrega_foto_path||'';
- }
- window.liftOpenDeliveryEvidence=async function(id){
-   const p=window.__liftDispatchMap?.get(String(id));if(!p)return;
-   const raw=liftEvidenceUrl(p),modal=$('liftEvidenceModal'),body=$('liftEvidenceBody'),title=$('liftEvidenceTitle');
-   if(!modal||!body)return;
-   title.textContent='Evidencia de entrega · Pedido #'+id;
-   modal.classList.add('open');modal.setAttribute('aria-hidden','false');
-   body.innerHTML='<div class="liftEvidenceEmpty">Cargando evidencia…</div>';
-   if(!raw){body.innerHTML='<div class="liftEvidenceEmpty">Este pedido no tiene evidencia registrada.</div>';return}
-
-   const show=u=>{
-     body.innerHTML=`<img class="liftEvidenceImg" src="${esc(u)}" alt="Evidencia de entrega del pedido #${esc(id)}" onerror="this.parentElement.innerHTML='<div class=&quot;liftEvidenceEmpty&quot;><b>No se pudo abrir la imagen.</b><br>La evidencia sigue guardada en Supabase.</div>'">`;
-   };
-   if(/^https?:\/\//i.test(raw)){show(raw);return}
-
-   // La evidencia se guarda como ruta, por ejemplo entregas/151/archivo.jpg.
-   // Se pide a Supabase solo al pulsar VER FOTO para no precargar evidencias.
-   try{
-     const j=await api({
-       action:'admin-delivery-evidence-url',
-       password:sessionStorage.getItem(PASS)||'',
-       pedido_id:Number(id),
-       path:raw
-     });
-     const u=j.url||j.signed_url||j.public_url||j.evidencia_url||'';
-     if(u){show(u);return}
-   }catch(e){}
-
-   // Compatibilidad si el bucket de evidencias es público.
-   // Se prueban nombres habituales sin descargar nada hasta este clic.
-   const SB='https://vdxkknftyssjyfbdieqa.supabase.co';
-   const clean=String(raw).replace(/^\/+/,'');
-   const buckets=['entregas','evidencias','delivery-evidence'];
-   const candidates=[];
-   for(const bucket of buckets){
-     let path=clean;
-     if(path.toLowerCase().startsWith(bucket.toLowerCase()+'/'))path=path.slice(bucket.length+1);
-     candidates.push(`${SB}/storage/v1/object/public/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`);
-   }
-   let i=0;
-   const tryNext=()=>{
-     if(i>=candidates.length){
-       body.innerHTML=`<div class="liftEvidenceEmpty"><b>La evidencia está guardada, pero el Storage es privado.</b><br>La función de Supabase debe devolver una URL firmada para esta ruta.<br><small>${esc(raw)}</small></div>`;
-       return;
-     }
-     const u=candidates[i++],img=new Image();
-     img.className='liftEvidenceImg';img.alt='Evidencia de entrega del pedido #'+id;
-     img.onload=()=>{body.innerHTML='';body.appendChild(img)};
-     img.onerror=tryNext;
-     img.src=u;
-   };
-   tryNext();
- };
- window.liftCloseDeliveryEvidence=function(){const m=$('liftEvidenceModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true')}};
- setTimeout(()=>{if($('liftEvidenceClose'))$('liftEvidenceClose').onclick=liftCloseDeliveryEvidence;if($('liftEvidenceModal'))$('liftEvidenceModal').onclick=e=>{if(e.target.id==='liftEvidenceModal')liftCloseDeliveryEvidence()}},0);
  function decorateAdmin(){
    const map=window.__liftDispatchMap;if(!map)return;
    document.querySelectorAll('.liftOpsCard').forEach(card=>{
@@ -10789,9 +10744,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
      }
      let box=card.querySelector('.liftDispatchBadge');if(!box){box=document.createElement('div');box.className='liftDispatchBadge';const items=card.querySelector('.liftOpsItems');(items||card.querySelector('.liftOpsTop'))?.insertAdjacentElement('afterend',box)}
      const info=payInfo(p),proof=Boolean(p.comprobante_path||p.pago_mensajero_path),delivery=Boolean(p.entrega_foto_path);
-     const evidenceUrl=liftEvidenceUrl(p);
-     const evidenceDate=p.entrega_fecha||p.entregado_at||p.fecha_entrega||p.updated_at||'';
-     box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}${delivery?`<div class="liftDeliveryEvidence"><div class="liftDeliveryEvidenceHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><div class="liftDeliveryEvidenceMeta">${evidenceDate?esc(String(evidenceDate))+' · ':''}${esc(p.entrega_tipo||'Entrega registrada')}</div></div><button type="button" class="liftDeliveryEvidenceBtn" onclick="liftOpenDeliveryEvidence('${esc(m[1])}')">📷 VER FOTO</button></div></div>`:''}`;
+     box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}`;
    })
  }
  // Sin observadores globales ni consultas periódicas: evita consumo continuo de CPU.
@@ -10908,6 +10861,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
           <small>Pedido: ${esc(p.referencia||('#'+p.id))}<br>Cliente: ${esc(c.nombre||p.nombre||'')}<br>Foto de entrega: ${p.tiene_foto?'✓ Adjunta':'Pendiente'}<br>${pi.kind==='paid'?'Cobro: NO COBRAR':'Cobro: '+esc(pi.title)+(pi.amount?' · '+money(pi.amount):'')}</small>
           <div class="lcFinalActions"><button id="lcFinalConfirm" class="lcFinalConfirm">✓ CONFIRMAR Y FINALIZAR</button><button id="lcFinalBack" class="lcFinalBack">VOLVER / CORREGIR</button></div>
         </div>
+        ${p.tiene_foto?`<div class="lcEvidenceSaved"><div class="lcEvidenceSavedHead"><div><b>✓ EVIDENCIA GUARDADA</b><small>La foto ya quedó asociada a este pedido.</small></div><button id="lcViewEvidence" class="lcEvidenceView" type="button">📷 VER FOTO</button></div><div id="lcEvidenceViewer" class="liftProofViewer"></div></div>`:''}
         <div class="lcFlowHelp"><b>Importante:</b> confirma productos, dirección y cobro antes de entregar. La foto queda guardada como evidencia.</div>
         <input id="lcPhoto" type="file" accept="image/*" capture="environment" hidden>
         <div id="lcMsg"></div>
@@ -10925,6 +10879,18 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
     $('lcPhotoBtn').onclick=()=>$('lcPhoto').click();
     $('lcPhoto').onchange=e=>upload(e,'courier-photo');
     $('lcDone').onclick=()=>{const box=$('lcFinalReview');if(box){box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'center'})}};
+    if($('lcViewEvidence'))$('lcViewEvidence').onclick=async()=>{
+      const box=$('lcEvidenceViewer'),btn=$('lcViewEvidence');if(!box)return;
+      if(box.classList.contains('open')){box.classList.remove('open');box.innerHTML='';btn.textContent='📷 VER FOTO';return}
+      box.classList.add('open');box.innerHTML='<div class="liftProofViewerMsg">Cargando evidencia…</div>';btn.disabled=true;
+      try{
+        const z=await api({action:'courier-delivery-evidence-url',token:courierToken});
+        if(!z.url)throw new Error('La evidencia todavía no está disponible.');
+        box.innerHTML=`<img src="${esc(z.url)}" alt="Evidencia de entrega">`;btn.textContent='OCULTAR FOTO';
+      }catch(e){box.innerHTML='<div class="liftProofViewerMsg">'+esc(e.message||'No se pudo abrir la evidencia.')+'</div>'}
+      finally{btn.disabled=false}
+    };
+
     if($('lcFinalConfirm'))$('lcFinalConfirm').onclick=()=>setStatus('entregado');
     if($('lcFinalBack'))$('lcFinalBack').onclick=()=>{$('lcFinalReview').style.display='none'};
     if($('lcPayProofBtn')){$('lcPayProofBtn').onclick=()=>$('lcPayProof').click();$('lcPayProof').onchange=e=>upload(e,'courier-payment-proof')}
@@ -11150,12 +11116,6 @@ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button{
  body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button:last-child{grid-column:1/-1!important;}
 }
 </style>
-<div id="liftEvidenceModal" class="liftEvidenceModal" aria-hidden="true">
-  <div class="liftEvidenceCard">
-    <div class="liftEvidenceTop"><b id="liftEvidenceTitle">Evidencia de entrega</b><button id="liftEvidenceClose" class="liftEvidenceClose" type="button">×</button></div>
-    <div id="liftEvidenceBody"></div>
-  </div>
-</div>
 </body>
 </html>
 <style id="lift-client-directory-v1">
