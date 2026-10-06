@@ -10642,6 +10642,21 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 .lcFlowCard{padding:17px 15px 15px!important}.lcFlowIntro{text-align:center;margin-bottom:15px}.lcFlowIntro b{display:block;font-size:14px}.lcFlowIntro small{display:block;color:#777;font-size:10px;margin-top:3px}.lcSequence{display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr;align-items:start}.lcSeqStep{appearance:none;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px;font:700 9px Poppins,Arial;color:#777;cursor:pointer}.lcSeqStep:disabled{cursor:default}.lcSeqDot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#eee;border:4px solid #f5f5f5;color:#777;font-size:14px}.lcSeqStep.current .lcSeqDot{background:#111;color:#fff}.lcSeqStep.done .lcSeqDot{background:#16a34a;color:#fff}.lcSeqLine{height:3px;background:#ddd;margin-top:21px;border-radius:99px}.lcSeqLine.done{background:#16a34a}.lcSeqHint{font-size:8px;font-weight:400;color:#999;line-height:1.25;text-align:center;max-width:92px}.lcCameraIcon{font-size:18px;line-height:1}.lcFlowHelp{margin-top:15px;padding:10px 12px;background:#f6f6f6;border-radius:10px;font-size:10px;line-height:1.45;color:#555}.lcFlowHelp b{color:#111}.lcMsg:empty{display:none}
 @media(max-width:520px){.lcWrap{padding:10px 9px 30px}.lcProduct{grid-template-columns:58px minmax(0,1fr) auto}.lcProductImg{width:58px;height:58px}.lcSeqDot{width:42px;height:42px}.lcSequence{grid-template-columns:1fr 18px 1fr 18px 1fr}}
 
+
+/* Evidencia de entrega visible desde el panel administrador */
+.liftDeliveryEvidence{margin-top:9px;padding:10px 11px;border:1px solid #dfe8df;border-radius:11px;background:#f7fcf7}
+.liftDeliveryEvidenceHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.liftDeliveryEvidenceHead b{font-size:11px;color:#166534}
+.liftDeliveryEvidenceMeta{margin-top:4px;font-size:9px;line-height:1.45;color:#667085}
+.liftDeliveryEvidenceBtn{min-height:34px;border:0;border-radius:9px;background:#111;color:#fff;padding:0 12px;font:600 9px Poppins,Arial;cursor:pointer;white-space:nowrap}
+.liftEvidenceModal{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px}
+.liftEvidenceModal.open{display:flex}
+.liftEvidenceCard{width:min(94vw,760px);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:14px;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.liftEvidenceTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.liftEvidenceTop b{font-size:14px}
+.liftEvidenceClose{width:36px;height:36px;border:0;border-radius:50%;background:#eee;font-size:18px;cursor:pointer}
+.liftEvidenceImg{display:block;width:100%;max-height:72vh;object-fit:contain;background:#f5f5f5;border-radius:12px}
+.liftEvidenceEmpty{padding:30px;text-align:center;font-size:11px;color:#777}
+
 /* LIFT proveedor/mensajero v4: solo amplía el portal de entrega */
 .lcOrderNote{white-space:pre-wrap!important;overflow:visible!important;max-height:none!important;word-break:break-word!important;font-size:11px!important}
 .lcFullAddress{white-space:normal;overflow-wrap:anywhere}
@@ -10703,6 +10718,24 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    let password='';try{password=sessionStorage.getItem(PASS)||''}catch(e){}if(!password)return;
    try{const j=await api({action:'admin-dispatch-list',password});window.__liftDispatchMap=new Map((j.pedidos||[]).map(p=>[String(p.id),p]));decorateAdmin()}catch(e){}
  }
+
+ function liftEvidenceUrl(p){
+   return p.entrega_foto_url||p.evidencia_entrega_url||p.foto_entrega_url||p.entrega_foto_public_url||p.entrega_foto_path||'';
+ }
+ window.liftOpenDeliveryEvidence=function(id){
+   const p=window.__liftDispatchMap?.get(String(id));if(!p)return;
+   const raw=liftEvidenceUrl(p),modal=$('liftEvidenceModal'),body=$('liftEvidenceBody'),title=$('liftEvidenceTitle');
+   if(!modal||!body)return;
+   title.textContent='Evidencia de entrega · Pedido #'+id;
+   if(/^https?:\/\//i.test(raw)){
+     body.innerHTML=`<img class="liftEvidenceImg" src="${esc(raw)}" alt="Evidencia de entrega del pedido #${esc(id)}">`;
+   }else{
+     body.innerHTML=`<div class="liftEvidenceEmpty"><b>La evidencia está registrada.</b><br>La API devolvió la ruta del archivo, pero no una URL pública para abrirla directamente.<br><small>${esc(raw||'')}</small></div>`;
+   }
+   modal.classList.add('open');modal.setAttribute('aria-hidden','false');
+ };
+ window.liftCloseDeliveryEvidence=function(){const m=$('liftEvidenceModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true')}};
+ setTimeout(()=>{if($('liftEvidenceClose'))$('liftEvidenceClose').onclick=liftCloseDeliveryEvidence;if($('liftEvidenceModal'))$('liftEvidenceModal').onclick=e=>{if(e.target.id==='liftEvidenceModal')liftCloseDeliveryEvidence()}},0);
  function decorateAdmin(){
    const map=window.__liftDispatchMap;if(!map)return;
    document.querySelectorAll('.liftOpsCard').forEach(card=>{
@@ -10716,7 +10749,9 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
      }
      let box=card.querySelector('.liftDispatchBadge');if(!box){box=document.createElement('div');box.className='liftDispatchBadge';const items=card.querySelector('.liftOpsItems');(items||card.querySelector('.liftOpsTop'))?.insertAdjacentElement('afterend',box)}
      const info=payInfo(p),proof=Boolean(p.comprobante_path||p.pago_mensajero_path),delivery=Boolean(p.entrega_foto_path);
-     box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}`;
+     const evidenceUrl=liftEvidenceUrl(p);
+     const evidenceDate=p.entrega_fecha||p.entregado_at||p.fecha_entrega||p.updated_at||'';
+     box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}${delivery?`<div class="liftDeliveryEvidence"><div class="liftDeliveryEvidenceHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><div class="liftDeliveryEvidenceMeta">${evidenceDate?esc(String(evidenceDate))+' · ':''}${esc(p.entrega_tipo||'Entrega registrada')}</div></div><button type="button" class="liftDeliveryEvidenceBtn" onclick="liftOpenDeliveryEvidence('${esc(m[1])}')">📷 VER FOTO</button></div></div>`:''}`;
    })
  }
  // Sin observadores globales ni consultas periódicas: evita consumo continuo de CPU.
@@ -11075,6 +11110,12 @@ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button{
  body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button:last-child{grid-column:1/-1!important;}
 }
 </style>
+<div id="liftEvidenceModal" class="liftEvidenceModal" aria-hidden="true">
+  <div class="liftEvidenceCard">
+    <div class="liftEvidenceTop"><b id="liftEvidenceTitle">Evidencia de entrega</b><button id="liftEvidenceClose" class="liftEvidenceClose" type="button">×</button></div>
+    <div id="liftEvidenceBody"></div>
+  </div>
+</div>
 </body>
 </html>
 <style id="lift-client-directory-v1">
