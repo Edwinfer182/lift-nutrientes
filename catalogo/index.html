@@ -10661,6 +10661,10 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 .lcFinalActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .lcFinalActions button{min-height:45px;border-radius:10px;font:700 10px Poppins,Arial;cursor:pointer}
 .lcFinalConfirm{border:0;background:#16a34a;color:#fff}.lcFinalBack{border:1px solid #ddd;background:#fff;color:#111}
+
+.lcCopyOrder{width:100%;min-height:46px;margin-top:10px;border:1px solid #111;border-radius:11px;background:#fff;color:#111;font:700 11px Poppins,Arial;cursor:pointer}
+.lcCopyOrder:active{transform:scale(.99)}
+.lcCancelRoute{width:100%;min-height:42px;margin-top:10px;border:1px solid #f1b8b8;border-radius:10px;background:#fff;color:#a11;font:600 10px Poppins,Arial;cursor:pointer}
 @media(max-width:520px){.lcDecision,.lcFinalActions{grid-template-columns:1fr}.lcInstructionTitle{font-size:14px}}
 @media(max-width:520px){.lcGrid{grid-template-columns:1fr}.lcHead,.lcCard{border-radius:12px}}
 </style>
@@ -10748,6 +10752,30 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
       ? `<div class="lcInstructionPay paid">💳 <b>PEDIDO PAGADO / NO COBRAR</b><strong>$ 0</strong><span>${esc(pi.detail||'No recibir dinero del cliente.')}</span></div>`
       : `<div class="lcInstructionPay ${esc(payClass)}">${pi.kind==='verify'?'⏳':'💵'} <b>${esc(pi.title)}</b>${pi.amount?`<strong>${money(pi.amount)}</strong>`:''}<span>${esc(pi.detail||'')}</span></div>`;
 
+    const phones=[c.celular||p.celular||'',p.notas||'']
+      .flatMap(v=>String(v||'').match(/(?:\+?57\s*)?3\d{9}/g)||[])
+      .map(v=>String(v).replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''))
+      .filter((v,i,a)=>v&&a.indexOf(v)===i);
+    const itemText=(p.items||[]).map((x,i)=>{
+      const detail=[x.presentacion,x.sabor].filter(Boolean).join(' · ');
+      return `${i+1} - ${x.nombre||'Producto'}${detail?' · '+detail:''}${Number(x.cantidad||1)>1?' · x'+Number(x.cantidad||1):''}`;
+    }).join('\n');
+    const paymentText=pi.kind==='paid'
+      ? 'Ya está pago. NO COBRAR.'
+      : `${pi.title||'Cobro pendiente'}${pi.amount?' · '+money(pi.amount):''}${pi.detail?' · '+pi.detail:''}`;
+    const copyOrderText=[
+      `Nombre: ${c.nombre||p.nombre||''}`,
+      `Celular: ${phones.length?phones.join(' o '):(c.celular||p.celular||'')}`,
+      `Dirección: ${p.direccion||''}`,
+      `Ciudad: ${[p.ciudad,p.departamento].filter(Boolean).join(' · ')}`,
+      `Notas: ${p.notas||''}`,
+      '',
+      'Pedido:',
+      itemText,
+      '',
+      paymentText
+    ].join('\n');
+
     $('lcBody').innerHTML=`
       <div class="lcGuide"><b>Orden para proveedor / mensajero</b>Todo lo necesario para preparar y entregar este pedido está aquí. Revisa los datos completos antes de aceptar.</div>
 
@@ -10770,6 +10798,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
           <div class="lcProductText"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small></div>
           <div class="lcQty">×${Number(x.cantidad||1)}</div>
         </div>`).join('')}</div>
+        <button id="lcCopyOrder" class="lcCopyOrder">📋 COPIAR PEDIDO EN TEXTO</button>
       </div>
 
       <div class="lcCard lcInstructionCard">
@@ -10800,6 +10829,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
             <span class="lcSeqDot">${done?'✓':'✓'}</span><span>ENTREGADO</span><small class="lcSeqHint">Revisa y confirma antes de finalizar</small>
           </button>
         </div>
+        ${route&&!done?`<button id="lcCancelRoute" class="lcCancelRoute">↩ CANCELAR “EN RUTA” POR ERROR</button>`:''}
         <div id="lcFinalReview" class="lcFinalReview" style="display:none">
           <b>SEGUNDA CONFIRMACIÓN</b>
           <small>Pedido: ${esc(p.referencia||('#'+p.id))}<br>Cliente: ${esc(c.nombre||p.nombre||'')}<br>Foto de entrega: ${p.tiene_foto?'✓ Adjunta':'Pendiente'}<br>${pi.kind==='paid'?'Cobro: NO COBRAR':'Cobro: '+esc(pi.title)+(pi.amount?' · '+money(pi.amount):'')}</small>
@@ -10812,7 +10842,16 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 
     if($('lcAccept'))$('lcAccept').onclick=()=>{try{localStorage.setItem(decisionKey,'accepted')}catch(_){};loadCourier()};
     if($('lcReject'))$('lcReject').onclick=()=>{if(confirm('¿Confirmas que NO puedes realizar este pedido?')){try{localStorage.setItem(decisionKey,'rejected')}catch(_){};loadCourier()}};
-    $('lcRoute').onclick=()=>setStatus('en_ruta');
+    if($('lcCopyOrder'))$('lcCopyOrder').onclick=async()=>{
+      const ok=await copy(copyOrderText);
+      const b=$('lcCopyOrder');if(b){const old=b.textContent;b.textContent=ok?'✓ PEDIDO COPIADO':'COPIA MANUALMENTE';setTimeout(()=>b.textContent=old,1400)}
+    };
+    $('lcRoute').onclick=()=>{
+      if(confirm('VALIDA UNA SEGUNDA VEZ\n\n¿Ya revisaste cliente, dirección, productos y cobro?\n\nAl confirmar, el pedido quedará EN RUTA.')) setStatus('en_ruta');
+    };
+    if($('lcCancelRoute'))$('lcCancelRoute').onclick=()=>{
+      if(confirm('¿Marcaste EN RUTA por error?\n\nEsto devolverá el pedido al estado anterior de preparación.')) setStatus('programado');
+    };
     $('lcPhotoBtn').onclick=()=>$('lcPhoto').click();
     $('lcPhoto').onchange=e=>upload(e,'courier-photo');
     $('lcDone').onclick=()=>{const box=$('lcFinalReview');if(box){box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'center'})}};
