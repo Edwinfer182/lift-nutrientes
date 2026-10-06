@@ -10664,7 +10664,6 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 
 .lcCopyOrder{width:100%;min-height:46px;margin-top:10px;border:1px solid #111;border-radius:11px;background:#fff;color:#111;font:700 11px Poppins,Arial;cursor:pointer}
 .lcCopyOrder:active{transform:scale(.99)}
-.lcCancelRoute{width:100%;min-height:42px;margin-top:10px;border:1px solid #f1b8b8;border-radius:10px;background:#fff;color:#a11;font:600 10px Poppins,Arial;cursor:pointer}
 @media(max-width:520px){.lcDecision,.lcFinalActions{grid-template-columns:1fr}.lcInstructionTitle{font-size:14px}}
 @media(max-width:520px){.lcGrid{grid-template-columns:1fr}.lcHead,.lcCard{border-radius:12px}}
 </style>
@@ -10829,7 +10828,6 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
             <span class="lcSeqDot">${done?'✓':'✓'}</span><span>ENTREGADO</span><small class="lcSeqHint">Revisa y confirma antes de finalizar</small>
           </button>
         </div>
-        ${route&&!done?`<button id="lcCancelRoute" class="lcCancelRoute">↩ CANCELAR “EN RUTA” POR ERROR</button>`:''}
         <div id="lcFinalReview" class="lcFinalReview" style="display:none">
           <b>SEGUNDA CONFIRMACIÓN</b>
           <small>Pedido: ${esc(p.referencia||('#'+p.id))}<br>Cliente: ${esc(c.nombre||p.nombre||'')}<br>Foto de entrega: ${p.tiene_foto?'✓ Adjunta':'Pendiente'}<br>${pi.kind==='paid'?'Cobro: NO COBRAR':'Cobro: '+esc(pi.title)+(pi.amount?' · '+money(pi.amount):'')}</small>
@@ -10848,9 +10846,6 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
     };
     $('lcRoute').onclick=()=>{
       if(confirm('VALIDA UNA SEGUNDA VEZ\n\n¿Ya revisaste cliente, dirección, productos y cobro?\n\nAl confirmar, el pedido quedará EN RUTA.')) setStatus('en_ruta');
-    };
-    if($('lcCancelRoute'))$('lcCancelRoute').onclick=()=>{
-      if(confirm('¿Marcaste EN RUTA por error?\n\nEsto devolverá el pedido al estado anterior de preparación.')) setStatus('programado');
     };
     $('lcPhotoBtn').onclick=()=>$('lcPhoto').click();
     $('lcPhoto').onchange=e=>upload(e,'courier-photo');
