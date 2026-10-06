@@ -131,7 +131,13 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 .discountLine{color:#168451}
 @media(max-width:520px){.couponRow{grid-template-columns:1fr}.couponApply{width:100%}.relatedItem{grid-template-columns:42px 1fr auto}.relatedItem img{width:42px;height:42px}}
 
-.card[role="link"]{cursor:pointer}\n</style>
+.card[role="link"]{cursor:pointer}\n
+/* LIFT checkout cliente v3 */
+.liftCheckoutSteps{display:flex;align-items:center;gap:6px;margin:0 0 18px;padding:8px 10px;background:#f7f7f7;border-radius:10px;font-size:10px;color:#999}.liftCheckoutSteps span{flex:1;text-align:center;white-space:nowrap}.liftCheckoutSteps span+span{border-left:1px solid #ddd}.liftCheckoutSteps .done{color:#666}.liftCheckoutSteps .active{color:#111;font-weight:600}
+.liftCheckoutSectionTitle{display:flex;gap:10px;align-items:flex-start;margin:20px 0 10px}.liftCheckoutSectionTitle>span{display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:#111;color:#fff;font-size:11px}.liftCheckoutSectionTitle b{display:block;font-size:14px;font-weight:600;color:#151515}.liftCheckoutSectionTitle small{display:block;margin-top:2px;font-size:10px;line-height:1.35;color:#888}.liftCheckoutContact,.liftCheckoutDelivery{gap:10px}.liftCheckoutContact .field label,.liftCheckoutDelivery .field label{font-size:11px}.liftCheckoutContact .field label span,.liftCheckoutDelivery .field label span{font-weight:300;color:#999}.liftCheckoutContact .field input,.liftCheckoutDelivery .field input{height:42px}.liftCheckoutDelivery textarea{min-height:74px}.liftWhatsappField{display:none}.liftAdminUnlocked #checkoutModal .liftWhatsappField{display:flex}
+.liftCheckoutSummaryCard{margin-top:0;padding:13px;border:1px solid #e3e3e3;border-radius:13px;background:#fafafa}.liftCheckoutSummaryCard .checkoutItems{margin-bottom:8px}.liftCheckoutSummaryCard .checkoutLine{font-size:13px}.liftCheckoutSummaryCard .checkoutLine.total{font-size:18px}.liftPrefsTitle{margin-top:18px}.liftCheckoutPrefs{border:1px solid #e3e3e3;border-radius:13px;overflow:hidden;background:#fff}.liftPrefRow{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;cursor:pointer}.liftPrefRow+.liftPrefRow,.liftRememberHello+.liftForgetData+.liftPrefRow{border-top:1px solid #eee}.liftPrefRow input{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;accent-color:#111}.liftPrefRow span{min-width:0}.liftPrefRow b{display:block;font-size:11px;font-weight:600;color:#222}.liftPrefRow small{display:block;margin-top:2px;font-size:9.5px;line-height:1.4;color:#7b7b7b}.liftPrefRow.required{background:#fafafa}.liftPrefRow.required small button{border:0;background:transparent;padding:0;color:#111;text-decoration:underline;font:inherit;font-weight:600;cursor:pointer}.liftRememberHello{padding:0 12px 8px 40px;font-size:10px;color:#333}.liftForgetData{margin:0 0 9px 40px;border:0;background:transparent;padding:0;color:#777;text-decoration:underline;font:inherit;font-size:9.5px;cursor:pointer}.liftCheckoutActionArea{margin-top:14px}.liftCheckoutActionArea .checkoutSend{margin-top:0;min-height:50px;font-size:13px;font-weight:600}.liftCheckoutTrust{text-align:center;padding:8px 8px 2px;font-size:9.5px;line-height:1.4;color:#888}.liftCheckoutActionArea .checkoutHint{margin-top:10px}.couponBox{grid-column:1/-1}.checkoutFlavorNote{padding:8px 10px!important;font-size:10px!important}
+@media(max-width:760px){.liftCheckoutSteps{margin-bottom:14px}.liftCheckoutSectionTitle{margin-top:16px}.liftCheckoutContact,.liftCheckoutDelivery{gap:9px}.liftCheckoutSummaryCard{padding:11px}.liftPrefRow{padding:10px 11px}}
+</style>
 
 <style id="iso100-flavor-style">
 .isoFlavorBlock{margin:16px 0 4px}
@@ -921,6 +927,25 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 @media(max-width:420px){.lcSequence{grid-template-columns:1fr 22px 1fr 22px 1fr}.lcSeqDot{width:31px;height:31px}.lcSeqLine{margin-top:15px}.lcClientLine b,.lcAddressLine b{font-size:10px}}
 </style>
 
+
+<style id="lift-coupon-collapse-public-remove-v1">
+#checkoutModal .liftCouponToggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;background:transparent;padding:0;color:#222;font:inherit;text-align:left;cursor:pointer;margin:0}
+#checkoutModal .liftCouponChevron{font-size:17px;line-height:1;transition:transform .18s ease;color:#777}
+#checkoutModal .liftCouponContent{display:none;padding-top:9px}
+#checkoutModal .couponBox:not(.liftCouponCollapsed) .liftCouponContent{display:block}
+#checkoutModal .couponBox:not(.liftCouponCollapsed) .liftCouponChevron{transform:rotate(180deg)}
+#checkoutModal .couponBox.liftCouponCollapsed{padding-top:10px;padding-bottom:10px}
+/* En público ocultamos solo el botón Quitar; en administrador permanece visible. */
+body:not(.liftAdminUnlocked) #checkoutModal .liftCheckoutItemBtn.remove{display:none!important}
+</style>
+<script id="lift-coupon-collapse-v1">
+window.liftToggleCouponBox=function(btn){
+  const box=document.getElementById('liftCouponBox');if(!box)return;
+  const closed=box.classList.toggle('liftCouponCollapsed');
+  if(btn)btn.setAttribute('aria-expanded',closed?'false':'true');
+  if(!closed)setTimeout(()=>document.getElementById('coCoupon')?.focus(),60);
+};
+</script>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -1217,31 +1242,27 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
         <div class="liftRecurringClientSearch"><input id="liftClientSearch" type="search" autocomplete="off" placeholder="Buscar por celular o nombre"><button type="button" onclick="liftFindClient()">⌕</button></div>
         <div id="liftClientResults" class="liftClientResults"></div>
       </div>
-      <div class="checkoutGrid">
+      <div class="liftCheckoutSteps" aria-label="Progreso del pedido"><span class="done">1 Carrito</span><span class="active">2 Datos</span><span>3 Confirmación</span></div>
+      <div class="liftCheckoutSectionTitle"><span>1</span><div><b>Datos de contacto</b><small>Para confirmar y mantenerte al tanto de tu pedido.</small></div></div>
+      <div class="checkoutGrid liftCheckoutContact">
         <div class="field"><label for="coName">Nombre</label><input id="coName" autocomplete="name" placeholder="Nombre completo"></div>
-        <div class="field"><label for="coPhone">Celular <span style="font-weight:400;color:#888">(opcional si tiene @usuario)</span></label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></div><div class="field"><label for="coWhatsappUser">Usuario de WhatsApp</label><input id="coWhatsappUser" autocomplete="off" placeholder="@usuario"></div>
-        <div class="field full"><label for="coAddress">Dirección</label><input id="coAddress" autocomplete="street-address" placeholder="Dirección de entrega"></div>
-        <div class="field full"><label for="coEmail">Correo electrónico <span style="font-weight:400;color:#888">(opcional)</span></label><input id="coEmail" type="email" autocomplete="email" placeholder="tu@correo.com"></div>
-        <div class="field full" style="display:flex;flex-direction:row;align-items:flex-start;gap:9px;padding:10px 12px;border:1px solid #e3e3e3;border-radius:10px;background:#fafafa">
-          <input id="coEmailNotify" type="checkbox" style="width:18px;height:18px;margin:1px 0 0;accent-color:#111">
-          <label for="coEmailNotify" style="font-size:11px;line-height:1.45;color:#333;cursor:pointer">Recibir actualizaciones de mi pedido por correo</label>
-        </div>
-        <div id="liftRememberDataBox" class="field full" style="padding:12px;border:1px solid #e3e3e3;border-radius:12px;background:#fafafa;gap:8px">
-          <div id="liftRememberHello" style="display:none;font-size:12px;line-height:1.4;color:#222"></div>
-          <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;color:#222">
-            <input id="liftRememberData" type="checkbox" style="width:18px;height:18px;margin:1px 0 0;accent-color:#111">
-            <span style="font-size:11px;line-height:1.45"><b style="font-weight:600">Recordar mis datos</b><br><span style="color:#777">Guárdalos en este dispositivo para completar más rápido tu próxima compra.</span></span>
-          </label>
-          <button id="liftForgetData" type="button" style="display:none;width:max-content;border:0;background:transparent;padding:0;color:#777;text-decoration:underline;font:inherit;font-size:10px;cursor:pointer">Olvidar mis datos</button>
-        </div>
+        <div class="field"><label for="coPhone">Celular <span>(opcional si tiene @usuario)</span></label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></div>
+        <div class="field full liftWhatsappField"><label for="coWhatsappUser">Usuario de WhatsApp <span>(solo si aplica)</span></label><input id="coWhatsappUser" autocomplete="off" placeholder="@usuario"></div>
+        <div class="field full"><label for="coEmail">Correo electrónico <span>(opcional)</span></label><input id="coEmail" type="email" autocomplete="email" placeholder="tu@correo.com"></div>
+      </div>
+
+      <div class="liftCheckoutSectionTitle"><span>2</span><div><b>Datos de entrega</b><small>Dinos dónde debemos llevar tu pedido.</small></div></div>
+      <div class="checkoutGrid liftCheckoutDelivery">
         <div class="field full"><label for="coCity">Ciudad / municipio</label><div class="cityWrap"><input id="coCity" autocomplete="off" placeholder="Busca tu ciudad o municipio"><div id="cityResults" class="cityResults"></div></div></div>
-        <div class="field full"><label for="coNotes">Notas del pedido</label><textarea id="coNotes" placeholder="Ej: entregar en portería, sabor preferido, indicaciones de entrega..."></textarea></div>
-        <div class="couponBox">
-          <div class="couponTitle">Cupón PRIME, entrenador o código promocional</div>
-          <div class="couponRow"><input id="coCoupon" autocomplete="off" placeholder="Ej: PRIME10, COACH01 o tu código"><button id="couponApplyBtn" type="button" class="couponApply" onclick="applyCoupon()">Aplicar</button></div>
-          <div id="couponStatus" class="couponStatus">Ingresa tu código y celular para validar el beneficio.</div>
+        <div class="field full"><label for="coAddress">Dirección de entrega</label><input id="coAddress" autocomplete="street-address" placeholder="Ej: Cra 65 # 45-20, apto 302"></div>
+        <div class="field full"><label for="coNotes">Indicaciones de entrega <span>(opcional)</span></label><textarea id="coNotes" placeholder="Portería, torre, apartamento o alguna indicación especial..."></textarea></div>
+        <div class="couponBox liftCouponCollapsed" id="liftCouponBox">
+          <button type="button" class="couponTitle liftCouponToggle" aria-expanded="false" onclick="liftToggleCouponBox(this)"><span>¿Tienes un cupón o código?</span><span class="liftCouponChevron">⌄</span></button>
+          <div class="liftCouponContent">
+            <div class="couponRow"><input id="coCoupon" autocomplete="off" placeholder="PRIME10, COACH01..."><button id="couponApplyBtn" type="button" class="couponApply" onclick="applyCoupon()">Aplicar</button></div>
+            <div id="couponStatus" class="couponStatus">Ingresa tu código y celular para validar el beneficio.</div>
+          </div>
         </div>
-        <div class="field full checkoutFlavorNote">Sabores sujetos a disponibilidad. Se confirman por WhatsApp.</div>
       </div>
       <div id="liftManualProductBox" class="liftManualProductBox">
         <button id="liftManualProductToggle" type="button" class="liftManualProductToggle" onclick="liftToggleManualProduct()">＋ Producto manual</button>
@@ -1259,14 +1280,37 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
           <div id="liftManualStatus" class="liftManualStatus"></div>
         </div>
       </div>
-      <div class="checkoutSummary">
+      <div class="liftCheckoutSectionTitle liftSummaryTitle"><span>3</span><div><b>Revisa tu pedido</b><small>Confirma productos, envío y total antes de continuar.</small></div></div>
+      <div class="checkoutSummary liftCheckoutSummaryCard">
         <div id="checkoutItems" class="checkoutItems"></div>
         <div id="checkoutShippingProgress"></div>
         <div class="checkoutLine"><span>Subtotal</span><strong id="coSubtotal">$0</strong></div>
         <div id="coDiscountLine" class="checkoutLine discountLine" style="display:none"><span id="coDiscountLabel">Descuento</span><strong id="coDiscount">-$0</strong></div>
         <div class="checkoutLine"><span>Envío</span><strong id="coShipping">Selecciona ciudad</strong></div>
         <div class="checkoutLine total"><span>Total</span><span id="coTotal">$0</span></div>
-        <button class="checkoutSend" onclick="finishCheckout()" aria-label="Realizar pedido"><span>REALIZAR PEDIDO</span></button>
+      </div>
+
+      <div class="liftCheckoutSectionTitle liftPrefsTitle"><span>4</span><div><b>Preferencias y privacidad</b><small>Tú decides qué guardamos y qué comunicaciones recibes.</small></div></div>
+      <div class="liftCheckoutPrefs">
+        <label class="liftPrefRow">
+          <input id="liftRememberData" type="checkbox"><span><b>Recordar mis datos</b><small>Completa más rápido tu próxima compra en este dispositivo.</small></span>
+        </label>
+        <div id="liftRememberHello" class="liftRememberHello" style="display:none"></div>
+        <button id="liftForgetData" type="button" class="liftForgetData" style="display:none">Olvidar mis datos</button>
+        <label class="liftPrefRow">
+          <input id="coEmailNotify" type="checkbox"><span><b>Actualizaciones por correo</b><small>Recibe cambios importantes del estado de este pedido.</small></span>
+        </label>
+        <label class="liftPrefRow optional">
+          <input id="coMarketingConsent" type="checkbox"><span><b>Promociones y novedades</b><small>Opcional. Recomendaciones de LIFT por WhatsApp o correo.</small></span>
+        </label>
+        <label class="liftPrefRow required" id="liftDataConsentRow">
+          <input id="coDataConsent" type="checkbox"><span><b>Autorizo el tratamiento de mis datos personales</b><small>Necesario para gestionar compra, entrega, atención y seguimiento. <button type="button" onclick="liftOpenDataPolicy()">Ver política de privacidad</button></small></span>
+        </label>
+        <div id="liftDataConsentError" role="alert" style="display:none;color:#b42318;font-size:11px;font-weight:600;margin:6px 10px 0">Debes autorizar el tratamiento de tus datos para gestionar y entregar tu pedido.</div>
+      </div>
+
+      <div class="liftCheckoutActionArea">
+        <button class="checkoutSend" onclick="finishCheckout()" aria-label="Continuar con mi pedido"><span>CONTINUAR CON MI PEDIDO →</span></button>
         <button id="liftSaveOrderBtnV2" type="button" class="liftSaveOrderBtnV2" onclick="liftSaveCurrentOrderV2()">💾 Guardar pedido</button>
         <div id="liftSaveOrderStatusV2" class="liftSaveOrderStatusV2" aria-live="polite"></div>
         <button id="liftDirectCreditBtn" type="button" class="liftDirectCreditBtn" onclick="liftSendCheckoutToCredit()">💳 Enviar a crédito</button>
@@ -1275,7 +1319,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
           <div id="liftProviderMode" class="liftProviderMode">Cotización proveedor · no requiere datos de entrega</div>
           <div id="liftProviderButtons" class="liftProviderButtons" aria-label="Enviar pedido a proveedor por WhatsApp"></div>
         </div>
-        <div class="checkoutHint">El envío se calcula por ciudad y cantidad de productos. Medellín, Bello, Itagüí, Envigado, Sabaneta y La Estrella usan la tarifa local; las demás ciudades usan la tarifa nacional.</div>
+      </div>
       </div>
     </div>
   </div>
@@ -2169,13 +2213,12 @@ function renderCheckoutSummary(){
     setCouponStatus('El subtotal cambió y el cupón debe validarse nuevamente.','');
   }
   const discount=checkoutCouponDiscount(its);
-  const flavorMsg=flavorMessageFor(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
     const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=(adminTrainerMode()||trainerCouponActive())&&eff<pub;
     return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName">${esc(x.p.name)}</div><div class="checkoutProductBrand">Marca: ${esc(x.p.brand || x.p.marca || 'Sin marca')}</div>${x.p.presentation?`<div class="checkoutProductBrand">Presentación: ${esc(x.p.presentation)}</div>`:''}${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b>${x.p._variantId?` <span class="liftVariantConfirmed">✓ seleccionado</span>`:''}</div>`:''}${hasOffer(x.p)?offerUntilHTML(x.p,'checkoutOfferUntil'):''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div class="checkoutOldPrice">${fmt(pub*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:(savingOf(x.p)?`<div class="checkoutOldPrice">${fmt(compareAtOf(x.p)*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:fmt(eff*x.q))}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
-  }).join('')}</div>`+(flavorMsg?`<div class="checkoutFlavorMsg">${flavorMsg}</div>`:'');
+  }).join('')}</div>`;
   const prog=document.getElementById('checkoutShippingProgress');
-  if(prog)prog.innerHTML=selectedCity?shippingProgressHTML(checkoutQty(),selectedCity.name):shippingProgressHTML(checkoutQty());
+  if(prog)prog.innerHTML='';
   const trainerActive=adminTrainerMode()||trainerCouponActive();
   document.getElementById('coSubtotal').textContent=fmt(trainerActive?effectiveSub:sub);
   const subtotalLabel=document.querySelector('#coSubtotal')?.closest('.checkoutLine')?.querySelector('span');
@@ -10747,6 +10790,20 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 </script>
 
 
+<style id="lift-data-policy-v1-style">
+#liftDataPolicyModal{position:fixed;inset:0;z-index:13050;display:none;place-items:center;padding:18px;background:rgba(0,0,0,.58)}#liftDataPolicyModal.open{display:grid}.liftDataPolicyCard{width:min(94vw,650px);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,.3)}.liftDataPolicyCard h2{margin:0 0 6px;font-size:20px}.liftDataPolicyCard h3{font-size:12px;margin:16px 0 5px}.liftDataPolicyCard p,.liftDataPolicyCard li{font-size:10px;line-height:1.6;color:#555}.liftDataPolicyCard ul{padding-left:18px}.liftDataPolicyClose{width:100%;height:42px;border:0;border-radius:10px;background:#111;color:#fff;font:600 11px Poppins,Arial;cursor:pointer;margin-top:12px}
+</style>
+<div id="liftDataPolicyModal" aria-hidden="true"><div class="liftDataPolicyCard"><h2>Tratamiento de datos personales</h2><p><b>LIFT Nutrientes</b> informa que los datos suministrados en el checkout serán utilizados para gestionar pedidos, pagos, entregas, servicio al cliente, comunicaciones sobre el estado de la compra y seguimiento posventa.</p><h3>Datos que podemos tratar</h3><p>Nombre, celular, usuario de WhatsApp, dirección, ciudad, correo electrónico, información del pedido y las comunicaciones relacionadas con la compra.</p><h3>Finalidades</h3><ul><li>Crear, procesar y entregar pedidos.</li><li>Contactar al cliente sobre disponibilidad, pago, despacho, entrega y servicio posventa.</li><li>Atender consultas, solicitudes, reclamos y ejercer controles administrativos relacionados con la compra.</li><li>Enviar promociones y recomendaciones únicamente cuando el cliente marque la autorización opcional correspondiente.</li></ul><h3>Derechos del titular</h3><p>Puedes conocer, actualizar y rectificar tus datos, solicitar prueba de la autorización, conocer el uso dado a la información y, cuando proceda, revocar la autorización o solicitar la supresión de tus datos.</p><h3>Responsable y canal de atención</h3><p>Responsable: <b>LIFT Nutrientes</b>. Atención en Medellín, Colombia. Canal de contacto para asuntos relacionados con tus datos: WhatsApp <b>313 738 0766</b>.</p><p>La autorización de promociones es opcional y no condiciona la compra. La opción “Recordar mis datos” guarda información localmente en este dispositivo y puede eliminarse con “Olvidar mis datos”.</p><button class="liftDataPolicyClose" type="button" onclick="liftCloseDataPolicy()">Entendido</button></div></div>
+<script id="lift-data-consent-v1">
+(function(){
+ const KEY='liftDataConsentAuditV1',$=id=>document.getElementById(id);
+ window.liftOpenDataPolicy=function(){const m=$('liftDataPolicyModal');if(m){m.classList.add('open');m.setAttribute('aria-hidden','false')}};
+ window.liftCloseDataPolicy=function(){const m=$('liftDataPolicyModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true')}};
+ document.addEventListener('click',e=>{if(e.target?.id==='liftDataPolicyModal')liftCloseDataPolicy()});
+ window.liftSaveConsentAudit=function(d,r){if(!d?.tratamiento_datos)return;try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');a.push({pedido_id:r?.pedido_id||r?.referencia||null,celular:d.celular||'',aceptado:true,fecha:d.tratamiento_datos_fecha||new Date().toISOString(),version:d.tratamiento_datos_version||'LIFT-DATOS-2026-10-06-v1',marketing:!!d.marketing_autorizado});localStorage.setItem(KEY,JSON.stringify(a.slice(-30)))}catch(e){}}
+})();
+</script>
+
 <script id="lift-remember-customer-data-v1">
 (function(){
   const KEY='liftRememberCustomerDataV1';
@@ -10787,6 +10844,117 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
   // Guardar solo después de que el pedido público se haya creado correctamente.
   const install=()=>{const old=window.finishCheckout;if(typeof old==='function'&&!old.__liftRememberWrapped){const f=async function(){let before=null;try{before={nombre:$('coName')?.value.trim()||'',celular:$('coPhone')?.value.trim()||'',direccion:$('coAddress')?.value.trim()||'',email:$('coEmail')?.value.trim()||'',email_notificaciones:!!$('coEmailNotify')?.checked,ciudad:(typeof selectedCity!=='undefined'&&selectedCity?.name)||'',departamento:(typeof selectedCity!=='undefined'&&selectedCity?.department)||''}}catch(e){};const out=await old.apply(this,arguments);if(before&&$('liftRememberData')?.checked){setTimeout(()=>window.liftSaveRememberedCustomer(before),0)}return out};f.__liftRememberWrapped=true;window.finishCheckout=f}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0));else setTimeout(install,0);
+})();
+</script>
+
+<style id="liftCheckoutResponsiveMockup">
+/* Checkout responsive basado en la maqueta del usuario: PC 2 columnas, tablet/móvil 1 */
+#checkoutModal .checkoutCard{width:min(97vw,1220px)}
+#checkoutModal .checkoutBody{padding:18px 20px 22px}
+#checkoutModal .liftCustomerCheckoutGrid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(440px,.94fr);gap:22px;align-items:start}
+#checkoutModal .liftCustomerLeft,#checkoutModal .liftCustomerRight{min-width:0}
+#checkoutModal .liftCustomerLeft{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;align-items:start}
+#checkoutModal .liftCustomerLeft>.field{min-width:0}
+#checkoutModal .liftCustomerLeft>.liftFull{grid-column:1/-1}
+#checkoutModal .liftCustomerLeft .field input{width:100%;box-sizing:border-box}
+#checkoutModal .liftCustomerLeft textarea{width:100%;box-sizing:border-box;min-height:88px}
+#checkoutModal .liftCustomerLeft .liftWhatsappField{display:flex}
+#checkoutModal .liftCustomerLeft .liftEmailField{grid-column:1/-1}
+#checkoutModal .liftCustomerLeft .liftNotifyMoved{align-self:end;margin:0}
+#checkoutModal .liftCustomerLeft .liftNotesMoved{grid-column:2;grid-row:auto / span 2}
+#checkoutModal .liftCustomerLeft .liftCityMoved{grid-column:1}
+#checkoutModal .liftCustomerLeft .liftRememberMoved{grid-column:1/-1;margin-top:0;border:1px solid #e3e3e3;border-radius:11px;background:#fafafa}
+#checkoutModal .liftCustomerLeft .liftRememberMoved .liftPrefRow{padding:11px 12px}
+#checkoutModal .liftCustomerLeft .liftRememberHello{grid-column:1/-1;padding:0 12px 6px 40px}
+#checkoutModal .liftCustomerLeft .liftForgetData{grid-column:1/-1;margin-left:40px}
+#checkoutModal .liftCustomerRight{display:flex;flex-direction:column;gap:10px}
+#checkoutModal .liftCustomerRight .couponBox{margin:0}
+#checkoutModal .liftCustomerRight .checkoutFlavorNote{margin:0!important;border:0!important;background:transparent!important;padding:0 2px!important;color:#999}
+#checkoutModal .liftCustomerRight .liftCheckoutSummaryCard{margin:0}
+#checkoutModal .liftCustomerRight .liftCheckoutPrefs{margin:0}
+#checkoutModal .liftCustomerRight .liftCheckoutActionArea{margin-top:0}
+#checkoutModal .liftCustomerRight .checkoutSend{height:48px;border-radius:10px}
+#checkoutModal .liftCustomerRight .liftCheckoutTrust{padding-bottom:0}
+#checkoutModal .liftCheckoutSteps,#checkoutModal .liftCheckoutSectionTitle{display:none}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutSummary{border-top:0;padding-top:0}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProduct{grid-template-columns:52px minmax(0,1fr) auto;padding:8px 10px;gap:9px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductImg{width:52px;height:52px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductName{font-size:11px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductBrand{font-size:9px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductPrice{font-size:11px}
+#checkoutModal .liftCustomerCheckoutGrid .liftPrefRow{padding:9px 10px}
+#checkoutModal .liftCustomerCheckoutGrid .liftPrefRow b{font-size:10px}
+#checkoutModal .liftCustomerCheckoutGrid .liftPrefRow small{font-size:8.5px}
+#checkoutModal .liftCustomerCheckoutGrid .field label{font-size:11px}
+#checkoutModal .liftCustomerCheckoutGrid .field input{height:43px}
+/* Herramientas administrativas siguen a ancho completo, fuera del layout del cliente */
+#checkoutModal #liftAdminPriceMode,#checkoutModal #liftRecurringClientBox,#checkoutModal #liftManualProductBox{margin-bottom:12px}
+@media(max-width:1024px){
+  #checkoutModal .checkoutCard{width:min(96vw,760px)}
+  #checkoutModal .liftCustomerCheckoutGrid{grid-template-columns:1fr;gap:14px}
+  #checkoutModal .liftCustomerLeft{grid-template-columns:1fr}
+  #checkoutModal .liftCustomerLeft>*{grid-column:1!important;grid-row:auto!important}
+  #checkoutModal .liftCustomerLeft .liftWhatsappField{display:flex}
+  #checkoutModal .liftCustomerRight{gap:10px}
+  #checkoutModal .liftCustomerRight .couponBox{margin-top:2px}
+}
+@media(max-width:600px){
+  #checkoutModal{padding:0}
+  #checkoutModal .checkoutCard{width:100vw;max-height:100dvh;height:100dvh;border-radius:0}
+  #checkoutModal .checkoutHead{padding:14px 16px}
+  #checkoutModal .checkoutBody{padding:13px 14px 20px}
+  #checkoutModal .liftCustomerCheckoutGrid{gap:12px}
+  #checkoutModal .liftCustomerLeft{gap:9px}
+  #checkoutModal .liftCustomerCheckoutGrid .field input{height:44px}
+  #checkoutModal .liftCustomerCheckoutGrid .checkoutProduct{grid-template-columns:50px minmax(0,1fr) auto}
+  #checkoutModal .liftCustomerCheckoutGrid .checkoutProductImg{width:50px;height:50px}
+  #checkoutModal .liftCustomerRight .checkoutSend{position:sticky;bottom:8px;z-index:3;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+}
+</style>
+<script id="liftCheckoutResponsiveMockupJs">
+(function(){
+  function fieldOf(id){var e=document.getElementById(id);return e?e.closest('.field'):null}
+  function build(){
+    var body=document.querySelector('#checkoutModal .checkoutBody');
+    if(!body||body.querySelector('.liftCustomerCheckoutGrid'))return;
+    var grid=document.createElement('div');grid.className='liftCustomerCheckoutGrid';
+    var left=document.createElement('div');left.className='liftCustomerLeft';
+    var right=document.createElement('div');right.className='liftCustomerRight';
+    grid.append(left,right);
+
+    var name=fieldOf('coName'), phone=fieldOf('coPhone'), wa=fieldOf('coWhatsappUser'), email=fieldOf('coEmail');
+    var city=fieldOf('coCity'), address=fieldOf('coAddress'), notes=fieldOf('coNotes');
+    if(email)email.classList.add('liftEmailField');
+    if(city)city.classList.add('liftCityMoved');
+    if(notes)notes.classList.add('liftNotesMoved');
+    [name,phone,wa,address,email].forEach(function(x){if(x)left.appendChild(x)});
+
+    var notify=document.getElementById('coEmailNotify');
+    var notifyRow=notify&&notify.closest('.liftPrefRow');
+    if(notifyRow){notifyRow.classList.add('liftNotifyMoved');left.appendChild(notifyRow)}
+    if(notes)left.appendChild(notes);
+    if(city)left.appendChild(city);
+
+    var remember=document.getElementById('liftRememberData');
+    var rememberRow=remember&&remember.closest('.liftPrefRow');
+    if(rememberRow){var wrap=document.createElement('div');wrap.className='liftRememberMoved';wrap.appendChild(rememberRow);left.appendChild(wrap)}
+    var hello=document.getElementById('liftRememberHello'), forget=document.getElementById('liftForgetData');
+    if(hello)left.appendChild(hello);if(forget)left.appendChild(forget);
+
+    var coupon=body.querySelector('.couponBox');if(coupon)right.appendChild(coupon);
+    var flavor=body.querySelector('.checkoutFlavorNote');if(flavor)right.appendChild(flavor);
+    var summary=body.querySelector('.liftCheckoutSummaryCard');if(summary)right.appendChild(summary);
+    var prefs=body.querySelector('.liftCheckoutPrefs');if(prefs)right.appendChild(prefs);
+    var action=body.querySelector('.liftCheckoutActionArea');if(action)right.appendChild(action);
+
+    var manual=document.getElementById('liftManualProductBox');
+    if(manual)body.insertBefore(grid,manual);else body.appendChild(grid);
+    if(manual)body.insertBefore(manual,grid); // admin tool stays above customer layout
+
+    // Remove now-empty delivery/contact grids and visual headings only; IDs/functions remain intact.
+    body.querySelectorAll('.liftCheckoutContact,.liftCheckoutDelivery').forEach(function(x){if(!x.children.length)x.remove()});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();
 </script>
 </body>
@@ -10928,8 +11096,8 @@ body.liftAdminUnlocked #liftClientDirectoryBtn{display:flex!important;align-item
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  async function pub(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo completar la operación');return j}
  function injectTrack(){const bar=document.querySelector('.top .bar');if(!bar||$('liftTrackBtn'))return;const b=document.createElement('button');b.id='liftTrackBtn';b.className='liftTrackBtn';b.type='button';b.textContent='📦 Mi pedido';b.onclick=window.liftOpenTrack;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
- function payload(){const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'',email=$('coEmail')?.value.trim().toLowerCase()||'',email_notificaciones=Boolean($('coEmailNotify')?.checked);if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)throw new Error('Completa nombre, celular, dirección y selecciona una ciudad.');if(email_notificaciones&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('Escribe un correo válido para recibir las notificaciones del pedido.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip)||0,descuento=checkoutCouponDiscount(its),noDiscount=adminTrainerMode()||trainerCouponActive(),total=Math.max(0,effective-(noDiscount?0:descuento))+Number(envio||0);return {action:'public-save-order',request_key:'public-'+Date.now()+'-'+Math.random().toString(36).slice(2),nombre,celular,direccion,ciudad:selectedCity.name,departamento:selectedCity.department||'',notas,email,email_notificaciones,subtotal,envio,descuento:noDiscount?0:descuento,total,items:its.map(({p,q})=>{const unit=checkoutUnitPrice(p);return{producto_id:p.id||null,nombre:String(p.name||'Producto')+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||p.marca||'',cantidad:q,precio_unitario:unit,total_linea:unit*q}})} }
- window.finishCheckout=async function(){let d;try{d=payload()}catch(e){alert(e.message);return}const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.dataset.busy==='1')return;try{if(btn){btn.dataset.busy='1';btn.disabled=true;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generando pedido…')}const ok=await registerCouponUse();if(!ok)return;const r=await pub(d);lastOrder={...r,phone:d.celular,name:d.nombre,text:typeof checkoutText==='function'?checkoutText():''};
+ function payload(){const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'',email=$('coEmail')?.value.trim().toLowerCase()||'',email_notificaciones=Boolean($('coEmailNotify')?.checked),tratamiento_datos=Boolean($('coDataConsent')?.checked),marketing_autorizado=Boolean($('coMarketingConsent')?.checked),tratamiento_datos_fecha=new Date().toISOString(),tratamiento_datos_version='LIFT-DATOS-2026-10-06-v1';if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)throw new Error('Completa nombre, celular, dirección y selecciona una ciudad.');if(!tratamiento_datos)throw new Error('Para generar el pedido debes autorizar el tratamiento de tus datos personales.');if(email_notificaciones&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('Escribe un correo válido para recibir las notificaciones del pedido.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip)||0,descuento=checkoutCouponDiscount(its),noDiscount=adminTrainerMode()||trainerCouponActive(),total=Math.max(0,effective-(noDiscount?0:descuento))+Number(envio||0);return {action:'public-save-order',request_key:'public-'+Date.now()+'-'+Math.random().toString(36).slice(2),nombre,celular,direccion,ciudad:selectedCity.name,departamento:selectedCity.department||'',notas,email,email_notificaciones,tratamiento_datos,tratamiento_datos_fecha,tratamiento_datos_version,marketing_autorizado,subtotal,envio,descuento:noDiscount?0:descuento,total,items:its.map(({p,q})=>{const unit=checkoutUnitPrice(p);return{producto_id:p.id||null,nombre:String(p.name||'Producto')+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||p.marca||'',cantidad:q,precio_unitario:unit,total_linea:unit*q}})} }
+ window.finishCheckout=async function(){const consent=$('coDataConsent'),consentErr=$('liftDataConsentError'),consentRow=$('liftDataConsentRow');if(consent&&!consent.checked){if(consentErr)consentErr.style.display='block';if(consentRow){consentRow.style.borderColor='#b42318';consentRow.style.background='#fff7f7';consentRow.scrollIntoView({behavior:'smooth',block:'center'})}consent.focus();return}if(consentErr)consentErr.style.display='none';if(consentRow){consentRow.style.borderColor='';consentRow.style.background=''}let d;try{d=payload()}catch(e){alert(e.message);return}const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.dataset.busy==='1')return;try{if(btn){btn.dataset.busy='1';btn.disabled=true;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generando pedido…')}const ok=await registerCouponUse();if(!ok)return;const r=await pub(d);if(typeof window.liftSaveConsentAudit==='function')window.liftSaveConsentAudit(d,r);lastOrder={...r,phone:d.celular,name:d.nombre,text:typeof checkoutText==='function'?checkoutText():''};
 try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:r.referencia,phone:d.celular,token:r.token||''}))}catch(e){}
 const co=$('checkoutModal');if(co){co.classList.remove('open');co.setAttribute('aria-hidden','true')}
 const success=$('liftOrderSuccessModal');if(success){success.classList.remove('open');success.setAttribute('aria-hidden','true')}
@@ -10945,7 +11113,7 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
  window.liftCloseTrack=function(){$('liftTrackModal').classList.remove('open');$('liftTrackModal').setAttribute('aria-hidden','true')};
  window.liftOpenTrackFromLast=function(){liftCloseOrderSuccess();liftOpenTrack()};
  window.liftTrackOrderLegacyOld=async function(){const ref=$('liftTrackRef').value.trim(),celular=$('liftTrackPhone').value.trim(),out=$('liftTrackResult');if(!ref||!celular){out.innerHTML='<div style="color:#b42318;font-size:11px">Escribe número de pedido y celular.</div>';return}out.innerHTML='<div style="font-size:11px;color:#777">Consultando…</div>';try{const r=await pub({action:'public-track-order',referencia:ref,celular}),p=r.pedido,states=['nuevo','programado','en_ruta','entregado'],idx=Math.max(0,states.indexOf(p.estado));const labels=['Recibido','Preparando','En ruta','Entregado'];const catalog=Array.isArray(window.products)?window.products:(Array.isArray(window.PRODUCTS)?window.PRODUCTS:[]);const norm=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();const findProduct=x=>catalog.find(z=>Number(z.id)===Number(x.producto_id))||catalog.find(z=>norm(z.nombre||z.name)===norm(x.nombre));const items=(p.items||[]).map(x=>{const z=findProduct(x)||{};const img=x.imagen||z.imagen_url||z.imagen||z.image||'';const unit=Number(x.precio_unitario||0);const line=Number(x.total_linea||0)||(unit*Number(x.cantidad||1));return `<div class="liftTrackProduct">${img?`<img src="${esc(img)}" alt="${esc(x.nombre||'Producto')}">`:`<div class="liftTrackNoImg">LIFT</div>`}<div class="liftTrackProductInfo"><b>${esc(x.nombre||'Producto')}</b>${x.marca?`<span>${esc(x.marca)}</span>`:''}<small>Cantidad: ${Number(x.cantidad||1)}</small></div><div class="liftTrackProductPrice">${line?money(line):''}</div></div>`}).join('');const sub=Number(p.subtotal||0),env=Number(p.envio||0),desc=Number(p.descuento||0),total=Number(p.total||0);out.innerHTML=`<div class="liftOrderRef"><small>PEDIDO</small><b>${esc(p.referencia)}</b></div><div class="liftTrackCustomer"><div><small>CLIENTE</small><b>${esc(p.nombre||'')}</b>${p.celular?`<span>${esc(p.celular)}</span>`:''}</div><div><small>ENTREGA</small><b>${esc(p.direccion||p.ciudad||'Dirección registrada')}</b><span>${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</span></div></div><div class="liftTrackSteps">${labels.map((x,i)=>`<div class="liftTrackStep ${i<=idx?'on':''}">${x}</div>`).join('')}</div><div class="liftTrackProducts">${items||'<div class="liftTrackEmpty">Sin productos para mostrar.</div>'}</div><div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}${env?`<div><span>Envío</span><b>${money(env)}</b></div>`:''}${desc?`<div class="discount"><span>Descuento</span><b>− ${money(desc)}</b></div>`:''}<div class="grand"><span>Total</span><b>${money(total)}</b></div></div>${p.notas?`<div class="liftTrackNotes"><small>NOTAS DEL PEDIDO</small>${esc(p.notas)}</div>`:''}`;}catch(e){out.innerHTML='<div style="color:#b42318;font-size:11px">'+esc(e.message)+'</div>'}};
- document.addEventListener('DOMContentLoaded',()=>{injectTrack();const s=document.querySelector('#checkoutModal .checkoutSend span');if(s)s.textContent='Generar pedido'});setTimeout(injectTrack,0);
+ document.addEventListener('DOMContentLoaded',()=>{injectTrack();const s=document.querySelector('#checkoutModal .checkoutSend span');if(s)s.textContent='Generar pedido';const c=$('coDataConsent');if(c)c.addEventListener('change',()=>{if(c.checked){const e=$('liftDataConsentError'),r=$('liftDataConsentRow');if(e)e.style.display='none';if(r){r.style.borderColor='';r.style.background=''}}})});setTimeout(injectTrack,0);
 })();
 </script>
 
