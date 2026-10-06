@@ -7006,7 +7006,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
   if(!fecha||!nombre||!celular||!producto||total<=0){alert('Completa fecha, cliente, celular, producto y total.');return}
   const subtotal=Math.max(0,total-envio),unit=Math.round(subtotal/cantidad);
   const orderOrigin=['admin','forma='+encodeURIComponent(forma),'abono='+Math.round(abono),'vence='+(vence||''),'envio='+encodeURIComponent($('liftOldShipMode').value),'fecha='+fecha].join('|');
-  try{const j=await call({action:'save-order',nombre,celular,direccion:$('liftOldAddress').value.trim()||'Sin dirección',ciudad:$('liftOldCity').value.trim()||'Sin ciudad',departamento:liftOldDepartment||'',notas:$('liftOldNotes').value.trim(),subtotal,envio,descuento:0,total,origen:orderOrigin,items:[{producto_id:null,nombre:producto,marca:'',cantidad,precio_unitario:unit,total_linea:subtotal}]});alert('Pedido anterior #'+j.pedido_id+' guardado'+(forma!=='pagado'?'. Saldo: '+money(Math.max(0,total-abono)):'.'));['liftOldName','liftOldPhone','liftOldProduct','liftOldTotal','liftOldShip','liftOldAbono','liftOldDue','liftOldCity','liftOldAddress','liftOldNotes'].forEach(id=>{if($(id))$(id).value=id==='liftOldShip'||id==='liftOldAbono'?'0':''});$('liftOldQty').value=1;liftOldDepartment='';if($('liftOldClientSearch'))$('liftOldClientSearch').value='';$('liftOldPay').value='pagado';liftOldPaySync();$('liftOldShipMode').value='manual';liftOldLastShip=0;liftOldShipSync()}catch(e){alert('No pude guardar el pedido: '+e.message)}};
+  try{const existing=await call({action:'find',q:celular});const same=(existing.clientes||[]).find(c=>String(c.celular||'').replace(/\D/g,'')===String(celular).replace(/\D/g,''));if(!same){await call({action:'save',nombre,celular,direccion:$('liftOldAddress').value.trim()||'Sin dirección',ciudad:$('liftOldCity').value.trim()||'Sin ciudad',departamento:liftOldDepartment||'',notas:$('liftOldNotes').value.trim(),etiqueta:'Casa'});}const j=await call({action:'save-order',nombre,celular,direccion:$('liftOldAddress').value.trim()||'Sin dirección',ciudad:$('liftOldCity').value.trim()||'Sin ciudad',departamento:liftOldDepartment||'',notas:$('liftOldNotes').value.trim(),subtotal,envio,descuento:0,total,origen:orderOrigin,items:[{producto_id:null,nombre:producto,marca:'',cantidad,precio_unitario:unit,total_linea:subtotal}]});alert('Pedido anterior #'+j.pedido_id+' guardado'+(forma!=='pagado'?'. Saldo: '+money(Math.max(0,total-abono)):'.'));['liftOldName','liftOldPhone','liftOldProduct','liftOldTotal','liftOldShip','liftOldAbono','liftOldDue','liftOldCity','liftOldAddress','liftOldNotes'].forEach(id=>{if($(id))$(id).value=id==='liftOldShip'||id==='liftOldAbono'?'0':''});$('liftOldQty').value=1;liftOldDepartment='';if($('liftOldClientSearch'))$('liftOldClientSearch').value='';$('liftOldPay').value='pagado';liftOldPaySync();$('liftOldShipMode').value='manual';liftOldLastShip=0;liftOldShipSync()}catch(e){alert('No pude guardar el pedido: '+e.message)}};
  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement===$('liftOrderClientSearch')){e.preventDefault();liftSearchOrderClients()}});
  const bindOldClientSearch=()=>{const inp=$('liftOldClientSearch');if(!inp||inp.dataset.bound)return;inp.dataset.bound='1';inp.addEventListener('input',()=>{clearTimeout(liftOldClientTimer);liftOldClientTimer=setTimeout(liftOldFindClients,220)});inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(liftOldClientTimer);liftOldFindClients()}})};
  const obs=new MutationObserver(()=>{install();bindOldClientSearch()});obs.observe(document.body,{childList:true,subtree:true});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{install();bindOldClientSearch()},120));else setTimeout(()=>{install();bindOldClientSearch()},120);
@@ -11116,8 +11116,7 @@ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button{
  body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button:last-child{grid-column:1/-1!important;}
 }
 </style>
-</body>
-</html>
+
 <style id="lift-client-directory-v1">
 #liftClientDirectoryBtn{display:none!important;border:1px solid #333;background:#111;color:#fff;height:44px;border-radius:13px;padding:0 14px;font:500 12px Poppins,Arial;cursor:pointer;white-space:nowrap}
 body.liftAdminUnlocked #liftClientDirectoryBtn{display:flex!important;align-items:center;justify-content:center;gap:6px}
@@ -11138,6 +11137,7 @@ body.liftAdminUnlocked #liftClientDirectoryBtn{display:flex!important;align-item
  window.liftCloseClientDirectory=function(){const m=$('liftClientDirectoryModal');m?.classList.remove('open');m?.setAttribute('aria-hidden','true')};
  function form(c){const ds=c?.lift_direcciones_cliente||[],d=ds.slice().sort((a,b)=>Number(b.predeterminada)-Number(a.predeterminada))[0]||{};const body=$('liftClientDirContent');body.innerHTML=`<div class="liftClientDirBody"><button class="liftClientDirBack" type="button" onclick="liftClientDirectoryList()">← Clientes A → Z</button><div class="liftClientDirForm"><div class="liftClientDirField"><label>Nombre</label><input id="lcdName" value="${esc(c?.nombre||'')}"></div><div class="liftClientDirField"><label>Celular / WhatsApp</label><input id="lcdPhone" inputmode="tel" value="${esc(c?.celular||'')}"></div><div class="liftClientDirField"><label>Etiqueta de esta dirección</label><input id="lcdLabel" placeholder="Casa, trabajo…" value="${esc(d.etiqueta||'Casa')}"></div><div class="liftClientDirField"><label>Ciudad</label><input id="lcdCity" value="${esc(d.ciudad||'')}"></div><div class="liftClientDirField full"><label>Dirección</label><input id="lcdAddress" value="${esc(d.direccion||'')}"></div><div class="liftClientDirField"><label>Departamento</label><input id="lcdDept" value="${esc(d.departamento||'')}"></div><div class="liftClientDirField"><label>Barrio / sector / unidad</label><input id="lcdSector" placeholder="Opcional"></div><div class="liftClientDirField full"><label>Notas e indicaciones de entrega</label><textarea id="lcdNotes">${esc(d.notas||'')}</textarea></div>${ds.length?`<div class="liftClientDirAddresses"><b>Direcciones ya guardadas</b>${ds.map(x=>`<div class="liftClientDirAddress">${x.predeterminada?'★ ':''}${esc(x.etiqueta||'Dirección')}: ${esc(x.direccion||'')} · ${esc(x.ciudad||'')}</div>`).join('')}</div>`:''}<button class="liftClientDirSave" type="button" onclick="liftSaveClientDirectory()">Guardar cliente y dirección</button></div></div>`}
  window.liftNewClientDirectory=function(){form(null)};
+ window.liftOpenNewClientDirectory=function(){if(!document.body.classList.contains('liftAdminUnlocked'))return;const m=$('liftClientDirectoryModal');m?.classList.add('open');m?.setAttribute('aria-hidden','false');form(null)};
  window.liftEditClientDirectory=function(id){form(clients.find(c=>Number(c.id)===Number(id))||null)};
  window.liftClientDirectoryList=function(){const root=$('liftClientDirContent');root.innerHTML='<div class="liftClientDirTools"><input id="liftClientDirSearch" class="liftClientDirSearch" placeholder="Buscar nombre, celular, ciudad o dirección"><button class="liftClientDirNew" type="button" onclick="liftNewClientDirectory()">+ Nuevo cliente</button></div><div class="liftClientDirBody"><div id="liftClientDirList" class="liftClientDirList"></div></div>';$('liftClientDirSearch').addEventListener('input',render);render()};
  window.liftSaveClientDirectory=async function(){const nombre=$('lcdName')?.value.trim()||'',celular=$('lcdPhone')?.value.trim()||'',direccion=$('lcdAddress')?.value.trim()||'',ciudad=$('lcdCity')?.value.trim()||'',departamento=$('lcdDept')?.value.trim()||'',etiqueta=$('lcdLabel')?.value.trim()||'Casa',sector=$('lcdSector')?.value.trim()||'',notes=$('lcdNotes')?.value.trim()||'';if(!nombre||!celular){alert('Nombre y celular son obligatorios.');return}if(!direccion||!ciudad){alert('Escribe dirección y ciudad.');return}const notas=[sector?('Sector: '+sector):'',notes].filter(Boolean).join(' · ');const btn=document.querySelector('.liftClientDirSave');if(btn){btn.disabled=true;btn.textContent='Guardando…'}try{const saved=await api({action:'save',nombre,celular,direccion,ciudad,departamento,notas,etiqueta});const verify=await api({action:'find',q:celular});const found=(verify.clientes||[]).find(c=>Number(c.id)===Number(saved.cliente_id)||String(c.celular||'').replace(/\D/g,'')===String(celular).replace(/\D/g,''));if(!found)throw new Error('Supabase respondió, pero el cliente no apareció al verificarlo.');alert('✓ Cliente guardado y verificado en Supabase');window.liftClientDirectoryList();await load();if(typeof window.liftLoadAlphabeticalClients==='function')window.liftLoadAlphabeticalClients().catch(()=>{})}catch(e){alert('No pude guardar: '+e.message)}finally{if(btn){btn.disabled=false;btn.textContent='Guardar cliente y dirección'}}};
@@ -11462,4 +11462,44 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
 })();
-</script>
+</script>\n<style id="lift-client-flow-unified-v1">
+#liftOrdersHistory .liftOrderSearch{display:grid!important;grid-template-columns:minmax(0,1fr) 42px auto;gap:7px;align-items:center;margin-bottom:10px}
+#liftOrdersHistory .liftOrderSearch input{min-width:0}
+.liftOrdersNewClientBtn,.liftOldNewClientBtn{height:38px;border:0;border-radius:9px;background:#111;color:#fff;padding:0 12px;font:600 10px Poppins,Arial;cursor:pointer;white-space:nowrap}
+.liftOldClientActions{display:flex;justify-content:flex-end;margin:5px 0 2px}
+@media(max-width:620px){#liftOrdersHistory .liftOrderSearch{grid-template-columns:minmax(0,1fr) 42px}.liftOrdersNewClientBtn{grid-column:1/-1;width:100%}.liftOldNewClientBtn{width:100%}}
+</style>
+<script id="lift-client-flow-unified-v1-script">
+(function(){
+ const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',PASS='liftAdminCloudPasswordV1';
+ const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const pass=()=>{try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}};
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ async function api(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...payload,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudieron cargar los clientes');return j}
+ function addButtons(){
+   const search=document.querySelector('#liftOrdersHistory .liftOrderSearch');
+   if(search&&!search.querySelector('.liftOrdersNewClientBtn')){const b=document.createElement('button');b.type='button';b.className='liftOrdersNewClientBtn';b.textContent='+ Nuevo cliente';b.onclick=()=>window.liftOpenNewClientDirectory?.();search.appendChild(b)}
+   const lookup=document.querySelector('#liftOrdersOld .liftOldClientLookup');
+   if(lookup&&!lookup.querySelector('.liftOldClientActions')){const w=document.createElement('div');w.className='liftOldClientActions';w.innerHTML='<button type="button" class="liftOldNewClientBtn">+ Nuevo cliente</button>';w.querySelector('button').onclick=()=>window.liftOpenNewClientDirectory?.();lookup.appendChild(w)}
+ }
+ window.liftLoadAlphabeticalClients=async function(){
+   const box=$('liftOrderResults');if(!box)return;
+   const q=norm($('liftOrderClientSearch')?.value||'');
+   box.innerHTML='<div class="liftAlphaEmpty">Cargando clientes…</div>';
+   try{
+     const j=await api({action:'crm-list'});let clients=Array.isArray(j.clientes)?j.clientes:[];
+     clients=clients.filter(c=>{const ds=(c.lift_direcciones_cliente||[]).map(d=>[d.direccion,d.ciudad,d.departamento,d.etiqueta].join(' ')).join(' ');return !q||norm([c.nombre,c.celular,ds].join(' ')).includes(q)}).sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''),'es',{sensitivity:'base'}));
+     if(!clients.length){box.innerHTML='<div class="liftAlphaEmpty">No encontré clientes.</div>';return}
+     box.innerHTML='<div class="liftAlphaHead"><b>Clientes A → Z</b><small>'+clients.length+' cliente'+(clients.length===1?'':'s')+'</small></div><div class="liftAlphaClients">'+clients.map(c=>{const ds=Array.isArray(c.lift_direcciones_cliente)?c.lift_direcciones_cliente:[],ad=ds.slice().sort((a,b)=>Number(b.predeterminada)-Number(a.predeterminada))[0]||{};return '<button type="button" class="liftAlphaClient" data-client-id="'+Number(c.id)+'" data-client-name="'+esc(c.nombre||'')+'"><span><span class="liftAlphaClientName">'+esc(c.nombre||'Sin nombre')+'</span><span class="liftAlphaClientMeta">'+esc(c.celular||'Sin celular')+(ad.ciudad?' · '+esc(ad.ciudad):'')+'</span></span><span class="liftAlphaArrow">›</span></button>'}).join('')+'</div>';
+     box.querySelectorAll('.liftAlphaClient').forEach(b=>b.addEventListener('click',()=>window.liftLoadClientOrders?.(Number(b.dataset.clientId),b.dataset.clientName||'')));
+   }catch(e){box.innerHTML='<div class="liftAlphaEmpty">'+esc(e.message)+'</div>'}
+ };
+ window.liftSearchOrderClients=window.liftLoadAlphabeticalClients;
+ function bind(){addButtons();const inp=$('liftOrderClientSearch');if(inp&&!inp.dataset.unifiedClientSearch){inp.dataset.unifiedClientSearch='1';let t;inp.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(window.liftLoadAlphabeticalClients,180)});inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();window.liftLoadAlphabeticalClients()}})}}
+ const oldTab=window.liftOrdersTab;window.liftOrdersTab=function(tab){const r=typeof oldTab==='function'?oldTab.apply(this,arguments):undefined;bind();if(tab==='history')setTimeout(window.liftLoadAlphabeticalClients,0);return r};
+ const oldOpen=window.liftOpenOrders;window.liftOpenOrders=function(){const r=typeof oldOpen==='function'?oldOpen.apply(this,arguments):undefined;bind();setTimeout(window.liftLoadAlphabeticalClients,0);return r};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
+})();
+</script>\n
+</body>
+</html>
