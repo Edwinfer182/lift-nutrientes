@@ -7082,7 +7082,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 
 
 <style id="lift-provider-wallet-v1-style">
-.liftProviderWalletBtn{display:none;width:100%;height:42px;margin:8px 0;border:1px solid #111;border-radius:10px;background:#fff;color:#111;font:600 10px Poppins;cursor:pointer}.liftAdminUnlocked .liftProviderWalletBtn{display:block}
+.liftProviderWalletBtn{display:none;height:38px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#111;font:600 10px Poppins,Arial;cursor:pointer}.liftAdminUnlocked .liftAdminToolsRow .liftProviderWalletBtn{display:block}
 #liftProviderWalletModal{position:fixed;inset:0;z-index:17000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:15px}#liftProviderWalletModal.open{display:flex}
 .lpwBox{width:min(96vw,720px);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:17px}.lpwHead{display:flex;justify-content:space-between;gap:10px;align-items:center}.lpwHead h3{margin:0;font-size:17px}.lpwClose{width:34px;height:34px;border:0;border-radius:50%;background:#f2f2f2;font-size:18px}
 .lpwGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.lpwGrid label{display:grid;gap:4px;font-size:9px;color:#666}.lpwGrid .full{grid-column:1/-1}.lpwGrid input,.lpwGrid select,.lpwGrid textarea{width:100%;border:1px solid #ddd;border-radius:9px;background:#fff;padding:9px;font:inherit;font-size:11px}.lpwGrid input,.lpwGrid select{height:40px}.lpwGrid textarea{min-height:58px}
@@ -7201,7 +7201,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 
 
 <style id="lift-crm-v1-style">
-#liftCrmBtn{display:none;width:100%;height:42px;margin:8px 0;border:1px solid #111;border-radius:10px;background:#111;color:#fff;font:600 10px Poppins;cursor:pointer}.liftAdminUnlocked #liftCrmBtn{display:block}
+#liftCrmBtn{display:none;height:38px;border:1px solid #111;border-radius:10px;background:#111;color:#fff;font:600 10px Poppins,Arial;cursor:pointer}.liftAdminUnlocked .liftAdminToolsRow #liftCrmBtn{display:block}
 #liftCrmFloatingBtn{display:none;position:fixed;right:18px;bottom:92px;z-index:16000;border:0;border-radius:999px;background:#111;color:#fff;padding:13px 17px;font:600 11px Poppins,Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.22);cursor:pointer}.liftAdminUnlocked #liftCrmFloatingBtn{display:block!important}@media(max-width:650px){#liftCrmFloatingBtn{right:12px;bottom:78px;padding:12px 14px;font-size:10px}}
 #liftCrmModal{position:fixed;inset:0;z-index:18000;background:rgba(0,0,0,.46);display:none;align-items:center;justify-content:center;padding:14px}#liftCrmModal.open{display:flex}
 .crmBox{width:min(96vw,900px);max-height:92vh;overflow:auto;background:#fff;border-radius:17px;padding:16px}.crmHead{display:flex;align-items:center;gap:10px}.crmHead h3{margin:0;flex:1;font-size:18px}.crmClose{width:34px;height:34px;border:0;border-radius:50%;background:#eee;font-size:18px}
@@ -7301,8 +7301,8 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  function inject(){
    let b=document.getElementById('liftCrmBtn');
    if(!b){
-     const anchor=document.getElementById('liftProviderWalletBtn')||document.getElementById('liftAdminCheckoutTools')||document.getElementById('liftAdminPriceMode');
-     if(anchor){b=document.createElement('button');b.id='liftCrmBtn';b.type='button';b.textContent='CRM · Seguimiento clientes';b.onclick=()=>window.liftCrmOpen();anchor.insertAdjacentElement('afterend',b);}
+     const row=document.querySelector('.liftAdminToolsRow');
+     if(row){b=document.createElement('button');b.id='liftCrmBtn';b.type='button';b.textContent='CRM · Seguimiento clientes';b.onclick=()=>window.liftCrmOpen();row.appendChild(b);}
    }
    if(!document.getElementById('liftCrmFloatingBtn')){
      const f=document.createElement('button');f.id='liftCrmFloatingBtn';f.type='button';f.textContent='CRM · Clientes';f.onclick=()=>window.liftCrmOpen();document.body.appendChild(f);
@@ -9785,7 +9785,6 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
 <style id="lift-complete-order-flow-v4">
 /* Checkout público limpio */
 #liftOrderSuccessModal{display:none!important}
-body:not(.liftAdminUnlocked) #liftCheckoutShareBtn{display:none!important}
 #checkoutModal .checkoutSend svg{display:none!important}
 #checkoutModal .checkoutSend{background:#111!important;color:#fff!important}
 
@@ -10021,12 +10020,8 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
    }
  }
 
- // Compartir pedido con datos queda solo para administración y usa un pedido real.
- document.addEventListener('click',async e=>{
-   const b=e.target.closest?.('#liftCheckoutShareBtn');if(!b||!document.body.classList.contains('liftAdminUnlocked'))return;
-   e.preventDefault();e.stopImmediatePropagation();
-   try{if(!window.liftLastAdminOrderRef){const r=await window.liftSaveCurrentOrderV2();if(!r?.ok)return}await window.shareLiftCheckoutImage()}catch(err){alert(err.message)}
- },true);
+ // Compartir pedido con datos es independiente de Guardar pedido.
+ // El botón usa directamente shareLiftCheckoutImage() definido en injectCheckoutShare().
 
  async function rpcList(){const r=await fetch(RPC,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:adminPass(),p_action:'list',p_payload:{}})});const j=await r.json().catch(()=>null);if(!r.ok)throw new Error(j?.message||j?.error||'No se pudieron cargar pedidos');return Array.isArray(j)?j:[]}
  window.liftOpenPaymentsAdmin=async function(){
@@ -10042,7 +10037,6 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
  function cleanCheckout(){
    const btn=document.querySelector('#checkoutModal .checkoutSend');
    if(btn){btn.setAttribute('aria-label','Realizar pedido');btn.querySelectorAll('svg').forEach(x=>x.remove());const s=btn.querySelector('span');if(s&&!btn.disabled)s.textContent='REALIZAR PEDIDO'}
-   if(!document.body.classList.contains('liftAdminUnlocked')){$('liftCheckoutShareBtn')?.style.setProperty('display','none','important')}
  }
  function boot(){
    cleanCheckout();
@@ -10957,6 +10951,35 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();
 </script>
+
+<style id="lift-admin-tools-unified-layout-v1">
+/* LIFT: todas las herramientas principales del administrador viven en un solo grid. */
+body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  align-items:stretch!important;
+}
+body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button{
+  display:flex!important;
+  width:auto!important;
+  min-width:0!important;
+  height:38px!important;
+  min-height:38px!important;
+  margin:0!important;
+  padding:0 8px!important;
+  grid-column:auto!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  white-space:normal!important;
+  line-height:1.15!important;
+}
+@media(max-width:760px){
+ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button:last-child{grid-column:1/-1!important;}
+}
+</style>
 </body>
 </html>
 <style id="lift-client-directory-v1">
