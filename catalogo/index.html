@@ -11503,3 +11503,75 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 </script>\n
 </body>
 </html>
+
+<!-- LIFT · VISTA CLIENTE PEDIDO TIPO TRACKING · 2026-10-06 -->
+<style id="lift-client-order-premium-v1">
+/* Solo cambia la consulta pública del pedido. Admin y mensajero quedan intactos. */
+#liftTrackModal .liftOrderCard{width:min(96vw,680px);padding:16px;border-radius:16px;background:#fff}
+#liftTrackModal .liftOrderCard>h2,#liftTrackModal .liftOrderSub{display:none}
+#liftTrackResult .liftOrderRef{background:transparent!important;color:#111!important;text-align:left!important;padding:0 2px 9px!important;margin:0!important;border-radius:0!important}
+#liftTrackResult .liftOrderRef small{display:inline!important;font-size:9px!important;color:#777!important;opacity:1!important;margin-right:5px}
+#liftTrackResult .liftOrderRef b{font-size:12px!important;font-weight:650!important}
+#liftTrackResult .liftJourney{margin:2px 0 12px!important}
+#liftTrackResult .liftJourneyLine{padding:4px 2px 0!important}
+#liftTrackResult .liftJourneyStep:before{top:17px!important;height:3px!important}
+#liftTrackResult .liftJourneyDot{width:31px!important;height:31px!important;margin-bottom:7px!important;border-width:2px!important;font-size:12px!important}
+#liftTrackResult .liftJourneyStep.current .liftJourneyDot{border:7px solid #dff7e7!important;box-shadow:0 0 0 2px #16a34a!important;font-size:0!important}
+#liftTrackResult .liftJourneyStep.current .liftJourneyDot:after{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
+#liftTrackResult .liftJourneyLabel{font-size:9px!important;font-weight:600!important;color:#aaa!important}
+#liftTrackResult .liftJourneyStep.done .liftJourneyLabel,#liftTrackResult .liftJourneyStep.current .liftJourneyLabel{color:#111!important}
+#liftTrackResult .liftJourneyHelp{margin:12px 0!important;padding:13px 14px!important;background:#fff!important;border:1px solid #dedede!important;border-radius:13px!important}
+#liftTrackResult .liftJourneyHelp b{font-size:11px!important}
+#liftTrackResult .liftJourneyHelp p{font-size:10px!important;color:#8a8a8a!important;margin-top:4px!important}
+#liftTrackResult .liftNextCard{margin:12px 0!important;padding:15px!important;background:#effcf3!important;border:1px solid #aeeac1!important;border-radius:14px!important}
+#liftTrackResult .liftNextEyebrow{font-size:9px!important;font-weight:750!important;letter-spacing:.04em;color:#168451!important}
+#liftTrackResult .liftNextTitle{font-size:16px!important;font-weight:750!important;margin:4px 0 3px!important}
+#liftTrackResult .liftNextText{font-size:10.5px!important;line-height:1.55!important;color:#526158!important}
+#liftTrackResult .liftNextFlow{margin-top:10px!important;padding-top:10px!important;border-top:1px solid #cfead7!important}
+#liftTrackResult .liftNextFlow small{font-size:7.5px!important;color:#9a9a9a!important}
+#liftTrackResult .liftNextFlow b{font-size:9px!important}
+#liftTrackResult .liftCompactPurchase{border:1px solid #dedede!important;border-radius:14px!important;padding:14px!important;margin-top:12px!important}
+#liftTrackResult .liftCompactPurchaseHead b{font-size:9px!important;font-weight:650!important}
+#liftTrackResult .liftCompactPurchaseHead strong{font-size:17px!important;font-weight:500!important}
+#liftTrackResult .liftCompactItems{margin:8px 0 5px!important;color:#9a9a9a!important;font-size:9px!important;line-height:1.5!important}
+#liftTrackResult .liftCompactToggle{background:#fff!important;border:1px solid #111!important;border-radius:3px!important;padding:2px 4px!important;font-size:8px!important;font-weight:650!important;cursor:pointer}
+#liftTrackResult .liftCompactDetails{margin-top:12px!important}
+#liftTrackResult .liftTrackCustomer{grid-template-columns:1fr 1.35fr!important;gap:9px!important;margin:10px 0 12px!important}
+#liftTrackResult .liftTrackCustomer>div{background:#fafafa!important;border:1px solid #e2e2e2!important;border-radius:12px!important;padding:11px!important;min-height:68px}
+#liftTrackResult .liftTrackCustomer small{font-size:7.5px!important;color:#9a9a9a!important}
+#liftTrackResult .liftTrackCustomer b{font-size:10px!important}
+#liftTrackResult .liftTrackCustomer span{font-size:8px!important;color:#aaa!important}
+#liftTrackResult .liftTrackProducts{gap:8px!important;margin-top:0!important}
+#liftTrackResult .liftTrackProduct{grid-template-columns:62px minmax(0,1fr) auto!important;border:1px solid #e2e2e2!important;border-radius:13px!important;padding:9px!important}
+#liftTrackResult .liftTrackProduct img,#liftTrackResult .liftTrackNoImg{width:62px!important;height:62px!important}
+#liftTrackResult .liftTrackProductInfo b{font-size:10px!important;font-weight:550!important}
+#liftTrackResult .liftTrackProductInfo span,#liftTrackResult .liftTrackProductInfo small{font-size:8px!important;color:#aaa!important}
+#liftTrackResult .liftTrackProductPrice{font-size:10px!important;font-weight:700!important}
+#liftTrackResult .liftTrackTotals{margin-top:10px!important;padding-top:8px!important}
+#liftTrackResult .liftTrackTotals>div{font-size:9px!important;padding:5px 1px!important}
+#liftTrackResult .liftTrackTotals .grand{font-size:14px!important;padding-top:10px!important}
+#liftTrackResult .liftTrackTotals .grand b{font-size:18px!important;font-weight:500!important}
+@media(max-width:600px){
+ #liftTrackModal{padding:5px!important;align-items:start!important}
+ #liftTrackModal .liftOrderCard{width:100%!important;max-height:98vh!important;padding:12px!important;border-radius:12px!important}
+ #liftTrackResult .liftJourney{overflow:visible!important}
+ #liftTrackResult .liftJourneyLine{min-width:0!important;grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ #liftTrackResult .liftJourneyDot{width:27px!important;height:27px!important}
+ #liftTrackResult .liftJourneyStep:before{top:15px!important}
+ #liftTrackResult .liftJourneyLabel{font-size:7.5px!important}
+ #liftTrackResult .liftTrackCustomer{grid-template-columns:1fr 1.35fr!important}
+ #liftTrackResult .liftTrackProduct{grid-template-columns:52px minmax(0,1fr) auto!important}
+ #liftTrackResult .liftTrackProduct img,#liftTrackResult .liftTrackNoImg{width:52px!important;height:52px!important}
+}
+</style>
+<script id="lift-client-order-premium-v1-js">
+(function(){
+ const oldToggle=window.liftToggleOrderDetails;
+ window.liftToggleOrderDetails=function(){
+   if(typeof oldToggle==='function') oldToggle();
+   const d=document.getElementById('liftCompactDetails');
+   const b=document.querySelector('#liftTrackResult .liftCompactToggle');
+   if(b&&d)b.textContent=d.classList.contains('open')?'Ocultar detalles ▴':'Ver detalles ▾';
+ };
+})();
+</script>
