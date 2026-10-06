@@ -10722,17 +10722,57 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
  function liftEvidenceUrl(p){
    return p.entrega_foto_url||p.evidencia_entrega_url||p.foto_entrega_url||p.entrega_foto_public_url||p.entrega_foto_path||'';
  }
- window.liftOpenDeliveryEvidence=function(id){
+ window.liftOpenDeliveryEvidence=async function(id){
    const p=window.__liftDispatchMap?.get(String(id));if(!p)return;
    const raw=liftEvidenceUrl(p),modal=$('liftEvidenceModal'),body=$('liftEvidenceBody'),title=$('liftEvidenceTitle');
    if(!modal||!body)return;
    title.textContent='Evidencia de entrega · Pedido #'+id;
-   if(/^https?:\/\//i.test(raw)){
-     body.innerHTML=`<img class="liftEvidenceImg" src="${esc(raw)}" alt="Evidencia de entrega del pedido #${esc(id)}">`;
-   }else{
-     body.innerHTML=`<div class="liftEvidenceEmpty"><b>La evidencia está registrada.</b><br>La API devolvió la ruta del archivo, pero no una URL pública para abrirla directamente.<br><small>${esc(raw||'')}</small></div>`;
-   }
    modal.classList.add('open');modal.setAttribute('aria-hidden','false');
+   body.innerHTML='<div class="liftEvidenceEmpty">Cargando evidencia…</div>';
+   if(!raw){body.innerHTML='<div class="liftEvidenceEmpty">Este pedido no tiene evidencia registrada.</div>';return}
+
+   const show=u=>{
+     body.innerHTML=`<img class="liftEvidenceImg" src="${esc(u)}" alt="Evidencia de entrega del pedido #${esc(id)}" onerror="this.parentElement.innerHTML='<div class=&quot;liftEvidenceEmpty&quot;><b>No se pudo abrir la imagen.</b><br>La evidencia sigue guardada en Supabase.</div>'">`;
+   };
+   if(/^https?:\/\//i.test(raw)){show(raw);return}
+
+   // La evidencia se guarda como ruta, por ejemplo entregas/151/archivo.jpg.
+   // Se pide a Supabase solo al pulsar VER FOTO para no precargar evidencias.
+   try{
+     const j=await api({
+       action:'admin-delivery-evidence-url',
+       password:sessionStorage.getItem(PASS)||'',
+       pedido_id:Number(id),
+       path:raw
+     });
+     const u=j.url||j.signed_url||j.public_url||j.evidencia_url||'';
+     if(u){show(u);return}
+   }catch(e){}
+
+   // Compatibilidad si el bucket de evidencias es público.
+   // Se prueban nombres habituales sin descargar nada hasta este clic.
+   const SB='https://vdxkknftyssjyfbdieqa.supabase.co';
+   const clean=String(raw).replace(/^\/+/,'');
+   const buckets=['entregas','evidencias','delivery-evidence'];
+   const candidates=[];
+   for(const bucket of buckets){
+     let path=clean;
+     if(path.toLowerCase().startsWith(bucket.toLowerCase()+'/'))path=path.slice(bucket.length+1);
+     candidates.push(`${SB}/storage/v1/object/public/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`);
+   }
+   let i=0;
+   const tryNext=()=>{
+     if(i>=candidates.length){
+       body.innerHTML=`<div class="liftEvidenceEmpty"><b>La evidencia está guardada, pero el Storage es privado.</b><br>La función de Supabase debe devolver una URL firmada para esta ruta.<br><small>${esc(raw)}</small></div>`;
+       return;
+     }
+     const u=candidates[i++],img=new Image();
+     img.className='liftEvidenceImg';img.alt='Evidencia de entrega del pedido #'+id;
+     img.onload=()=>{body.innerHTML='';body.appendChild(img)};
+     img.onerror=tryNext;
+     img.src=u;
+   };
+   tryNext();
  };
  window.liftCloseDeliveryEvidence=function(){const m=$('liftEvidenceModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true')}};
  setTimeout(()=>{if($('liftEvidenceClose'))$('liftEvidenceClose').onclick=liftCloseDeliveryEvidence;if($('liftEvidenceModal'))$('liftEvidenceModal').onclick=e=>{if(e.target.id==='liftEvidenceModal')liftCloseDeliveryEvidence()}},0);
