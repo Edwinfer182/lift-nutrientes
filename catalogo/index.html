@@ -6825,7 +6825,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  function inject(){
   const price=$('liftAdminPriceMode'); if(!price||$('liftAdminCheckoutTools'))return;
   const box=document.createElement('div');box.id='liftAdminCheckoutTools';box.className='liftAdminCheckoutTools';
-  box.innerHTML=`<div class="liftAdminToolsRow"><button type="button" onclick="liftToggleCheckoutTool('client',this)">👤 Cliente</button><button type="button" onclick="liftToggleCheckoutTool('order',this)">🧾 Pedido</button><button type="button" onclick="liftToggleCheckoutTool('shipping',this)">🚚 Envío</button></div>
+  box.innerHTML=`<div class="liftAdminToolsRow"><button type="button" onclick="liftToggleCheckoutTool('client',this)">👤 Cliente</button><button type="button" onclick="liftToggleCheckoutTool('order',this)">🧾 Pedido</button><button type="button" onclick="liftToggleCheckoutTool('shipping',this)">🚚 Envío</button><button type="button" onclick="liftToggleAttentionCheckout(this)">💬 Atención</button></div>
   <div id="liftOrderFold" class="liftAdminFold" hidden><div class="liftOrderAdminGrid">
    <label>Fecha del pedido<input id="liftOrderDate" type="date"></label>
    <label>Forma de pago<select id="liftPaymentType" onchange="liftPaymentChanged()"><option value="pagado">Pagado</option><option value="credito">Crédito</option><option value="abono">Abono + saldo</option></select></label>
@@ -11501,6 +11501,145 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
 </script>\n
+
+<style id="lift-checkout-attention-v1-style">
+#liftAttentionCheckout{display:none;margin:10px 0 12px;padding:12px;border:1px solid #dedede;border-radius:12px;background:#fafafa}
+#liftAttentionCheckout.open{display:block}
+.liftAttTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+.liftAttTitle b{font-size:12px}.liftAttTitle small{font-size:9px;color:#777}
+.liftAttClientPick{margin:0 0 10px}.liftAttClientPick>label{display:block;margin-bottom:4px;font-size:9px;color:#777}.liftAttClientRow{display:grid;grid-template-columns:1.2fr .8fr;gap:7px}.liftAttClientRow select,.liftAttClientRow input{width:100%;height:40px;border:1px solid #d7d7d7;border-radius:9px;background:#fff;padding:0 10px;font:500 10px Poppins,Arial}.liftAttClientRow select{cursor:pointer}.liftAttClientPick small{display:block;margin-top:4px;font-size:8.5px;color:#888}
+@media(max-width:620px){.liftAttClientRow{grid-template-columns:1fr}}
+.liftAttTabs{display:flex;flex-wrap:wrap;gap:6px;overflow:visible;padding-bottom:9px}
+.liftAttTabs button{flex:0 0 auto;border:1px solid #ddd;background:#fff;border-radius:999px;padding:7px 10px;font:600 9px Poppins,Arial;cursor:pointer;white-space:nowrap}
+.liftAttTabs button.on{background:#111;color:#fff;border-color:#111}
+.liftAttReplies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.liftAttReply{border:1px solid #ddd;background:#fff;border-radius:9px;padding:9px;text-align:left;font:400 9.5px/1.35 Poppins,Arial;cursor:pointer}
+.liftAttReply:hover,.liftAttReply.on{border-color:#111;background:#f3f3f3}
+.liftAttResult{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:10px}
+#liftAttText{min-height:64px;border:1px solid #d7d7d7;border-radius:9px;padding:9px;font:400 10px/1.4 Poppins,Arial;resize:vertical;background:#fff}
+#liftAttCopy{min-width:112px;border:0;border-radius:9px;background:#111;color:#fff;font:600 10px Poppins,Arial;cursor:pointer;padding:0 14px}
+#liftAttCopy.copied{background:#168451}
+@media(max-width:620px){
+ .liftAttReplies{grid-template-columns:1fr}
+ .liftAttResult{grid-template-columns:1fr}
+ #liftAttCopy{min-height:42px}
+}
+</style>
+
+<script id="lift-checkout-attention-v1-script">
+(function(){
+ const GROUPS={
+  'Saludos':['Hola {name} buenos días','Hola {name} buenas tardes','Hola {name} buenas noches','Qué más {name} cómo vas','Hola bro cómo vas','Muy bien gracias y tú','Todo bien gracias por preguntar','Bien bien por acá trabajando jaja','Todo bien por acá y tú','Me alegra mucho','Qué bueno me alegra','Espero estés muy bien','Qué más bro todo bien'],
+  'Atención':['Claro cuéntame','Sí claro con gusto','Dime qué necesitas y te ayudo','Dame un momento y te confirmo','Déjame validarlo y ya te digo','Voy a revisarte eso','Espera un momento que estoy confirmando','Déjame consultar con bodega','Ya te averiguo bien','Dame unos minutos y te confirmo bien','Voy a validar para no darte información equivocada','Ya estoy revisando','Apenas me confirmen te aviso','Déjame verificar disponibilidad','Voy a consultarlo con el proveedor','Un momento que reviso el sistema'],
+  'Agradecer':['Con mucho gusto {name}','Con todo gusto','Gracias a ti','Gracias a ti por la confianza','Muchas gracias por comprar con nosotros','Gracias por elegirnos','Gracias por tu compra {name}','Gracias por confiar en nosotros','Me alegra poder ayudarte','Para eso estamos','Siempre con gusto','Con mucho gusto bro','No hay de qué con gusto','Gracias por avisarme','Gracias por confirmar','Gracias por la paciencia','Gracias por esperar','Qué bueno que todo salió bien','Me alegra mucho que te haya gustado','Esperamos que disfrutes mucho el producto','Cuando necesites algo por acá estamos','Cualquier cosa que necesites me escribes','Gracias por volver a comprar con nosotros'],
+  'Proveedor gracias':['Gracias por la información','Muchas gracias por la info','Perfecto gracias por confirmarme','Listo muchas gracias por confirmarme','Gracias por la actualización','Perfecto gracias por actualizarme','Listo gracias por el dato','Gracias por revisarme eso','Muchas gracias por la gestión','Gracias por ayudarme con eso','Perfecto muchas gracias','Listo te agradezco mucho','Gracias por estar pendiente','Gracias por la respuesta','Gracias por confirmarme disponibilidad','Gracias por confirmarme el precio','Gracias por confirmarme el despacho','Gracias por compartirme la guía','Gracias por avisarme','Gracias por la rapidez','Gracias por gestionarlo','Gracias por la ayuda como siempre','Excelente muchas gracias','Súper gracias por la info','Listo con eso me queda claro muchas gracias','Perfecto ya con eso continúo gracias','Gracias por confirmarlo tan rápido','Listo recibido muchas gracias','Gracias por mantenerme al tanto','Perfecto quedo pendiente muchas gracias'],
+  'Proveedor consulta':['Hola cómo estás me ayudas confirmando disponibilidad porfa','Me confirmas si tienes este producto disponible','Me confirmas disponibilidad y precio porfa','Me ayudas revisando si todavía hay disponibilidad','Tienes este disponible en este momento','Me confirmas qué sabores tienes disponibles','Me confirmas qué presentaciones tienes disponibles','Me ayudas con el precio actualizado porfa','Ese precio sigue vigente','Me confirmas si este producto tuvo cambio de precio','Me confirmas si ya ingresó nuevamente','Sabes cuándo vuelve a estar disponible','Tienes alguna opción similar disponible','Me recomiendas alguna alternativa de precio parecido','Me confirmas en cuál bodega está disponible','Me ayudas separándolo mientras te confirmo','Me confirmas si alcanza a salir hoy','Me confirmas si este pedido ya fue despachado','Me ayudas revisando cómo va este pedido','Tienes alguna actualización de este pedido','Me confirmas si ya está en ruta','Me confirmas si ya fue entregado','Me compartes la guía porfa','Me compartes el número de guía cuando lo tengas','Me confirmas por qué transportadora salió','Me confirmas el valor del envío porfa','Me confirmas el total con envío','Me confirmas si este pedido tiene alguna novedad','Me avisas porfa apenas salga','Me avisas porfa si cambia algo con el pedido'],
+  'Proveedor pedido':['Hola cómo estás me ayudas con este pedido porfa','Te comparto este pedido para gestión','Me ayudas gestionando este pedido','Porfa me confirmas cuando quede recibido','Me confirmas que recibiste los datos del pedido','Me avisas si falta algún dato','Si hay alguna novedad con el producto me avisas porfa','Si alguno no está disponible me confirmas antes de despachar','Me confirmas el total antes de enviarlo porfa','Me confirmas cuando quede listo para despacho','Me avisas apenas lo entreguen al mensajero','Me compartes la guía apenas esté disponible','Porfa verifica que salga la referencia correcta','Porfa verifica el sabor antes de despachar','Me confirmas si el envío se paga allá o va incluido','Este pedido es contraentrega me confirmas si aplica','Este pedido no se debe cobrar al cliente','Me confirmas cuando quede programado','Quedo pendiente de cualquier novedad','Gracias quedo atento al despacho'],
+  'Proveedor novedad':['Me confirmas qué pasó con este pedido porfa','El cliente me está preguntando por el pedido me ayudas revisando','El cliente todavía no lo recibe me confirmas cómo va','Me ayudas validando con el mensajero porfa','Me confirmas si hubo alguna novedad en la ruta','Me confirmas si intentaron entregar','Sabes si el mensajero se comunicó con el cliente','Me ayudas revisando la dirección con el mensajero','El cliente dice que no ha recibido llamada me ayudas validando','Me confirmas si el pedido regresó a bodega','Me confirmas qué debemos hacer para reprogramarlo','Hay alguna novedad con la guía','La guía no muestra movimiento me ayudas revisando','Me confirmas si hubo problema con algún producto','Me avisas apenas tengas respuesta porfa','Gracias quedo pendiente de lo que te confirmen'],
+  'Producto':['Sí lo tenemos disponible','Sí hay disponibilidad','Ese sí lo tengo','Listo confirmado sí hay','Ese se nos agotó por el momento','Ese no lo tengo disponible ahora','Justo ese está agotado','No tengo ese pero te puedo mostrar otras opciones','Déjame buscarte una alternativa similar','Puedo revisar si consigo ese mismo en otra bodega','Qué objetivo tienes','Qué producto estás buscando','Qué presupuesto tienes más o menos','Qué sabor prefieres','Te confirmo qué sabores tengo disponibles','Déjame revisar qué presentación tenemos','Tengo otra opción que te puede servir igual','Si quieres te comparo las opciones','Ese producto se mueve bastante déjame confirmar stock','Te reviso cuál bodega lo tiene disponible','Mándame una foto del producto y te lo reviso'],
+  'Precios':['Claro ya te paso el precio','Te confirmo precio y disponibilidad','Ese está en $','Déjame revisar cuál te sale mejor','Si quieres te muestro las mejores opciones según tu presupuesto','Te puedo recomendar uno según lo que buscas','No necesitas irte necesariamente por el más caro','Ese precio es por la presentación completa','El valor no incluye domicilio','Te confirmo el valor final con envío','Déjame revisar si hay alguna presentación que te salga mejor','Tengo opciones en varios rangos de precio'],
+  'Pago':['Listo ya recibí el pago muchas gracias','Pago recibido gracias','Perfecto ya quedó confirmado','Listo con eso ya podemos continuar','Ya me aparece el pago','Dame un momento y valido el pago','Ya reviso si me aparece','Déjame confirmar el ingreso y te aviso','Todavía no me aparece dame un momento','Aún no lo veo reflejado','Puedes enviarme el comprobante porfa','Puedes pagar por transferencia','Tenemos pago con tarjeta por link','Nuestra llave Bre-B es @edwin4518','Si pagas con tarjeta te genero el link','El pago con tarjeta tiene el costo de la pasarela','No manejamos Addi ni Sistecrédito','Para contraentrega el valor del envío se transfiere antes del despacho','Apenas hagas el pago me envías el comprobante porfa','Listo pago confirmado seguimos con el despacho'],
+  'Cuentas':['Nuestra llave Bre-B es @edwin4518','Puedes pagar por transferencia usando la llave Bre-B @edwin4518','También puedes pagar con tarjeta por link de pago Bold','Si quieres pagar con tarjeta te genero el link','El pago con tarjeta tiene el costo de la pasarela','Para efectivo contraentrega el envío debe pagarse antes del despacho','No manejamos Addi ni Sistecrédito','Antes de transferir confirma que los datos de pago sean los que te enviamos','No nos hacemos responsables por pagos enviados a cuentas o números no suministrados por nosotros','Cuando hagas la transferencia me envías el comprobante y te confirmo'],
+  'Pedido':['Listo pedido confirmado','Perfecto ya quedó registrado','Ya quedó todo listo con tu pedido','Listo ya lo pasamos para gestión','Ya estamos gestionando tu pedido','Tu pedido está en preparación','Ya lo están organizando para despacho','Tu pedido ya salió a ruta','Ya va con el mensajero','Está en ruta en este momento','La ruta lleva varios pedidos entonces no manejamos una hora exacta','La ruta está un poco demorada hoy','Todavía está en recorrido','Déjame consultar cómo va la ruta','Ya pregunto por tu pedido y te actualizo','Perfecto veo que ya fue entregado','Listo muchas gracias por confirmar','Espero que disfrutes mucho el producto','Apenas tengamos novedad de tu pedido te aviso','Tu pedido sigue activo no te preocupes','Estoy pendiente de tu pedido'],
+  'Envíos':['Sí hacemos domicilio','En Medellín manejamos entrega el mismo día si el pedido queda confirmado antes de las 2','El domicilio en Medellín normalmente cuesta $11.000 según la zona','El valor del domicilio depende de la zona pásame el barrio y te confirmo','También hacemos envíos nacionales','Dime en qué ciudad estás y te confirmo','Apenas salga te compartimos la guía','En ciudades principales normalmente tarda 1 día hábil después de generada la guía','En otras ciudades normalmente tarda entre 2 y 3 días hábiles','Los tiempos pueden variar según la transportadora','No manejamos una hora exacta de llegada porque la ruta lleva varios pedidos','Déjame confirmar si aplica contraentrega para tu zona','En Medellín y algunas zonas de Cali manejamos contraentrega','En tu zona no tenemos contraentrega','Para contraentrega el domicilio se paga antes del despacho','Los pedidos confirmados después de las 2 pueden quedar para la siguiente ruta','Los fines de semana puede acumularse un poco la ruta','Cuando tengamos la guía te la compartimos para que puedas hacer seguimiento','Enviamos por transportadoras como Envia Coordinadora o Inter Rapidísimo según el destino'],
+  'Datos':['Pásame porfa la dirección completa','Me confirmas el barrio','Me compartes nombre dirección y celular','Pásame la ubicación si te queda más fácil','Me confirmas ciudad y barrio porfa','Si es unidad me compartes torre y apartamento','Si tienes alguna indicación para el mensajero me la pasas','Trabajamos con varias bodegas en Medellín y Cali','No necesitas desplazarte te lo podemos enviar','Dime en qué zona estás y te confirmo la entrega','Atendemos de lunes a viernes de 8 a 5','Los sábados manejamos hasta el mediodía','En este momento la bodega ya está cerrada','Mañana apenas abran te confirmo','Te lo valido apenas tengamos nuevamente atención'],
+  'Seguimiento':['Hola {name} cómo vas quedaste interesado en el producto','Hola {name} te escribo por lo que habíamos hablado','Todavía estás buscando el producto','Si todavía lo necesitas te reviso disponibilidad','Hola {name} cómo vas cómo te fue con el producto','Cómo te fue con el sabor','Cómo te ha ido con el producto','Ya debes estar cerca de terminarlo','Si necesitas nuevamente te reviso disponibilidad','Cuando estés cerca de terminarlo me escribes y te reviso stock','Te escribo para saber si todo llegó bien','Me confirmas porfa si recibiste el pedido','Quedé pendiente de saber cómo te fue'],
+  'Problemas':['Entiendo déjame revisar qué pasó','Dame un momento y verifico el pedido','Voy a revisarlo antes de darte una respuesta','Envíame una foto porfa para revisarlo bien','No te entendí bien jaja explícame un poquito','Te refieres a este producto','Mándame una foto si quieres y te digo cuál es','Déjame revisar qué pasó con la entrega','Voy a consultar con la transportadora','Voy a consultar con el mensajero','Gracias por avisarme déjame revisarlo','No quiero darte una respuesta sin validar primero','Si llegó algo diferente envíame una foto porfa','Si el empaque llegó con novedad mándame una foto antes de abrirlo','Déjame verificarlo y buscamos la mejor solución'],
+  'Cierre':['Listo quedamos pendientes','Perfecto cualquier cosa me escribes','Con gusto bro','Gracias a ti','Listo yo te aviso','Dale perfecto','Que estés muy bien','Que tengas un buen día','Que tengas una buena tarde','Que descanses','Estamos pendientes','Quedo atento','Listo cualquier novedad te cuento','Cuando necesites algo me escribes','Gracias por la confianza que estés muy bien'],
+  'Conversación':['jajaja sí total','de una','dale perfecto','entiendo','sí claro','tranquilo','qué bueno','me alegra','tal cual','eso mismo','listo bro','gracias por avisarme','claro bro','sí señor','perfecto entonces','eso hacemos','listo ya te entendí','sí te entiendo','de una yo te ayudo con eso','jajaja tranquilo','todo bien']
+ };
+ let active='Saludos';
+ const $=id=>document.getElementById(id);
+ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const first=()=>String($('liftAttManualName')?.value||'').trim().split(/\s+/)[0]||'';
+ let liftAttClientsLoaded=false;
+ async function loadClients(){
+   const sel=$('liftAttClientSelect'), status=$('liftAttClientStatus');
+   if(!sel||liftAttClientsLoaded)return;
+   status.textContent='Cargando clientes guardados…';
+   try{
+     const password=sessionStorage.getItem('liftAdminCloudPasswordV1')||'';
+     // crm-list es la misma fuente que usa la agenda A → Z del administrador.
+     // A diferencia de "find", no se queda en el pequeño lote de resultados de búsqueda.
+     const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',{
+       method:'POST',
+       headers:{apikey:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh','Content-Type':'application/json'},
+       body:JSON.stringify({action:'crm-list',password}),
+       cache:'no-store'
+     });
+     const j=await r.json().catch(()=>({}));
+     if(!r.ok)throw new Error(j.error||'No se pudieron cargar los clientes');
+     let clients=Array.isArray(j.clientes)?j.clientes:[];
+     clients=clients.filter(c=>String(c.nombre||'').trim()).sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es',{sensitivity:'base'}));
+     sel.innerHTML='<option value="">Seleccionar cliente guardado</option>'+clients.map((c,i)=>`<option value="${i}">${esc(c.nombre)}${c.celular?' · '+esc(c.celular):''}</option>`).join('');
+     sel._liftClients=clients; liftAttClientsLoaded=true;
+     status.textContent=clients.length?clients.length+' clientes disponibles · si no aparece escribe el nombre':'No encontré clientes guardados · puedes escribir el nombre';
+   }catch(e){
+     status.textContent='No pude cargar clientes · puedes escribir el nombre';
+   }
+ }
+ window.liftAttentionClientSelected=function(v){
+   const sel=$('liftAttClientSelect'), list=sel?._liftClients||[], c=list[Number(v)];
+   if(c){$('liftAttManualName').value=String(c.nombre||'').trim().split(/\s+/)[0]||''}
+   else if(v==='') $('liftAttManualName').value='';
+   window.liftAttentionNameChanged();
+ };
+
+ function ensure(){
+   if($('liftAttentionCheckout'))return $('liftAttentionCheckout');
+   const tools=$('liftAdminCheckoutTools'); if(!tools)return null;
+   const box=document.createElement('div');box.id='liftAttentionCheckout';
+   box.innerHTML=`<div class="liftAttTitle"><div><b>💬 Atención rápida</b><small id="liftAttNameHint"></small></div><small>toca una respuesta y copia</small></div>
+<div class="liftAttClientPick">
+<label>Cliente</label>
+<div class="liftAttClientRow">
+<select id="liftAttClientSelect" onchange="liftAttentionClientSelected(this.value)"><option value="">Seleccionar cliente guardado</option></select>
+<input id="liftAttManualName" autocomplete="off" placeholder="O escribe el nombre" oninput="liftAttentionNameChanged()">
+</div>
+<small id="liftAttClientStatus">Puedes seleccionar un cliente viejo o escribir un nombre si no aparece</small>
+</div>
+<div id="liftAttTabs" class="liftAttTabs"></div><div id="liftAttReplies" class="liftAttReplies"></div><div class="liftAttResult"><textarea id="liftAttText" placeholder="Selecciona una respuesta"></textarea><button id="liftAttCopy" type="button" onclick="liftCopyAttentionText()">Copiar mensaje</button></div>`;
+   tools.insertAdjacentElement('afterend',box);return box;
+ }
+ function render(){
+   const box=ensure();if(!box)return;
+   $('liftAttNameHint').textContent=first()?' · '+first():' · escribe el nombre arriba';
+   $('liftAttTabs').innerHTML=Object.keys(GROUPS).map(k=>`<button type="button" data-lat="${esc(k)}" class="${k===active?'on':''}">${esc(k)}</button>`).join('');
+   $('liftAttReplies').innerHTML=GROUPS[active].map((t,i)=>`<button type="button" class="liftAttReply" data-lar="${i}">${esc(t.replace('{name}','nombre'))}</button>`).join('');
+ }
+ window.liftToggleAttentionCheckout=function(btn){
+   if(!document.body.classList.contains('liftAdminUnlocked'))return;
+   const box=ensure();if(!box)return;
+   const opening=!box.classList.contains('open');
+   document.querySelectorAll('.liftAdminToolsRow button').forEach(x=>x.classList.remove('on'));
+   document.getElementById('liftRecurringClientBox')?.classList.remove('liftClientBoxOpen');
+   const order=$('liftOrderFold'),shipping=$('liftShippingFold');if(order)order.hidden=true;if(shipping)shipping.hidden=true;
+   box.classList.toggle('open',opening);if(opening){btn?.classList.add('on');render();loadClients()}
+ };
+ window.liftCopyAttentionText=async function(){
+   const t=$('liftAttText')?.value.trim()||'';if(!t)return alert('Primero elige una respuesta.');
+   try{await navigator.clipboard.writeText(t);const b=$('liftAttCopy');b.textContent='✓ Copiado';b.classList.add('copied');setTimeout(()=>{b.textContent='Copiar mensaje';b.classList.remove('copied')},1200)}
+   catch(e){window.prompt('Copia el mensaje:',t)}
+ };
+ document.addEventListener('click',e=>{
+   const tab=e.target.closest?.('[data-lat]');if(tab){active=tab.dataset.lat;render();return}
+   const rep=e.target.closest?.('[data-lar]');if(rep){
+     const template=GROUPS[active][Number(rep.dataset.lar)]||'';
+     const n=first();
+     let msg=template.replaceAll('{name}',n).replace(/\s+/g,' ').trim();
+     if(n && !template.includes('{name}')){
+       const low=msg.toLocaleLowerCase('es');
+       const casual=/^(hola|qué más|que más|buenos días|buenas tardes|buenas noches)/i.test(msg);
+       msg=casual ? msg.replace(/^((?:hola|qué más|que más|buenos días|buenas tardes|buenas noches)\b)/i,'$1 '+n) : n+' '+msg.charAt(0).toLowerCase()+msg.slice(1);
+     }
+     $('liftAttText').value=msg;
+     document.querySelectorAll('.liftAttReply').forEach(x=>x.classList.remove('on'));rep.classList.add('on');
+   }
+ });
+ window.liftAttentionNameChanged=function(){render();const sel=document.querySelector('.liftAttReply.on');if(sel)sel.click()};
+})();
+</script>
+
 </body>
 </html>
 
