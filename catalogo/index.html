@@ -1178,6 +1178,25 @@ body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminMenuWrap{margin-lef
 })();
 </script>
 
+
+<style id="lift-copy-link-admin-only-final">
+/* Iconos de copiar enlace: ocultos al público, visibles solo con sesión administrativa. */
+.liftFilterLink,
+.lift-cat-share,
+.lift-brand-share {
+  display:none !important;
+}
+body.admin-mode .liftFilterLink,
+body.admin-mode .lift-cat-share,
+body.admin-mode .lift-brand-share,
+body.liftAdminUnlocked .liftFilterLink,
+body.liftAdminUnlocked .lift-cat-share,
+body.liftAdminUnlocked .lift-brand-share {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
