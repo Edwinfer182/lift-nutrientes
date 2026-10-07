@@ -959,6 +959,35 @@ window.liftToggleCouponBox=function(btn){
 .lcEvidenceView{border:0;border-radius:8px;background:#111;color:#fff;min-height:34px;padding:0 11px;font:600 9px Poppins,Arial;cursor:pointer}
 </style>
 
+
+<style id="lift-admin-card-actions-visible-fix-20261007">
+/* Admin: conserva carrito + compartir y distribuye las acciones sin desbordar la tarjeta */
+body.liftAdminUnlocked .grid .cardQuickActions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+}
+body.liftAdminUnlocked .grid .cardQuickActions>.cardQuickBuyBtn,
+body.liftAdminUnlocked .grid .cardQuickActions>.cardShareImageBtn{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+  flex:0 0 34px!important;
+}
+body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminIcons{
+  display:flex!important;
+  width:100%!important;
+  margin-left:0!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+}
+@media(max-width:760px){
+ body.liftAdminUnlocked .grid .cardQuickActions{gap:5px!important}
+ body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminIcons{gap:5px!important}
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
