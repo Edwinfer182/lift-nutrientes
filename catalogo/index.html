@@ -1505,7 +1505,9 @@ function offerUntilHTML(p,cls='offerUntil'){const t=offerUntilText(p);return t?`
 function offerDetails(p){const o=offerOf(p);if(!o)return '';const save=savingOf(p);const flavors=o.flavors?.length?`<div class="flavorNote"><b>Sabores en promoción:</b> ${o.flavors.map(esc).join(' · ')}</div>`:'';return `${o.gift?'<div class="giftBadge">🎁 Incluye regalo</div>':''}${save?`<div class="saving">Ahorras ${fmt(save)}</div>`:''}${offerUntilHTML(p)}${flavors}`}
 function priceHTML(p){const current=priceOf(p),save=savingOf(p);return `<div class="offerPrices">${save?`<span class="oldPrice">${fmt(compareAtOf(p))}</span>`:''}<span class="price${save?' promoPrice':''}">${fmt(current)}</span></div>${offerDetails(p)}`}
 
-let state={q:'',cat:'Todos',brand:'Todas',filterView:'brands',offerOnly:false,sort:'recommended'};
+let state={q:'',cat:'Destacados',brand:'Todas',filterView:'brands',offerOnly:false,sort:'recommended'};
+let LIFT_FEATURED_CONFIG={enabled:true,label:'Destacados',products_per_brand:3,include_active_offers:true,randomize_on_load:true,avoid_offer_duplicates:true};
+let LIFT_FEATURED_IDS=new Set();
 let cart=JSON.parse(localStorage.getItem('liftCartV2')||localStorage.getItem('liftCartV1')||'{}');
 let cartMeta=JSON.parse(localStorage.getItem('liftCartMetaV1')||'{}');
 
@@ -1575,7 +1577,7 @@ function liftUniqueFieldValues(field){
   return liftSortBySupabaseOrder(values,cfg,x=>x);
 }
 function rebuildLiftCategories(){
-  cats.splice(0,cats.length,'Todos',...liftUniqueFieldValues('category'));
+  cats.splice(0,cats.length,'Destacados','Todos',...liftUniqueFieldValues('category'));
 }
 function rebuildLiftBrands(){
   brands.splice(0,brands.length,'Todas',...liftUniqueFieldValues('brand'));
@@ -1596,8 +1598,41 @@ function categoryKey(p){
   if(k==='glutamina platinum 300gr -60 serv') k='glutamina platinum 300gr';
   return k;
 }
+function liftShuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+function rebuildLiftFeatured(){
+  const cfg=LIFT_FEATURED_CONFIG||{};
+  const per=Math.max(1,Number(cfg.products_per_brand||3));
+  const visible=liftVisibleProducts();
+  const selected=new Map();
+  if(cfg.include_active_offers!==false){
+    for(const p of visible){if(hasOffer(p))selected.set(String(p.id),p)}
+  }
+  const byBrand=new Map();
+  for(const p of visible){
+    const brand=String(p.brand||'').trim();
+    if(!brand)continue;
+    if(!byBrand.has(brand))byBrand.set(brand,[]);
+    byBrand.get(brand).push(p);
+  }
+  for(const list of byBrand.values()){
+    let pool=list.filter(p=>!(cfg.avoid_offer_duplicates!==false && selected.has(String(p.id))));
+    pool=liftShuffle(pool);
+    for(const p of pool.slice(0,per))selected.set(String(p.id),p);
+  }
+  LIFT_FEATURED_IDS=new Set([...selected.keys()]);
+  return [...selected.values()];
+}
+function liftFeaturedProducts(){
+  if(!LIFT_FEATURED_IDS.size)rebuildLiftFeatured();
+  return liftVisibleProducts().filter(p=>LIFT_FEATURED_IDS.has(String(p.id)));
+}
 function categoryProducts(cat){
   const wanted=norm(cat);
+  if(wanted==='destacados') return liftFeaturedProducts();
 
   // "Proteína" funciona como categoría madre.
   // Incluye todas las subcategorías de proteína sin borrar la clasificación actual.
@@ -1899,7 +1934,7 @@ function renderProductListProgressive(arr,emptyText='No encontré productos.'){
 }
 function render(){
   const arr=filtered();
-  document.getElementById('status').textContent=state.offerOnly?`🔥 ${arr.length} ofertas disponibles`:`${arr.length} productos encontrados`;
+  document.getElementById('status').textContent=state.offerOnly?`🔥 ${arr.length} ofertas disponibles`:(norm(state.cat)==='destacados'?`⭐ ${arr.length} productos destacados`:`${arr.length} productos encontrados`);
   renderProductListProgressive(arr,state.offerOnly?'No hay ofertas activas en este momento.':'No encontré productos con esos filtros.');
   renderFilters();
   updateOffersButton()
@@ -5893,6 +5928,10 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      if(offers&&typeof WEEKLY_OFFERS!=='undefined'){
        Object.keys(WEEKLY_OFFERS).forEach(k=>delete WEEKLY_OFFERS[k]);Object.assign(WEEKLY_OFFERS,offers);
      }
+     const featuredCfg=cfg.find(x=>x.clave==='featured_config')?.valor;
+     if(featuredCfg&&typeof featuredCfg==='object')LIFT_FEATURED_CONFIG={...LIFT_FEATURED_CONFIG,...featuredCfg};
+     LIFT_FEATURED_IDS=new Set();
+     if(LIFT_FEATURED_CONFIG.enabled!==false)rebuildLiftFeatured();
      const categoryCfg=cfg.find(x=>x.clave==='categories_v1')?.valor;
      LIFT_CATEGORY_CONFIG=(categoryCfg && typeof categoryCfg==='object')?categoryCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
