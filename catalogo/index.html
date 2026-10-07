@@ -1000,6 +1000,184 @@ body.liftAdminUnlocked #checkoutModal .liftAvailabilityAdmin{display:grid!import
 /* Barra de descubrimiento/orden restaurada: A-Z, Z-A y precios */
 #liftDiscovery,.liftDiscovery{display:block!important;}
 </style>
+
+<style id="lift-deep-links-style">
+.liftFilterLink{flex:0 0 30px;width:30px;height:30px;border:1px solid #e2e2e2;background:#fff;border-radius:8px;cursor:pointer;display:grid;place-items:center;font-size:14px;color:#333;padding:0}
+.liftFilterLink:hover{background:#111;color:#fff;border-color:#111}
+.liftCatAdminRow{display:flex;align-items:center;gap:5px}.liftCatAdminRow>.filterItem{flex:1}
+.labVisualGrid>.liftFilterRow{display:flex;align-items:center;gap:5px}.labVisualGrid>.liftFilterRow>.filterItem{flex:1}
+</style>
+
+<style id="lift-admin-dropdown-menus-v1">
+/* Un solo menú administrativo por tarjeta: laboratorio y producto */
+.liftCardAdminMenuWrap,.liftLabAdminMenuWrap{display:none;position:relative;z-index:30}
+body.liftAdminUnlocked .liftCardAdminMenuWrap{display:inline-flex}
+body.liftAdminUnlocked .liftLabAdminMenuWrap{display:flex}
+
+.liftAdminMenuToggle{
+  width:34px;height:34px;border:1px solid #dedede;border-radius:9px;background:#fff;color:#111;
+  display:grid;place-items:center;cursor:pointer;font:700 20px/1 Arial;box-shadow:0 2px 7px rgba(0,0,0,.08)
+}
+.liftAdminMenuToggle:hover,.liftAdminMenuToggle[aria-expanded="true"]{background:#111;color:#fff;border-color:#111}
+
+.liftAdminDropdown{
+  display:none;position:absolute;right:0;bottom:calc(100% + 6px);width:max-content;min-width:205px;
+  padding:6px;background:#fff;border:1px solid #e2e2e2;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.18);z-index:100
+}
+.liftAdminDropdown.open{display:grid}
+.liftAdminDropdown button{
+  width:100%;min-height:36px;border:0;background:#fff;color:#171717;border-radius:8px;padding:7px 10px;
+  text-align:left;white-space:nowrap;font:500 11px Poppins,Arial;cursor:pointer
+}
+.liftAdminDropdown button:hover{background:#f3f3f3}
+.liftAdminDropdown button.danger{color:#b42318}
+.liftAdminDropdown button.danger:hover{background:#fff1f0}
+
+/* Producto: ya no mostramos la antigua hilera de cinco iconos */
+body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminIcons{display:none!important}
+body.liftAdminUnlocked .grid .cardQuickActions{flex-wrap:nowrap!important;align-items:center!important}
+body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminMenuWrap{margin-left:auto}
+
+/* Laboratorio: una sola flecha en la esquina */
+.labVisualCard{overflow:visible!important}
+.labAdminActions{right:6px!important;top:6px!important;gap:0!important}
+.labAdminActions>.labAdminBtn{width:29px;height:29px;font-size:18px}
+.labAdminActions .liftAdminDropdown{top:calc(100% + 5px);bottom:auto;right:0;min-width:190px}
+
+@media(max-width:760px){
+  .liftAdminDropdown{min-width:190px}
+  .labAdminActions .liftAdminDropdown{min-width:180px}
+}
+</style>
+<script id="lift-admin-dropdown-menus-script-v1">
+(function(){
+  window.liftCloseAdminMenus=function(except){
+    document.querySelectorAll('.liftAdminDropdown.open').forEach(menu=>{
+      if(menu!==except) menu.classList.remove('open');
+    });
+    document.querySelectorAll('.liftAdminMenuToggle[aria-expanded="true"]').forEach(btn=>{
+      const menu=btn.parentElement?.querySelector('.liftAdminDropdown');
+      if(menu!==except) btn.setAttribute('aria-expanded','false');
+    });
+  };
+  window.liftToggleAdminMenu=function(btn){
+    const wrap=btn?.parentElement;
+    const menu=wrap?.querySelector('.liftAdminDropdown');
+    if(!menu)return;
+    const willOpen=!menu.classList.contains('open');
+    window.liftCloseAdminMenus(menu);
+    menu.classList.toggle('open',willOpen);
+    btn.setAttribute('aria-expanded',willOpen?'true':'false');
+  };
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.liftCardAdminMenuWrap,.liftLabAdminMenuWrap')) window.liftCloseAdminMenus();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape') window.liftCloseAdminMenus();
+  });
+})();
+</script>
+
+
+<style id="lift-admin-dropdown-icons-front-v2">
+.srOnly{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* El elemento abierto gana el contexto de apilamiento completo */
+.labVisualCard.liftMenuOpen,
+.grid .card.liftMenuOpen{
+  position:relative!important;
+  z-index:9998!important;
+  overflow:visible!important;
+}
+.labVisualCard.liftMenuOpen .labAdminActions,
+.grid .card.liftMenuOpen .cardQuickActions{
+  z-index:9999!important;
+  overflow:visible!important;
+}
+
+/* Menú compacto de iconos */
+.liftAdminDropdown{
+  z-index:10000!important;
+  width:auto!important;
+  min-width:0!important;
+  padding:5px!important;
+  gap:3px!important;
+  grid-auto-flow:column!important;
+  grid-template-columns:none!important;
+  background:#fff!important;
+  border:1px solid #ddd!important;
+  border-radius:11px!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.24)!important;
+}
+.liftAdminDropdown.open{display:grid!important}
+.liftAdminDropdown button{
+  width:34px!important;
+  min-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  font-size:15px!important;
+  line-height:1!important;
+  border-radius:8px!important;
+  text-align:center!important;
+}
+
+/* Laboratorios: desplegar debajo del ⋮, pero siempre delante */
+.labAdminActions .liftAdminDropdown{
+  top:calc(100% + 5px)!important;
+  right:0!important;
+  bottom:auto!important;
+}
+
+/* Productos: compacto y alineado al botón */
+.grid .cardQuickActions .liftAdminDropdown{
+  right:0!important;
+  bottom:calc(100% + 6px)!important;
+  top:auto!important;
+}
+
+@media(max-width:760px){
+  .liftAdminDropdown{max-width:calc(100vw - 16px)!important}
+  .liftAdminDropdown button{width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}
+}
+</style>
+<script id="lift-admin-dropdown-icons-front-script-v2">
+(function(){
+  const oldToggle=window.liftToggleAdminMenu;
+  window.liftToggleAdminMenu=function(btn){
+    const wrap=btn?.parentElement;
+    const menu=wrap?.querySelector('.liftAdminDropdown');
+    if(!menu)return;
+    const card=btn.closest('.labVisualCard,.grid .card');
+    const willOpen=!menu.classList.contains('open');
+
+    document.querySelectorAll('.liftMenuOpen').forEach(el=>el.classList.remove('liftMenuOpen'));
+    if(typeof window.liftCloseAdminMenus==='function') window.liftCloseAdminMenus(menu);
+
+    menu.classList.toggle('open',willOpen);
+    btn.setAttribute('aria-expanded',willOpen?'true':'false');
+    if(card && willOpen) card.classList.add('liftMenuOpen');
+  };
+
+  const oldClose=window.liftCloseAdminMenus;
+  window.liftCloseAdminMenus=function(except){
+    document.querySelectorAll('.liftAdminDropdown.open').forEach(menu=>{
+      if(menu!==except) menu.classList.remove('open');
+    });
+    document.querySelectorAll('.liftAdminMenuToggle[aria-expanded="true"]').forEach(btn=>{
+      const menu=btn.parentElement?.querySelector('.liftAdminDropdown');
+      if(menu!==except) btn.setAttribute('aria-expanded','false');
+    });
+    document.querySelectorAll('.liftMenuOpen').forEach(card=>{
+      const openMenu=card.querySelector('.liftAdminDropdown.open');
+      if(!openMenu || openMenu!==except) card.classList.remove('liftMenuOpen');
+    });
+  };
+})();
+</script>
+
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -1249,7 +1427,7 @@ body.liftAdminUnlocked #checkoutModal .liftAvailabilityAdmin{display:grid!import
 })();
 </script>
 
-<header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" type="button" aria-label="Abrir marcas y categorías" onclick="openOff('filters')">☰ <span class="txt">Menú</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><div class="search"><input id="q"
+<header class="top"><div class="bar"><div class="brand"><img class="liftHeaderLogo" src="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&sz=w800" alt="Lift Nutrientes" decoding="async" fetchpriority="high"></div><button class="iconbtn filterMobile" type="button" aria-label="Abrir marcas y categorías" onclick="openOff('filters')">☰ <span class="txt">Menú</span></button><button id="offersButton" class="offersBtn" onclick="showOffers()">🔥 <span>OFERTAS</span> <span id="offersCount" class="offersCount">0</span></button><button class="liftFilterLink" type="button" title="Copiar enlace de ofertas" aria-label="Copiar enlace de ofertas" onclick="liftCopyFilterLink('ofertas','1')">🔗</button><div class="search"><input id="q"
   name="lift_catalog_search_x11"
   placeholder="Busca creatina, proteína, marca..."
   type="search"
@@ -1932,6 +2110,48 @@ function renderProductListProgressive(arr,emptyText='No encontré productos.'){
   };
   appendNext();
 }
+// LIFT · ENLACES DIRECTOS DEL CATÁLOGO
+// La URL puede abrir categoría, laboratorio, ofertas o un producto sin duplicar páginas.
+function liftCatalogBaseUrl(){
+  const u=new URL(location.href);u.search='';u.hash='';return u;
+}
+function liftBuildFilterUrl(type,value){
+  const u=liftCatalogBaseUrl();
+  if(type==='ofertas')u.searchParams.set('ofertas','1');
+  else if(type==='producto')u.searchParams.set('producto',String(value));
+  else if(type==='marca')u.searchParams.set('marca',String(value));
+  else u.searchParams.set('categoria',String(value));
+  return u.toString();
+}
+async function liftCopyFilterLink(type,value){
+  const url=liftBuildFilterUrl(type,value);
+  try{await navigator.clipboard.writeText(url);alert('Enlace copiado.');}
+  catch(e){prompt('Copia este enlace:',url)}
+}
+window.liftCopyFilterLink=liftCopyFilterLink;
+function liftApplyUrlFilter(){
+  const sp=new URLSearchParams(location.search);
+  const productId=sp.get('producto');
+  const offers=sp.get('ofertas');
+  const requestedBrand=sp.get('marca');
+  const requestedCat=sp.get('categoria');
+  state.offerOnly=false;state.brand='Todas';state.cat='Destacados';
+  if(offers==='1'||norm(offers)==='true'){
+    state.offerOnly=true;state.cat='Todos';state.brand='Todas';
+  }else if(requestedBrand){
+    const real=brands.find(b=>norm(b)===norm(requestedBrand));
+    if(real){state.brand=real;state.cat='Todos';state.filterView='brands'}
+  }else if(requestedCat){
+    const real=cats.find(c=>norm(c)===norm(requestedCat));
+    if(real){state.cat=real;state.brand='Todas';state.filterView='categories'}
+  }
+  return productId;
+}
+function liftOpenUrlProduct(productId){
+  if(!productId)return;
+  const p=PRODUCTS.find(x=>String(x.id)===String(productId));
+  if(p)setTimeout(()=>openLiftProductById(p.id),80);
+}
 function render(){
   const arr=filtered();
   document.getElementById('status').textContent=state.offerOnly?`🔥 ${arr.length} ofertas disponibles`:(norm(state.cat)==='destacados'?`⭐ ${arr.length} productos destacados`:`${arr.length} productos encontrados`);
@@ -1952,13 +2172,13 @@ function filterHTML(){
   <div class="labVisualWrap">
     <div class="labVisualSearchWrap"><input id="labVisualSearch" class="labVisualSearch" type="search" autocomplete="off" placeholder="Buscar laboratorio..."></div>
     <div id="labVisualGrid" class="labVisualGrid">
-      ${brands.filter(b=>b!=='Todas').map(b=>`<button class="filterItem ${state.brand===b?'on':''}" onclick='setBrand(${JSON.stringify(b)})'><span>${esc(b)}</span><small>${bc[b]}</small></button>`).join('')}
+      ${brands.filter(b=>b!=='Todas').map(b=>`<div class="liftFilterRow"><button class="filterItem ${state.brand===b?'on':''}" onclick='setBrand(${JSON.stringify(b)})'><span>${esc(b)}</span><small>${bc[b]}</small></button><button class="liftFilterLink" type="button" title="Copiar enlace de ${esc(b)}" aria-label="Copiar enlace de ${esc(b)}" onclick='event.stopPropagation();liftCopyFilterLink("marca",${JSON.stringify(b)})'>🔗</button></div>`).join('')}
     </div>
   </div>
 </section>
 <section class="filterPanel" ${!isBrands?'':'hidden'}>
   ${cats.map(c=>`<div class="liftCatAdminRow">
-    <button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button>
+    <button class="filterItem ${state.cat===c?'on':''}" onclick='setCat(${JSON.stringify(c)})'><span>${esc(c)}</span><small>${cc[c]}</small></button><button class="liftFilterLink" type="button" title="Copiar enlace de ${esc(c)}" aria-label="Copiar enlace de ${esc(c)}" onclick='event.stopPropagation();liftCopyFilterLink("categoria",${JSON.stringify(c)})'>🔗</button>
   </div>`).join('')}
 </section>`;
 }
@@ -2039,12 +2259,16 @@ function productCards(arr,emptyText='No encontré productos.'){
       <div class="cardQuickBuy cardQuickActions">
         <button class="addBtn cardQuickBuyBtn" type="button" title="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" aria-label="${hasFlavor?'Elegir opciones':'Agregar al carrito'}" onclick="event.stopPropagation();${hasFlavor?`openLiftProductById(${p.id})`:`add(${p.id})`}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M14.5 9.5v4M12.5 11.5h4"/></svg></button>
         <button class="cardShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button>
-        <span class="liftCardAdminIcons">
-          <button class="liftCardAdminIcon move" type="button" title="Mover categoría o laboratorio" aria-label="Mover categoría o laboratorio" onclick="event.stopPropagation();liftMoveProductMenu(${p.id})">↪</button>
-          <button class="liftCardAdminIcon duplicate" type="button" title="Duplicar producto" aria-label="Duplicar producto" onclick="event.stopPropagation();liftCardAdminDuplicate(${p.id})">⧉</button>
-          <button class="liftCardAdminIcon variants" type="button" title="Editar variaciones" aria-label="Editar variaciones" onclick="event.stopPropagation();liftCardEditVariants(${p.id})">◫</button>
-          <button class="liftCardAdminIcon edit" type="button" title="Editar producto" aria-label="Editar producto" onclick="event.stopPropagation();liftCardAdminEdit(${p.id})">✎</button>
-          <button class="liftCardAdminIcon delete" type="button" title="Eliminar producto" aria-label="Eliminar producto" onclick="event.stopPropagation();liftCardAdminDelete(${p.id})">⌫</button>
+        <span class="liftCardAdminMenuWrap">
+          <button class="liftAdminMenuToggle" type="button" title="Opciones del producto" aria-label="Opciones del producto" onclick="event.stopPropagation();liftToggleAdminMenu(this)">⋮</button>
+          <span class="liftAdminDropdown" onclick="event.stopPropagation()">
+            <button type="button" onclick="liftCopyFilterLink('producto',String(${p.id}));liftCloseAdminMenus()"><span aria-hidden="true">🔗</span><span class="srOnly">Copiar enlace</span></button>
+            <button type="button" onclick="liftMoveProductMenu(${p.id});liftCloseAdminMenus()"><span aria-hidden="true">↪</span><span class="srOnly">Mover categoría o laboratorio</span></button>
+            <button type="button" onclick="liftCardAdminDuplicate(${p.id});liftCloseAdminMenus()"><span aria-hidden="true">⧉</span><span class="srOnly">Duplicar producto</span></button>
+            <button type="button" onclick="liftCardEditVariants(${p.id});liftCloseAdminMenus()"><span aria-hidden="true">◫</span><span class="srOnly">Editar variaciones</span></button>
+            <button type="button" onclick="liftCardAdminEdit(${p.id});liftCloseAdminMenus()"><span aria-hidden="true">✎</span><span class="srOnly">Editar producto</span></button>
+            <button type="button" class="danger" onclick="liftCardAdminDelete(${p.id});liftCloseAdminMenus()"><span aria-hidden="true">⌫</span><span class="srOnly">Eliminar producto</span></button>
+          </span>
         </span>
       </div>
     </article>`;
@@ -5938,7 +6162,9 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
      const labCfg=cfg.find(x=>x.clave==='laboratories_v1')?.valor;
      window.LIFT_LABORATORIES_SUPABASE=(labCfg && typeof labCfg==='object')?labCfg:{};
      if(typeof rebuildLiftExcelFilters==='function') rebuildLiftExcelFilters();
-     if(typeof render==='function')render();if(typeof renderCart==='function')renderCart();if(typeof renderFilters==='function')renderFilters();if(typeof lafRenderProducts==='function')lafRenderProducts();
+     const liftUrlProductId=liftApplyUrlFilter();
+     if(typeof render==='function')render();if(typeof renderCart==='function')renderCart();
+     liftOpenUrlProduct(liftUrlProductId);if(typeof renderFilters==='function')renderFilters();if(typeof lafRenderProducts==='function')lafRenderProducts();
      // Si Admin ya estaba iniciado al recargar, primero termina el catálogo público y después reincorpora los privados.
      if(document.body.classList.contains('liftAdminUnlocked')&&getPass()){
        try{await loadPrivateProducts()}catch(e){console.error('Productos privados tras recarga:',e);state('🔒 no se pudieron cargar privados','err')}
@@ -6597,13 +6823,22 @@ body.liftAdminUnlocked .labAdminNew{display:block}
         if(!name) return;
 
         const actions = document.createElement('span');
-        actions.className = 'labAdminActions';
-        actions.innerHTML = '<button type="button" class="labAdminBtn" title="Duplicar laboratorio">⧉</button><button type="button" class="labAdminBtn" title="Editar laboratorio">✎</button><button type="button" class="labAdminBtn" title="Eliminar laboratorio">⌫</button>';
+        actions.className = 'labAdminActions liftLabAdminMenuWrap';
+        actions.innerHTML = `
+          <button type="button" class="labAdminBtn liftAdminMenuToggle" title="Opciones del laboratorio" aria-label="Opciones del laboratorio">⋮</button>
+          <span class="liftAdminDropdown" onclick="event.stopPropagation()">
+            <button type="button" data-action="copy"><span aria-hidden="true">🔗</span><span class="srOnly">Copiar enlace</span></button>
+            <button type="button" data-action="duplicate"><span aria-hidden="true">⧉</span><span class="srOnly">Duplicar laboratorio</span></button>
+            <button type="button" data-action="edit"><span aria-hidden="true">✎</span><span class="srOnly">Editar laboratorio</span></button>
+            <button type="button" class="danger" data-action="delete"><span aria-hidden="true">⌫</span><span class="srOnly">Eliminar laboratorio</span></button>
+          </span>`;
 
-        const buttons = actions.querySelectorAll('button');
-        buttons[0].onclick = e => { e.stopPropagation(); window.liftLabAdminDuplicate(name); };
-        buttons[1].onclick = e => { e.stopPropagation(); window.liftLabAdminOpen(name); };
-        buttons[2].onclick = e => { e.stopPropagation(); window.liftLabAdminDelete(name); };
+        const toggle = actions.querySelector('.liftAdminMenuToggle');
+        toggle.onclick = e => { e.stopPropagation(); window.liftToggleAdminMenu(toggle); };
+        actions.querySelector('[data-action="copy"]').onclick = e => { e.stopPropagation(); liftCopyFilterLink('marca', name); window.liftCloseAdminMenus(); };
+        actions.querySelector('[data-action="duplicate"]').onclick = e => { e.stopPropagation(); window.liftLabAdminDuplicate(name); window.liftCloseAdminMenus(); };
+        actions.querySelector('[data-action="edit"]').onclick = e => { e.stopPropagation(); window.liftLabAdminOpen(name); window.liftCloseAdminMenus(); };
+        actions.querySelector('[data-action="delete"]').onclick = e => { e.stopPropagation(); window.liftLabAdminDelete(name); window.liftCloseAdminMenus(); };
 
         card.appendChild(actions);
       });
