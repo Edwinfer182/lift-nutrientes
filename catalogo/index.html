@@ -5457,8 +5457,22 @@ window.shareLiftProductImage=async function(id){
  const secondaryText=$('lafSecondaryImages').value;
  const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);
  $('lafFormResult').textContent='Guardando producto e imágenes...';
- try{await liftSecondarySaveUrls(p.id,secondaryText);$('lafFormResult').textContent='Producto e imágenes guardados.';refresh();setTimeout(()=>lafClearForm(),650)}
- catch(e){$('lafFormResult').textContent='Producto guardado, pero las imágenes secundarias fallaron: '+e.message;refresh()}
+ try{
+   /* Si esta ficha pertenece a un grupo, editar desde la tarjeta actualiza ESE grupo existente. */
+   if(editId && typeof window.liftCatalogAdminCall==='function'){
+     const vg=await window.liftCatalogAdminCall({action:'variant-groups'});
+     const groups=Array.isArray(vg?.grupos)?vg.grupos:[];
+     const matches=groups.filter(g=>(Array.isArray(g.lift_producto_variantes)?g.lift_producto_variantes:[]).some(v=>String(v.producto_id)===String(p.id)));
+     for(const g of matches){
+       await window.liftCatalogAdminCall({action:'update-variant-group',id:Number(g.id),group:{nombre:name,marca:brand,categoria:category,presentacion:presentation,precio:price,imagen:image,visible_publico:g.visible_publico!==false}});
+     }
+     if(matches.length && typeof window.liftReloadVariantGroups==='function')await window.liftReloadVariantGroups();
+     if(matches.length && typeof window.lafLoadVariantGroups==='function')await window.lafLoadVariantGroups().catch(()=>{});
+   }
+   await liftSecondarySaveUrls(p.id,secondaryText);
+   $('lafFormResult').textContent='Producto e imágenes guardados.';refresh();setTimeout(()=>lafClearForm(),650)
+ }
+ catch(e){$('lafFormResult').textContent='Producto guardado, pero la actualización relacionada falló: '+e.message;refresh()}
 };
  window.lafDeleteCurrent=function(){const id=$('lafEditId').value;if(!id)return;if(!confirm('¿Eliminar este producto del catálogo?'))return;const i=PRODUCTS.findIndex(x=>String(x.id)===String(id));if(i>=0)PRODUCTS.splice(i,1);const o=store();delete o[String(id)];saveStore(o);const m=meta();if(m.out)delete m.out[id];saveMeta(m);lafClearForm();refresh()};
  window.lafNewCombo=function(){lafClearForm();lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafCategory').value='Combos';$('lafBrand').value='COMBOS';$('lafFormTitle').textContent='Crear combo'};
