@@ -988,6 +988,12 @@ body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminIcons{
  body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminIcons{gap:5px!important}
 }
 </style>
+
+<style id="lift-availability-admin-only-v1">
+/* Los controles de disponibilidad son exclusivamente administrativos. */
+body:not(.liftAdminUnlocked) #checkoutModal .liftAvailabilityAdmin{display:none!important;}
+body.liftAdminUnlocked #checkoutModal .liftAvailabilityAdmin{display:grid!important;}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
