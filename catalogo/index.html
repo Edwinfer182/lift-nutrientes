@@ -7106,13 +7106,23 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 
 
 <style id="lift-provider-wallet-v1-style">
-.liftProviderWalletBtn{display:none;height:38px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#111;font:600 10px Poppins,Arial;cursor:pointer}.liftAdminUnlocked .liftAdminToolsRow .liftProviderWalletBtn{display:block}
+.liftProviderWalletBtn{display:none;height:38px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#111;font:600 10px Poppins,Arial;cursor:pointer}body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow .liftProviderWalletBtn{display:flex!important;align-items:center;justify-content:center}
 #liftProviderWalletModal{position:fixed;inset:0;z-index:17000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:15px}#liftProviderWalletModal.open{display:flex}
 .lpwBox{width:min(96vw,720px);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:17px}.lpwHead{display:flex;justify-content:space-between;gap:10px;align-items:center}.lpwHead h3{margin:0;font-size:17px}.lpwClose{width:34px;height:34px;border:0;border-radius:50%;background:#f2f2f2;font-size:18px}
 .lpwGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.lpwGrid label{display:grid;gap:4px;font-size:9px;color:#666}.lpwGrid .full{grid-column:1/-1}.lpwGrid input,.lpwGrid select,.lpwGrid textarea{width:100%;border:1px solid #ddd;border-radius:9px;background:#fff;padding:9px;font:inherit;font-size:11px}.lpwGrid input,.lpwGrid select{height:40px}.lpwGrid textarea{min-height:58px}
 .lpwActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.lpwActions button{height:40px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins;cursor:pointer}.lpwActions .dark{background:#111;color:#fff;border-color:#111}.lpwActions .lpwPayoff{grid-column:1/-1}
 .lpwSummary{margin-top:12px;padding:12px;border-radius:12px;background:#f7f7f7}.lpwBalance{font-size:20px;font-weight:600}.lpwBalance small{display:block;font-size:9px;font-weight:400;color:#777;margin-bottom:3px}.lpwList{margin-top:10px;display:grid;gap:6px}.lpwRow{border:1px solid #e5e5e5;border-radius:9px;padding:8px;font-size:9px;display:grid;grid-template-columns:1fr auto;gap:5px}.lpwRow b{font-size:10px}.lpwCredit{color:#111}.lpwStatus{min-height:16px;margin-top:7px;font-size:9px;color:#666}
 @media(max-width:620px){.lpwGrid{grid-template-columns:1fr}.lpwGrid .full{grid-column:auto}.lpwActions{grid-template-columns:1fr}}
+
+.lpwFavorPanel{margin-top:10px;padding:12px;border:1px solid #dedede;border-radius:12px;background:#fafafa}
+.lpwFavorPanel[hidden]{display:none!important}
+.lpwFavorTitle{font-size:12px;font-weight:600;margin-bottom:8px}
+.lpwFavorInputs{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.lpwFavorInputs label{display:grid;gap:4px;font-size:10px;color:#555}
+.lpwFavorInputs input{width:100%;height:40px;border:1px solid #ddd;border-radius:9px;padding:9px;font:inherit;font-size:12px;background:white}
+.lpwFavorResult{margin:9px 0;font-size:13px;font-weight:600}
+.lpwFavorButtons{display:flex;gap:8px}.lpwFavorButtons button{padding:10px;border-radius:9px;border:1px solid #ddd;background:#fff;cursor:pointer;font:600 10px Poppins}.lpwFavorButtons button:first-child{background:#111;color:white;border-color:#111}
+@media(max-width:620px){.lpwFavorInputs{grid-template-columns:1fr}}
 </style>
 <div id="liftProviderWalletModal" onclick="if(event.target===this)liftProviderWalletClose()">
  <div class="lpwBox">
@@ -7125,8 +7135,17 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
   </div>
   <div class="lpwActions">
    <button class="dark" onclick="liftProviderWalletAdd('compra_credito')">+ Registrar deuda</button>
-   <button onclick="liftProviderWalletAdd('saldo_favor')">+ Saldo a favor</button>
+   <button onclick="liftProviderWalletShowFavor()">+ Saldo a favor</button>
    <button onclick="liftProviderWalletAdd('pago')">Registrar pago</button><button class="dark lpwPayoff" onclick="liftProviderWalletPayoff()">Saldar cuenta completa</button>
+  </div>
+  <div id="lpwFavorPanel" class="lpwFavorPanel" hidden>
+    <div class="lpwFavorTitle">Calcular saldo a favor</div>
+    <div class="lpwFavorInputs">
+      <label>Lo que cobra el proveedor<input id="lpwFavorCost" type="number" min="0" step="1" inputmode="numeric" placeholder="Ej: 130000" oninput="liftProviderWalletFavorCalc()"></label>
+      <label>Lo que pagó el cliente en efectivo<input id="lpwFavorCash" type="number" min="0" step="1" inputmode="numeric" placeholder="Ej: 20000" oninput="liftProviderWalletFavorCalc()"></label>
+    </div>
+    <div id="lpwFavorResult" class="lpwFavorResult">Saldo a favor: $ 0</div>
+    <div class="lpwFavorButtons"><button type="button" onclick="liftProviderWalletFavorSave()">Registrar saldo calculado</button><button type="button" onclick="liftProviderWalletShowFavor(false)">Cancelar</button></div>
   </div>
   <div id="lpwStatus" class="lpwStatus"></div>
   <div class="lpwSummary"><div id="lpwBalance" class="lpwBalance"></div><div id="lpwList" class="lpwList"></div></div>
@@ -7181,6 +7200,38 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
  };
  window.liftProviderWalletClose=()=>document.getElementById('liftProviderWalletModal').classList.remove('open');
  window.liftProviderWalletLoad=renderProvider;
+ window.liftProviderWalletShowFavor=function(show){
+   const panel=document.getElementById('lpwFavorPanel');
+   panel.hidden=show===undefined?!panel.hidden:!show;
+   if(!panel.hidden){document.getElementById('lpwFavorCost').focus();window.liftProviderWalletFavorCalc()}
+ };
+ window.liftProviderWalletFavorCalc=function(){
+   const a=Number(document.getElementById('lpwFavorCost').value||0);
+   const b=Number(document.getElementById('lpwFavorCash').value||0);
+   const result=document.getElementById('lpwFavorResult');
+   const saldo=b-a;
+   result.textContent='Saldo a favor: '+money(Math.max(0,saldo));
+   result.style.color=saldo>0?'#168451':'#111';
+ };
+ window.liftProviderWalletFavorSave=async function(){
+   const proveedor_id=Number(document.getElementById('lpwProvider').value);
+   const costEl=document.getElementById('lpwFavorCost'),cashEl=document.getElementById('lpwFavorCash');
+   const a=Number(costEl.value),b=Number(cashEl.value);
+   const st=document.getElementById('lpwStatus');
+   if(!proveedor_id){st.textContent='Selecciona un proveedor.';return}
+   if(costEl.value===''||cashEl.value===''||!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<0){st.textContent='Revisa los dos valores.';return}
+   const valor=Math.round(b-a);
+   if(valor<=0){st.textContent='El efectivo pagado por el cliente debe ser mayor que lo que cobra el proveedor para generar saldo a favor.';return}
+   const referencia=document.getElementById('lpwReference').value.trim(),nota=document.getElementById('lpwNote').value.trim();
+   st.textContent='Guardando saldo a favor…';
+   try{
+     await call({action:'provider-movement',proveedor_id,tipo:'ajuste_favor',valor,referencia,nota});
+     costEl.value='';cashEl.value='';document.getElementById('lpwReference').value='';document.getElementById('lpwNote').value='';
+     window.liftProviderWalletShowFavor(false);
+     await refresh(true);
+     st.textContent='✓ Saldo a favor registrado: '+money(valor)+'.';
+   }catch(e){st.textContent='No se pudo registrar: '+e.message}
+ };
  window.liftProviderWalletAdd=async function(kind){
    const proveedor_id=Number(document.getElementById('lpwProvider').value);
    const valueEl=document.getElementById('lpwValue');
@@ -7214,9 +7265,18 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
    }catch(e){st.textContent=e.message}
  };
  function inject(){
-   if(document.getElementById('liftProviderWalletBtn'))return;
-   const tools=document.getElementById('liftAdminCheckoutTools')||document.getElementById('liftAdminPriceMode');if(!tools)return;
-   const b=document.createElement('button');b.id='liftProviderWalletBtn';b.type='button';b.className='liftProviderWalletBtn';b.textContent='Cartera proveedores';b.onclick=liftProviderWalletOpen;tools.insertAdjacentElement('afterend',b);
+   let b=document.getElementById('liftProviderWalletBtn');
+   const row=document.querySelector('#checkoutModal .liftAdminToolsRow')||document.querySelector('.liftAdminToolsRow');
+   if(!row)return;
+   if(!b){
+     b=document.createElement('button');
+     b.id='liftProviderWalletBtn';
+     b.type='button';
+     b.className='liftProviderWalletBtn';
+     b.innerHTML='💼 Cartera proveedores';
+     b.onclick=()=>window.liftProviderWalletOpen();
+   }
+   if(b.parentElement!==row)row.appendChild(b);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,700));else setTimeout(inject,700);
  new MutationObserver(inject).observe(document.body,{childList:true,subtree:true});
@@ -11657,7 +11717,6 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 })();
 </script>
 
-<!-- LIFT FORCE DEPLOY CARTERA PROVEEDORES 2026-10-06 -->
 </body>
 </html>
 
