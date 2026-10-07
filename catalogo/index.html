@@ -10873,8 +10873,9 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
       .map(v=>String(v).replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''))
       .filter((v,i,a)=>v&&a.indexOf(v)===i);
     const itemText=(p.items||[]).map((x,i)=>{
+      const brand=String(x.marca||x.brand||'').trim();
       const detail=[x.presentacion,x.sabor].filter(Boolean).join(' · ');
-      return `${i+1} - ${x.nombre||'Producto'}${detail?' · '+detail:''}${Number(x.cantidad||1)>1?' · x'+Number(x.cantidad||1):''}`;
+      return `${i+1} - ${brand?brand+' · ':''}${x.nombre||'Producto'}${detail?' · '+detail:''}${Number(x.cantidad||1)>1?' · x'+Number(x.cantidad||1):''}`;
     }).join('\n');
     const paymentText=pi.kind==='paid'
       ? 'Ya está pago. NO COBRAR.'
