@@ -3234,13 +3234,15 @@ function renderProductDetail(p){
     const money = typeof fmt==='function' ? fmt(price) : '$'+Number(price||0).toLocaleString('es-CO');
     panelBody.innerHTML=`
       <div class="liftMonoBody">
-        <button type="button" class="liftMonoNav liftMonoPrev" id="liftMonoPrev" aria-label="Producto anterior" title="Producto anterior">‹</button>
-        <div class="liftMonoImg" id="liftMonoZoomArea" title="Haz clic o doble clic para ampliar">
-          <img id="liftMonoMainImg" draggable="false" src="${String(p.image||'').replace(/"/g,'&quot;')}" alt="${String(p.name||'').replace(/"/g,'&quot;')}">
-          <div class="liftMonoCounter">${idx+1} / ${list.length}</div>
+        <div class="liftMonoVisual">
+          <button type="button" class="liftMonoNav liftMonoPrev" id="liftMonoPrev" aria-label="Producto anterior" title="Producto anterior">‹</button>
+          <div class="liftMonoImg" id="liftMonoZoomArea" title="Haz clic o doble clic para ampliar">
+            <img id="liftMonoMainImg" draggable="false" src="${String(p.image||'').replace(/"/g,'&quot;')}" alt="${String(p.name||'').replace(/"/g,'&quot;')}">
+            <div class="liftMonoCounter">${idx+1} / ${list.length}</div>
+          </div>
+          <button type="button" class="liftMonoNav liftMonoNext" id="liftMonoNext" aria-label="Producto siguiente" title="Producto siguiente">›</button>
+          <div class="detailShareBelowImage"><button class="cardShareImageBtn detailShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${Number(p.id)})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button></div>
         </div>
-        <div class="detailShareBelowImage"><button class="cardShareImageBtn detailShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${Number(p.id)})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button></div>
-        <button type="button" class="liftMonoNav liftMonoNext" id="liftMonoNext" aria-label="Producto siguiente" title="Producto siguiente">›</button>
         <div class="liftMonoInfo">
           <div class="liftMonoBrand">${p.brand||''}</div>
           <h2 class="liftMonoTitle">${p.name||''}</h2>
@@ -3255,16 +3257,18 @@ function renderProductDetail(p){
           </div>
           <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
           ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
+          ${liftStaticProductUrl(p)?`<a class="liftMonoPageLink" href="${liftStaticProductUrl(p)}">Ver página del producto →</a>`:''}
+        </div>
+        <div class="liftMonoVariantsBelow">
           ${iso100FlavorStrip(p)}
           ${pdfFlavorStrip(p)}
-          ${liftStaticProductUrl(p)?`<a class="liftMonoPageLink" href="${liftStaticProductUrl(p)}">Ver página del producto →</a>`:''}
-          <div class="liftMonoService">
-            <div><span class="liftServiceIcon">✓</span><span><b>Disponible</b><small>Consulta existencias al confirmar el pedido</small></span></div>
-            <div><span class="liftServiceIcon">⌁</span><span><b>Medellín y área metropolitana</b><small>Ruta el mismo día para pedidos confirmados antes de las 2:00 p. m.</small></span></div>
-            <div><span class="liftServiceIcon">→</span><span><b>Envíos nacionales</b><small>Entrega estimada de 1 a 3 días hábiles</small></span></div>
-          </div>
-          ${relatedProductDetailHTML(p)}
         </div>
+        <div class="liftMonoService liftMonoServiceWide">
+          <div><span class="liftServiceIcon">✓</span><span><b>Disponible</b><small>Consulta existencias al confirmar el pedido</small></span></div>
+          <div><span class="liftServiceIcon">⌁</span><span><b>Medellín mismo día</b><small>Pedidos confirmados antes de las 2:00 p. m.</small></span></div>
+          <div><span class="liftServiceIcon">→</span><span><b>Envíos nacionales</b><small>Entrega estimada de 1 a 3 días hábiles</small></span></div>
+        </div>
+        <div class="liftMonoRelatedWide">${relatedProductDetailHTML(p)}</div>
       </div>`;
     liftSecondaryRender(p);
     bindIso100Flavors(p);
@@ -12134,6 +12138,110 @@ body.liftAdminUnlocked .liftAdminToolsRow button[data-lift-order-tool-hidden="1"
 })();
 </script>
 
+
+<style id="lift-product-centered-variants-below-v3">
+/* PC/tablet: ficha centrada tipo pagina de producto. Un solo detalle, sin offcanvas lateral. */
+@media (min-width:761px){
+ #liftMonoBackdrop{background:rgba(0,0,0,.46)!important;backdrop-filter:blur(4px)!important}
+ #liftMonoOff{left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%) scale(.96)!important;width:min(1180px,94vw)!important;max-width:1180px!important;height:auto!important;max-height:92vh!important;border-radius:22px!important;overflow:auto!important}
+ #liftMonoOff.open{transform:translate(-50%,-50%) scale(1)!important}
+ #liftMonoBody{max-height:none!important;overflow:visible!important}
+ .liftMonoBody{grid-template-columns:minmax(0,1.02fr) minmax(360px,.98fr)!important;gap:34px!important;align-items:start!important;padding:30px 34px 28px!important}
+ .liftMonoVisual{position:relative;min-width:0;display:flex;flex-direction:column}
+ .liftMonoImg{height:390px!important;min-height:390px!important;padding:18px 54px!important;border:1px solid #ededee!important;border-radius:18px!important;background:#fff!important}
+ .liftMonoCounter{display:none!important}
+ .liftMonoPrev{left:8px!important}.liftMonoNext{right:8px!important}.liftMonoNav{top:195px!important}
+ .detailShareBelowImage{margin:7px 0 0!important;display:flex!important;justify-content:flex-end!important}
+ .liftMonoVariantsBelow{margin-top:2px;min-width:0}
+ .liftMonoVariantsBelow .isoFlavorBlock,.liftMonoVariantsBelow .pdfFlavorBlock{margin:6px 0 0!important;padding-top:0!important}
+ .liftMonoVariantsBelow .isoFlavorHead,.liftMonoVariantsBelow .pdfFlavorHead{margin:0 0 7px!important;padding-top:0!important;border-top:0!important;font-size:12px!important}
+ .liftMonoVariantsBelow .isoFlavorStrip{display:flex!important;flex-wrap:nowrap!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:none!important;padding:2px 2px 7px!important}
+ .liftMonoVariantsBelow .isoFlavorChip{flex:0 0 74px!important;padding:5px!important;border-radius:10px!important}
+ .liftMonoVariantsBelow .isoFlavorChip img{display:block!important;height:54px!important}
+ .liftMonoVariantsBelow .isoFlavorChip span{font-size:8.5px!important;line-height:1.1!important;min-height:19px!important;margin-top:4px!important}
+ .liftMonoVariantsBelow .pdfFlavorStrip{display:flex!important;flex-wrap:wrap!important;gap:6px!important;max-height:none!important;overflow:visible!important}
+ .liftMonoVariantsBelow .pdfFlavorChip{padding:7px 10px!important;font-size:10px!important}
+ .liftMonoInfo{min-width:0;padding-top:8px!important}
+ .liftMonoTitle{font-size:clamp(25px,2.5vw,34px)!important;line-height:1.08!important;margin-bottom:7px!important}
+ .liftMonoPriceArea{margin:10px 0 12px!important}.liftMonoPriceArea .price,.liftMonoPrice{font-size:27px!important}
+ .liftMonoBtns{position:static!important;margin-top:8px!important;padding:0!important;border:0!important;background:none!important;display:block!important}
+ #liftMonoAdd{width:100%!important;min-height:52px!important;background:#111!important;color:#fff!important;border-radius:13px!important}
+ .liftMonoDescription{margin-top:12px!important}
+ .liftMonoService{margin-top:12px!important}
+ .relatedWrap{margin-top:12px!important;padding-top:10px!important}
+}
+@media (min-width:761px) and (max-width:980px){
+ #liftMonoOff{width:95vw!important;max-height:94vh!important}
+ .liftMonoBody{grid-template-columns:minmax(0,.95fr) minmax(330px,1.05fr)!important;gap:22px!important;padding:24px!important}
+ .liftMonoImg{height:330px!important;min-height:330px!important;padding:15px 44px!important}
+ .liftMonoNav{top:165px!important}
+}
+@media (max-width:760px){.liftMonoVisual{display:contents}.liftMonoVariantsBelow{display:contents}}
+</style>
+
+
+<style id="lift-product-page-layout-v4">
+/* PC/tablet: producto arriba, variaciones debajo, servicios y recomendados a ancho completo. */
+@media (min-width:761px){
+  #liftMonoOff{width:min(1180px,94vw)!important;max-width:1180px!important;max-height:92vh!important;overflow:auto!important}
+  .liftMonoBody{display:grid!important;grid-template-columns:minmax(0,1.02fr) minmax(360px,.98fr)!important;gap:24px 34px!important;align-items:start!important;padding:30px 34px 28px!important}
+  .liftMonoVisual{grid-column:1;grid-row:1;min-width:0!important}
+  .liftMonoInfo{grid-column:2;grid-row:1;min-width:0!important;padding-top:8px!important}
+  .liftMonoVariantsBelow{grid-column:1/-1;grid-row:2;margin:0!important;padding:18px 0 2px!important;border-top:1px solid #ececec!important;min-width:0!important}
+  .liftMonoVariantsBelow .isoFlavorBlock,.liftMonoVariantsBelow .pdfFlavorBlock{margin:0!important}
+  .liftMonoVariantsBelow .isoFlavorHead,.liftMonoVariantsBelow .pdfFlavorHead{margin:0 0 10px!important;padding:0!important;border:0!important;font-size:13px!important}
+  .liftMonoVariantsBelow .isoFlavorStrip{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:none!important;padding:2px 2px 9px!important}
+  .liftMonoVariantsBelow .isoFlavorChip{flex:0 0 74px!important;padding:5px!important;border-radius:10px!important}
+  .liftMonoVariantsBelow .isoFlavorChip img{display:block!important;height:54px!important}
+  .liftMonoVariantsBelow .isoFlavorChip span{font-size:8.5px!important;line-height:1.1!important;min-height:19px!important;margin-top:4px!important}
+  .liftMonoVariantsBelow .pdfFlavorStrip{display:flex!important;flex-wrap:wrap!important;gap:7px!important;max-height:none!important;overflow:visible!important}
+  .liftMonoVariantsBelow .pdfFlavorChip{padding:7px 10px!important;font-size:10px!important}
+  .liftMonoServiceWide{grid-column:1/-1;grid-row:3!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;margin:4px 0 0!important;padding:14px 0!important;border-top:1px solid #ececec!important;border-bottom:1px solid #ececec!important}
+  .liftMonoServiceWide>div{padding:2px 18px!important;border:0!important;margin:0!important}
+  .liftMonoServiceWide>div+div{border-left:1px solid #ececec!important}
+  .liftMonoRelatedWide{grid-column:1/-1;grid-row:4;min-width:0!important}
+  .liftMonoRelatedWide .relatedWrap{margin:0!important;padding:2px 0 0!important;border-top:0!important}
+  .liftMonoRelatedWide .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important}
+  .liftMonoRelatedWide .relatedItem{grid-template-columns:48px minmax(0,1fr)!important;position:relative!important;padding:8px!important}
+  .liftMonoRelatedWide .relatedAdd{grid-column:1/-1!important;width:100%!important;height:30px!important}
+  .liftMonoBtns{position:static!important;margin-top:12px!important;padding:0!important;border:0!important;background:none!important}
+  #liftMonoAdd{width:100%!important;min-height:52px!important;background:#111!important;color:#fff!important}
+}
+@media (min-width:761px) and (max-width:980px){
+  .liftMonoBody{grid-template-columns:minmax(0,.95fr) minmax(330px,1.05fr)!important;gap:20px 22px!important;padding:24px!important}
+  .liftMonoRelatedWide .relatedGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (max-width:760px){
+  .liftMonoVariantsBelow,.liftMonoServiceWide,.liftMonoRelatedWide{display:block}
+}
+</style>
+
+<style id="lift-product-centered-close-fix-v1">
+/* FIX: un parche lateral viejo forzaba opacity/visibility del detalle aun sin .open. */
+@media (min-width:761px){
+  #liftMonoOff:not(.open){
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transform:translate(-50%,-50%) scale(.96)!important;
+  }
+  #liftMonoOff.open{
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    transform:translate(-50%,-50%) scale(1)!important;
+  }
+  #liftMonoClose{
+    position:absolute!important;
+    top:14px!important;
+    right:16px!important;
+    float:none!important;
+    margin:0!important;
+    z-index:10002!important;
+    pointer-events:auto!important;
+  }
+}
+</style>
 </body>
 </html>
 
