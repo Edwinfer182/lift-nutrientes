@@ -12313,92 +12313,32 @@ button:active{transform:scale(.98)}
 
 
 <!-- LIFT FIX 2026-10-07 · compartir imagen conserva estado completo del checkout -->
-<script id="lift-checkout-share-state-guard-v1">
-(function(){
-  const KEY='liftCheckoutShareDraftV1';
+<script id="lift-checkout-share-state-guard-light-v2">
+(()=>{
   const $=id=>document.getElementById(id);
-  let sharing=false;
-
   function capture(){
-    const modal=$('checkoutModal');
-    if(!modal)return null;
-    const fields={};
-    modal.querySelectorAll('input,textarea,select').forEach((el,i)=>{
-      const key=el.id||el.name||('anon_'+i);
-      fields[key]={
-        value:el.value,
-        checked:('checked' in el)?!!el.checked:undefined,
-        type:el.type||'',
-        tag:el.tagName
-      };
-    });
-    const data={
-      at:Date.now(), fields,
-      city:(typeof selectedCity!=='undefined'&&selectedCity)?{...selectedCity}:null,
-      coupon:(typeof appliedCoupon!=='undefined'&&appliedCoupon)?{...appliedCoupon}:null,
-      scroll:modal.querySelector('.checkoutCard')?.scrollTop||0
-    };
-    try{sessionStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
-    return data;
+    const modal=$("checkoutModal"); if(!modal)return null;
+    const fields=[];
+    modal.querySelectorAll('input,textarea,select').forEach((el,i)=>fields.push({id:el.id||'',name:el.name||'',i,value:el.value,checked:'checked' in el?!!el.checked:null}));
+    return {fields,city:(typeof selectedCity!=="undefined"&&selectedCity)?{...selectedCity}:null,coupon:(typeof appliedCoupon!=="undefined"&&appliedCoupon)?{...appliedCoupon}:null,scroll:modal.querySelector('.checkoutCard')?.scrollTop||0};
   }
-
-  function restore(data){
-    if(!data)return;
-    const modal=$('checkoutModal');
-    if(!modal)return;
-    Object.entries(data.fields||{}).forEach(([key,v])=>{
-      const el=$(key)||modal.querySelector(`[name="${CSS.escape(key)}"]`);
-      if(!el)return;
-      if(v.checked!==undefined && ('checked' in el))el.checked=!!v.checked;
-      if(el.value!==v.value)el.value=v.value??'';
-    });
-    try{if(data.city && typeof selectedCity!=='undefined')selectedCity={...data.city}}catch(e){}
-    try{if(data.coupon && typeof appliedCoupon!=='undefined')appliedCoupon={...data.coupon}}catch(e){}
-    try{if(typeof renderCheckoutSummary==='function')renderCheckoutSummary()}catch(e){}
-    requestAnimationFrame(()=>{
-      const card=modal.querySelector('.checkoutCard');
-      if(card)card.scrollTop=Number(data.scroll||0);
-    });
+  function restore(d){
+    if(!d)return; const modal=$("checkoutModal"); if(!modal)return;
+    d.fields.forEach(v=>{const el=(v.id&&$(v.id))||(v.name&&modal.querySelector(`[name="${CSS.escape(v.name)}"]`))||modal.querySelectorAll('input,textarea,select')[v.i];if(!el)return;el.value=v.value??'';if(v.checked!==null&&'checked' in el)el.checked=v.checked;});
+    if(d.city&&typeof selectedCity!=="undefined")selectedCity={...d.city};
+    if(d.coupon&&typeof appliedCoupon!=="undefined")appliedCoupon={...d.coupon};
+    const card=modal.querySelector('.checkoutCard'); if(card)card.scrollTop=Number(d.scroll||0);
   }
-
-  function stored(){
-    try{
-      const d=JSON.parse(sessionStorage.getItem(KEY)||'null');
-      return d && Date.now()-Number(d.at||0)<10*60*1000 ? d : null;
-    }catch(e){return null}
-  }
-
-  function restoreSoon(){
-    if(!sharing)return;
-    const d=stored();
-    if(!d)return;
-    requestAnimationFrame(()=>restore(d));
-    setTimeout(()=>restore(d),80);
-    setTimeout(()=>restore(d),300);
-  }
-
   function install(){
     const original=window.shareLiftCheckoutImage;
-    if(typeof original!=='function' || original.__liftStateGuard)return;
+    if(typeof original!=="function"||original.__liftStateGuardLight)return;
     const wrapped=async function(){
       const draft=capture();
-      sharing=true;
       try{return await original.apply(this,arguments)}
-      finally{
-        restore(draft);
-        setTimeout(()=>restore(draft),100);
-        setTimeout(()=>{restore(draft);sharing=false},600);
-      }
+      finally{restore(draft)}
     };
-    wrapped.__liftStateGuard=true;
-    window.shareLiftCheckoutImage=wrapped;
+    wrapped.__liftStateGuardLight=true; window.shareLiftCheckoutImage=wrapped;
   }
-
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreSoon()},{passive:true});
-  window.addEventListener('pageshow',restoreSoon,{passive:true});
-  window.addEventListener('focus',restoreSoon,{passive:true});
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0));
-  setTimeout(install,200);
-  setTimeout(install,1000);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
