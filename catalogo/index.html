@@ -10869,12 +10869,10 @@ window.liftAdminAvailability=async function(id,available,btn){
       document.getElementById('grid')?.scrollIntoView({behavior:'auto',block:'start'});
       return true;
     }
-    if(product && typeof window.viewProduct==='function'){
-      const id=Number(String(product).replace(/\D/g,''));
-      if(id && (window.PRODUCTS||[]).some(p=>Number(p.id)===id)){
-        window.viewProduct(id);
-        return true;
-      }
+    // El producto por URL ya lo abre el detalle nuevo (openLiftProductById).
+    // No abrir viewProduct(): era la ficha clásica y provocaba dos capas simultáneas.
+    if(product){
+      return true;
     }
     return false;
   }
