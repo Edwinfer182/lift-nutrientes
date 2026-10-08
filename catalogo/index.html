@@ -5470,14 +5470,6 @@ window.shareLiftProductImage=async function(id){
 .lafVariantRow{display:grid;grid-template-columns:52px minmax(0,1fr) minmax(120px,.7fr);gap:8px;align-items:center;border:1px solid #e8e8e8;border-radius:12px;padding:8px;background:#fff}.lafVariantRow img{width:52px;height:52px;object-fit:contain;border-radius:8px}.lafVariantInputs{display:grid;grid-template-columns:1fr 1fr;gap:7px}.lafVariantInputs input{height:38px;border:1px solid #ddd;border-radius:9px;padding:0 9px;width:100%;font:inherit}.lafGroupCard{border:1px solid #e7e7e7;border-radius:12px;padding:10px;background:#fff}.lafGroupTop{display:flex;gap:9px;align-items:center}.lafGroupTop img{width:48px;height:48px;object-fit:contain}.lafGroupTop strong{font-size:12px}.lafGroupMeta{font-size:10px;color:#777;margin-top:3px}.lafGroupFlavors{font-size:10px;color:#555;margin-top:7px;line-height:1.45}.lafGroupActions{display:flex;gap:6px;margin-top:8px}
 @media(max-width:700px){.lafVariantRow{grid-template-columns:44px minmax(0,1fr)}.lafVariantInputs{grid-column:2/-1;grid-template-columns:1fr}.lafVariantRow img{width:44px;height:44px}#lafPanel{width:100vw}.lafRow{grid-template-columns:48px minmax(0,1fr) 92px}.lafActions{grid-column:2/-1}.lafForm{grid-template-columns:1fr}.lafField.full{grid-column:auto}.lafOfferRow{grid-template-columns:1fr 100px}.lafOfferRow>*:nth-child(3),.lafOfferRow>*:nth-child(4){grid-column:auto}.lafTabs{padding:8px}.lafBody{padding:12px}}
 </style>
-<style id="lift-inline-admin-urls-v1">
-#lafProductList .lafBulkRow{grid-template-columns:28px 48px minmax(135px,1fr) 95px minmax(160px,1.15fr) auto!important;align-items:center}
-#lafProductList .lafInlineUrls{display:grid;gap:5px;min-width:0}
-#lafProductList .lafImageUrl{width:100%;height:32px;min-width:0;border:1px solid #dedede;border-radius:7px;padding:0 8px;font:400 10px Poppins,Arial,sans-serif;background:#fff;color:#222}
-#lafProductList .lafImageUrl:focus{outline:1px solid #111}
-#lafProductList .lafImageUrl[data-loaded="0"]{background:#fafafa}
-@media(max-width:800px){#lafProductList .lafBulkRow{grid-template-columns:24px 44px minmax(0,1fr) 92px!important}#lafProductList .lafInlineUrls{grid-column:3/-1;grid-row:auto}#lafProductList .lafActions{grid-column:3/-1;justify-content:flex-end}}
-</style>
 <div id="lafBackdrop" onclick="closeLiftAdminFull()"></div>
 <aside id="lafPanel">
  <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button type="button" onclick="lockLiftAdmin()" title="Salir del administrador" style="margin-left:auto;border:1px solid #444;background:#1b1b1b;color:#fff;border-radius:9px;height:34px;padding:0 11px;cursor:pointer;font:600 11px Poppins,Arial">Salir</button><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
@@ -5623,9 +5615,12 @@ window.shareLiftProductImage=async function(id){
      <label class="lafBulkCheckWrap" title="Seleccionar"><input class="lafBulkCheck" type="checkbox" value="${esc(p.id)}" ${window.LIFT_BULK_SELECTED.has(String(p.id))?'checked':''} onchange="lafBulkToggle(this.value,this.checked)"></label>
      <img src="${esc(p.image||'')}" onerror="this.style.visibility='hidden'">
      <div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.brand||'')} · ${esc(p.category||'')} ${m.out?.[p.id]?'· AGOTADO':''}</div></div>
-     <input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}" aria-label="Precio público">
-     <div class="lafInlineUrls"><input class="lafImageUrl" id="lafimg_${p.id}" type="url" placeholder="URL imagen principal" aria-label="URL imagen principal" value="${esc(p.image||'')}"><input class="lafImageUrl lafSecondaryFirst" id="lafsec_${p.id}" type="url" placeholder="URL primera secundaria / tabla" aria-label="URL primera imagen secundaria" data-loaded="0"></div>
-     <div class="lafActions"><button class="lafIcon" title="Guardar precio e imágenes" onclick="lafSaveRowWithImages(${JSON.stringify(p.id)},this)">✓</button><button class="lafIcon" title="Duplicar" onclick="liftCardAdminDuplicate(${JSON.stringify(p.id)})">⧉</button><button class="lafIcon" title="Editar" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>
+     <div class="liftInlineFields">
+      <input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}" title="Precio">
+      <input class="liftUrlInput" id="liftMainUrl_${p.id}" value="${esc(p.image||'')}" placeholder="URL principal" title="Imagen principal" type="url">
+      <input class="liftUrlInput" id="liftSecondUrl_${p.id}" data-lift-secondary="${esc(p.id)}" placeholder="URL secundaria / tabla" title="Primera imagen secundaria" type="url">
+    </div>
+     <div class="lafActions"><button class="lafIcon" title="Guardar precio e imágenes" onclick="liftSaveInlineImages(${JSON.stringify(p.id)},this)">✓</button><button class="lafIcon" title="Duplicar" onclick="liftCardAdminDuplicate(${JSON.stringify(p.id)})">⧉</button><button class="lafIcon" title="Editar" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>
    </div>`).join('')||'<div class="lafNote">No hay resultados.</div>';
    lafBulkUpdate();
  };
@@ -12647,6 +12642,52 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
  else{install();observer.observe(document.body,{childList:true,subtree:true})}
 })();
 </script>
+<style id="lift-inline-image-fields-v1">
+#lafProductList .lafBulkRow{grid-template-columns:28px 48px minmax(125px,1fr) minmax(260px,1.5fr) auto!important}
+#lafProductList .liftInlineFields{display:grid;grid-template-columns:90px minmax(100px,1fr) minmax(100px,1fr);gap:6px;min-width:0}
+#lafProductList .liftInlineFields input{height:37px;min-width:0;width:100%;border:1px solid #d8d8d8;border-radius:8px;padding:0 8px;font:400 11px Poppins,sans-serif;color:#222;background:#fff}
+#lafProductList .liftInlineFields input:focus{outline:1px solid #111;border-color:#111}
+#lafProductList .lafActions{white-space:nowrap}
+@media(max-width:900px){#lafProductList .lafBulkRow{grid-template-columns:28px 44px minmax(0,1fr) auto!important}#lafProductList .liftInlineFields{grid-column:3/-1;grid-row:2;grid-template-columns:85px minmax(0,1fr) minmax(0,1fr)}#lafProductList .lafActions{grid-column:4;grid-row:1}}
+@media(max-width:520px){#lafProductList .liftInlineFields{grid-column:2/-1;grid-template-columns:80px minmax(0,1fr);grid-row:2}#lafProductList .liftInlineFields input:last-child{grid-column:2}#lafProductList .lafActions{grid-column:4;grid-row:1}}
+</style>
+<script id="lift-inline-image-fields-js">
+(function(){
+ const original=window.lafRenderProducts;
+ if(typeof original!=='function')return;
+ window.lafRenderProducts=function(){
+   original.apply(this,arguments);
+   document.querySelectorAll('#lafProductList [data-lift-secondary]').forEach(async input=>{
+     const id=input.dataset.liftSecondary;
+     try{const rows=await liftSecondaryGet(id);if(input.isConnected&&!input.dataset.edited)input.value=(rows[0]&&rows[0].imagen_url)||''}
+     catch(e){input.title='No se pudo cargar imagen secundaria: '+e.message}
+   });
+ };
+ document.addEventListener('input',e=>{if(e.target.matches('#lafProductList [data-lift-secondary]'))e.target.dataset.edited='1'});
+ window.liftSaveInlineImages=async function(id,button){
+   const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;
+   const price=document.getElementById('lafp_'+id),main=document.getElementById('liftMainUrl_'+id),secondary=document.getElementById('liftSecondUrl_'+id);
+   if(!price||!main||!secondary)return;
+   const mainUrl=main.value.trim(),secondUrl=secondary.value.trim();
+   for(const url of [mainUrl,secondUrl])if(url&&!/^https?:\/\//i.test(url)){alert('Utiliza una URL que comience por https://');return}
+   const old={price:p.price,image:p.image};const oldLabel=button.textContent;
+   button.disabled=true;button.textContent='…';
+   try{
+     const rows=await liftSecondaryGet(id,true);
+     const remaining=rows.map(r=>r.imagen_url).filter(Boolean).filter(u=>u!==secondUrl);
+     const urls=secondUrl?[secondUrl,...remaining.slice(1).filter(u=>u!==secondUrl)]:remaining.slice(1);
+     // Mantener las demás imágenes secundarias, reemplazando únicamente la primera.
+     p.price=Number(String(price.value).replace(/[^0-9]/g,''))||0;p.image=mainUrl;
+     await window.liftCloudSaveProduct(p);
+     await liftSecondarySaveUrls(id,urls.join('\n'));
+     button.textContent='✓';button.title='Guardado en Supabase';
+     if(typeof render==='function')render();
+   }catch(e){p.price=old.price;p.image=old.image;button.textContent='!';alert('No se pudieron guardar las imágenes: '+e.message)}
+   finally{button.disabled=false;setTimeout(()=>{if(button.isConnected)button.textContent=oldLabel},1400)}
+ };
+ window.lafRenderProducts();
+})();
+</script>
 <style id="lift-card-nutrition-hover-v1">
 @media(hover:hover) and (pointer:fine){
  .liftVitanessCard .pic img[data-lift-card-main]{transition:opacity .28s ease,transform .35s ease}
@@ -12696,61 +12737,6 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
      pic.classList.remove('liftNutritionPreview');
    }
  });
-})();
-</script>
-<script id="lift-inline-admin-urls-logic-v1">
-(function(){
- const previousRender=window.lafRenderProducts;
- if(typeof previousRender==='function')window.lafRenderProducts=function(){
-   previousRender.apply(this,arguments);
-   document.querySelectorAll('#lafProductList .lafSecondaryFirst').forEach(async input=>{
-     const id=input.id.slice('lafsec_'.length);
-     try{
-       const rows=await liftSecondaryGet(id);
-       if(!input.isConnected || input.dataset.loaded!=='0')return;
-       input.value=rows[0]?.imagen_url||'';
-       input.dataset.loaded='1';
-     }catch(e){console.error('Error cargando imagen secundaria',id,e);input.dataset.loaded='error';input.placeholder='No se pudo cargar la URL';}
-   });
- };
- window.lafSaveRowWithImages=async function(id,btn){
-   const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;
-   const main=document.getElementById('lafimg_'+id),secondary=document.getElementById('lafsec_'+id),priceInput=document.getElementById('lafp_'+id);
-   if(!main||!secondary||!priceInput)return;
-   if(secondary.dataset.loaded!=='1'){alert('Espera a que cargue la imagen secundaria antes de guardar.');return;}
-   const valid=u=>!u||/^https?:\/\//i.test(u);
-   const newMain=main.value.trim(),newSecondary=secondary.value.trim();
-   if(!valid(newMain)||!valid(newSecondary)){alert('Las imágenes deben usar URL https:// o http://');return;}
-   const previous={image:p.image,price:p.price};
-   const newPrice=num(priceInput.value);
-   if(!Number.isFinite(newPrice)||newPrice<0){alert('Revisa el precio.');return;}
-   btn.disabled=true;btn.textContent='…';
-   try{
-     // Conservar todas las secundarias salvo la primera que se está editando.
-     const rows=await liftSecondaryGet(id,true);
-     const oldFirst=rows[0]?.imagen_url||'';
-     const changedMain=newMain!==(p.image||'');
-     const changedPrice=newPrice!==Number(p.price||0);
-     const changedSecondary=newSecondary!==oldFirst;
-     if(changedMain||changedPrice){
-       p.image=newMain;p.price=newPrice;
-       if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No está disponible el guardado de productos en Supabase.');
-       await window.liftCloudSaveProduct(p);
-     }
-     if(changedSecondary){
-       const remaining=rows.slice(1).map(x=>x.imagen_url).filter(Boolean);
-       await liftSecondarySaveUrls(id,[newSecondary,...remaining].filter(Boolean).join('\n'));
-     }
-     if(typeof patch==='function')patch(p);
-     priceInput.value=fmt(p.price);
-     const thumb=btn.closest('.lafBulkRow')?.querySelector('img');if(thumb&&changedMain){thumb.src=newMain;thumb.style.visibility='visible';}
-     btn.textContent='✓';btn.style.background='#dcfce7';
-     setTimeout(()=>{if(btn.isConnected)btn.style.background=''},1400);
-   }catch(e){
-     p.image=previous.image;p.price=previous.price;
-     console.error(e);alert('No se guardaron todos los cambios: '+(e.message||e)+'\nRevisa los datos antes de volver a guardar.');
-   }finally{btn.disabled=false;btn.textContent='✓';}
- };
 })();
 </script>
 </body>
