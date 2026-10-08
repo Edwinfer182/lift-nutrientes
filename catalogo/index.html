@@ -1212,6 +1212,40 @@ body.liftAdminUnlocked .lift-brand-share {
  #liftMonoBody{position:relative!important;z-index:1!important;}
 }
 </style>
+
+<style id="lift-secondary-gallery-borderless-hover-v1">
+/* Miniaturas sin cajas: el envase completo se ve y la selección permanece. */
+#liftMonoZoomArea .liftSecondaryRail{
+  width:72px!important;left:10px!important;top:14px!important;bottom:14px!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  gap:13px!important;padding:3px 5px!important;overflow-y:auto!important;overflow-x:hidden!important;
+  background:transparent!important;scrollbar-width:thin;
+}
+#liftMonoZoomArea .liftSecondaryThumb{
+  flex:0 0 65px!important;width:62px!important;height:65px!important;min-height:65px!important;
+  border:0!important;outline:0!important;border-radius:8px!important;
+  padding:2px!important;background:transparent!important;box-shadow:none!important;
+  overflow:visible!important;opacity:.72;transition:opacity .16s ease,transform .16s ease!important;
+}
+#liftMonoZoomArea .liftSecondaryThumb img{
+  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;
+  max-height:100%!important;object-fit:contain!important;object-position:center!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+}
+#liftMonoZoomArea .liftSecondaryThumb:hover,
+#liftMonoZoomArea .liftSecondaryThumb.active{opacity:1!important;transform:scale(1.06)!important;border:0!important;box-shadow:none!important}
+#liftMonoZoomArea .liftSecondaryThumb.active:after{
+  content:"";display:block;width:20px;height:2px;background:#111;border-radius:3px;
+  margin:2px auto 0;
+}
+#liftMonoZoomArea .liftSecondaryThumb:focus-visible{outline:2px solid #111!important;outline-offset:3px!important}
+#liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 76px)!important;margin-left:76px!important;object-fit:contain!important}
+@media(max-width:760px){
+ #liftMonoZoomArea .liftSecondaryRail{width:56px!important;left:5px!important;top:8px!important;bottom:8px!important;gap:9px!important;padding:2px!important}
+ #liftMonoZoomArea .liftSecondaryThumb{flex-basis:52px!important;width:49px!important;height:52px!important;min-height:52px!important}
+ #liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 58px)!important;margin-left:58px!important}
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2280,7 +2314,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <div class="pic">
           ${offerBadges(p)}
           <button class="liftCardFav ${liftFavorites.has(Number(p.id))?'active':''}" type="button" title="Favorito" aria-label="Favorito" onclick="event.stopPropagation();toggleLiftFavorite(${p.id},this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 4.3 13A5.2 5.2 0 0 1 12 6a5.2 5.2 0 0 1 7.7 7L12 20.4Z"/></svg></button>
-          <img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">
+          <img data-lift-card-main="${p.id}" loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">
         </div>
         <div class="body">
           <div class="liftCardSection">${esc(p.brand||'')} · ${esc(p.category||'')}</div>
@@ -7907,23 +7941,35 @@ async function liftSecondaryRender(product){
  area.classList.remove('hasSecondaryGallery');
  let rows=[];
  try{rows=await liftSecondaryGet(product.id,true)}catch(e){console.error(e);return}
+ // Evita que una consulta anterior cambie la galería de otro producto.
+ if(!area.isConnected || area!==document.getElementById('liftMonoZoomArea') ||
+    String(window.currentProductId)!==String(product.id))return;
  if(!rows.length)return;
  const images=[{url:product.image||'',main:true},...rows.map(x=>({url:x.imagen_url,main:false}))].filter(x=>x.url);
  if(images.length<2)return;
  const rail=document.createElement('div');
  rail.className='liftSecondaryRail';
- rail.innerHTML=images.map((x,i)=>`<button type="button" class="liftSecondaryThumb${i===0?' active':''}" data-index="${i}" title="${i===0?'Imagen principal':'Imagen adicional '+i}"><img src="${String(x.url).replace(/"/g,'&quot;')}" alt=""></button>`).join('');
+ rail.setAttribute('aria-label','Imágenes del producto');
+ rail.innerHTML=images.map((x,i)=>`<button type="button" class="liftSecondaryThumb${i===0?' active':''}" data-index="${i}" aria-label="${i===0?'Imagen principal':'Imagen adicional '+i}" aria-pressed="${i===0?'true':'false'}" title="${i===0?'Imagen principal':'Imagen adicional '+i}"><img loading="lazy" src="${String(x.url).replace(/"/g,'&quot;')}" alt=""></button>`).join('');
  area.prepend(rail);
  area.classList.add('hasSecondaryGallery');
- rail.querySelectorAll('.liftSecondaryThumb').forEach((b,i)=>{
-   b.addEventListener('click',ev=>{
-     ev.preventDefault();ev.stopPropagation();
-     main.src=images[i].url;
-     rail.querySelectorAll('.liftSecondaryThumb').forEach(x=>x.classList.remove('active'));
-     b.classList.add('active');
-   });
+ const buttons=[...rail.querySelectorAll('.liftSecondaryThumb')];
+ const select=(i)=>{
+   if(!images[i])return;
+   if(main.getAttribute('src')!==images[i].url)main.src=images[i].url;
+   buttons.forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-pressed',String(i===j));});
+ };
+ buttons.forEach((b,i)=>{
+   // Al pasar el mouse se selecciona; al salir se conserva la última selección.
+   b.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'||e.pointerType==='pen')select(i)});
+   b.addEventListener('focus',()=>select(i));
+   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();select(i)});
  });
+ rail.addEventListener('click',e=>e.stopPropagation());
+ rail.addEventListener('dblclick',e=>e.stopPropagation());
+ rail.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
 }
+
 </script>
 
 
@@ -12557,6 +12603,57 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
  const observer=new MutationObserver(()=>{if(document.getElementById('liftMonoOff')){install();observer.disconnect()}});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();observer.observe(document.body,{childList:true,subtree:true})},{once:true});
  else{install();observer.observe(document.body,{childList:true,subtree:true})}
+})();
+</script>
+<style id="lift-card-nutrition-hover-v1">
+@media(hover:hover) and (pointer:fine){
+ .liftVitanessCard .pic img[data-lift-card-main]{transition:opacity .28s ease,transform .35s ease}
+ .liftVitanessCard .pic.liftNutritionPreview img[data-lift-card-main]{opacity:0;transform:scale(.96)}
+ .liftVitanessCard .pic .liftNutritionHoverImage{position:absolute;inset:12px;width:calc(100% - 24px)!important;height:calc(100% - 24px)!important;max-width:none!important;max-height:none!important;object-fit:contain!important;opacity:0;transform:scale(1.035);transition:opacity .3s ease,transform .35s ease;pointer-events:none;z-index:1}
+ .liftVitanessCard .pic.liftNutritionPreview .liftNutritionHoverImage{opacity:1;transform:scale(1)}
+}
+</style>
+<script id="lift-card-nutrition-hover-js">
+(function(){
+ const cache=new Map();
+ const supported=window.matchMedia('(hover:hover) and (pointer:fine)');
+ function nutritionCandidate(rows){
+   const list=(rows||[]).filter(r=>r&&r.imagen_url);
+   // La primera imagen secundaria es la tabla/reverso cuando así se ordenó en Supabase.
+   return list.length?String(list[0].imagen_url):'';
+ }
+ async function preview(pic){
+   const main=pic.querySelector('img[data-lift-card-main]');
+   if(!main||!supported.matches)return;
+   const id=main.dataset.liftCardMain;
+   if(!id)return;
+   const request=Symbol();pic._liftNutritionRequest=request;
+   try{
+     if(!cache.has(id))cache.set(id,Promise.resolve(liftSecondaryGet(id)).then(nutritionCandidate).catch(()=>''));
+     const url=await cache.get(id);
+     if(!url||pic._liftNutritionRequest!==request||!pic.matches(':hover')||!pic.isConnected)return;
+     let second=pic.querySelector('.liftNutritionHoverImage');
+     if(!second){second=document.createElement('img');second.className='liftNutritionHoverImage';second.alt='Imagen secundaria del producto';second.decoding='async';pic.appendChild(second)}
+     if(second.dataset.url!==url){
+       second.dataset.url=url;
+       second.src=url;
+       if(!second.complete)await new Promise(resolve=>{second.onload=resolve;second.onerror=resolve});
+     }
+     if(second.naturalWidth&&pic._liftNutritionRequest===request&&pic.matches(':hover'))pic.classList.add('liftNutritionPreview');
+   }catch(e){console.debug('Vista secundaria no disponible',e)}
+ }
+ document.addEventListener('pointerover',e=>{
+   if(!supported.matches||e.pointerType==='touch')return;
+   const pic=e.target.closest?.('.liftVitanessCard .pic');
+   if(pic&&!pic.contains(e.relatedTarget))preview(pic);
+ });
+ document.addEventListener('pointerout',e=>{
+   const pic=e.target.closest?.('.liftVitanessCard .pic');
+   if(pic&&!pic.contains(e.relatedTarget)){
+     pic._liftNutritionRequest=null;
+     pic.classList.remove('liftNutritionPreview');
+   }
+ });
 })();
 </script>
 </body>
