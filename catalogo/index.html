@@ -1212,6 +1212,40 @@ body.liftAdminUnlocked .lift-brand-share {
  #liftMonoBody{position:relative!important;z-index:1!important;}
 }
 </style>
+
+<style id="lift-secondary-gallery-borderless-hover-v1">
+/* Miniaturas sin cajas: el envase completo se ve y la selección permanece. */
+#liftMonoZoomArea .liftSecondaryRail{
+  width:72px!important;left:10px!important;top:14px!important;bottom:14px!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  gap:13px!important;padding:3px 5px!important;overflow-y:auto!important;overflow-x:hidden!important;
+  background:transparent!important;scrollbar-width:thin;
+}
+#liftMonoZoomArea .liftSecondaryThumb{
+  flex:0 0 65px!important;width:62px!important;height:65px!important;min-height:65px!important;
+  border:0!important;outline:0!important;border-radius:8px!important;
+  padding:2px!important;background:transparent!important;box-shadow:none!important;
+  overflow:visible!important;opacity:.72;transition:opacity .16s ease,transform .16s ease!important;
+}
+#liftMonoZoomArea .liftSecondaryThumb img{
+  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;
+  max-height:100%!important;object-fit:contain!important;object-position:center!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+}
+#liftMonoZoomArea .liftSecondaryThumb:hover,
+#liftMonoZoomArea .liftSecondaryThumb.active{opacity:1!important;transform:scale(1.06)!important;border:0!important;box-shadow:none!important}
+#liftMonoZoomArea .liftSecondaryThumb.active:after{
+  content:"";display:block;width:20px;height:2px;background:#111;border-radius:3px;
+  margin:2px auto 0;
+}
+#liftMonoZoomArea .liftSecondaryThumb:focus-visible{outline:2px solid #111!important;outline-offset:3px!important}
+#liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 76px)!important;margin-left:76px!important;object-fit:contain!important}
+@media(max-width:760px){
+ #liftMonoZoomArea .liftSecondaryRail{width:56px!important;left:5px!important;top:8px!important;bottom:8px!important;gap:9px!important;padding:2px!important}
+ #liftMonoZoomArea .liftSecondaryThumb{flex-basis:52px!important;width:49px!important;height:52px!important;min-height:52px!important}
+ #liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 58px)!important;margin-left:58px!important}
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2280,7 +2314,7 @@ function productCards(arr,emptyText='No encontré productos.'){
         <div class="pic">
           ${offerBadges(p)}
           <button class="liftCardFav ${liftFavorites.has(Number(p.id))?'active':''}" type="button" title="Favorito" aria-label="Favorito" onclick="event.stopPropagation();toggleLiftFavorite(${p.id},this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 4.3 13A5.2 5.2 0 0 1 12 6a5.2 5.2 0 0 1 7.7 7L12 20.4Z"/></svg></button>
-          <img loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">
+          <img data-lift-card-main="${p.id}" loading="lazy" decoding="async" fetchpriority="low" src="${p.image}" class="${p.blackBgFix?'blackBgFix':''}" alt="${esc(p.name)}">
         </div>
         <div class="body">
           <div class="liftCardSection">${esc(p.brand||'')} · ${esc(p.category||'')}</div>
@@ -5436,6 +5470,14 @@ window.shareLiftProductImage=async function(id){
 .lafVariantRow{display:grid;grid-template-columns:52px minmax(0,1fr) minmax(120px,.7fr);gap:8px;align-items:center;border:1px solid #e8e8e8;border-radius:12px;padding:8px;background:#fff}.lafVariantRow img{width:52px;height:52px;object-fit:contain;border-radius:8px}.lafVariantInputs{display:grid;grid-template-columns:1fr 1fr;gap:7px}.lafVariantInputs input{height:38px;border:1px solid #ddd;border-radius:9px;padding:0 9px;width:100%;font:inherit}.lafGroupCard{border:1px solid #e7e7e7;border-radius:12px;padding:10px;background:#fff}.lafGroupTop{display:flex;gap:9px;align-items:center}.lafGroupTop img{width:48px;height:48px;object-fit:contain}.lafGroupTop strong{font-size:12px}.lafGroupMeta{font-size:10px;color:#777;margin-top:3px}.lafGroupFlavors{font-size:10px;color:#555;margin-top:7px;line-height:1.45}.lafGroupActions{display:flex;gap:6px;margin-top:8px}
 @media(max-width:700px){.lafVariantRow{grid-template-columns:44px minmax(0,1fr)}.lafVariantInputs{grid-column:2/-1;grid-template-columns:1fr}.lafVariantRow img{width:44px;height:44px}#lafPanel{width:100vw}.lafRow{grid-template-columns:48px minmax(0,1fr) 92px}.lafActions{grid-column:2/-1}.lafForm{grid-template-columns:1fr}.lafField.full{grid-column:auto}.lafOfferRow{grid-template-columns:1fr 100px}.lafOfferRow>*:nth-child(3),.lafOfferRow>*:nth-child(4){grid-column:auto}.lafTabs{padding:8px}.lafBody{padding:12px}}
 </style>
+<style id="lift-inline-admin-urls-v1">
+#lafProductList .lafBulkRow{grid-template-columns:28px 48px minmax(135px,1fr) 95px minmax(160px,1.15fr) auto!important;align-items:center}
+#lafProductList .lafInlineUrls{display:grid;gap:5px;min-width:0}
+#lafProductList .lafImageUrl{width:100%;height:32px;min-width:0;border:1px solid #dedede;border-radius:7px;padding:0 8px;font:400 10px Poppins,Arial,sans-serif;background:#fff;color:#222}
+#lafProductList .lafImageUrl:focus{outline:1px solid #111}
+#lafProductList .lafImageUrl[data-loaded="0"]{background:#fafafa}
+@media(max-width:800px){#lafProductList .lafBulkRow{grid-template-columns:24px 44px minmax(0,1fr) 92px!important}#lafProductList .lafInlineUrls{grid-column:3/-1;grid-row:auto}#lafProductList .lafActions{grid-column:3/-1;justify-content:flex-end}}
+</style>
 <div id="lafBackdrop" onclick="closeLiftAdminFull()"></div>
 <aside id="lafPanel">
  <div class="lafHead"><div><strong>Panel administrativo</strong><small>LIFT · precio detal · administración completa</small></div><button type="button" onclick="lockLiftAdmin()" title="Salir del administrador" style="margin-left:auto;border:1px solid #444;background:#1b1b1b;color:#fff;border-radius:9px;height:34px;padding:0 11px;cursor:pointer;font:600 11px Poppins,Arial">Salir</button><button class="lafClose" onclick="closeLiftAdminFull()">×</button></div>
@@ -5581,12 +5623,9 @@ window.shareLiftProductImage=async function(id){
      <label class="lafBulkCheckWrap" title="Seleccionar"><input class="lafBulkCheck" type="checkbox" value="${esc(p.id)}" ${window.LIFT_BULK_SELECTED.has(String(p.id))?'checked':''} onchange="lafBulkToggle(this.value,this.checked)"></label>
      <img src="${esc(p.image||'')}" onerror="this.style.visibility='hidden'">
      <div><div class="lafName">${esc(p.name)}</div><div class="lafMeta">${esc(p.brand||'')} · ${esc(p.category||'')} ${m.out?.[p.id]?'· AGOTADO':''}</div></div>
-     <div class="liftInlineFields">
-      <input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}" title="Precio">
-      <input class="liftUrlInput" id="liftMainUrl_${p.id}" value="${esc(p.image||'')}" placeholder="URL principal" title="Imagen principal" type="url">
-      <input class="liftUrlInput" id="liftSecondUrl_${p.id}" data-lift-secondary="${esc(p.id)}" placeholder="URL secundaria / tabla" title="Primera imagen secundaria" type="url">
-    </div>
-     <div class="lafActions"><button class="lafIcon" title="Guardar precio e imágenes" onclick="liftSaveInlineImages(${JSON.stringify(p.id)},this)">✓</button><button class="lafIcon" title="Duplicar" onclick="liftCardAdminDuplicate(${JSON.stringify(p.id)})">⧉</button><button class="lafIcon" title="Editar" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>
+     <input class="lafPrice" id="lafp_${p.id}" value="${fmt(p.price)}" aria-label="Precio público">
+     <div class="lafInlineUrls"><input class="lafImageUrl" id="lafimg_${p.id}" type="url" placeholder="URL imagen principal" aria-label="URL imagen principal" value="${esc(p.image||'')}"><input class="lafImageUrl lafSecondaryFirst" id="lafsec_${p.id}" type="url" placeholder="URL primera secundaria / tabla" aria-label="URL primera imagen secundaria" data-loaded="0"></div>
+     <div class="lafActions"><button class="lafIcon" title="Guardar precio e imágenes" onclick="lafSaveRowWithImages(${JSON.stringify(p.id)},this)">✓</button><button class="lafIcon" title="Duplicar" onclick="liftCardAdminDuplicate(${JSON.stringify(p.id)})">⧉</button><button class="lafIcon" title="Editar" onclick="lafEdit(${JSON.stringify(p.id)})">✎</button></div>
    </div>`).join('')||'<div class="lafNote">No hay resultados.</div>';
    lafBulkUpdate();
  };
@@ -7911,23 +7950,35 @@ async function liftSecondaryRender(product){
  area.classList.remove('hasSecondaryGallery');
  let rows=[];
  try{rows=await liftSecondaryGet(product.id,true)}catch(e){console.error(e);return}
+ // Evita que una consulta anterior cambie la galería de otro producto.
+ if(!area.isConnected || area!==document.getElementById('liftMonoZoomArea') ||
+    String(window.currentProductId)!==String(product.id))return;
  if(!rows.length)return;
  const images=[{url:product.image||'',main:true},...rows.map(x=>({url:x.imagen_url,main:false}))].filter(x=>x.url);
  if(images.length<2)return;
  const rail=document.createElement('div');
  rail.className='liftSecondaryRail';
- rail.innerHTML=images.map((x,i)=>`<button type="button" class="liftSecondaryThumb${i===0?' active':''}" data-index="${i}" title="${i===0?'Imagen principal':'Imagen adicional '+i}"><img src="${String(x.url).replace(/"/g,'&quot;')}" alt=""></button>`).join('');
+ rail.setAttribute('aria-label','Imágenes del producto');
+ rail.innerHTML=images.map((x,i)=>`<button type="button" class="liftSecondaryThumb${i===0?' active':''}" data-index="${i}" aria-label="${i===0?'Imagen principal':'Imagen adicional '+i}" aria-pressed="${i===0?'true':'false'}" title="${i===0?'Imagen principal':'Imagen adicional '+i}"><img loading="lazy" src="${String(x.url).replace(/"/g,'&quot;')}" alt=""></button>`).join('');
  area.prepend(rail);
  area.classList.add('hasSecondaryGallery');
- rail.querySelectorAll('.liftSecondaryThumb').forEach((b,i)=>{
-   b.addEventListener('click',ev=>{
-     ev.preventDefault();ev.stopPropagation();
-     main.src=images[i].url;
-     rail.querySelectorAll('.liftSecondaryThumb').forEach(x=>x.classList.remove('active'));
-     b.classList.add('active');
-   });
+ const buttons=[...rail.querySelectorAll('.liftSecondaryThumb')];
+ const select=(i)=>{
+   if(!images[i])return;
+   if(main.getAttribute('src')!==images[i].url)main.src=images[i].url;
+   buttons.forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-pressed',String(i===j));});
+ };
+ buttons.forEach((b,i)=>{
+   // Al pasar el mouse se selecciona; al salir se conserva la última selección.
+   b.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'||e.pointerType==='pen')select(i)});
+   b.addEventListener('focus',()=>select(i));
+   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();select(i)});
  });
+ rail.addEventListener('click',e=>e.stopPropagation());
+ rail.addEventListener('dblclick',e=>e.stopPropagation());
+ rail.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
 }
+
 </script>
 
 
@@ -12007,6 +12058,35 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 }
 </style>
 
+<style id="lift-attention-readable-search-v2">
+#liftAttentionCheckout{background:#fff;border-color:#d5d5d5;padding:16px}
+#liftAttentionCheckout .liftAttTitle b{font-size:18px;font-weight:700;color:#111}
+#liftAttentionCheckout .liftAttTitle small{font-size:12px;color:#555;font-weight:500}
+#liftAttentionCheckout .liftAttClientPick>label{font-size:13px;font-weight:600;color:#222}
+#liftAttentionCheckout .liftAttClientRow select,#liftAttentionCheckout .liftAttClientRow input{font-size:13px;font-weight:500;height:44px;color:#111}
+#liftAttentionCheckout .liftAttClientPick small{font-size:11px;color:#555}
+#liftAttentionCheckout .liftAttTabs{gap:8px;padding:8px 0 14px}
+#liftAttentionCheckout .liftAttTabs button{font:600 12.5px/1.3 Poppins,Arial,sans-serif;padding:10px 14px;white-space:normal;min-height:40px;color:#161616;border-color:#ccc}
+#liftAttentionCheckout .liftAttTabs button.on{color:#fff;border-color:#111}
+#liftAttentionCheckout .liftAttReplies{gap:9px}
+#liftAttentionCheckout .liftAttReply{font:500 14px/1.5 Poppins,Arial,sans-serif;padding:13px 15px;min-height:51px;color:#171717;border-color:#d5d5d5;overflow-wrap:anywhere}
+#liftAttentionCheckout .liftAttReply:hover,#liftAttentionCheckout .liftAttReply.on{background:#f0f0f0;border-color:#111}
+#liftAttentionCheckout #liftAttText{font:500 14px/1.5 Poppins,Arial,sans-serif;padding:13px;min-height:72px;color:#111}
+#liftAttentionCheckout #liftAttCopy{font:600 13px Poppins,Arial,sans-serif;min-width:140px}
+.liftAttSearchWrap{display:flex;align-items:center;gap:10px;margin:14px 0 6px}
+#liftAttSearch{width:100%;min-width:0;height:48px;padding:0 15px;border:1px solid #bdbdbd;border-radius:11px;background:#fff;color:#111;font:500 14px Poppins,Arial,sans-serif;outline:none}
+#liftAttSearch:focus{border-color:#111;box-shadow:0 0 0 2px rgba(0,0,0,.08)}
+#liftAttSearchCount{flex:0 0 auto;font-size:12px;font-weight:600;color:#444}
+.liftAttReplyCategory{display:block;font-size:11px;font-weight:700;color:#555;margin-bottom:4px}
+.liftAttNoResults{grid-column:1/-1;padding:22px;text-align:center;font-size:14px;color:#444}
+@media(max-width:620px){#liftAttentionCheckout{padding:12px}#liftAttentionCheckout .liftAttTabs button{font-size:12px;padding:9px 11px}#liftAttentionCheckout .liftAttReply{font-size:14px}#liftAttSearch{font-size:13px}.liftAttSearchWrap{flex-wrap:wrap}}
+</style>
+<style id="lift-attention-copy-top-v3">
+#liftAttentionCheckout .liftAttResult{position:sticky;top:0;z-index:25;background:#fff;padding:10px 0 12px;margin:4px 0 10px;border-bottom:1px solid #ddd;box-shadow:0 5px 10px -10px #111;align-items:stretch}
+#liftAttentionCheckout #liftAttCopy{min-height:52px;padding:10px 18px}
+#liftAttentionCheckout #liftAttText{min-height:52px;max-height:115px}
+@media(max-width:620px){#liftAttentionCheckout .liftAttResult{grid-template-columns:minmax(0,1fr) auto;gap:6px}#liftAttentionCheckout #liftAttCopy{min-width:105px;font-size:12px;padding:8px}#liftAttentionCheckout #liftAttText{min-width:0}}
+</style>
 <script id="lift-checkout-attention-v1-script">
 (function(){
  let GROUPS={};
@@ -12094,16 +12174,20 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 </div>
 <small id="liftAttClientStatus">Puedes seleccionar un cliente viejo o escribir un nombre si no aparece</small>
 </div>
-<div id="liftAttTabs" class="liftAttTabs"></div><div id="liftAttReplies" class="liftAttReplies"></div><div class="liftAttResult"><textarea id="liftAttText" placeholder="Selecciona una respuesta"></textarea><button id="liftAttCopy" type="button" onclick="liftCopyAttentionText()">Copiar mensaje</button></div>`;
+<div class="liftAttResult"><textarea id="liftAttText" placeholder="Selecciona una respuesta"></textarea><button id="liftAttCopy" type="button" onclick="liftCopyAttentionText()">Copiar mensaje</button></div><div class="liftAttSearchWrap"><input id="liftAttSearch" type="search" placeholder="🔎 Buscar respuestas: envío, pago, gracias..." aria-label="Buscar respuestas rápidas" oninput="liftAttentionSearchChanged(this.value)"><span id="liftAttSearchCount" aria-live="polite"></span></div><div id="liftAttTabs" class="liftAttTabs"></div><div id="liftAttReplies" class="liftAttReplies"></div>`;
    tools.insertAdjacentElement('afterend',box);return box;
  }
+ function normalizeAtt(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim()}
+ let attQuery='';
+ window.liftAttentionSearchChanged=function(v){attQuery=String(v||'').trim();render()};
  function render(){
    const box=ensure();if(!box)return;
    $('liftAttNameHint').textContent=first()?' · '+first():' · escribe el nombre arriba';
-   const cats=Object.keys(GROUPS);
-   $('liftAttTabs').innerHTML=cats.length?cats.map(k=>`<button type="button" data-lat="${esc(k)}" class="${k===active?'on':''}">${esc(k)}</button>`).join(''):'<span style="font-size:10px;color:#777">Cargando respuestas…</span>';
-   const list=GROUPS[active]||[];
-   $('liftAttReplies').innerHTML=list.map((t,i)=>`<button type="button" class="liftAttReply" data-lar="${i}">${esc(t.replace('{name}','nombre'))}</button>`).join('');
+   const cats=Object.keys(GROUPS), searching=!!attQuery, q=normalizeAtt(attQuery);
+   $('liftAttTabs').innerHTML=cats.length?cats.map(k=>`<button type="button" data-lat="${esc(k)}" class="${k===active?'on':''}">${esc(k)}</button>`).join(''):'<span>Cargando respuestas…</span>';
+   const matches=searching?cats.flatMap(cat=>(GROUPS[cat]||[]).map((t,i)=>({t,i,cat})).filter(x=>normalizeAtt(x.t+' '+cat).includes(q))):(GROUPS[active]||[]).map((t,i)=>({t,i,cat:active}));
+   $('liftAttReplies').innerHTML=matches.length?matches.map(x=>`<button type="button" class="liftAttReply" data-lar="${x.i}" data-lar-cat="${esc(x.cat)}">${searching?`<span class="liftAttReplyCategory">${esc(x.cat)}</span>`:''}${esc(x.t.replaceAll('{name}','nombre'))}</button>`).join(''):'<div class="liftAttNoResults">No encontré respuestas con esa búsqueda.</div>';
+   const count=$('liftAttSearchCount');if(count)count.textContent=searching?matches.length+' resultado'+(matches.length===1?'':'s'):'';
  }
  window.liftToggleAttentionCheckout=function(btn){
    if(!document.body.classList.contains('liftAdminUnlocked'))return;
@@ -12122,7 +12206,7 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
  document.addEventListener('click',e=>{
    const tab=e.target.closest?.('[data-lat]');if(tab){active=tab.dataset.lat;render();return}
    const rep=e.target.closest?.('[data-lar]');if(rep){
-     const template=(GROUPS[active]||[])[Number(rep.dataset.lar)]||'';
+     const template=(GROUPS[rep.dataset.larCat||active]||[])[Number(rep.dataset.lar)]||'';
      const n=first();
      let msg=template.replaceAll('{name}',n).replace(/\s+/g,' ').trim();
      if(n && !template.includes('{name}')){
@@ -12563,51 +12647,110 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
  else{install();observer.observe(document.body,{childList:true,subtree:true})}
 })();
 </script>
-
-<style id="lift-inline-image-fields-v1">
-#lafProductList .lafBulkRow{grid-template-columns:28px 48px minmax(125px,1fr) minmax(260px,1.5fr) auto!important}
-#lafProductList .liftInlineFields{display:grid;grid-template-columns:90px minmax(100px,1fr) minmax(100px,1fr);gap:6px;min-width:0}
-#lafProductList .liftInlineFields input{height:37px;min-width:0;width:100%;border:1px solid #d8d8d8;border-radius:8px;padding:0 8px;font:400 11px Poppins,sans-serif;color:#222;background:#fff}
-#lafProductList .liftInlineFields input:focus{outline:1px solid #111;border-color:#111}
-#lafProductList .lafActions{white-space:nowrap}
-@media(max-width:900px){#lafProductList .lafBulkRow{grid-template-columns:28px 44px minmax(0,1fr) auto!important}#lafProductList .liftInlineFields{grid-column:3/-1;grid-row:2;grid-template-columns:85px minmax(0,1fr) minmax(0,1fr)}#lafProductList .lafActions{grid-column:4;grid-row:1}}
-@media(max-width:520px){#lafProductList .liftInlineFields{grid-column:2/-1;grid-template-columns:80px minmax(0,1fr);grid-row:2}#lafProductList .liftInlineFields input:last-child{grid-column:2}#lafProductList .lafActions{grid-column:4;grid-row:1}}
+<style id="lift-card-nutrition-hover-v1">
+@media(hover:hover) and (pointer:fine){
+ .liftVitanessCard .pic img[data-lift-card-main]{transition:opacity .28s ease,transform .35s ease}
+ .liftVitanessCard .pic.liftNutritionPreview img[data-lift-card-main]{opacity:0;transform:scale(.96)}
+ .liftVitanessCard .pic .liftNutritionHoverImage{position:absolute;inset:12px;width:calc(100% - 24px)!important;height:calc(100% - 24px)!important;max-width:none!important;max-height:none!important;object-fit:contain!important;opacity:0;transform:scale(1.035);transition:opacity .3s ease,transform .35s ease;pointer-events:none;z-index:1}
+ .liftVitanessCard .pic.liftNutritionPreview .liftNutritionHoverImage{opacity:1;transform:scale(1)}
+}
 </style>
-<script id="lift-inline-image-fields-js">
+<script id="lift-card-nutrition-hover-js">
 (function(){
- const original=window.lafRenderProducts;
- if(typeof original!=='function')return;
- window.lafRenderProducts=function(){
-   original.apply(this,arguments);
-   document.querySelectorAll('#lafProductList [data-lift-secondary]').forEach(async input=>{
-     const id=input.dataset.liftSecondary;
-     try{const rows=await liftSecondaryGet(id);if(input.isConnected&&!input.dataset.edited)input.value=(rows[0]&&rows[0].imagen_url)||''}
-     catch(e){input.title='No se pudo cargar imagen secundaria: '+e.message}
+ const cache=new Map();
+ const supported=window.matchMedia('(hover:hover) and (pointer:fine)');
+ function nutritionCandidate(rows){
+   const list=(rows||[]).filter(r=>r&&r.imagen_url);
+   // La primera imagen secundaria es la tabla/reverso cuando así se ordenó en Supabase.
+   return list.length?String(list[0].imagen_url):'';
+ }
+ async function preview(pic){
+   const main=pic.querySelector('img[data-lift-card-main]');
+   if(!main||!supported.matches)return;
+   const id=main.dataset.liftCardMain;
+   if(!id)return;
+   const request=Symbol();pic._liftNutritionRequest=request;
+   try{
+     if(!cache.has(id))cache.set(id,Promise.resolve(liftSecondaryGet(id)).then(nutritionCandidate).catch(()=>''));
+     const url=await cache.get(id);
+     if(!url||pic._liftNutritionRequest!==request||!pic.matches(':hover')||!pic.isConnected)return;
+     let second=pic.querySelector('.liftNutritionHoverImage');
+     if(!second){second=document.createElement('img');second.className='liftNutritionHoverImage';second.alt='Imagen secundaria del producto';second.decoding='async';pic.appendChild(second)}
+     if(second.dataset.url!==url){
+       second.dataset.url=url;
+       second.src=url;
+       if(!second.complete)await new Promise(resolve=>{second.onload=resolve;second.onerror=resolve});
+     }
+     if(second.naturalWidth&&pic._liftNutritionRequest===request&&pic.matches(':hover'))pic.classList.add('liftNutritionPreview');
+   }catch(e){console.debug('Vista secundaria no disponible',e)}
+ }
+ document.addEventListener('pointerover',e=>{
+   if(!supported.matches||e.pointerType==='touch')return;
+   const pic=e.target.closest?.('.liftVitanessCard .pic');
+   if(pic&&!pic.contains(e.relatedTarget))preview(pic);
+ });
+ document.addEventListener('pointerout',e=>{
+   const pic=e.target.closest?.('.liftVitanessCard .pic');
+   if(pic&&!pic.contains(e.relatedTarget)){
+     pic._liftNutritionRequest=null;
+     pic.classList.remove('liftNutritionPreview');
+   }
+ });
+})();
+</script>
+<script id="lift-inline-admin-urls-logic-v1">
+(function(){
+ const previousRender=window.lafRenderProducts;
+ if(typeof previousRender==='function')window.lafRenderProducts=function(){
+   previousRender.apply(this,arguments);
+   document.querySelectorAll('#lafProductList .lafSecondaryFirst').forEach(async input=>{
+     const id=input.id.slice('lafsec_'.length);
+     try{
+       const rows=await liftSecondaryGet(id);
+       if(!input.isConnected || input.dataset.loaded!=='0')return;
+       input.value=rows[0]?.imagen_url||'';
+       input.dataset.loaded='1';
+     }catch(e){console.error('Error cargando imagen secundaria',id,e);input.dataset.loaded='error';input.placeholder='No se pudo cargar la URL';}
    });
  };
- document.addEventListener('input',e=>{if(e.target.matches('#lafProductList [data-lift-secondary]'))e.target.dataset.edited='1'});
- window.liftSaveInlineImages=async function(id,button){
+ window.lafSaveRowWithImages=async function(id,btn){
    const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;
-   const price=document.getElementById('lafp_'+id),main=document.getElementById('liftMainUrl_'+id),secondary=document.getElementById('liftSecondUrl_'+id);
-   if(!price||!main||!secondary)return;
-   const mainUrl=main.value.trim(),secondUrl=secondary.value.trim();
-   for(const url of [mainUrl,secondUrl])if(url&&!/^https?:\/\//i.test(url)){alert('Utiliza una URL que comience por https://');return}
-   const old={price:p.price,image:p.image};const oldLabel=button.textContent;
-   button.disabled=true;button.textContent='…';
+   const main=document.getElementById('lafimg_'+id),secondary=document.getElementById('lafsec_'+id),priceInput=document.getElementById('lafp_'+id);
+   if(!main||!secondary||!priceInput)return;
+   if(secondary.dataset.loaded!=='1'){alert('Espera a que cargue la imagen secundaria antes de guardar.');return;}
+   const valid=u=>!u||/^https?:\/\//i.test(u);
+   const newMain=main.value.trim(),newSecondary=secondary.value.trim();
+   if(!valid(newMain)||!valid(newSecondary)){alert('Las imágenes deben usar URL https:// o http://');return;}
+   const previous={image:p.image,price:p.price};
+   const newPrice=num(priceInput.value);
+   if(!Number.isFinite(newPrice)||newPrice<0){alert('Revisa el precio.');return;}
+   btn.disabled=true;btn.textContent='…';
    try{
+     // Conservar todas las secundarias salvo la primera que se está editando.
      const rows=await liftSecondaryGet(id,true);
-     const remaining=rows.map(r=>r.imagen_url).filter(Boolean).filter(u=>u!==secondUrl);
-     const urls=secondUrl?[secondUrl,...remaining.slice(1).filter(u=>u!==secondUrl)]:remaining.slice(1);
-     // Mantener las demás imágenes secundarias, reemplazando únicamente la primera.
-     p.price=Number(String(price.value).replace(/[^0-9]/g,''))||0;p.image=mainUrl;
-     await window.liftCloudSaveProduct(p);
-     await liftSecondarySaveUrls(id,urls.join('\n'));
-     button.textContent='✓';button.title='Guardado en Supabase';
-     if(typeof render==='function')render();
-   }catch(e){p.price=old.price;p.image=old.image;button.textContent='!';alert('No se pudieron guardar las imágenes: '+e.message)}
-   finally{button.disabled=false;setTimeout(()=>{if(button.isConnected)button.textContent=oldLabel},1400)}
+     const oldFirst=rows[0]?.imagen_url||'';
+     const changedMain=newMain!==(p.image||'');
+     const changedPrice=newPrice!==Number(p.price||0);
+     const changedSecondary=newSecondary!==oldFirst;
+     if(changedMain||changedPrice){
+       p.image=newMain;p.price=newPrice;
+       if(typeof window.liftCloudSaveProduct!=='function')throw new Error('No está disponible el guardado de productos en Supabase.');
+       await window.liftCloudSaveProduct(p);
+     }
+     if(changedSecondary){
+       const remaining=rows.slice(1).map(x=>x.imagen_url).filter(Boolean);
+       await liftSecondarySaveUrls(id,[newSecondary,...remaining].filter(Boolean).join('\n'));
+     }
+     if(typeof patch==='function')patch(p);
+     priceInput.value=fmt(p.price);
+     const thumb=btn.closest('.lafBulkRow')?.querySelector('img');if(thumb&&changedMain){thumb.src=newMain;thumb.style.visibility='visible';}
+     btn.textContent='✓';btn.style.background='#dcfce7';
+     setTimeout(()=>{if(btn.isConnected)btn.style.background=''},1400);
+   }catch(e){
+     p.image=previous.image;p.price=previous.price;
+     console.error(e);alert('No se guardaron todos los cambios: '+(e.message||e)+'\nRevisa los datos antes de volver a guardar.');
+   }finally{btn.disabled=false;btn.textContent='✓';}
  };
- window.lafRenderProducts();
 })();
 </script>
 </body>
