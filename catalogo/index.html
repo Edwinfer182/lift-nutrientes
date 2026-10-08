@@ -5165,7 +5165,7 @@ window.shareLiftProductImage=async function(id){
  }:rawProduct;
  liftShareToast('Creando imagen…');
  try{
-  const c=document.createElement('canvas');c.width=1080;c.height=1350;
+  const c=document.createElement('canvas');c.width=1080;c.height=1900;
   const ctx=c.getContext('2d');
   ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
 
@@ -5179,15 +5179,39 @@ window.shareLiftProductImage=async function(id){
   const visibleMain=(String(window.currentProductId||'')===String(p.id))
     ? document.getElementById('liftMonoMainImg')?.src
     : '';
-  const shareSource=visibleMain||p.image;
+  const shareSource=(p._variantGroupId && p.image) ? p.image : (visibleMain||p.image);
   const img=await liftLoadShareImage(shareSource);
   if(!img)throw new Error('No se pudo cargar la imagen del producto para compartir');
 
-  // Imagen algo más pequeña y con aire real
-  const box={x:105,y:128,w:870,h:650};
-  const r=Math.min(box.w/img.width,box.h/img.height);
-  const iw=img.width*r,ih=img.height*r;
-  ctx.drawImage(img,box.x+(box.w-iw)/2,box.y+(box.h-ih)/2,iw,ih);
+  // Recupera una segunda fotografía real desde la galería de Supabase.
+  // Si no existe o falla su carga, conserva el diseño de una sola imagen.
+  let secondImg=null;
+  try{
+    // La información nutricional puede ser de otro sabor del mismo grupo.
+    // Priorizar imágenes de la variante y luego la galería del producto padre.
+    const ids=[p.id,p._variantGroupId,rawProduct.id,grouped?.id].filter(v=>v!=null&&String(v).trim());
+    for(const productId of [...new Set(ids.map(String))]){
+      if(typeof liftSecondaryGet!=='function')break;
+      const gallery=await liftSecondaryGet(productId);
+      const candidate=(gallery||[]).find(item=>{
+        const url=String(item.imagen_url||'').trim();
+        return url && url!==shareSource && url!==p.image;
+      });
+      if(candidate){secondImg=await liftLoadShareImage(candidate.imagen_url);if(secondImg)break;}
+    }
+  }catch(err){console.warn('Imagen secundaria no disponible para compartir',err);}
+
+  function drawContained(photo,box){
+    const scale=Math.min(box.w/photo.width,box.h/photo.height);
+    const w=photo.width*scale,h=photo.height*scale;
+    ctx.drawImage(photo,box.x+(box.w-w)/2,box.y+(box.h-h)/2,w,h);
+  }
+  if(secondImg){
+    drawContained(img,{x:58,y:135,w:468,h:585});
+    drawContained(secondImg,{x:554,y:135,w:468,h:585});
+  }else{
+    drawContained(img,{x:105,y:128,w:870,h:650});
+  }
 
   // Separador sutil
   ctx.fillStyle='#ededed';ctx.fillRect(58,815,964,2);
@@ -5293,12 +5317,40 @@ window.shareLiftProductImage=async function(id){
   ctx.fillStyle='#333';ctx.font='500 22px Poppins,Arial';
   ctx.fillText('Disponible',86,priceBaseY+48);
 
-  // Pie de marca ligeramente más presente
-  ctx.fillStyle='#0b0b0b';ctx.fillRect(0,1260,1080,90);
-  ctx.fillStyle='#fff';ctx.font='600 23px Poppins,Arial';
-  ctx.fillText('LIFT NUTRIENTES  ·  MEDELLÍN',58,1315);
+  // Pie comercial con medios de pago. Las imágenes se alojan en Wix.
+  const contentBottom=priceBaseY+75;
+  const footerY=Math.max(1210,Math.ceil((contentBottom+26)/10)*10);
+  const footerHeight=158;
+  const out=document.createElement('canvas');out.width=1080;out.height=footerY+footerHeight;
+  const outCtx=out.getContext('2d');
+  outCtx.fillStyle='#fff';outCtx.fillRect(0,0,out.width,out.height);
+  outCtx.drawImage(c,0,0,1080,footerY,0,0,1080,footerY);
+  outCtx.fillStyle='#0b0b0b';outCtx.fillRect(0,footerY,1080,footerHeight);
+  outCtx.fillStyle='#fff';outCtx.font='700 23px Poppins,Arial';
+  outCtx.fillText('MEDIOS DE PAGO',58,footerY+37);
+  outCtx.font='400 16px Poppins,Arial';
+  outCtx.fillStyle='#dedede';outCtx.fillText('Transferencia, Bre-B y tarjeta con Bold',58,footerY+67);
+  const paymentLogos=[
+    {url:'https://static.wixstatic.com/media/251da0_059f710a3ef941aa902cb0b5b15a758f~mv2.png',x:630,w:125},
+    {url:'https://static.wixstatic.com/media/251da0_e8038c896294432097472dcdedb54889~mv2.png',x:775,w:88},
+    {url:'https://static.wixstatic.com/media/251da0_3e18c7ef59f44fd7b2d5870cee2b7206~mv2.png',x:882,w:145}
+  ];
+  for(const logo of paymentLogos){
+    try{
+      const photo=await liftLoadShareImage(logo.url);
+      if(!photo)continue;
+      const h=72,scale=Math.min(logo.w/photo.width,h/photo.height);
+      const w=photo.width*scale,ih=photo.height*scale;
+      outCtx.fillStyle='#fff';outCtx.beginPath();outCtx.roundRect(logo.x-5,footerY+20,logo.w+10,90,10);outCtx.fill();
+      outCtx.drawImage(photo,logo.x+(logo.w-w)/2,footerY+65-ih/2,w,ih);
+    }catch(err){console.warn('Logo de pago no disponible',err);}
+  }
+  outCtx.fillStyle='#fff';outCtx.font='600 20px Poppins,Arial';
+  outCtx.fillText('PIDE EL TUYO HOY',58,footerY+116);
+  outCtx.fillStyle='#d7d7d7';outCtx.font='400 15px Poppins,Arial';
+  outCtx.fillText('Envíos a toda Colombia · Atención por WhatsApp',58,footerY+141);
 
-  const blob=await new Promise(res=>c.toBlob(res,'image/png',.95));
+  const blob=await new Promise(res=>out.toBlob(res,'image/png',.95));
   if(!blob)throw new Error('blob');
   const file=new File([blob],`lift-${String(p.name||'producto').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.png`,{type:'image/png'});
   await window.liftShareGeneratedImage(blob,file,p.name);
