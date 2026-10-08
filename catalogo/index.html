@@ -1197,6 +1197,12 @@ body.liftAdminUnlocked .lift-brand-share {
   justify-content:center;
 }
 </style>
+<style id="lift-offcanvas-payment-logos-v1">
+.liftMonoPaymentMethods{margin:0;padding:0;border:0;background:transparent}
+.liftMonoPaymentLogos{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:nowrap;margin:0;padding:0}
+.liftMonoPaymentLogos img{display:block;width:auto;max-width:24%;height:auto;max-height:23px;object-fit:contain}
+@media(max-width:760px){.liftMonoPaymentLogos{gap:5px}.liftMonoPaymentLogos img{max-height:20px}}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -3273,6 +3279,13 @@ function renderProductDetail(p){
           <div class="liftMonoPriceArea">${typeof priceHTML==='function' ? priceHTML(p) : `<div class="liftMonoPrice">${money}</div>`}</div>
           <div class="liftMonoBtns">
             <button type="button" id="liftMonoAdd"><span class="liftActionIcon">＋</span><span>Agregar</span></button>
+          </div>
+          <div class="liftMonoPaymentMethods" aria-label="Medios de pago aceptados">
+            <div class="liftMonoPaymentLogos">
+              <img loading="lazy" src="https://static.wixstatic.com/media/251da0_059f710a3ef941aa902cb0b5b15a758f~mv2.png" alt="Medio de pago" />
+              <img loading="lazy" src="https://static.wixstatic.com/media/251da0_e8038c896294432097472dcdedb54889~mv2.png" alt="Medio de pago" />
+              <img loading="lazy" src="https://static.wixstatic.com/media/251da0_3e18c7ef59f44fd7b2d5870cee2b7206~mv2.png" alt="Medio de pago" />
+            </div>
           </div>
           <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
           ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
