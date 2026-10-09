@@ -864,6 +864,46 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 }
 </style>
 
+
+<!-- lift-mobile-product-close-fix-20261009: cierre accesible del detalle en móviles -->
+<style id="lift-mobile-product-close-fix-20261009">
+@media (max-width:760px){
+  /* El panel es el contenedor de referencia; solo se desplaza su contenido. */
+  #liftMonoOff{isolation:isolate!important;overflow:hidden!important}
+  #liftMonoOff > #liftMonoClose{
+    position:absolute!important;
+    top:calc(env(safe-area-inset-top, 0px) + 12px)!important;
+    right:calc(env(safe-area-inset-right, 0px) + 12px)!important;
+    left:auto!important;
+    bottom:auto!important;
+    float:none!important;
+    margin:0!important;
+    transform:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    min-height:44px!important;
+    z-index:2147483647!important;
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+    background:#fff!important;
+    border:1px solid #ddd!important;
+    border-radius:50%!important;
+    box-shadow:0 3px 12px rgba(0,0,0,.18)!important;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #liftMonoOff > #liftMonoBody{
+    position:relative;
+    z-index:0;
+    overscroll-behavior:contain;
+  }
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
