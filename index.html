@@ -3143,8 +3143,6 @@ updateCount();render();renderCart();
     document.addEventListener('keydown',e=>{
       if(!panel?.classList.contains('open')) return;
       if(e.key==='Escape') closeProduct();
-      if(e.key==='ArrowLeft') navigateProduct(-1);
-      if(e.key==='ArrowRight') navigateProduct(1);
     });
   }
 
@@ -3330,12 +3328,10 @@ function renderProductDetail(p){
     panelBody.innerHTML=`
       <div class="liftMonoBody">
         <div class="liftMonoVisual">
-          <button type="button" class="liftMonoNav liftMonoPrev" id="liftMonoPrev" aria-label="Producto anterior" title="Producto anterior">‹</button>
           <div class="liftMonoImg" id="liftMonoZoomArea" title="Haz clic o doble clic para ampliar">
             <img id="liftMonoMainImg" draggable="false" src="${String(p.image||'').replace(/"/g,'&quot;')}" alt="${String(p.name||'').replace(/"/g,'&quot;')}">
-            <div class="liftMonoCounter">${idx+1} / ${list.length}</div>
+            
           </div>
-          <button type="button" class="liftMonoNav liftMonoNext" id="liftMonoNext" aria-label="Producto siguiente" title="Producto siguiente">›</button>
           <div class="detailShareBelowImage"><button class="cardShareImageBtn detailShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${Number(p.id)})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button></div>
         </div>
         <div class="liftMonoInfo">
@@ -3391,8 +3387,6 @@ function renderProductDetail(p){
     bindPdfFlavors(p);
     liftInjectGroupVariantPicker(p.id);
     bindProductZoom();
-    panel.querySelector('#liftMonoPrev').onclick=e=>{e.stopPropagation();navigateProduct(-1)};
-    panel.querySelector('#liftMonoNext').onclick=e=>{e.stopPropagation();navigateProduct(1)};
     let liftDetailQty=1;
     const qtyOutput=panel.querySelector('#liftMonoQtyValue');
     const setDetailQty=(n)=>{liftDetailQty=Math.max(1,Math.min(99,Math.floor(Number(n)||1)));if(qtyOutput)qtyOutput.textContent=String(liftDetailQty);};
@@ -7984,17 +7978,11 @@ async function liftSecondaryRender(product){
  rail.innerHTML=images.map((x,i)=>`<button type="button" class="liftSecondaryThumb${i===0?' active':''}" data-index="${i}" aria-label="${i===0?'Imagen principal':'Imagen adicional '+i}" aria-pressed="${i===0?'true':'false'}" title="${i===0?'Imagen principal':'Imagen adicional '+i}"><img loading="lazy" src="${String(x.url).replace(/"/g,'&quot;')}" alt=""></button>`).join('');
  area.prepend(rail);
  area.classList.add('hasSecondaryGallery');
- const photoCount=document.createElement('span');
- photoCount.className='liftPhotoCount';
- photoCount.setAttribute('aria-live','polite');
- area.append(photoCount);
  const buttons=[...rail.querySelectorAll('.liftSecondaryThumb')];
- photoCount.textContent=`1 / ${images.length} imágenes`;
  const select=(i)=>{
    if(!images[i])return;
    if(main.getAttribute('src')!==images[i].url)main.src=images[i].url;
    buttons.forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-pressed',String(i===j));});
-   photoCount.textContent=`${i+1} / ${images.length} imágenes`;
  };
  buttons.forEach((b,i)=>{
    // Al pasar el mouse se selecciona; al salir se conserva la última selección.
