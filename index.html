@@ -5273,7 +5273,7 @@ window.shareLiftProductImage=async function(id){
   const visibleMain=(String(window.currentProductId||'')===String(p.id))
     ? document.getElementById('liftMonoMainImg')?.src
     : '';
-  const shareSource=(p._variantGroupId && p.image) ? p.image : (visibleMain||p.image);
+  const shareSource=visibleMain||p.image;
   const img=await liftLoadShareImage(shareSource);
   if(!img)throw new Error('No se pudo cargar la imagen del producto para compartir');
 
@@ -12625,7 +12625,7 @@ window.liftMakeProviderImage=async function(id){
  }
 };
 window.liftOpenProviderShare=async function(id){if(!admin())return;toast('Preparando imagen para proveedor…');const data=await liftMakeProviderImage(id);if(!data)return;pending=data;document.getElementById('liftProviderShareText').value='Hola, ¿me confirmas porfa si tienes disponible '+data.name+(data.flavor?' sabor '+data.flavor:'')+(data.presentation?' '+data.presentation:'')+'? Gracias.';document.getElementById('liftProviderShareModal').classList.add('open')};
-function inject(){document.querySelectorAll('.cardShareImageBtn:not([data-provider-share-ready])').forEach(b=>{b.dataset.providerShareReady='1';const match=(b.getAttribute('onclick')||'').match(/shareLiftProductImage\((\d+)\)/);if(!match)return;const btn=document.createElement('button');btn.type='button';btn.className='liftProviderShareBtn';btn.setAttribute('aria-label','Consultar proveedor');btn.title='Consultar proveedor';btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v12H7l-3 3V5z"/><path d="M8 10h8"/><path d="M8 13h5"/></svg>';btn.onclick=e=>{e.stopPropagation();liftOpenProviderShare(Number(match[1]))};b.insertAdjacentElement('afterend',btn)});}
+function inject(){document.querySelectorAll('.cardShareImageBtn:not([data-provider-share-ready])').forEach(b=>{b.dataset.providerShareReady='1';const match=(b.getAttribute('onclick')||'').match(/shareLiftProductImage\((\d+)\)/);if(!match)return;const btn=document.createElement('button');btn.type='button';btn.className='liftProviderShareBtn';btn.setAttribute('aria-label','Consultar proveedor');btn.title='Consultar proveedor';btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v12H7l-3 3V5z"/><path d="M8 10h8"/><path d="M8 13h5"/></svg>';btn.onclick=e=>{e.preventDefault();e.stopPropagation();const current=b.getAttribute('onclick')||'';const fresh=current.match(/shareLiftProductImage\((\d+)\)/);const id=b.classList.contains('detailShareImageBtn')?Number(window.currentProductId||fresh?.[1]||match[1]):Number(fresh?.[1]||match[1]);if(!id){toast('No se encontró el producto seleccionado');return;}liftOpenProviderShare(id)};b.insertAdjacentElement('afterend',btn)});}
 const observer=new MutationObserver(()=>{if(!document.hidden)inject()});
 document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(document.body,{childList:true,subtree:true})});
 })();
