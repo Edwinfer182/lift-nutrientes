@@ -3419,67 +3419,19 @@ function renderProductDetail(p){
   function bindProductZoom(){
     const area=panel?.querySelector('#liftMonoZoomArea');
     const img=panel?.querySelector('#liftMonoMainImg');
-    const zin=panel?.querySelector('#liftZoomIn');
-    const zout=panel?.querySelector('#liftZoomOut');
-    const zreset=panel?.querySelector('#liftZoomReset');
-    if(!area||!img) return;
-
-    let scale=1, x=0, y=0, dragging=false, sx=0, sy=0, ox=0, oy=0;
-    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-    const apply=()=>{
-      scale=clamp(scale,1,4);
-      if(scale===1){x=0;y=0;area.classList.remove('zoomed');}
-      else area.classList.add('zoomed');
-      img.style.transform=`translate(${x}px,${y}px) scale(${scale})`;
-      if(zreset) zreset.textContent=(Math.round(scale*10)/10)+'×';
-    };
-    const setScale=(next,cx,cy)=>{
-      const prev=scale;
-      scale=clamp(next,1,4);
-      if(cx!=null && cy!=null && prev!==scale){
-        const r=area.getBoundingClientRect();
-        const px=cx-r.left-r.width/2;
-        const py=cy-r.top-r.height/2;
-        const ratio=scale/prev;
-        x=(x-px)*ratio+px;
-        y=(y-py)*ratio+py;
-      }
-      const maxX=(area.clientWidth*(scale-1))/2;
-      const maxY=(area.clientHeight*(scale-1))/2;
-      x=clamp(x,-maxX,maxX); y=clamp(y,-maxY,maxY);
-      apply();
-    };
-    zin?.addEventListener('click',e=>{e.stopPropagation();setScale(scale+.5)});
-    zout?.addEventListener('click',e=>{e.stopPropagation();setScale(scale-.5)});
-    zreset?.addEventListener('click',e=>{e.stopPropagation();scale=1;x=0;y=0;apply()});
+    if(!area||!img)return;
+    area.title='Abrir imagen en pantalla completa';
+    area.style.cursor='zoom-in';
     area.addEventListener('click',e=>{
-      if(e.target.closest('.liftZoomTools,.liftMonoCounter')) return;
-      if(scale===1) setScale(2,e.clientX,e.clientY); else {scale=1;x=0;y=0;apply();}
+      if(e.target.closest('.liftSecondaryRail,.liftMonoCounter,.liftZoomTools,button'))return;
+      window.liftOpenImageViewer(img.currentSrc||img.src,img.alt||'Imagen del producto');
     });
-    area.addEventListener('dblclick',e=>{
-      e.preventDefault();
-      if(scale<3) setScale(3,e.clientX,e.clientY); else {scale=1;x=0;y=0;apply();}
+    area.addEventListener('keydown',e=>{
+      if((e.key==='Enter'||e.key===' ')&&e.target===area){e.preventDefault();window.liftOpenImageViewer(img.currentSrc||img.src,img.alt||'Imagen del producto');}
     });
-    area.addEventListener('wheel',e=>{
-      e.preventDefault();
-      setScale(scale+(e.deltaY<0?.35:-.35),e.clientX,e.clientY);
-    },{passive:false});
-    area.addEventListener('pointerdown',e=>{
-      if(scale<=1 || e.target.closest('.liftZoomTools')) return;
-      dragging=true; sx=e.clientX; sy=e.clientY; ox=x; oy=y;
-      area.setPointerCapture?.(e.pointerId); area.classList.add('dragging');
-    });
-    area.addEventListener('pointermove',e=>{
-      if(!dragging) return;
-      const maxX=(area.clientWidth*(scale-1))/2;
-      const maxY=(area.clientHeight*(scale-1))/2;
-      x=clamp(ox+(e.clientX-sx),-maxX,maxX);
-      y=clamp(oy+(e.clientY-sy),-maxY,maxY);
-      apply();
-    });
-    const endDrag=()=>{dragging=false;area.classList.remove('dragging')};
-    area.addEventListener('pointerup',endDrag); area.addEventListener('pointercancel',endDrag);
-    apply();
+    area.tabIndex=0;
+    area.setAttribute('role','button');
+    area.setAttribute('aria-label','Ampliar imagen del producto en pantalla completa');
   }
 
   function navigateProduct(step){
@@ -12777,6 +12729,69 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
  });
 })();
 </script>
+
+<!-- Visor galería LIFT: compacto, navegable, zoom y cierre exterior -->
+<style id="lift-fullscreen-image-viewer-style">
+#liftImageViewer{position:fixed;inset:0;z-index:2147483647;background:rgba(10,10,12,.76);display:none;align-items:center;justify-content:center;padding:22px;color:#222;font-family:Poppins,Arial,sans-serif}
+#liftImageViewer.open{display:flex}
+#liftImageViewer .livDialog{width:min(94vw,920px);height:min(85dvh,760px);display:flex;flex-direction:column;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 25px 90px rgba(0,0,0,.3)}
+#liftImageViewer .livTop{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;border-bottom:1px solid #eee}
+#liftImageViewer .livTitle{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+#liftImageViewer .livTools{display:flex;align-items:center;gap:6px;flex-shrink:0}
+#liftImageViewer button{border:1px solid #ddd;background:#fff;color:#111;border-radius:9px;min-width:35px;height:36px;cursor:pointer;font-size:20px}
+#liftImageViewer button:hover{background:#f2f2f2}
+#liftImageViewer .livPercent{min-width:45px;text-align:center;font-size:11px}
+#liftImageViewer .livStageWrap{position:relative;flex:1;min-height:0;background:#fff}
+#liftImageViewer .livStage{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center}
+#liftImageViewer .livStage.dragging{cursor:grabbing}
+#liftImageViewer .livStage img{display:block;max-width:calc(100% - 90px);max-height:calc(100% - 20px);width:auto;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none;pointer-events:none;transform-origin:center center}
+#liftImageViewer .livArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;border-radius:50%;width:40px;height:40px;background:rgba(255,255,255,.93);box-shadow:0 2px 12px rgba(0,0,0,.12)}
+#liftImageViewer .livPrev{left:10px}#liftImageViewer .livNext{right:10px}
+#liftImageViewer .livFoot{display:flex;align-items:center;justify-content:center;gap:12px;min-height:42px;background:#fafafa;border-top:1px solid #eee;font-size:12px}
+#liftImageViewer .livHint{font-size:10px;color:#777}
+@media(max-width:600px){#liftImageViewer{padding:12px}#liftImageViewer .livDialog{width:100%;height:min(76dvh,650px);border-radius:14px}#liftImageViewer .livTop{padding:6px 8px;gap:4px}#liftImageViewer .livTitle{font-size:10px}#liftImageViewer .livTools{gap:3px}#liftImageViewer button{min-width:31px;height:33px;font-size:18px}#liftImageViewer .livPercent{min-width:37px;font-size:10px}#liftImageViewer .livStage img{max-width:calc(100% - 65px)}#liftImageViewer .livArrow{width:32px;height:36px}#liftImageViewer .livPrev{left:3px}#liftImageViewer .livNext{right:3px}#liftImageViewer .livHint{display:none}}
+#liftImageViewer .livStage img{transition:none!important;animation:none!important;will-change:transform;-webkit-touch-callout:none}
+#liftImageViewer .livStage{user-select:none;-webkit-user-select:none;overscroll-behavior:contain}
+</style>
+<script id="lift-fullscreen-image-viewer-script">
+(()=>{
+let viewer,stage,image,percent,counter,scale=1,x=0,y=0,previousFocus=null,images=[],index=0;
+const pointers=new Map();let lastPinch=0,dragPoint=null,gestureStart=null;
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+function paint(){if(!image)return;scale=clamp(scale,1,5);if(scale===1){x=0;y=0;}else{const maxX=Math.max(0,image.offsetWidth*(scale-1)/2),maxY=Math.max(0,image.offsetHeight*(scale-1)/2);x=clamp(x,-maxX,maxX);y=clamp(y,-maxY,maxY);}image.style.transform=`translate(${x}px,${y}px) scale(${scale})`;percent.textContent=Math.round(scale*100)+'%';}
+function zoom(next,cx,cy){const old=scale;scale=clamp(next,1,5);if(cx!=null&&cy!=null&&old!==scale){const r=stage.getBoundingClientRect(),px=cx-r.left-r.width/2,py=cy-r.top-r.height/2,ratio=scale/old;x=(x-px)*ratio+px;y=(y-py)*ratio+py;}paint();}
+function show(i){if(!images.length)return;index=(i+images.length)%images.length;image.src=images[index];scale=1;x=0;y=0;paint();counter.textContent=`${index+1} / ${images.length}`;viewer.querySelectorAll('.livArrow').forEach(b=>b.hidden=images.length<2);}
+function close(){if(!viewer?.classList.contains('open'))return;viewer.classList.remove('open');pointers.clear();dragPoint=null;document.body.style.overflow=viewer.dataset.previousOverflow||'';previousFocus?.focus?.();}
+function ensure(){if(viewer)return;viewer=document.createElement('div');viewer.id='liftImageViewer';viewer.setAttribute('role','dialog');viewer.setAttribute('aria-modal','true');viewer.setAttribute('aria-label','Galería ampliada del producto');viewer.innerHTML=`<div class="livDialog"><div class="livTop"><span class="livTitle"></span><div class="livTools"><button type="button" data-action="minus" aria-label="Reducir zoom">−</button><span class="livPercent">100%</span><button type="button" data-action="plus" aria-label="Aumentar zoom">+</button><button type="button" data-action="reset" aria-label="Restablecer zoom">⟲</button><button type="button" data-action="close" aria-label="Cerrar visor">×</button></div></div><div class="livStageWrap"><div class="livStage"><img alt="" draggable="false"></div><button type="button" class="livArrow livPrev" data-action="prev" aria-label="Imagen anterior">‹</button><button type="button" class="livArrow livNext" data-action="next" aria-label="Imagen siguiente">›</button></div><div class="livFoot"><strong class="livCounter">1 / 1</strong><span class="livHint">Desliza o usa las flechas · Pellizca para ampliar</span></div></div>`;document.body.append(viewer);stage=viewer.querySelector('.livStage');image=stage.querySelector('img');percent=viewer.querySelector('.livPercent');counter=viewer.querySelector('.livCounter');viewer.addEventListener('click',e=>{if(e.target===viewer)close();const action=e.target.closest('button')?.dataset.action;if(action==='close')close();if(action==='plus')zoom(scale+.5);if(action==='minus')zoom(scale-.5);if(action==='reset'){scale=1;paint();}if(action==='prev')show(index-1);if(action==='next')show(index+1);});
+stage.addEventListener('dragstart',e=>e.preventDefault());stage.addEventListener('selectstart',e=>e.preventDefault());
+stage.addEventListener('wheel',e=>{e.preventDefault();zoom(scale+(e.deltaY<0?.3:-.3),e.clientX,e.clientY);},{passive:false});
+stage.addEventListener('pointerdown',e=>{e.preventDefault();stage.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1){dragPoint={x:e.clientX,y:e.clientY,tx:x,ty:y};gestureStart={x:e.clientX,y:e.clientY,time:Date.now()};stage.classList.add('dragging');}if(pointers.size===2){const pts=[...pointers.values()];lastPinch=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);dragPoint=null;gestureStart=null;}});
+stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const pts=[...pointers.values()],dist=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y),cx=(pts[0].x+pts[1].x)/2,cy=(pts[0].y+pts[1].y)/2;if(lastPinch)zoom(scale*dist/lastPinch,cx,cy);lastPinch=dist;}else if(dragPoint&&scale>1){e.preventDefault();x=dragPoint.tx+(e.clientX-dragPoint.x)*1.35;y=dragPoint.ty+(e.clientY-dragPoint.y)*1.35;paint();}});
+const end=e=>{if(gestureStart&&pointers.size===1&&scale===1&&Math.abs(e.clientX-gestureStart.x)>55&&Math.abs(e.clientY-gestureStart.y)<90){show(index+(e.clientX<gestureStart.x?1:-1));}pointers.delete(e.pointerId);dragPoint=null;lastPinch=0;gestureStart=null;stage.classList.remove('dragging');};stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+stage.addEventListener('dblclick',e=>{e.preventDefault();zoom(scale>1?1:2.5,e.clientX,e.clientY);});
+document.addEventListener('keydown',e=>{if(!viewer.classList.contains('open'))return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')show(index-1);if(e.key==='ArrowRight')show(index+1);if(e.key==='+'||e.key==='=')zoom(scale+.5);if(e.key==='-')zoom(scale-.5);});
+}
+window.liftOpenImageViewer=(src,alt='Imagen del producto')=>{if(!src)return;ensure();previousFocus=document.activeElement;viewer.dataset.previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';const area=document.getElementById('liftMonoZoomArea');const thumbs=area?[...area.querySelectorAll('.liftSecondaryThumb img')].map(el=>el.getAttribute('src')).filter(Boolean):[];images=thumbs.length?thumbs:[src];index=images.findIndex(u=>u===src);if(index<0){images=[src,...images.filter(u=>u!==src)];index=0;}viewer.querySelector('.livTitle').textContent=alt;image.alt=alt;viewer.classList.add('open');show(index);viewer.querySelector('[data-action="close"]').focus();};
+})();
+</script>
+
+<!-- LIFT: presentación blanca con sombra suave; conserva las fotografías originales -->
+<style id="lift-white-photo-soft-shadow-v1">
+/* Fondo blanco puro para que las fotografías con fondo blanco se integren. */
+.pic, .liftMonoImg, .modalPic, .liftMonoImage, .liftMonoThumb,
+.liftMonoGallery, .liftMonoGalleryThumb, .relatedItem img {
+  background:#fff!important;
+}
+/* Sombra en el contenedor, no en los bordes del archivo: evita remarcar rectángulos blancos. */
+.pic {box-shadow:inset 0 -8px 18px -19px rgba(0,0,0,.20)!important;}
+.liftMonoImg {box-shadow:0 9px 28px rgba(0,0,0,.055)!important;}
+/* Tablas y demás imágenes se leen sobre blanco en el visor independiente. */
+#liftImageViewer {background:rgba(12,12,14,.96)!important;}
+#liftImageViewer .livStage {background:#fff!important;}
+#liftImageViewer .livStage img {background:#fff!important;}
+/* No aplicar filtros ni sombras a píxeles de las etiquetas nutricionales. */
+@media(max-width:760px){.liftMonoImg{box-shadow:0 5px 18px rgba(0,0,0,.045)!important;}}
+</style>
 </body>
 </html>
 
