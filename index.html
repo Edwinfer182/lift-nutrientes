@@ -1246,6 +1246,31 @@ body.liftAdminUnlocked .lift-brand-share {
  #liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 58px)!important;margin-left:58px!important}
 }
 </style>
+<style id="lift-delivery-accordion-v1">
+.liftDeliveryAccordion{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;align-items:start!important;border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8}
+.liftDeliveryAccordion details{min-width:0;border-bottom:1px solid #eee}
+.liftDeliveryAccordion details:nth-child(odd){border-right:1px solid #eee}
+.liftDeliveryAccordion summary{display:flex;align-items:center;gap:11px;padding:13px 12px;cursor:pointer;list-style:none;min-height:66px}
+.liftDeliveryAccordion summary::-webkit-details-marker{display:none}
+.liftDeliveryAccordion summary>span:nth-child(2){min-width:0;flex:1}
+.liftDeliveryAccordion summary b{display:block;font-size:11px;font-weight:600;line-height:1.35}
+.liftDeliveryAccordion summary small{display:block;font-size:9px;line-height:1.4;color:#888;margin-top:3px}
+.liftDeliveryAccordion .liftServiceChevron{font-size:19px;color:#888;transition:transform .2s}
+.liftDeliveryAccordion details[open] .liftServiceChevron{transform:rotate(180deg)}
+.liftDeliveryContent{padding:0 14px 15px 48px;font-size:11px;line-height:1.65;color:#555}
+.liftDeliveryContent strong{font-weight:600;color:#222}
+@media(max-width:650px){.liftDeliveryAccordion{grid-template-columns:1fr!important}.liftDeliveryAccordion details:nth-child(odd){border-right:0}.liftDeliveryAccordion summary{min-height:58px}.liftDeliveryContent{padding-left:48px}}
+</style>
+<style id="lift-recommendations-before-delivery-final-fix">
+/* La cuadrícula antigua forzaba la información de envíos en la fila 3. */
+@media(min-width:761px){
+  #liftMonoOff .liftMonoRelatedWide{grid-row:3!important;grid-column:1/-1!important}
+  #liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion{grid-row:4!important;grid-column:1/-1!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  #liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:1fr!important}
+}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2483,7 +2508,7 @@ function shippingProgressHTML(qty,cityName=''){
   };
   return `<div class="shippingProgress">${exact?one(local?'Tu zona':'Envío nacional',local?'local':'national'):`${one('Medellín y zona local','local')}<br>${one('Resto del país','national')}`}</div>`;
 }
-function relatedProductsFor(its,limit=3){
+function relatedProductsFor(its,limit=4){
   const ids=new Set(its.map(x=>x.p.id));
   const cats=new Set(its.map(x=>x.p.category));
   const brandsSet=new Set(its.map(x=>x.p.brand));
@@ -3209,7 +3234,7 @@ updateCount();render();renderCart();
 function relatedProductDetailHTML(p){
     if(!p || !Array.isArray(window.PRODUCTS)) return '';
     const pool=window.PRODUCTS.filter(x=>x.id!==p.id && (norm(x.category||'')===norm(p.category||'') || norm(x.brand||'')===norm(p.brand||'')));
-    const rel=pool.sort((a,b)=>((norm(b.category||'')===norm(p.category||''))?2:0)-((norm(a.category||'')===norm(p.category||''))?2:0)).slice(0,3);
+    const rel=pool.sort((a,b)=>((norm(b.category||'')===norm(p.category||''))?2:0)-((norm(a.category||'')===norm(p.category||''))?2:0)).slice(0,4);
     if(!rel.length) return '';
     return `<div class="liftRelated"><div class="liftRelatedTitle">También te puede interesar</div><div class="liftRelatedGrid">${rel.map(x=>`<button type="button" class="liftRelatedItem" onclick="openLiftProductById(${x.id})"><img loading="lazy" decoding="async" src="${x.image}" alt="${esc(x.name)}"><span>${esc(x.name)}</span><b>${fmt(priceOf(x))}</b></button>`).join('')}</div></div>`;
   }
@@ -3338,12 +3363,25 @@ function renderProductDetail(p){
           ${iso100FlavorStrip(p)}
           ${pdfFlavorStrip(p)}
         </div>
-        <div class="liftMonoService liftMonoServiceWide">
-          <div><span class="liftServiceIcon">✓</span><span><b>Disponible</b><small>Consulta existencias al confirmar el pedido</small></span></div>
-          <div><span class="liftServiceIcon">⌁</span><span><b>Medellín mismo día</b><small>Pedidos confirmados antes de las 2:00 p. m.</small></span></div>
-          <div><span class="liftServiceIcon">→</span><span><b>Envíos nacionales</b><small>Entrega estimada de 1 a 3 días hábiles</small></span></div>
-        </div>
         <div class="liftMonoRelatedWide">${relatedProductDetailHTML(p)}</div>
+        <div class="liftMonoService liftMonoServiceWide liftDeliveryAccordion">
+          <details>
+            <summary><span class="liftServiceIcon">✓</span><span><b>Disponibilidad y tarifas</b><small>Consulta existencias y valor del envío</small></span><span class="liftServiceChevron">⌄</span></summary>
+            <div class="liftDeliveryContent">Confirmamos las existencias antes de programar el pedido. <strong>El valor del domicilio depende de la ciudad, dirección y cantidad de productos.</strong> El costo exacto se informa antes de confirmar la compra. No se cobra ningún envío adicional sin avisarte.</div>
+          </details>
+          <details>
+            <summary><span class="liftServiceIcon">⌁</span><span><b>Entregas en Medellín</b><small>Mismo día según horario y disponibilidad</small></span><span class="liftServiceChevron">⌄</span></summary>
+            <div class="liftDeliveryContent">Pedidos confirmados antes de las <strong>2:00 p. m.</strong> pueden salir en la ruta del mismo día, sujeto a disponibilidad y cobertura. Los pedidos posteriores se programan para la siguiente ruta disponible. <strong>No manejamos hora exacta de entrega</strong>, porque el mensajero realiza varias entregas. El valor del domicilio se confirma según la dirección.</div>
+          </details>
+          <details>
+            <summary><span class="liftServiceIcon">→</span><span><b>Envíos nacionales</b><small>1 a 3 días hábiles después de la guía</small></span><span class="liftServiceChevron">⌄</span></summary>
+            <div class="liftDeliveryContent">Ciudades principales: aproximadamente <strong>1 día hábil</strong> después de generar la guía. Otros destinos: <strong>2 a 3 días hábiles</strong>, según la transportadora y la cobertura. El costo se cotiza según destino y pedido. Para envíos nacionales se confirma el pago antes del despacho. Los tiempos son estimados.</div>
+          </details>
+          <details>
+            <summary><span class="liftServiceIcon">↺</span><span><b>Cambios, averías y devoluciones</b><small>Cómo reportar un problema con tu pedido</small></span><span class="liftServiceChevron">⌄</span></summary>
+            <div class="liftDeliveryContent">Si tu producto llega golpeado, abierto, derramado, con el sello alterado o diferente al solicitado, <strong>repórtalo preferiblemente dentro de los 2 días hábiles siguientes a la entrega</strong>. Escríbenos por WhatsApp con el número de pedido y fotografías del producto y del empaque. Revisaremos el caso para gestionar el cambio, reposición o devolución que corresponda. <strong>Este plazo de reporte no limita las garantías ni los derechos legales del consumidor.</strong> Conserva el producto y su empaque mientras revisamos la novedad.</div>
+          </details>
+        </div>
       </div>`;
     liftSecondaryRender(p);
     bindIso100Flavors(p);
@@ -3717,7 +3755,7 @@ function renderProductDetail(p){
 
 
 <style id="lift-ux-v2">
-.liftDiscovery{padding:10px 14px 4px;background:#fff;position:relative;z-index:3}.liftDiscoveryInner{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.liftQuickCats{display:flex;gap:7px;overflow:auto;scrollbar-width:none;flex:1}.liftQuickCats::-webkit-scrollbar{display:none}.liftQuickCat,.liftSort{border:1px solid #ddd;background:#fff;color:#222;border-radius:999px;height:36px;padding:0 13px;font-family:inherit;font-size:12px;white-space:nowrap;cursor:pointer}.liftQuickCat.active{background:#111;color:#fff;border-color:#111}.liftSort{border-radius:10px;min-width:155px}.liftRelated{margin-top:18px;padding-top:14px;border-top:1px solid #eee}.liftRelatedTitle{font-size:13px;font-weight:600;margin-bottom:10px}.liftRelatedGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.liftRelatedItem{border:1px solid #e5e5e5;background:#fff;border-radius:12px;padding:8px;display:grid;gap:5px;text-align:left;font-family:inherit;cursor:pointer;min-width:0}.liftRelatedItem img{width:100%;height:82px;object-fit:contain}.liftRelatedItem span{font-size:10px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.liftRelatedItem b{font-size:11px}.liftToast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,18px);z-index:140;background:rgba(17,17,17,.94);color:#fff;border:1px solid #333;border-radius:999px;padding:10px 15px;font-size:12px;box-shadow:0 10px 30px rgba(0,0,0,.22);opacity:0;pointer-events:none;transition:.22s ease;max-width:calc(100vw - 32px);white-space:nowrap}.liftToast.show{opacity:1;transform:translate(-50%,0)}
+.liftDiscovery{padding:10px 14px 4px;background:#fff;position:relative;z-index:3}.liftDiscoveryInner{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.liftQuickCats{display:flex;gap:7px;overflow:auto;scrollbar-width:none;flex:1}.liftQuickCats::-webkit-scrollbar{display:none}.liftQuickCat,.liftSort{border:1px solid #ddd;background:#fff;color:#222;border-radius:999px;height:36px;padding:0 13px;font-family:inherit;font-size:12px;white-space:nowrap;cursor:pointer}.liftQuickCat.active{background:#111;color:#fff;border-color:#111}.liftSort{border-radius:10px;min-width:155px}.liftRelated{margin-top:18px;padding-top:14px;border-top:1px solid #eee}.liftRelatedTitle{font-size:13px;font-weight:600;margin-bottom:10px}.liftRelatedGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.liftRelatedItem{border:1px solid #e5e5e5;background:#fff;border-radius:12px;padding:8px;display:grid;gap:5px;text-align:left;font-family:inherit;cursor:pointer;min-width:0}.liftRelatedItem img{width:100%;height:82px;object-fit:contain}.liftRelatedItem span{font-size:10px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.liftRelatedItem b{font-size:11px}.liftToast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,18px);z-index:140;background:rgba(17,17,17,.94);color:#fff;border:1px solid #333;border-radius:999px;padding:10px 15px;font-size:12px;box-shadow:0 10px 30px rgba(0,0,0,.22);opacity:0;pointer-events:none;transition:.22s ease;max-width:calc(100vw - 32px);white-space:nowrap}.liftToast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:760px){.liftDiscovery{padding:8px 9px 2px}.liftDiscoveryInner{display:flex;justify-content:flex-end}.liftQuickCats{padding-bottom:7px}.liftQuickCat{height:33px;padding:0 11px;font-size:11px}.liftSort{width:auto;min-width:155px;height:35px}.liftRelatedGrid{gap:6px}.liftRelatedItem{padding:6px}.liftRelatedItem img{height:68px}.liftToast{bottom:82px;font-size:11px;padding:9px 13px}.searchResult{grid-template-columns:54px minmax(0,1fr) auto!important}.searchThumb{width:54px!important;height:54px!important}}
 </style>
 <script id="lift-ux-v2-script">
