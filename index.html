@@ -1500,7 +1500,50 @@ button:disabled,[role="button"][aria-disabled="true"]{cursor:not-allowed;opacity
 .liftSideSuggestionsHeader{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px;border-bottom:1px solid #eee}.liftSideSuggestionsHeader strong{font-size:13px;color:#151515}.liftSideSuggestionsHeader small{display:block;color:#626975;font-size:11px;margin-top:4px}.liftSideDismiss{width:30px;height:30px;flex-shrink:0;border:1px solid #e3e4e7;background:#f7f7f8;color:#242424;border-radius:50%;font-size:22px;cursor:pointer}.liftSideDismiss:hover{background:#e7e7e9}.liftSideSuggestionsItems{overflow-y:auto;padding:9px}.liftSideSuggestionItem{display:flex;gap:10px;padding:10px 4px;border-bottom:1px solid #f0f0f0}.liftSideSuggestionItem:last-child{border:0}.liftSideSuggestionItem img{width:54px;height:58px;object-fit:contain;flex-shrink:0}.liftSideSuggestionInfo{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}.liftSideSuggestionInfo span{font-size:11px;line-height:1.3;color:#292929}.liftSideSuggestionInfo b{font-size:12px;color:#111}.liftSideSuggestionInfo button{border:0;border-radius:6px;background:#111;color:white;padding:7px 12px;font-size:11px;cursor:pointer}.liftSideSuggestionInfo button:hover{background:#444}
 @media(max-width:760px){body.liftSideSuggestionsActive #cart.open{width:65vw!important;max-width:65vw!important;min-width:0!important}#liftSideSuggestions{right:65vw;width:35vw;max-height:65vh;border-radius:10px 0 0 10px}.liftSideSuggestionsHeader{padding:9px 5px;align-items:flex-start}.liftSideSuggestionsHeader strong{font-size:10px}.liftSideSuggestionsHeader small{display:none}.liftSideDismiss{width:24px;height:24px;font-size:18px}.liftSideSuggestionsItems{padding:4px}.liftSideSuggestionItem{gap:3px;flex-wrap:wrap}.liftSideSuggestionItem img{width:32px;height:36px}.liftSideSuggestionInfo span{font-size:10px}.liftSideSuggestionInfo b{font-size:10px}.liftSideSuggestionInfo button{font-size:10px;padding:6px}}
 @media(prefers-reduced-motion:reduce){#liftSideSuggestions{transition:none}}
-</style></head><body>
+</style><style id="lift-header-redesign-20261009">
+/* Cabecera LIFT, conserva acciones originales y elementos añadidos por JS */
+header.top{background:#101113!important;border-bottom:1px solid #25272b!important;transition:box-shadow .24s ease!important}
+header.top .bar{max-width:1540px!important;gap:12px!important;padding:13px 20px!important;min-height:78px!important;transition:padding .24s ease,min-height .24s ease!important}
+header.top .brand{flex:0 0 auto!important;min-width:0!important}
+header.top .liftHeaderLogo{height:53px!important;max-width:180px!important;width:auto!important;transition:height .24s ease!important}
+header.top .search{flex:1 1 280px!important;min-width:120px!important;max-width:none!important}
+header.top #q{height:46px!important;background:#1b1c1f!important;border:1px solid #37393e!important;border-radius:12px!important;color:#fff!important;font-size:13px!important;transition:background .2s,border-color .2s,box-shadow .2s!important}
+header.top #q::placeholder{color:#a4a6aa!important}
+header.top #q:focus{border-color:#858991!important;background:#23252a!important;box-shadow:0 0 0 3px rgba(255,255,255,.06)!important}
+header.top .offersBtn{height:44px!important;min-height:44px!important;border-radius:12px!important;background:#159c50!important;box-shadow:none!important;letter-spacing:.01em!important;transition:background .2s,transform .2s!important}
+header.top .offersBtn:hover{background:#117d40!important;transform:translateY(-1px)!important}
+header.top .offersCount{min-width:21px!important;height:21px!important;background:#e8fff0!important;color:#117d40!important;font-weight:700!important}
+header.top .iconbtn,header.top .liftHeaderIcon{border:1px solid #34363a!important;border-radius:12px!important;background:#191a1d!important;color:#fff!important;transition:background .2s,border-color .2s,transform .2s!important}
+header.top .iconbtn:hover,header.top .liftHeaderIcon:hover{background:#2a2c31!important;border-color:#696b70!important;transform:translateY(-1px)!important}
+header.top .iconbtn:active,header.top .liftHeaderIcon:active,header.top .offersBtn:active{transform:scale(.96)!important}
+header.top .liftFilterLink{opacity:.8!important}
+header.top.liftHeaderCompact{box-shadow:0 8px 25px rgba(0,0,0,.2)!important}
+header.top.liftHeaderCompact .bar{min-height:57px!important;padding-top:6px!important;padding-bottom:6px!important}
+header.top.liftHeaderCompact .liftHeaderLogo{height:38px!important}
+header.top.liftHeaderCompact #q{height:40px!important}
+header.top.liftHeaderCompact .offersBtn{height:39px!important;min-height:39px!important}
+@media(max-width:760px){
+ header.top .bar{display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:9px 11px!important;min-height:0!important}
+ header.top .brand{order:0!important;margin-right:auto!important}
+ header.top .liftHeaderLogo{height:40px!important;max-width:145px!important}
+ header.top .filterMobile{order:1!important}
+ header.top .cartDesktop{order:3!important}
+ header.top .liftHeaderIcon{order:2!important}
+ header.top .search{order:10!important;flex:1 0 calc(100% - 112px)!important;min-width:0!important}
+ header.top .offersBtn{order:11!important;flex:0 0 auto!important;min-width:94px!important;padding:0 10px!important}
+ header.top .liftFilterLink{display:none!important}
+ header.top #q{height:42px!important;font-size:12px!important}
+ header.top.liftHeaderCompact .bar{padding-top:6px!important;padding-bottom:6px!important}
+ header.top.liftHeaderCompact .liftHeaderLogo{height:31px!important}
+ header.top.liftHeaderCompact #q{height:38px!important}
+}
+@media(max-width:380px){header.top .bar{gap:6px!important;padding-left:7px!important;padding-right:7px!important}header.top .search{flex-basis:calc(100% - 99px)!important}header.top .offersBtn{min-width:89px!important;padding:0 7px!important}header.top .liftHeaderLogo{max-width:112px!important}}
+@media(prefers-reduced-motion:reduce){header.top *,header.top{transition:none!important}}
+</style>
+<script id="lift-header-compact-behavior-20261009">
+(function(){function init(){var h=document.querySelector('header.top');if(!h)return;var scheduled=false;function update(){scheduled=false;h.classList.toggle('liftHeaderCompact',window.scrollY>95)}window.addEventListener('scroll',function(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}},{passive:true});update()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();
+</script>
+</head><body>
 
 <script id="lift-mobile-share-fix-v1">
 (function(){
