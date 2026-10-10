@@ -1927,6 +1927,8 @@ window.LIFT_DATA_SOURCE='supabase';
 const PRODUCTS=[];
 // ===== LIFT · CUPONES Y PRECIOS ENTRENADOR =====
 const LIFT_COUPON_SUPABASE_URL='https://lethnvyuvnhekoudmqgy.supabase.co';
+const LIFT_MAIN_COUPON_URL='https://vdxkknftyssjyfbdieqa.supabase.co';
+const LIFT_MAIN_COUPON_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 const LIFT_COUPON_SUPABASE_KEY='sb_publishable_jaBDvCiunGGwMakqL_-TIg_LZcgHgk8';
 // Precio entrenador: únicamente desde los datos cargados desde Supabase.
 // No hay mapas ni porcentajes de respaldo incrustados en este HTML.
@@ -1972,19 +1974,26 @@ function checkoutCouponPayload(){
   };
 }
 async function liftCouponRpc(name,args){
-  const r=await fetch(`${LIFT_COUPON_SUPABASE_URL}/rest/v1/rpc/${name}`,{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'apikey':LIFT_COUPON_SUPABASE_KEY,
-      'Authorization':`Bearer ${LIFT_COUPON_SUPABASE_KEY}`
-    },
-    body:JSON.stringify(args)
-  });
-  const text=await r.text();
-  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!r.ok)throw new Error(data?.message||data?.error||text||`HTTP ${r.status}`);
-  return data;
+  const invoke=async(url,key)=>{
+    const r=await fetch(`${url}/rest/v1/rpc/${name}`,{
+      method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':`Bearer ${key}`},
+      body:JSON.stringify(args)
+    });
+    const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{data=raw}
+    if(!r.ok)throw new Error(data?.message||data?.error||raw||`HTTP ${r.status}`);
+    return data;
+  };
+  // Los cupones nuevos se validan en la base principal. Los anteriores siguen funcionando en Lift Clientes.
+  if(name==='validate_coupon'){
+    const data=await invoke(LIFT_MAIN_COUPON_URL,LIFT_MAIN_COUPON_KEY);
+    if(data?.reason!=='invalid_code')return {...data,_liftCouponSource:'main'};
+    const legacy=await invoke(LIFT_COUPON_SUPABASE_URL,LIFT_COUPON_SUPABASE_KEY);
+    return {...legacy,_liftCouponSource:'legacy'};
+  }
+  if(name==='redeem_coupon_v2' && appliedCoupon?.source==='main'){
+    return invoke(LIFT_MAIN_COUPON_URL,LIFT_MAIN_COUPON_KEY);
+  }
+  return invoke(LIFT_COUPON_SUPABASE_URL,LIFT_COUPON_SUPABASE_KEY);
 }
 function couponReasonText(reason,data={}){
   const map={
@@ -1998,7 +2007,10 @@ function couponReasonText(reason,data={}){
     brand_not_eligible:'El cupón no aplica a esta marca.',
     usage_limit_reached:'Este cupón ya alcanzó su límite de usos.',
     phone_usage_limit_reached:'Este celular ya utilizó el máximo permitido para este cupón.',
-    invalid_discount_type:'El tipo de beneficio no es válido.'
+    invalid_discount_type:'El tipo de beneficio no es válido.',
+    invalid_phone:'Ingresa un número celular colombiano válido.',
+    invalid_subtotal:'El subtotal del pedido no es válido.',
+    already_redeemed:'Este pedido ya registró el cupón.'
   };
   return map[reason]||'No fue posible aplicar este cupón.';
 }
@@ -2872,7 +2884,8 @@ async function applyCoupon(){
       discount:Number(data.discount_amount||0),
       min:Number(data.min_subtotal||0),
       scopeType:data.scope_type||'all',
-      scopeValue:data.scope_value||null
+      scopeValue:data.scope_value||null,
+      source:data._liftCouponSource||'legacy'
     };
     if(appliedCoupon.discountType==='trainer_price'){
       const d=checkoutCouponDiscount();
@@ -3049,7 +3062,7 @@ async function registerCouponUse(){
       p_brands:payload.p_brands,
       p_discount_override:trainerCouponActive()?checkoutCouponDiscount():null
     });
-    if(data?.success===false){
+    if(!data || data?.success===false || data?.valid===false){
       const v=data.validation||{};
       setCouponStatus(couponReasonText(v.reason||data.reason,v),'err');
       return false;
@@ -3057,7 +3070,8 @@ async function registerCouponUse(){
     return true;
   }catch(e){
     console.error('Registro cupón:',e);
-    return true;
+    setCouponStatus('No se pudo registrar el cupón. Intenta de nuevo antes de enviar el pedido.','err');
+    return false;
   }
 }
 async function finishCheckout(){
