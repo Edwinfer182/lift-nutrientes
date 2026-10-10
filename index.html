@@ -13160,6 +13160,62 @@ window.liftOpenImageViewer=(src,alt='Imagen del producto')=>{if(!src)return;ensu
  },{passive:true});
 })();
 </script>
+
+<!-- Ajuste móvil: controles de producto completos dentro de cada tarjeta -->
+<style id="lift-mobile-card-actions-fix-20261010">
+@media(max-width:760px){
+  .grid .liftVitanessCard .cardQuickBuy.cardQuickActions{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:6px!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    padding:5px 9px 10px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+  }
+  .grid .liftVitanessCard .cardQuickActions>.cardQuickBuyBtn,
+  .grid .liftVitanessCard .cardQuickActions>.cardShareImageBtn,
+  .grid .liftVitanessCard .cardQuickActions .liftAdminMenuToggle{
+    display:grid!important;
+    place-items:center!important;
+    flex:0 0 34px!important;
+    width:34px!important;
+    min-width:34px!important;
+    max-width:34px!important;
+    height:34px!important;
+    min-height:34px!important;
+    max-height:34px!important;
+    padding:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  .grid .liftVitanessCard .cardQuickActions .liftBuyLabel{display:none!important}
+  body.liftAdminUnlocked .grid .liftVitanessCard .cardQuickActions>.liftCardAdminMenuWrap{
+    display:inline-flex!important;
+    flex:0 0 34px!important;
+    width:34px!important;
+    margin-left:0!important;
+    position:relative!important;
+  }
+  .grid .liftVitanessCard .cardQuickActions svg{
+    display:block!important;
+    width:17px!important;
+    height:17px!important;
+    flex:0 0 17px!important;
+  }
+  .grid .liftVitanessCard .cardQuickActions .liftAdminDropdown{
+    right:0!important;
+    left:auto!important;
+    overflow:visible!important;
+  }
+}
+</style>
 </body>
 </html>
 
