@@ -7881,7 +7881,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 .lpwBox{width:min(96vw,720px);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:17px}.lpwHead{display:flex;justify-content:space-between;gap:10px;align-items:center}.lpwHead h3{margin:0;font-size:17px}.lpwClose{width:34px;height:34px;border:0;border-radius:50%;background:#f2f2f2;font-size:18px}
 .lpwGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.lpwGrid label{display:grid;gap:4px;font-size:9px;color:#666}.lpwGrid .full{grid-column:1/-1}.lpwGrid input,.lpwGrid select,.lpwGrid textarea{width:100%;border:1px solid #ddd;border-radius:9px;background:#fff;padding:9px;font:inherit;font-size:11px}.lpwGrid input,.lpwGrid select{height:40px}.lpwGrid textarea{min-height:58px}
 .lpwActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.lpwActions button{height:40px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 10px Poppins;cursor:pointer}.lpwActions .dark{background:#111;color:#fff;border-color:#111}.lpwActions .lpwPayoff{grid-column:1/-1}
-.lpwSummary{margin-top:12px;padding:12px;border-radius:12px;background:#f7f7f7}.lpwBalance{font-size:20px;font-weight:600}.lpwBalance small{display:block;font-size:9px;font-weight:400;color:#777;margin-bottom:3px}.lpwList{margin-top:10px;display:grid;gap:6px}.lpwRow{border:1px solid #e5e5e5;border-radius:9px;padding:8px;font-size:9px;display:grid;grid-template-columns:1fr auto;gap:5px}.lpwRow b{font-size:10px}.lpwCredit{color:#111}.lpwStatus{min-height:16px;margin-top:7px;font-size:9px;color:#666}
+ .lpwOverview{margin-top:14px;display:grid;gap:10px}.lpwOverviewTotals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lpwStat{padding:12px;border:1px solid #e5e5e5;border-radius:11px;background:#fafafa;min-width:0}.lpwStat small{display:block;font-size:10px;color:#666}.lpwStat strong{display:block;font-size:clamp(14px,2.5vw,21px);font-weight:600;overflow-wrap:anywhere}.lpwProviderSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.lpwProviderTile{border:1px solid #e5e5e5;background:white;border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit}.lpwProviderTile.active{border-color:#111;background:#f5f5f5}.lpwProviderTile span{display:block;font-size:11px;color:#555;overflow-wrap:anywhere}.lpwProviderTile b{display:block;font-size:15px;font-weight:600}.lpwProviderTile small{font-size:9px;color:#777}@media(max-width:620px){.lpwOverviewTotals{grid-template-columns:1fr 1fr}.lpwStat:first-child{grid-column:1/-1}.lpwProviderSummary{grid-template-columns:1fr 1fr}} .lpwSummary{margin-top:12px;padding:12px;border-radius:12px;background:#f7f7f7}.lpwBalance{font-size:20px;font-weight:600}.lpwBalance small{display:block;font-size:9px;font-weight:400;color:#777;margin-bottom:3px}.lpwList{margin-top:10px;display:grid;gap:6px}.lpwRow{border:1px solid #e5e5e5;border-radius:9px;padding:8px;font-size:9px;display:grid;grid-template-columns:1fr auto;gap:5px}.lpwRow b{font-size:10px}.lpwCredit{color:#111}.lpwStatus{min-height:16px;margin-top:7px;font-size:9px;color:#666}
 @media(max-width:620px){.lpwGrid{grid-template-columns:1fr}.lpwGrid .full{grid-column:auto}.lpwActions{grid-template-columns:1fr}}
 
 .lpwFavorPanel{margin-top:10px;padding:12px;border:1px solid #dedede;border-radius:12px;background:#fafafa}
@@ -7897,6 +7897,7 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
 <div id="liftProviderWalletModal" onclick="if(event.target===this)liftProviderWalletClose()">
  <div class="lpwBox">
   <div class="lpwHead"><h3>Cartera proveedores</h3><button class="lpwClose" onclick="liftProviderWalletClose()">×</button></div>
+  <div id="lpwOverview" class="lpwOverview" aria-live="polite"></div>
   <div class="lpwGrid">
    <label class="full">Proveedor<select id="lpwProvider" onchange="liftProviderWalletLoad()"></select></label>
    <label>Valor del movimiento<input id="lpwValue" type="number" min="0" step="1000" placeholder="Ej: 130000"></label>
@@ -7943,7 +7944,22 @@ body.liftAdminUnlocked .liftAdminPriceMode{display:flex}
    if(m.tipo==='efectivo_cobrado')return Number(m.costo_proveedor||0)-Number(m.valor_cobrado||0);
    return 0;
  }
+ function renderOverview(){
+   const root=document.getElementById('lpwOverview');if(!root)return;
+   const providers=cache.proveedores||[],movements=cache.movimientos||[];
+   const items=providers.map(p=>{
+     const ms=movements.filter(m=>Number(m.proveedor_id)===Number(p.id));
+     const balance=Number(p.balance??ms.reduce((sum,m)=>sum+signed(m),0));
+     return {...p,balance:Number.isFinite(balance)?balance:0};
+   });
+   const owed=items.reduce((sum,p)=>sum+Math.max(0,p.balance),0);
+   const favor=items.reduce((sum,p)=>sum+Math.max(0,-p.balance),0);
+   const current=Number(document.getElementById('lpwProvider')?.value||0);
+   root.innerHTML=`<div class="lpwOverviewTotals"><div class="lpwStat"><small>Total global que debes</small><strong>${money(owed)}</strong></div><div class="lpwStat"><small>Total a favor</small><strong>${money(favor)}</strong></div><div class="lpwStat"><small>Saldo neto global</small><strong>${owed>=favor?'':'−'}${money(Math.abs(owed-favor))}</strong></div></div><div style="font-size:12px;font-weight:600">Saldo por proveedor</div><div class="lpwProviderSummary">${items.map(p=>`<button type="button" class="lpwProviderTile ${Number(p.id)===current?'active':''}" data-provider-id="${Number(p.id)}"><span>${esc(p.nombre)}</span><b>${money(p.balance)}</b><small>${p.balance>0?'Debes':p.balance<0?'A favor':'Cuenta en cero'}</small></button>`).join('')||'<span style="font-size:11px;color:#777">No hay proveedores registrados.</span>'}</div>`;
+   root.querySelectorAll('[data-provider-id]').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('lpwProvider').value=btn.dataset.providerId;renderProvider()}));
+ }
  function renderProvider(){
+   renderOverview();
    const id=Number(document.getElementById('lpwProvider')?.value||0);
    const p=cache.proveedores.find(x=>Number(x.id)===id);
    const ms=cache.movimientos.filter(x=>Number(x.proveedor_id)===id);
