@@ -1543,6 +1543,38 @@ header.top.liftHeaderCompact .offersBtn{height:39px!important;min-height:39px!im
 <script id="lift-header-compact-behavior-20261009">
 (function(){function init(){var h=document.querySelector('header.top');if(!h)return;var scheduled=false;function update(){scheduled=false;h.classList.toggle('liftHeaderCompact',window.scrollY>95)}window.addEventListener('scroll',function(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}},{passive:true});update()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();
 </script>
+
+<style id="lift-service-four-across-clean-v1">
+/* Cuatro avisos en una sola fila, sin divisor central ni espacio vacío. */
+#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-column:1/-1!important;gap:0!important;margin:0!important;padding:0!important;border-top:0!important;border-bottom:1px solid #e8e8e8!important;align-items:stretch!important}
+#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion details{min-width:0!important;border-right:0!important;border-bottom:0!important}
+#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion summary{padding:12px 8px!important;gap:7px!important;min-height:70px!important}
+#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion .liftDeliveryContent{padding:0 9px 12px!important}
+@media(max-width:760px){#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion{grid-template-columns:repeat(4,minmax(0,1fr))!important;overflow:visible!important}#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion summary{flex-wrap:wrap!important;align-content:start!important;min-height:90px!important;padding:8px 4px!important;gap:3px!important}#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion .liftServiceIcon{display:none!important}#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion summary b{font-size:9px!important;overflow-wrap:anywhere}#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion summary small{font-size:8px!important}#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion .liftServiceChevron{font-size:13px!important}#liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion .liftDeliveryContent{font-size:9px!important;padding:0 4px 10px!important;overflow-wrap:anywhere}}
+</style>
+
+<style id="lift-mobile-variants-before-recommendations-v1">
+/* Solo móvil: imagen, variaciones, información de compra y recomendados. PC intacto. */
+@media (max-width:760px){
+  #liftMonoOff .liftMonoBody{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important}
+  #liftMonoOff .liftMonoVisual{display:contents!important}
+  #liftMonoOff .liftMonoImg{order:0!important}
+  #liftMonoOff .detailShareBelowImage{order:1!important}
+  #liftMonoOff .liftMonoVariantsBelow{order:2!important;width:100%!important;margin:4px 0 8px!important}
+  #liftMonoOff .liftMonoInfo{order:3!important;width:100%!important}
+  #liftMonoOff .liftMonoRelatedWide{order:4!important;width:100%!important;margin-top:12px!important}
+  #liftMonoOff .liftMonoServiceWide{order:5!important;width:100%!important}
+  #liftMonoOff .liftMonoRelatedWide .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+  #liftMonoOff .liftMonoRelatedWide .relatedItem{min-width:0!important}
+}
+</style>
+<style id="lift-brand-category-inline-no-pills-v1">
+.liftMonoBrandCategory{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px!important}
+.liftMonoBrandCategory .liftMonoBrand,.liftMonoBrandCategory .liftMonoCategory{display:inline!important;margin:0!important;padding:0!important;line-height:1.4!important}
+.liftMonoBrandCategory .liftMonoCategory{font-size:11px!important;color:#888!important;text-transform:none!important;letter-spacing:0!important}
+.liftMonoQuickMeta{display:none!important}
+@media(max-width:760px){.liftMonoBrandCategory{gap:8px!important;margin-bottom:6px!important}.liftMonoBrandCategory .liftMonoCategory{font-size:10px!important}}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2262,7 +2294,7 @@ function liftGroupCardProduct(g,fallback){
     id:base.id,
     name:String(g.nombre||base.name||'').trim(),
     brand:String(g.marca||base.brand||'').trim(),
-    category:String(g.categoria||base.category||'').trim(),
+    category:String(base.category||'').trim(),
     presentation:String(g.presentacion||base.presentation||'').trim(),
     price:gp>0?gp:base.price,
     image:String(g.imagen||base.image||'').trim(),
@@ -2344,7 +2376,7 @@ window.liftSelectGroupVariant=function(groupId,variantId){
     ? `<div class="offerPrices"><span class="oldPrice">${fmt(normalPrice)}</span><span class="liftMonoPrice">${fmt(salePrice)}</span></div><div class="saving">Oferta en ${esc(v.sabor||'esta variante')}</div>`
     : `<div class="liftMonoPrice">${fmt(normalPrice)}</div>`;
   document.querySelectorAll('#liftGroupVariantPicker .liftVariantChip').forEach(b=>b.classList.toggle('active',String(b.dataset.variantId)===String(v.id)));
-  const sel=document.getElementById('liftGroupVariantSelected'); if(sel)sel.textContent='Seleccionado: '+String(v.sabor||'Variación');
+  const sel=document.getElementById('liftGroupVariantSelected'); if(sel)sel.textContent='Sabor: '+String(v.sabor||'Variación');
   const addBtn=document.getElementById('liftMonoAdd'); if(addBtn)addBtn.innerHTML=`<span class="liftActionIcon">＋</span><span>Agregar · ${esc(v.sabor||'Variación')}</span>`;
   const share=document.querySelector('.detailShareImageBtn'); if(share&&p)share.setAttribute('onclick',`event.stopPropagation();shareLiftProductImage(${Number(p.id)})`);
 };
@@ -2371,16 +2403,16 @@ function liftInjectGroupVariantPicker(productId){
   window.LIFT_SELECTED_GROUP_VARIANT[String(g.id)]=String(current.id);
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
-  box.innerHTML=`<div class="liftVariantPickerHead"><b>Elige sabor</b><span>${vv.length} disponibles</span></div>
+  box.innerHTML=`<div class="liftVariantPickerHead"><b id="liftGroupVariantSelected">Sabor: ${esc(current.sabor||'Variación')}</b></div>
   <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=liftVariantOffer(v),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
-  <div id="liftGroupVariantSelected" class="liftVariantSelected">Seleccionado: ${esc(current.sabor||'Variación')}</div>`;
+  `;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
   const title=info.querySelector('.liftMonoTitle'); if(title)title.textContent=String(g.nombre||title.textContent||'');
   const brand=info.querySelector('.liftMonoBrand'); if(brand)brand.textContent=String(g.marca||brand.textContent||'');
-  const cat=info.querySelector('.liftMonoCategory'); if(cat)cat.textContent=String(g.categoria||cat.textContent||'');
+  const cat=info.querySelector('.liftMonoCategory'); if(cat){ const source=liftVariantProduct(current)||PRODUCTS.find(p=>String(p.id)===String(productId)); cat.textContent=String(source?.category||cat.textContent||'').trim(); }
   const meta=info.querySelector('.liftMonoQuickMeta');
-  if(meta)meta.innerHTML=`${g.presentacion?`<span>${esc(g.presentacion)}</span>`:''}<span>${vv.length} sabores disponibles</span>`;
+  if(meta)meta.innerHTML='';
   liftSelectGroupVariant(g.id,current.id);
   return true;
 }
@@ -3627,15 +3659,11 @@ function renderProductDetail(p){
             
           </div>
           <div class="detailShareBelowImage"><button class="cardShareImageBtn detailShareImageBtn" type="button" title="Compartir imagen del producto" aria-label="Compartir imagen del producto" onclick="event.stopPropagation();shareLiftProductImage(${Number(p.id)})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg></button></div>
+          <div class="liftMonoRelatedWide liftRelatedUnderImage">${relatedProductDetailHTML(p)}</div>
         </div>
         <div class="liftMonoInfo">
-          <div class="liftMonoBrand">${p.brand||''}</div>
+          <div class="liftMonoBrandCategory"><button type="button" class="liftMonoBrand liftDetailFilter" data-filter="brand">${p.brand||''}</button><span class="liftDetailSeparator">·</span><button type="button" class="liftMonoCategory liftDetailFilter" data-filter="category">${p.category||''}</button></div>
           <h2 class="liftMonoTitle">${p.name||''}</h2>
-          <div class="liftMonoCategory">${p.category||''}</div>
-          <div class="liftMonoQuickMeta">
-            ${p.presentation?`<span>${esc(p.presentation)}</span>`:''}
-            ${p.flavor?`<span>Sabor: ${esc(p.flavor)}</span>`:''}
-          </div>
           <div class="liftMonoPriceArea">${typeof priceHTML==='function' ? priceHTML(p) : `<div class="liftMonoPrice">${money}</div>`}</div>
           <div class="liftMonoBtns liftMonoAddRow">
             <div class="liftMonoQuantity" aria-label="Cantidad del producto"><div class="liftMonoQtyControls"><button type="button" id="liftMonoQtyMinus" aria-label="Disminuir cantidad">−</button><output id="liftMonoQtyValue" aria-live="polite">1</output><button type="button" id="liftMonoQtyPlus" aria-label="Aumentar cantidad">+</button></div></div>
@@ -3648,15 +3676,6 @@ function renderProductDetail(p){
               <img loading="lazy" src="https://static.wixstatic.com/media/251da0_3e18c7ef59f44fd7b2d5870cee2b7206~mv2.png" alt="Medio de pago" />
             </div>
           </div>
-          <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
-          ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
-          ${liftStaticProductUrl(p)?`<a class="liftMonoPageLink" href="${liftStaticProductUrl(p)}">Ver página del producto →</a>`:''}
-        </div>
-        <div class="liftMonoVariantsBelow">
-          ${iso100FlavorStrip(p)}
-          ${pdfFlavorStrip(p)}
-        </div>
-        <div class="liftMonoRelatedWide">${relatedProductDetailHTML(p)}</div>
         <div class="liftMonoService liftMonoServiceWide liftDeliveryAccordion">
           <details>
             <summary><span class="liftServiceIcon">✓</span><span><b>Disponibilidad y tarifas</b><small>Consulta existencias y valor del envío</small></span><span class="liftServiceChevron">⌄</span></summary>
@@ -3675,7 +3694,17 @@ function renderProductDetail(p){
             <div class="liftDeliveryContent">Si tu producto llega golpeado, abierto, derramado, con el sello alterado o diferente al solicitado, <strong>repórtalo preferiblemente dentro de los 2 días hábiles siguientes a la entrega</strong>. Escríbenos por WhatsApp con el número de pedido y fotografías del producto y del empaque. Revisaremos el caso para gestionar el cambio, reposición o devolución que corresponda. <strong>Este plazo de reporte no limita las garantías ni los derechos legales del consumidor.</strong> Conserva el producto y su empaque mientras revisamos la novedad.</div>
           </details>
         </div>
+          <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
+          ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
+          ${liftStaticProductUrl(p)?`<a class="liftMonoPageLink" href="${liftStaticProductUrl(p)}">Ver página del producto →</a>`:''}
+        </div>
+        <div class="liftMonoVariantsBelow">
+          ${iso100FlavorStrip(p)}
+          ${pdfFlavorStrip(p)}
+        </div>
+
       </div>`;
+    liftPlaceServiceNotices();
     liftSecondaryRender(p);
     bindIso100Flavors(p);
     bindPdfFlavors(p);
@@ -13304,6 +13333,76 @@ body > .liftAdminPortal button{width:34px!important;height:34px!important;min-wi
 })();
 </script>
 
+
+<style id="lift-recommendations-under-image-20261012">
+/* Recomendaciones dentro de la columna de la imagen, sin ocupar toda la página. */
+@media(min-width:761px){
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage{display:block!important;width:100%;margin-top:20px!important;min-width:0!important}
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .liftRelatedGrid,
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+}
+@media(max-width:760px){
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage{display:block!important;margin:16px 0 22px!important}
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .liftRelatedGrid,
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+}
+</style>
+
+<style id="lift-service-payment-placement-v2">
+@media(min-width:761px){
+ #liftMonoOff .liftMonoInfo>.liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-column:auto!important;grid-row:auto!important;width:100%!important;margin:13px 0 8px!important;padding:0!important;border-top:0!important;border-bottom:1px solid #eaeaea!important;gap:0!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion details{border-right:0!important;min-width:0!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion summary{padding:8px 4px!important;gap:4px!important;min-height:76px!important;align-items:flex-start!important;flex-wrap:wrap!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion .liftServiceIcon{display:none!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion summary b{font-size:9px!important;overflow-wrap:anywhere}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion summary small{font-size:8px!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion .liftServiceChevron{font-size:12px!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion .liftDeliveryContent{font-size:10px!important;padding:4px 5px 10px!important;overflow-wrap:anywhere}
+}
+@media(max-width:760px){
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:1fr!important;grid-column:1/-1!important;grid-row:auto!important;order:999!important;width:100%!important;margin-top:16px!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion summary{min-height:56px!important;padding:10px!important;flex-wrap:nowrap!important;align-items:center!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion summary b{font-size:11px!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion summary small{font-size:9px!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion .liftServiceIcon{display:grid!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion .liftDeliveryContent{font-size:11px!important;padding:0 12px 12px 42px!important}
+}
+</style>
+<script id="lift-service-responsive-placement-v2">
+function liftPlaceServiceNotices(){
+ const root=document.querySelector('#liftMonoBody .liftMonoBody');
+ if(!root)return;
+ const service=root.querySelector('.liftMonoServiceWide.liftDeliveryAccordion');
+ const info=root.querySelector('.liftMonoInfo');
+ const payments=info?.querySelector('.liftMonoPaymentMethods');
+ if(!service||!info||!payments)return;
+ if(window.matchMedia('(max-width:760px)').matches){
+   if(service.parentElement!==root||service!==root.lastElementChild)root.appendChild(service);
+ }else if(service.parentElement!==info||service.previousElementSibling!==payments){
+   payments.insertAdjacentElement('afterend',service);
+ }
+}
+window.addEventListener('resize',liftPlaceServiceNotices,{passive:true});
+</script>
+<style id="lift-detail-filter-links-v1">
+.liftMonoBrandCategory .liftDetailFilter{appearance:none;border:0;background:none;padding:0!important;margin:0!important;cursor:pointer;font-family:inherit;text-align:left;line-height:1.4!important}
+.liftMonoBrandCategory .liftDetailFilter:hover{text-decoration:underline;text-underline-offset:3px;color:#111!important}
+.liftDetailSeparator{color:#aaa;font-size:12px}
+#liftGroupVariantPicker .liftVariantPickerHead{justify-content:flex-start}
+#liftGroupVariantPicker .liftVariantPickerHead b{font-size:13px}
+</style>
+<script id="lift-detail-filter-links-script">
+document.addEventListener('click',function(e){
+ const btn=e.target.closest('#liftMonoOff .liftDetailFilter');
+ if(!btn)return;
+ e.preventDefault();e.stopPropagation();
+ const value=btn.textContent.trim();if(!value)return;
+ document.getElementById('liftMonoClose')?.click();
+ if(btn.dataset.filter==='brand' && typeof setBrand==='function')setBrand(value);
+ if(btn.dataset.filter==='category' && typeof setCat==='function')setCat(value);
+ document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'});
+});
+</script>
 </body>
 </html>
 
