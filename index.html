@@ -1927,8 +1927,6 @@ window.LIFT_DATA_SOURCE='supabase';
 const PRODUCTS=[];
 // ===== LIFT · CUPONES Y PRECIOS ENTRENADOR =====
 const LIFT_COUPON_SUPABASE_URL='https://lethnvyuvnhekoudmqgy.supabase.co';
-const LIFT_MAIN_COUPON_URL='https://vdxkknftyssjyfbdieqa.supabase.co';
-const LIFT_MAIN_COUPON_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 const LIFT_COUPON_SUPABASE_KEY='sb_publishable_jaBDvCiunGGwMakqL_-TIg_LZcgHgk8';
 // Precio entrenador: únicamente desde los datos cargados desde Supabase.
 // No hay mapas ni porcentajes de respaldo incrustados en este HTML.
@@ -1974,26 +1972,19 @@ function checkoutCouponPayload(){
   };
 }
 async function liftCouponRpc(name,args){
-  const invoke=async(url,key)=>{
-    const r=await fetch(`${url}/rest/v1/rpc/${name}`,{
-      method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':`Bearer ${key}`},
-      body:JSON.stringify(args)
-    });
-    const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{data=raw}
-    if(!r.ok)throw new Error(data?.message||data?.error||raw||`HTTP ${r.status}`);
-    return data;
-  };
-  // Los cupones nuevos se validan en la base principal. Los anteriores siguen funcionando en Lift Clientes.
-  if(name==='validate_coupon'){
-    const data=await invoke(LIFT_MAIN_COUPON_URL,LIFT_MAIN_COUPON_KEY);
-    if(data?.reason!=='invalid_code')return {...data,_liftCouponSource:'main'};
-    const legacy=await invoke(LIFT_COUPON_SUPABASE_URL,LIFT_COUPON_SUPABASE_KEY);
-    return {...legacy,_liftCouponSource:'legacy'};
-  }
-  if(name==='redeem_coupon_v2' && appliedCoupon?.source==='main'){
-    return invoke(LIFT_MAIN_COUPON_URL,LIFT_MAIN_COUPON_KEY);
-  }
-  return invoke(LIFT_COUPON_SUPABASE_URL,LIFT_COUPON_SUPABASE_KEY);
+  const r=await fetch(`${LIFT_COUPON_SUPABASE_URL}/rest/v1/rpc/${name}`,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey':LIFT_COUPON_SUPABASE_KEY,
+      'Authorization':`Bearer ${LIFT_COUPON_SUPABASE_KEY}`
+    },
+    body:JSON.stringify(args)
+  });
+  const text=await r.text();
+  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!r.ok)throw new Error(data?.message||data?.error||text||`HTTP ${r.status}`);
+  return data;
 }
 function couponReasonText(reason,data={}){
   const map={
@@ -2007,10 +1998,7 @@ function couponReasonText(reason,data={}){
     brand_not_eligible:'El cupón no aplica a esta marca.',
     usage_limit_reached:'Este cupón ya alcanzó su límite de usos.',
     phone_usage_limit_reached:'Este celular ya utilizó el máximo permitido para este cupón.',
-    invalid_discount_type:'El tipo de beneficio no es válido.',
-    invalid_phone:'Ingresa un número celular colombiano válido.',
-    invalid_subtotal:'El subtotal del pedido no es válido.',
-    already_redeemed:'Este pedido ya registró el cupón.'
+    invalid_discount_type:'El tipo de beneficio no es válido.'
   };
   return map[reason]||'No fue posible aplicar este cupón.';
 }
@@ -2884,8 +2872,7 @@ async function applyCoupon(){
       discount:Number(data.discount_amount||0),
       min:Number(data.min_subtotal||0),
       scopeType:data.scope_type||'all',
-      scopeValue:data.scope_value||null,
-      source:data._liftCouponSource||'legacy'
+      scopeValue:data.scope_value||null
     };
     if(appliedCoupon.discountType==='trainer_price'){
       const d=checkoutCouponDiscount();
@@ -3062,7 +3049,7 @@ async function registerCouponUse(){
       p_brands:payload.p_brands,
       p_discount_override:trainerCouponActive()?checkoutCouponDiscount():null
     });
-    if(!data || data?.success===false || data?.valid===false){
+    if(data?.success===false){
       const v=data.validation||{};
       setCouponStatus(couponReasonText(v.reason||data.reason,v),'err');
       return false;
@@ -3070,8 +3057,7 @@ async function registerCouponUse(){
     return true;
   }catch(e){
     console.error('Registro cupón:',e);
-    setCouponStatus('No se pudo registrar el cupón. Intenta de nuevo antes de enviar el pedido.','err');
-    return false;
+    return true;
   }
 }
 async function finishCheckout(){
@@ -10269,7 +10255,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
  window.liftAdminCopyAccess=async function(id){
  const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return alert('No encontré el pedido.');
  const token=String(p.token||p.token_publico||'').trim();if(!token)return alert('Este pedido no tiene token disponible.');
- return window.liftCopyText((window.liftBuildOrderUrl?window.liftBuildOrderUrl(p.id,token):('https://supgo.co/?pedido='+encodeURIComponent(p.id)+'&token='+encodeURIComponent(token))),'Enlace del pedido copiado.');
+ return window.liftCopyText((window.liftBuildOrderUrl?window.liftBuildOrderUrl(p.id,token):('https://lift-nutrientes.vercel.app/catalogo/?pedido='+encodeURIComponent(p.id)+'&token='+encodeURIComponent(token))),'Enlace del pedido copiado.');
 };
  window.liftAdminShareAccess=function(id){
   const p=rows.find(x=>Number(x.id)===Number(id));
@@ -10748,7 +10734,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
      return new Map((Array.isArray(data)?data:[]).map(p=>[String(p.id),String(p.imagen||p.product?.image||p.product?.imagen||'').trim()]));
    }catch(e){return new Map()}
  }
- function orderUrl(id,token){const u=new URL('https://supgo.co/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
+ function orderUrl(id,token){const u=new URL('https://lift-nutrientes.vercel.app/catalogo/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
  function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
 
  const STEPS=[
@@ -11234,7 +11220,7 @@ window.liftAdminAvailability=async function(id,available,btn){
 
 <script id="lift-public-order-url-no-token-v1">
 (function(){
-  const PUBLIC_CATALOG='https://supgo.co/';
+  const PUBLIC_CATALOG='https://lift-nutrientes.vercel.app/catalogo/';
   window.liftPublicOrderUrl=function(id){
     return PUBLIC_CATALOG+'?pedido='+encodeURIComponent(String(id||'').replace(/[^0-9]/g,''));
   };
@@ -11365,7 +11351,7 @@ window.liftAdminAvailability=async function(id,available,btn){
 </style>
 <script id="lift-category-share-script-v1">
 (function(){
- const BASE='https://supgo.co/';
+ const BASE='https://lift-nutrientes.vercel.app/catalogo/';
  const clean=v=>String(v||'').trim();
 
  async function shareCategory(cat){
@@ -11414,7 +11400,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 </style>
 <script id="lift-admin-share-links-script-v2">
 (function(){
- const BASE='https://supgo.co/';
+ const BASE='https://lift-nutrientes.vercel.app/catalogo/';
  const isAdmin=()=>new URLSearchParams(location.search).has('fer') || document.body.classList.contains('admin-mode') || !!document.getElementById('adminPanel');
  const share=async(type,name)=>{
    const url=BASE+'?'+type+'='+encodeURIComponent(String(name||'').trim());
@@ -11551,7 +11537,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
  const money=n=>'$ '+Number(n||0).toLocaleString('es-CO'),state=s=>({verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'})[s]||s||'Pedido';
  async function api(data){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||j.message||('Error '+r.status));return j}
  async function copy(t){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}const x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}x.remove();return ok}
- function base(){return (location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:'https://supgo.co/'}
+ function base(){return (location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:'https://lift-nutrientes.vercel.app/catalogo/'}
  function payInfo(p){
    const ps=String(p.pago_estado||''),fm=String(p.forma_pago||''),medio=String(p.medio_pago_cliente||'');
    const due=Math.max(0,Number(p.saldo_pendiente||0)>0?Number(p.saldo_pendiente):Number(p.total||0)-Number(p.abono_inicial||0));
@@ -12153,7 +12139,7 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 </style>
 <script id="lift-token-copy-final-fix-js">
 (function(){
-  const BASE='https://supgo.co/';
+  const BASE='https://lift-nutrientes.vercel.app/catalogo/';
 
   function buildOrderUrl(id, token){
     const u=new URL(BASE);
@@ -12407,8 +12393,6 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 (function(){
  let GROUPS={};
  let active='';
- let selectedReply=null;
- let lastGenerated='';
  let liftAttResponsesLoaded=false;
  async function loadAttentionResponses(force=false){
    if(liftAttResponsesLoaded && !force)return true;
@@ -12446,21 +12430,6 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
  const $=id=>document.getElementById(id);
  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  const first=()=>String($('liftAttManualName')?.value||'').trim().split(/\s+/)[0]||'';
- function composeAttention(template){
-   const n=first();let msg=String(template||'').replaceAll('{name}',n).replace(/\s+/g,' ').trim();
-   if(n && !template.includes('{name}')){
-     const casual=/^(hola|qué más|que más|buenos días|buenas tardes|buenas noches)/i.test(msg);
-     msg=casual?msg.replace(/^((?:hola|qué más|que más|buenos días|buenas tardes|buenas noches)\b)/i,'$1 '+n):n+' '+msg.charAt(0).toLowerCase()+msg.slice(1);
-   }
-   return msg;
- }
- function refreshSelectedAttention(){
-   if(!selectedReply)return;
-   const template=(GROUPS[selectedReply.cat]||[])[selectedReply.i]||'';
-   const field=$('liftAttText');if(!field||!template)return;
-   // Preserve manual changes unless the text was generated by this selector.
-   if(!field.value.trim()||field.value===lastGenerated){lastGenerated=composeAttention(template);field.value=lastGenerated}
- }
  let liftAttClientsLoaded=false;
  async function loadClients(){
    const sel=$('liftAttClientSelect'), status=$('liftAttClientStatus');
@@ -12519,7 +12488,7 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
    const cats=Object.keys(GROUPS), searching=!!attQuery, q=normalizeAtt(attQuery);
    $('liftAttTabs').innerHTML=cats.length?cats.map(k=>`<button type="button" data-lat="${esc(k)}" class="${k===active?'on':''}">${esc(k)}</button>`).join(''):'<span>Cargando respuestas…</span>';
    const matches=searching?cats.flatMap(cat=>(GROUPS[cat]||[]).map((t,i)=>({t,i,cat})).filter(x=>normalizeAtt(x.t+' '+cat).includes(q))):(GROUPS[active]||[]).map((t,i)=>({t,i,cat:active}));
-   $('liftAttReplies').innerHTML=matches.length?matches.map(x=>`<button type="button" class="liftAttReply${selectedReply?.cat===x.cat&&selectedReply?.i===x.i?' on':''}" data-lar="${x.i}" data-lar-cat="${esc(x.cat)}" >${searching?`<span class="liftAttReplyCategory">${esc(x.cat)}</span>`:''}${esc(x.t.replaceAll('{name}','nombre'))}</button>`).join(''):'<div class="liftAttNoResults">No encontré respuestas con esa búsqueda.</div>';
+   $('liftAttReplies').innerHTML=matches.length?matches.map(x=>`<button type="button" class="liftAttReply" data-lar="${x.i}" data-lar-cat="${esc(x.cat)}">${searching?`<span class="liftAttReplyCategory">${esc(x.cat)}</span>`:''}${esc(x.t.replaceAll('{name}','nombre'))}</button>`).join(''):'<div class="liftAttNoResults">No encontré respuestas con esa búsqueda.</div>';
    const count=$('liftAttSearchCount');if(count)count.textContent=searching?matches.length+' resultado'+(matches.length===1?'':'s'):'';
  }
  window.liftToggleAttentionCheckout=function(btn){
@@ -12532,22 +12501,26 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
    box.classList.toggle('open',opening);if(opening){btn?.classList.add('on');render();loadClients();loadAttentionResponses(true)}
  };
  window.liftCopyAttentionText=async function(){
-   refreshSelectedAttention();
    const t=$('liftAttText')?.value.trim()||'';if(!t)return alert('Primero elige una respuesta.');
    try{await navigator.clipboard.writeText(t);const b=$('liftAttCopy');b.textContent='✓ Copiado';b.classList.add('copied');setTimeout(()=>{b.textContent='Copiar mensaje';b.classList.remove('copied')},1200)}
-   catch(e){const el=$('liftAttText');if(el){el.focus();el.select();try{document.execCommand('copy');const b=$('liftAttCopy');b.textContent='✓ Copiado';setTimeout(()=>b.textContent='Copiar mensaje',1200);return}catch(_) {}}window.prompt('Copia el mensaje:',t)}
+   catch(e){window.prompt('Copia el mensaje:',t)}
  };
  document.addEventListener('click',e=>{
    const tab=e.target.closest?.('[data-lat]');if(tab){active=tab.dataset.lat;render();return}
    const rep=e.target.closest?.('[data-lar]');if(rep){
      const template=(GROUPS[rep.dataset.larCat||active]||[])[Number(rep.dataset.lar)]||'';
-     selectedReply={cat:rep.dataset.larCat||active,i:Number(rep.dataset.lar)};
-     lastGenerated=composeAttention(template);
-     $('liftAttText').value=lastGenerated;
+     const n=first();
+     let msg=template.replaceAll('{name}',n).replace(/\s+/g,' ').trim();
+     if(n && !template.includes('{name}')){
+       const low=msg.toLocaleLowerCase('es');
+       const casual=/^(hola|qué más|que más|buenos días|buenas tardes|buenas noches)/i.test(msg);
+       msg=casual ? msg.replace(/^((?:hola|qué más|que más|buenos días|buenas tardes|buenas noches)\b)/i,'$1 '+n) : n+' '+msg.charAt(0).toLowerCase()+msg.slice(1);
+     }
+     $('liftAttText').value=msg;
      document.querySelectorAll('.liftAttReply').forEach(x=>x.classList.remove('on'));rep.classList.add('on');
    }
  });
- window.liftAttentionNameChanged=function(){refreshSelectedAttention();render()};
+ window.liftAttentionNameChanged=function(){render();const sel=document.querySelector('.liftAttReply.on');if(sel)sel.click()};
 })();
 </script>
 
@@ -13161,61 +13134,71 @@ window.liftOpenImageViewer=(src,alt='Imagen del producto')=>{if(!src)return;ensu
 })();
 </script>
 
-<!-- Ajuste móvil: controles de producto completos dentro de cada tarjeta -->
-<style id="lift-mobile-card-actions-fix-20261010">
-@media(max-width:760px){
-  .grid .liftVitanessCard .cardQuickBuy.cardQuickActions{
-    display:flex!important;
-    flex-direction:row!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:6px!important;
-    width:100%!important;
-    max-width:100%!important;
-    min-width:0!important;
-    padding:5px 9px 10px!important;
-    margin:0!important;
-    box-sizing:border-box!important;
-  }
-  .grid .liftVitanessCard .cardQuickActions>.cardQuickBuyBtn,
-  .grid .liftVitanessCard .cardQuickActions>.cardShareImageBtn,
-  .grid .liftVitanessCard .cardQuickActions .liftAdminMenuToggle{
-    display:grid!important;
-    place-items:center!important;
-    flex:0 0 34px!important;
-    width:34px!important;
-    min-width:34px!important;
-    max-width:34px!important;
-    height:34px!important;
-    min-height:34px!important;
-    max-height:34px!important;
-    padding:0!important;
-    margin:0!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-  }
-  .grid .liftVitanessCard .cardQuickActions .liftBuyLabel{display:none!important}
-  body.liftAdminUnlocked .grid .liftVitanessCard .cardQuickActions>.liftCardAdminMenuWrap{
-    display:inline-flex!important;
-    flex:0 0 34px!important;
-    width:34px!important;
-    margin-left:0!important;
-    position:relative!important;
-  }
-  .grid .liftVitanessCard .cardQuickActions svg{
-    display:block!important;
-    width:17px!important;
-    height:17px!important;
-    flex:0 0 17px!important;
-  }
-  .grid .liftVitanessCard .cardQuickActions .liftAdminDropdown{
-    right:0!important;
-    left:auto!important;
-    overflow:visible!important;
-  }
+<style id="lift-admin-menu-portal-fix-v3">
+/* Menús administrativos fuera de las tarjetas: no invaden ni se recortan. */
+body > .liftAdminDropdown.liftAdminPortal{
+  position:fixed!important;display:grid!important;grid-template-columns:repeat(2,34px)!important;
+  grid-auto-flow:row!important;gap:5px!important;width:max-content!important;
+  min-width:0!important;max-width:none!important;padding:7px!important;
+  top:0;left:0;right:auto!important;bottom:auto!important;
+  z-index:2147483000!important;background:#fff!important;
+  border:1px solid #ddd!important;border-radius:12px!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.22)!important;
 }
+body > .liftAdminPortal button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+@media(max-width:760px){body > .liftAdminDropdown.liftAdminPortal{grid-template-columns:repeat(2,34px)!important}}
 </style>
+<script id="lift-admin-menu-portal-script-v3">
+(function(){
+  let active=null;
+  function close(){
+    if(!active)return;
+    const {menu,wrap,button,card}=active;
+    menu.classList.remove('open','liftAdminPortal');
+    menu.style.removeProperty('left');menu.style.removeProperty('top');
+    if(wrap.isConnected)wrap.appendChild(menu);else menu.remove();
+    button.setAttribute('aria-expanded','false');
+    card?.classList.remove('liftMenuOpen');
+    active=null;
+  }
+  function place(){
+    if(!active)return;
+    const {menu,button}=active;
+    if(!button.isConnected){close();return;}
+    const rect=button.getBoundingClientRect();
+    const w=menu.offsetWidth,h=menu.offsetHeight,pad=8;
+    const left=Math.max(pad,Math.min(rect.right-w,window.innerWidth-w-pad));
+    const above=rect.top-h-7;
+    const below=rect.bottom+7;
+    const top=above>=pad?above:(below+h<=window.innerHeight-pad?below:Math.max(pad,Math.min(below,window.innerHeight-h-pad)));
+    menu.style.setProperty('left',left+'px','important');
+    menu.style.setProperty('top',top+'px','important');
+  }
+  window.liftCloseAdminMenus=function(except){
+    if(active && active.menu!==except)close();
+  };
+  window.liftToggleAdminMenu=function(button){
+    if(active?.button===button){close();return;}
+    close();
+    const wrap=button?.closest('.liftCardAdminMenuWrap,.liftLabAdminMenuWrap');
+    const menu=wrap?.querySelector('.liftAdminDropdown');
+    if(!menu)return;
+    const card=button.closest('.labVisualCard,.grid .card');
+    active={menu,wrap,button,card};
+    document.body.appendChild(menu);
+    menu.classList.add('liftAdminPortal','open');
+    button.setAttribute('aria-expanded','true');
+    place();
+  };
+  document.addEventListener('click',e=>{
+    if(active && !active.menu.contains(e.target) && !active.button.contains(e.target))close();
+  },true);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();},true);
+  window.addEventListener('resize',place,{passive:true});
+  window.addEventListener('scroll',()=>{if(active)close();},{capture:true,passive:true});
+})();
+</script>
+
 </body>
 </html>
 
