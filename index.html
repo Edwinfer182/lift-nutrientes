@@ -6040,7 +6040,7 @@ window.shareLiftProductImage=async function(id){
      marca:$('lafGroupBrand').value.trim(),
      categoria:$('lafGroupCategory').value.trim(),
      presentacion:$('lafGroupPresentation').value.trim(),
-     precio:num($('lafGroupPrice').value),
+     precio:window.liftVariantMoney($('lafGroupPrice').value),
      imagen:$('lafGroupImage').value.trim(),
      visible_publico:true
    };
@@ -6152,6 +6152,7 @@ window.shareLiftProductImage=async function(id){
      const m=meta();m.out=m.out||{};
      if($('lafStatus').value==='out')created.forEach(p=>m.out[p.id]=true);
      saveMeta(m);
+     window.LIFT_VARIANT_GROUP_ADMIN_CACHE=[];
      if(typeof window.liftReloadVariantGroups==='function')await window.liftReloadVariantGroups();
      $('lafFormResult').textContent=`✓ Producto creado con ${created.length} sabores · grupo ${res.grupo_id}.`;
      refresh();
@@ -9942,7 +9943,7 @@ header .liftSearchEnhanced::before{
  const $=id=>document.getElementById(id);
  const esc2=s=>String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
  const norm2=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
- const num2=v=>Number(String(v||'').replace(/[^0-9.-]/g,''))||0;
+ const num2=v=>window.liftVariantMoney(v);
  const money2=v=>Number(v||0).toLocaleString('es-CO');
  function productById(id){return (window.PRODUCTS||PRODUCTS||[]).find(p=>String(p.id)===String(id))}
  function snapshotVariant(v,i){const p=productById(v.producto_id);return {id:v.id||null,producto_id:Number(v.producto_id),sabor:String(v.sabor||p?.flavor||'Variación'),imagen:String(v.imagen||p?.image||''),precio:v.precio!=null?Number(v.precio):Number(p?.price||0),orden:i,product:p}}
@@ -9965,7 +9966,7 @@ header .liftSearchEnhanced::before{
  function readRows(){return [...document.querySelectorAll('#lvgVariants .lvgVariant')].map((row,i)=>{const id=Number(row.dataset.id),p=productById(id);return {producto_id:id,sabor:row.querySelector('.lvgFlavor').value.trim()||('Variación '+(i+1)),imagen:row.querySelector('.lvgVariantImage').value.trim(),precio:Number(editVariants.find(v=>String(v.producto_id)===String(id))?.precio??p?.price??0),orden:i}})}
  window.lafSaveVariantGroupEdit=async function(){
    if(!editGroup)return;const status=$('lvgStatus'),btn=$('lvgSave');const variants=readRows();if(variants.length<2){status.textContent='Necesitas mínimo 2 productos en el grupo.';return}
-   const group={nombre:$('lvgName').value.trim(),marca:$('lvgBrand').value.trim(),categoria:$('lvgCategory').value.trim(),presentacion:$('lvgPresentation').value.trim(),precio:num2($('lvgPrice').value),imagen:$('lvgImage').value.trim(),visible_publico:editGroup.visible_publico!==false};if(!group.nombre){status.textContent='El nombre principal no puede quedar vacío.';return}
+   const group={nombre:$('lvgName').value.trim(),marca:$('lvgBrand').value.trim(),categoria:$('lvgCategory').value.trim(),presentacion:$('lvgPresentation').value.trim(),precio:window.liftVariantMoney($('lvgPrice').value),imagen:$('lvgImage').value.trim(),visible_publico:editGroup.visible_publico!==false};if(!group.nombre){status.textContent='El nombre principal no puede quedar vacío.';return}
    const seen=new Set(),dup=variants.find(v=>{const k=norm2(v.sabor);if(seen.has(k))return true;seen.add(k);return false});if(dup&&!confirm('Hay sabores/variaciones con el mismo nombre. ¿Guardar así?'))return;
    if(!window.liftCatalogAdminCall){status.textContent='No encontré la conexión administrativa con Supabase.';return}
    if(!confirm('¿Guardar los cambios del grupo? Los productos que saques seguirán existiendo como productos independientes.'))return;
@@ -12078,12 +12079,33 @@ body.liftAdminUnlocked #liftClientDirectoryBtn{display:flex!important;align-item
  <div class="lcvBody"><div id="lcvProduct"></div><p class="lcvInfo">Cada sabor puede tener su propia imagen y precio. Los sabores nuevos se crean y relacionan automáticamente en Supabase. El producto actual se conserva y se usa como primera variante cuando todavía no existe un grupo.</p><div id="lcvRows" class="lcvRows"></div><button class="lcvAdd" type="button" onclick="liftCardVariantAddRow()">+ Agregar sabor</button></div>
  <div class="lcvFoot"><div id="lcvStatus" class="lcvStatus"></div><button class="lcvCancel" type="button" onclick="liftCloseCardVariantEditor()">Cancelar</button><button id="lcvSave" class="lcvSave" type="button" onclick="liftSaveCardVariants()">Guardar variaciones</button></div>
 </div>
+<script id="lift-variant-unified-money-v1">
+/* Un único parser de pesos COP para tarjeta y administrador. Nunca convertir 450.000 en 450. */
+window.liftVariantMoney=function(value){
+ if(typeof value==='number')return Number.isFinite(value)?Math.round(value):0;
+ let s=String(value??'').trim().replace(/[^\d.,-]/g,'');
+ if(!s)return 0;
+ const negative=s.startsWith('-');s=s.replace(/-/g,'');
+ const lastComma=s.lastIndexOf(','),lastDot=s.lastIndexOf('.');
+ if(lastComma>=0&&lastDot>=0){
+   const decimal=lastComma>lastDot?',':'.';
+   const parts=s.split(decimal);const frac=parts.pop();
+   s=parts.join('').replace(/[.,]/g,'')+(frac.length===3?'':'.'+frac);
+   if(frac.length===3)s+=frac;
+ }else if(/[.,]/.test(s)){
+   const separator=s.includes(',')?',':'.';const parts=s.split(separator);
+   if(parts.length>2||parts[parts.length-1].length===3)s=parts.join('');
+   else s=parts.join('.');
+ }
+ const n=Number(s);return Number.isFinite(n)?Math.round((negative?-1:1)*n):0;
+};
+</script>
 <script id="lift-card-variant-editor-v1-js">
 (function(){
  let currentProduct=null,currentGroup=null,currentRows=[];
  const $=id=>document.getElementById(id);
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- const num=v=>Number(String(v??'').replace(/[^0-9.-]/g,''))||0;
+ const num=v=>window.liftVariantMoney(v);
  const fmt=v=>Number(v||0).toLocaleString('es-CO');
  const products=()=>window.PRODUCTS||[];
  const product=id=>products().find(p=>String(p.id)===String(id));
@@ -12109,6 +12131,11 @@ body.liftAdminUnlocked #liftClientDirectoryBtn{display:flex!important;align-item
    $('lcvStatus').textContent='Consultando variaciones en Supabase…';$('lcvProduct').innerHTML=`<div class="lcvProduct"><img src="${esc(currentProduct.image||'')}" onerror="this.style.visibility='hidden'"><div><b>${esc(currentProduct.name||'Producto')}</b><span>${esc(currentProduct.brand||'')} · ${esc(currentProduct.presentation||'')} · ID ${esc(currentProduct.id)}</span></div></div>`;
    $('liftCardVariantBackdrop').classList.add('show');$('liftCardVariantModal').classList.add('show');
    currentGroup=await adminGroup(id);
+   if(currentGroup && typeof window.lafOpenVariantGroupEditor==='function'){
+     window.liftCloseCardVariantEditor();
+     window.lafOpenVariantGroupEditor(currentGroup.id);
+     return;
+   }
    if(currentGroup){
      const vv=Array.isArray(currentGroup.lift_producto_variantes)?currentGroup.lift_producto_variantes:[];
      currentRows=vv.sort((a,b)=>Number(a.orden||0)-Number(b.orden||0)).map(v=>rowData(v,false));
