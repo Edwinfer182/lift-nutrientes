@@ -12615,6 +12615,16 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
  }
  function normalizeAtt(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim()}
  let attQuery='';
+ let selectedAttentionTemplate=null;
+ function attentionMessage(template){
+   const n=first();
+   let msg=String(template||'').replace(/\{(?:name|nombre)\}/gi,n).replace(/\s+/g,' ').trim();
+   if(n && !/\{(?:name|nombre)\}/i.test(template)){
+     const casual=/^(hola|qué más|que más|buenos días|buenas tardes|buenas noches)/i.test(msg);
+     msg=casual?msg.replace(/^((?:hola|qué más|que más|buenos días|buenas tardes|buenas noches)\b)/i,'$1 '+n):n+' '+msg.charAt(0).toLowerCase()+msg.slice(1);
+   }
+   return msg;
+ }
  window.liftAttentionSearchChanged=function(v){attQuery=String(v||'').trim();render()};
  function render(){
    const box=ensure();if(!box)return;
@@ -12622,7 +12632,7 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
    const cats=Object.keys(GROUPS), searching=!!attQuery, q=normalizeAtt(attQuery);
    $('liftAttTabs').innerHTML=cats.length?cats.map(k=>`<button type="button" data-lat="${esc(k)}" class="${k===active?'on':''}">${esc(k)}</button>`).join(''):'<span>Cargando respuestas…</span>';
    const matches=searching?cats.flatMap(cat=>(GROUPS[cat]||[]).map((t,i)=>({t,i,cat})).filter(x=>normalizeAtt(x.t+' '+cat).includes(q))):(GROUPS[active]||[]).map((t,i)=>({t,i,cat:active}));
-   $('liftAttReplies').innerHTML=matches.length?matches.map(x=>`<button type="button" class="liftAttReply" data-lar="${x.i}" data-lar-cat="${esc(x.cat)}">${searching?`<span class="liftAttReplyCategory">${esc(x.cat)}</span>`:''}${esc(x.t.replaceAll('{name}','nombre'))}</button>`).join(''):'<div class="liftAttNoResults">No encontré respuestas con esa búsqueda.</div>';
+   $('liftAttReplies').innerHTML=matches.length?matches.map(x=>`<button type="button" class="liftAttReply" data-lar="${x.i}" data-lar-cat="${esc(x.cat)}">${searching?`<span class="liftAttReplyCategory">${esc(x.cat)}</span>`:''}${esc(x.t.replace(/\{(?:name|nombre)\}/gi,'nombre'))}</button>`).join(''):'<div class="liftAttNoResults">No encontré respuestas con esa búsqueda.</div>';
    const count=$('liftAttSearchCount');if(count)count.textContent=searching?matches.length+' resultado'+(matches.length===1?'':'s'):'';
  }
  window.liftToggleAttentionCheckout=function(btn){
@@ -12643,18 +12653,21 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
    const tab=e.target.closest?.('[data-lat]');if(tab){active=tab.dataset.lat;render();return}
    const rep=e.target.closest?.('[data-lar]');if(rep){
      const template=(GROUPS[rep.dataset.larCat||active]||[])[Number(rep.dataset.lar)]||'';
-     const n=first();
-     let msg=template.replaceAll('{name}',n).replace(/\s+/g,' ').trim();
-     if(n && !template.includes('{name}')){
-       const low=msg.toLocaleLowerCase('es');
-       const casual=/^(hola|qué más|que más|buenos días|buenas tardes|buenas noches)/i.test(msg);
-       msg=casual ? msg.replace(/^((?:hola|qué más|que más|buenos días|buenas tardes|buenas noches)\b)/i,'$1 '+n) : n+' '+msg.charAt(0).toLowerCase()+msg.slice(1);
-     }
+     selectedAttentionTemplate=template;
+     const msg=attentionMessage(template);
      $('liftAttText').value=msg;
      document.querySelectorAll('.liftAttReply').forEach(x=>x.classList.remove('on'));rep.classList.add('on');
    }
  });
- window.liftAttentionNameChanged=function(){render();const sel=document.querySelector('.liftAttReply.on');if(sel)sel.click()};
+ window.liftAttentionNameChanged=function(){
+   const input=$('liftAttManualName'),sel=$('liftAttClientSelect');
+   if(input && sel && input.value.trim()){
+     const chosen=(sel._liftClients||[])[Number(sel.value)];
+     if(sel.value!=='' && (!chosen || chosen.nombre.trim().split(/\s+/)[0].toLocaleLowerCase('es')!==first().toLocaleLowerCase('es')))sel.value='';
+   }
+   render();
+   if(selectedAttentionTemplate!==null)$('liftAttText').value=attentionMessage(selectedAttentionTemplate);
+ };
 })();
 </script>
 
