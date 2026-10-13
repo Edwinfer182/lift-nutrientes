@@ -1934,6 +1934,9 @@ header.top.liftHeaderCompact .offersBtn{height:39px!important;min-height:39px!im
         <label class="liftPrefRow optional">
           <input id="coMarketingConsent" type="checkbox"><span><b>Promociones y novedades</b><small>Opcional. Recomendaciones de LIFT por WhatsApp o correo.</small></span>
         </label>
+        <label class="liftPrefRow optional">
+          <input id="coCartRecoveryConsent" type="checkbox"><span><b>Contactarme si dejo una compra sin terminar</b><small>Opcional. Autorizo guardar mi nombre y celular junto al carrito y contactarme por WhatsApp únicamente para ayudarme a finalizar esta compra. Puedo revocar mi autorización.</small></span>
+        </label>
         <label class="liftPrefRow required" id="liftDataConsentRow">
           <input id="coDataConsent" type="checkbox"><span><b>Autorizo el tratamiento de mis datos personales</b><small>Necesario para gestionar compra, entrega, atención y seguimiento. <button type="button" onclick="liftOpenDataPolicy()">Ver política de privacidad</button></small></span>
         </label>
@@ -13459,17 +13462,20 @@ document.addEventListener('click',function(e){
 
 <script id="lift-cart-analytics-v2">
 (()=>{
- const URL='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/lift_registrar_carrito';
+ const URL='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/lift_registrar_carrito_identificado';
  const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  const SESSION_KEY='liftCartTrackingSessionV2';
  let session;try{session=localStorage.getItem(SESSION_KEY);if(!session||!/^[0-9a-f-]{36}$/i.test(session)){session=crypto.randomUUID();localStorage.setItem(SESSION_KEY,session)}}catch(e){session=crypto.randomUUID()}
  let last='', timer, converted=false;
  function products(){try{if(typeof items!=='function')return [];return items().slice(0,40).map(({p,q})=>({nombre:String(p.name||'Producto').slice(0,120),marca:String(p.brand||'').slice(0,70),sabor:String(p._cartFlavor||'').slice(0,70),cantidad:Math.max(0,Math.min(1000,Number(q)||0)),precio:Math.max(0,Number(priceOf(p))||0)}))}catch(e){return []}}
  async function record(state){const rows=products();if(!rows.length&&state==='activo')return;const total=rows.reduce((n,p)=>n+p.cantidad*p.precio,0),count=rows.reduce((n,p)=>n+p.cantidad,0);
-  const data={p_sesion:session,p_productos:rows,p_total:total,p_cantidad:count,p_estado:state};
+  const consent=Boolean(document.getElementById('coCartRecoveryConsent')?.checked);
+  const name=consent?String(document.getElementById('coName')?.value||'').trim().slice(0,100):'';
+  const phone=consent?String(document.getElementById('coPhone')?.value||'').trim().slice(0,20):'';
+  const data={p_sesion:session,p_productos:rows,p_total:total,p_cantidad:count,p_estado:state,p_nombre:name,p_celular:phone,p_autorizado:consent};
   const res=await fetch(URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify(data),keepalive:true});if(!res.ok)throw new Error('No se registró el carrito');
  }
- function check(){if(converted)return;const rows=products(),current=JSON.stringify(rows);if(current!==last){last=current;clearTimeout(timer);timer=setTimeout(()=>record('activo').catch(()=>{}),850);}}
+ function check(){if(converted)return;const rows=products(),current=JSON.stringify({rows,consent:!!document.getElementById('coCartRecoveryConsent')?.checked,name:document.getElementById('coCartRecoveryConsent')?.checked?document.getElementById('coName')?.value:'',phone:document.getElementById('coCartRecoveryConsent')?.checked?document.getElementById('coPhone')?.value:''});if(current!==last){last=current;clearTimeout(timer);timer=setTimeout(()=>record('activo').catch(()=>{}),850);}}
  document.addEventListener('DOMContentLoaded',()=>{check();setInterval(check,2000)});
  window.liftTrackOrderCreated=async()=>{if(converted)return;await record('convertido');converted=true;try{localStorage.removeItem(SESSION_KEY)}catch(e){};
   if(typeof gtag==='function')gtag('event','purchase',{transaction_id:'pedido-'+session,currency:'COP',value:products().reduce((n,p)=>n+p.cantidad*p.precio,0),items:products().map((p,i)=>({item_id:String(i),item_name:p.nombre,quantity:p.cantidad,price:p.precio}))});
@@ -13482,11 +13488,80 @@ document.addEventListener('click',function(e){
 #liftAbandonModal{display:none;position:fixed;inset:0;z-index:18000;background:rgba(0,0,0,.58);padding:20px;place-items:center}#liftAbandonModal.open{display:grid}#liftAbandonModal .liftAbandonCard{background:white;border-radius:16px;padding:22px;width:min(95vw,760px);max-height:90vh;overflow:auto}#liftAbandonModal h2{font-size:21px;margin:0 0 12px}#liftAbandonModal .liftAbandonClose{float:right;background:#111;color:#fff;border:0;border-radius:8px;padding:9px 13px;cursor:pointer}#liftAbandonModal .liftAbandonInfo{font-size:13px;line-height:1.7;color:#555}
 </style>
 <div id="liftAbandonModal" aria-hidden="true"><div class="liftAbandonCard"><button type="button" class="liftAbandonClose" onclick="liftCloseAbandonedCarts()">Cerrar ×</button><h2>Carritos abandonados</h2><div id="liftAbandonData" class="liftAbandonInfo">Cargando…</div></div></div>
-<script id="lift-cart-abandon-admin-ui-v1">
+<style id="lift-cart-abandon-admin-layout-v2">
+#liftAbandonModal .liftAbandonCard{width:min(95vw,820px)}
+#liftAbandonModal .liftAbandonStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+#liftAbandonModal .liftAbandonStats>div{border:1px solid #e7e7e7;border-radius:12px;background:#fafafa;padding:14px}
+#liftAbandonModal .liftAbandonStats small{display:block;color:#777;font-size:11px}
+#liftAbandonModal .liftAbandonStats strong{display:block;font-size:23px;color:#111;margin-top:5px}
+#liftAbandonModal .liftAbandonNote{font-size:11px;color:#777;line-height:1.5}
+#liftAbandonModal .liftAbandonEntry{border:1px solid #e7e7e7;border-radius:12px;padding:14px;margin:10px 0;background:#fff}
+#liftAbandonModal .liftAbandonEntryHead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+#liftAbandonModal .liftAbandonEntryHead strong{font-size:17px;color:#111}
+#liftAbandonModal .liftAbandonEntryHead span,#liftAbandonModal .liftAbandonEntry>small{font-size:11px;color:#777}
+#liftAbandonModal .liftAbandonItems{list-style:none;margin:10px 0;padding:0}
+#liftAbandonModal .liftAbandonItems li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f1f1f1;font-size:12px}
+#liftAbandonModal .liftAbandonItems b{white-space:nowrap;font-weight:500;color:#111}
+@media(max-width:520px){#liftAbandonModal .liftAbandonStats strong{font-size:18px}#liftAbandonModal .liftAbandonCard{padding:15px}}
+</style>
+<script id="lift-cart-abandon-admin-ui-v2">
 (()=>{
  const $=id=>document.getElementById(id);
+ const API='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-catalog-admin';
+ const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const PASS='liftAdminCloudPasswordV1';
+ const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
+ const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const date=s=>{const d=new Date(s);return Number.isNaN(d.getTime())?'Sin fecha':d.toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'});};
+ const age=s=>{const mins=Math.max(0,Math.floor((Date.now()-new Date(s).getTime())/60000));return mins<60?`${mins} min`:mins<1440?`${Math.floor(mins/60)} h ${mins%60} min`:`${Math.floor(mins/1440)} días`;};
+ const safeProducts=v=>Array.isArray(v)?v:[];
  window.liftCloseAbandonedCarts=()=>{$('liftAbandonModal')?.classList.remove('open');$('liftAbandonModal')?.setAttribute('aria-hidden','true')};
- window.liftOpenAbandonedCarts=()=>{if(!document.body.classList.contains('liftAdminUnlocked'))return; $('liftAbandonModal')?.classList.add('open');$('liftAbandonModal')?.setAttribute('aria-hidden','false');$('liftAbandonData').textContent='Los carritos se registran en Supabase. Para mostrar sus datos aquí falta habilitar una consulta administrativa autenticada. No se mostrarán registros privados mediante una consulta pública.'};
+ async function load(){
+   const el=$('liftAbandonData');if(!el)return;
+   el.textContent='Consultando carritos abandonados…';
+   const password=sessionStorage.getItem(PASS)||'';
+   if(!password){el.textContent='Inicia sesión nuevamente como administrador para consultar los carritos.';return;}
+   try{
+     const r=await fetch(API,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'abandoned-carts',password}),cache:'no-store'});
+     const data=await r.json().catch(()=>({}));
+     if(!r.ok||!data.ok)throw new Error(data.error||`Error HTTP ${r.status}`);
+     const carts=Array.isArray(data.carts)?data.carts:[];
+     const total=carts.reduce((sum,c)=>sum+(Number(c.total)||0),0);
+     el.replaceChildren();
+     const stats=document.createElement('div');stats.className='liftAbandonStats';
+     const a=document.createElement('div');a.innerHTML='<small>Carritos abandonados</small><strong>'+carts.length+'</strong>';
+     const b=document.createElement('div');b.innerHTML='<small>Valor potencial</small><strong>'+money(total)+'</strong>';
+     stats.append(a,b);el.append(stats);
+     const note=document.createElement('p');note.className='liftAbandonNote';note.textContent='Carritos con productos, sin actividad durante más de 30 minutos y sin pedido convertido. No son ventas confirmadas.';el.append(note);
+     if(!carts.length){const empty=document.createElement('p');empty.textContent='Todavía no hay carritos abandonados registrados.';el.append(empty);return;}
+     for(const cart of carts){
+       const section=document.createElement('section');section.className='liftAbandonEntry';
+       const head=document.createElement('div');head.className='liftAbandonEntryHead';
+       const title=document.createElement('strong');title.textContent=money(cart.total);
+       const meta=document.createElement('span');meta.textContent=`${Number(cart.cantidad)||0} unidades · Hace ${age(cart.actualizado_en)}`;
+       head.append(title,meta);section.append(head);
+       const customer=document.createElement('div');
+       customer.style.cssText='font-size:12px;line-height:1.6;margin-top:8px;color:#444';
+       if(cart.contacto_autorizado && cart.cliente_celular){
+         const n=document.createElement('strong');n.textContent='Cliente: '+(cart.cliente_nombre||'Sin nombre');
+         const phone=document.createElement('div');phone.textContent='Celular proporcionado: '+cart.cliente_celular;
+         const status=document.createElement('small');status.textContent='Autorizó contacto para recuperar esta compra. Número no verificado.';
+         customer.append(n,phone,status);
+       }else{customer.textContent='Cliente anónimo · Sin autorización de contacto para recuperar el carrito';}
+       section.append(customer);
+       const ul=document.createElement('ul');ul.className='liftAbandonItems';
+       for(const product of safeProducts(cart.productos)){
+         const li=document.createElement('li');
+         const name=document.createElement('span');name.textContent=`${product.nombre||'Producto'}${product.sabor?' · '+product.sabor:''}`;
+         const value=document.createElement('b');value.textContent=`${Number(product.cantidad)||0} × ${money(product.precio)}`;
+         li.append(name,value);ul.append(li);
+       }
+       section.append(ul);
+       const foot=document.createElement('small');foot.textContent='Última actividad: '+date(cart.actualizado_en);section.append(foot);el.append(section);
+     }
+   }catch(e){el.replaceChildren();const msg=document.createElement('p');msg.textContent='No se pudieron cargar los carritos: '+(e?.message||String(e));el.append(msg);}
+ }
+ window.liftOpenAbandonedCarts=()=>{if(!document.body.classList.contains('liftAdminUnlocked'))return;$('liftAbandonModal')?.classList.add('open');$('liftAbandonModal')?.setAttribute('aria-hidden','false');load();};
  function inject(){const row=document.querySelector('#checkoutModal .liftAdminToolsRow')||document.querySelector('.liftAdminToolsRow');if(!row||$('liftAbandonOpenBtn'))return;const b=document.createElement('button');b.type='button';b.id='liftAbandonOpenBtn';b.textContent='🛒 Carritos abandonados';b.onclick=window.liftOpenAbandonedCarts;row.appendChild(b)}
  document.addEventListener('DOMContentLoaded',()=>{inject();new MutationObserver(inject).observe(document.body,{childList:true,subtree:true})});
 })();
