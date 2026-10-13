@@ -12875,7 +12875,8 @@ body.liftAdminUnlocked .liftProviderShareBtn{display:inline-flex}
 #liftProviderShareModal{display:none;position:fixed;inset:0;z-index:2147483000;background:#0009;align-items:center;justify-content:center;padding:15px}
 #liftProviderShareModal.open{display:flex}
 .liftProviderShareActions button:disabled{opacity:.45;cursor:wait}
-.detailShareBelowImage .liftProviderDetailBtn{display:inline-flex!important;pointer-events:auto!important;margin:0!important;border-radius:50%!important;width:38px!important;height:38px!important;min-width:38px!important}
+.detailShareBelowImage .liftProviderDetailBtn{display:none!important;pointer-events:none!important;margin:0!important;border-radius:50%!important;width:38px!important;height:38px!important;min-width:38px!important}
+body.liftAdminUnlocked .detailShareBelowImage .liftProviderDetailBtn{display:inline-flex!important;pointer-events:auto!important}
 .liftProviderSharePanel{background:#fff;color:#111;width:min(490px,100%);border-radius:15px;padding:20px;box-shadow:0 20px 70px #0004;font-family:Poppins,Arial,sans-serif}
 .liftProviderSharePanel h3{font-size:17px;margin:0 0 8px}.liftProviderSharePanel p{font-size:12px;color:#555}
 #liftProviderShareText{box-sizing:border-box;width:100%;min-height:105px;border:1px solid #bbb;border-radius:9px;padding:12px;font:13px Poppins,Arial;resize:vertical}
