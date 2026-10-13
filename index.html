@@ -10363,7 +10363,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
  window.liftAdminCopyAccess=async function(id){
  const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return alert('No encontré el pedido.');
  const token=String(p.token||p.token_publico||'').trim();if(!token)return alert('Este pedido no tiene token disponible.');
- return window.liftCopyText((window.liftBuildOrderUrl?window.liftBuildOrderUrl(p.id,token):('https://lift-nutrientes.vercel.app/catalogo/?pedido='+encodeURIComponent(p.id)+'&token='+encodeURIComponent(token))),'Enlace del pedido copiado.');
+ return window.liftCopyText((window.liftBuildOrderUrl?window.liftBuildOrderUrl(p.id,token):('https://supgo.co/?pedido='+encodeURIComponent(p.id)+'&token='+encodeURIComponent(token))),'Enlace del pedido copiado.');
 };
  window.liftAdminShareAccess=function(id){
   const p=rows.find(x=>Number(x.id)===Number(id));
@@ -10843,7 +10843,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
      return new Map((Array.isArray(data)?data:[]).map(p=>[String(p.id),String(p.imagen||p.product?.image||p.product?.imagen||'').trim()]));
    }catch(e){return new Map()}
  }
- function orderUrl(id,token){const u=new URL('https://lift-nutrientes.vercel.app/catalogo/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
+ function orderUrl(id,token){const u=new URL('https://supgo.co/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
  function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
 
  const STEPS=[
