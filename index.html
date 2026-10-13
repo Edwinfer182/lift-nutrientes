@@ -10714,7 +10714,8 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
    const subtotal=typeof checkoutPublicSubtotal==='function'?checkoutPublicSubtotal(its):its.reduce((a,x)=>a+(Number(x.p?.price||0)*Number(x.q||1)),0);
    const effective=typeof checkoutEffectiveSubtotal==='function'?checkoutEffectiveSubtotal(its):subtotal;
    const descuento=typeof checkoutCouponDiscount==='function'?checkoutCouponDiscount(its):0;
-   const autoShip=typeof shippingFor==='function'?shippingFor(selectedCity.name,typeof checkoutQty==='function'?checkoutQty():its.reduce((a,x)=>a+Number(x.q||1),0)):0;
+   const trainerShipping=(typeof adminTrainerMode==='function'&&adminTrainerMode())||(typeof trainerCouponActive==='function'&&trainerCouponActive());
+   const autoShip=trainerShipping?11000:(typeof shippingFor==='function'?shippingFor(selectedCity.name,typeof checkoutQty==='function'?checkoutQty():its.reduce((a,x)=>a+Number(x.q||1),0)):0);
    const envio=typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):(autoShip||0);
    const noDiscount=(typeof adminTrainerMode==='function'&&adminTrainerMode())||(typeof trainerCouponActive==='function'&&trainerCouponActive());
    const total=Math.max(0,effective-(noDiscount?0:descuento))+(Number(envio)||0);
