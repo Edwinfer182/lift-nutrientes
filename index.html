@@ -13866,9 +13866,42 @@ document.addEventListener('click',function(e){
 #liftProviderPortal{display:none;position:fixed;inset:0;z-index:99999;background:#f5f5f5;overflow:auto;font-family:Poppins,Arial,sans-serif;color:#111}
 #liftProviderPortal.open{display:block}.lpaWrap{max-width:650px;margin:0 auto;padding:22px 13px 55px}.lpaBox{background:white;border:1px solid #e6e6e6;border-radius:13px;padding:17px;margin-top:12px}.lpaHead{background:#111;color:white;border-radius:13px;padding:20px}.lpaHead b{font-size:19px}.lpaHead small{display:block;color:#ddd}.lpaLine{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #eee;font-size:12px}.lpaLine:last-child{border:0}.lpaLine input{width:21px;height:21px;accent-color:#111}.lpaBtn{width:100%;border:0;border-radius:10px;background:#111;color:white;min-height:47px;font:600 12px Poppins;cursor:pointer;margin-top:12px}.lpaBtn:disabled{opacity:.5}.lpaLight{background:white;color:#111;border:1px solid #bbb}.lpaMuted{font-size:11px;color:#666;line-height:1.5}.lpaError{color:#9f1239}.lpaGood{color:#166534}.lpaAdmin{margin:10px 0;border:1px solid #ddd;border-radius:10px;padding:12px;background:#fff}.lpaAdmin button{margin:5px 5px 0 0;border:1px solid #ccc;background:#fff;border-radius:7px;padding:8px;cursor:pointer;font:600 10px Poppins}.lpaAdmin .lpaApprove{background:#111;color:white}
 </style>
-<div id="liftProviderPortal"><div class="lpaWrap"><div class="lpaHead"><b>LIFT · CONFIRMACIÓN DE PRODUCTOS</b><small id="lpaAssignRef">Consultando asignación…</small></div><div id="lpaAssignBody" class="lpaBox">Cargando…</div></div></div>
+<div id="liftProviderPortal"><div class="lpaWrap"><div class="lpaHead"><b>LIFT · ORDEN DE ENTREGA</b><small id="lpaAssignRef">Consultando asignación…</small></div><div id="lpaAssignBody" class="lpaBox">Cargando…</div></div></div>
 <style id="lift-provider-directory-style">
 #lpaDirectory{position:fixed;inset:0;z-index:99997;background:#f6f6f6;overflow:auto;font-family:Poppins,Arial,sans-serif;color:#111;padding:22px 12px}#lpaDirectory .lpaDirPanel{max-width:980px;margin:auto}#lpaDirectory .lpaDirTop{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px}#lpaDirectory .lpaDirTop b{font-size:23px;display:block}#lpaDirectory small{font-size:11px;color:#777}#lpaDirectory button{cursor:pointer;border:1px solid #222;background:#111;color:white;border-radius:6px;padding:10px 13px;font:inherit;font-size:11px}#lpaDirectory .lpaDirSearch{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:14px}#lpaDirectory .lpaDirSearch input{border:1px solid #ddd;background:#fff;padding:13px;width:min(520px,75%);border-radius:7px;font:inherit;font-size:12px}#lpaDirectory .lpaDirGroup{background:white;border:1px solid #e5e5e5;margin-bottom:13px;padding:16px;border-radius:9px}#lpaDirectory h3{margin:0 0 10px;font-size:16px}#lpaDirectory .lpaDirItem{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #eee;padding:14px 0}#lpaDirectory .lpaDirItem p{font-size:11px;color:#555;margin:7px 0}#lpaDirectory .lpaDirBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}#lpaDirectory .lpaDirStatus{font-size:10px;background:#eee;border-radius:5px;padding:4px 7px;margin-left:8px}#lpaDirectory .lpaDirEmpty{padding:30px;text-align:center;color:#666}@media(max-width:600px){#lpaDirectory .lpaDirItem{align-items:stretch;flex-direction:column}#lpaDirectory .lpaDirBtns{justify-content:flex-start}#lpaDirectory .lpaDirTop b{font-size:17px}}
+</style>
+<style id="lift-unified-provider-style">
+#liftProviderPortal{background:#f4f4f4!important;z-index:2147483001!important}
+#liftProviderPortal .lpaWrap{max-width:650px;padding:8px 9px 22px}
+#liftProviderPortal .lpaHead{background:#080808;border-radius:14px;padding:14px 16px;margin-bottom:7px}
+#liftProviderPortal .lpaHead b{font-size:16px}
+#liftProviderPortal #lpaAssignBody{padding:0;border:0;background:transparent;margin-top:0}
+#liftProviderPortal .lcCard{background:#fff;border:1px solid #e5e5e5;border-radius:12px;margin-top:7px}
+#liftProviderPortal .lcCompact{padding:18px}
+#liftProviderPortal .lcCompactTitle{font-size:12px;font-weight:600;margin:0 0 12px}
+#liftProviderPortal .lcCompactGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:12px;line-height:1.9}
+#liftProviderPortal .lcCompactActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}
+#liftProviderPortal .lcCompactActions>*{min-height:42px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#111;font:600 11px Poppins,Arial;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}
+#liftProviderPortal .lcCompactDivider{border-top:1px solid #e7e7e7;padding-top:15px;margin-top:15px}
+#liftProviderPortal .lcCompactProduct{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee}
+#liftProviderPortal .lcCompactImg{width:52px;height:52px;flex:0 0 52px;background:#fafafa;border-radius:7px;display:grid;place-items:center}
+#liftProviderPortal .lcCompactProductInfo{display:grid;gap:3px;font-size:12px;flex:1}
+#liftProviderPortal .lcCompactProductInfo small{font-size:10px;color:#777}
+#liftProviderPortal .lpaChoices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+#liftProviderPortal .lpaChoices button{border:1px solid #ddd;background:#fff;border-radius:8px;padding:10px 4px;font:600 10px Poppins,Arial;cursor:pointer}
+#liftProviderPortal .lpaChoices button.on{background:#111;border-color:#111;color:#fff}
+#liftProviderPortal .lpaProgrammed{background:#e3f8e9;padding:13px;border-radius:9px;font-weight:600;font-size:12px;margin-top:15px}
+#liftProviderPortal .lpaProgrammed small{display:block;color:#555;font-weight:300;margin-top:5px}
+#liftProviderPortal .lcCompactPayment{margin-top:15px;padding:12px;background:#e3f8e9;border-radius:9px;display:grid;gap:4px;font-size:12px}
+#liftProviderPortal .lcCompactPayment small{font-size:11px}
+#liftProviderPortal .lcCompactStatus{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+#liftProviderPortal .lcCompactStatus button{min-height:50px;background:#111;color:#fff;border:0;border-radius:10px;font:700 12px Poppins,Arial}
+#liftProviderPortal .lcCompactStatus button:disabled,#liftProviderPortal .lcCompactEvidence button:disabled{background:#ededed;color:#999;cursor:not-allowed}
+#liftProviderPortal .lcCompactEvidence{margin-top:12px;display:grid;gap:6px}
+#liftProviderPortal .lcCompactEvidence button{min-height:44px;background:#fff;border:1px solid #111;border-radius:9px;font:600 12px Poppins,Arial}
+#liftProviderPortal .lcCompactEvidence small{font-size:10px;color:#777}
+#liftProviderPortal .lpaMissing{border:1px solid #f1d0b3;background:#fff8f1;padding:12px;border-radius:9px;font-size:11px}
+@media(max-width:540px){#liftProviderPortal .lcCompactGrid{grid-template-columns:1fr;gap:4px}}
 </style>
 <script id="lift-provider-assign-v1-js">
 (function(){
@@ -13882,15 +13915,59 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function api(body){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);let r;try{r=await fetch(FN,{signal:controller.signal,method:'POST',headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY},body:JSON.stringify(body)});}catch(e){throw Error(e.name==='AbortError'?'La consulta tardó demasiado. Revisa la conexión e intenta de nuevo.':e.message)}finally{clearTimeout(timer)}const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw Error(j.error||j.message||'No se pudo completar la operación');return j}
 const base=()=>location.origin+location.pathname;
 async function copy(x){try{await navigator.clipboard.writeText(x);return true}catch(e){prompt('Copia este enlace:',x);return false}}
-function lines(items,editable){return (items||[]).map((x,i)=>`<label class="lpaLine"><span><b>${esc(x.nombre||'Producto')}</b><br><span class="lpaMuted">${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))} · Cantidad: ${Number(x.cantidad||1)}</span></span>${editable?`<input type="checkbox" data-i="${i}" aria-label="Disponible: ${esc(x.nombre)}">`:`<b>${Number(x.cantidad||1)} uds.</b>`}</label>`).join('')}
-async function load(){if(!token)return;el('liftProviderPortal').classList.add('open');document.body.style.overflow='hidden';try{const j=await api({action:'provider-assignment-view',token}),a=j.asignacion||j.assignment||j;el('lpaAssignRef').textContent='Pedido #'+(a.pedido_id||'')+' · '+(a.proveedor||'Proveedor');const status=a.estado||'pendiente';const confirmed=a.items_confirmados||[];const available=Array.isArray(a.items)?a.items:[];
-if(status==='pendiente'){el('lpaAssignBody').innerHTML=`<b>¿Qué productos tienes disponibles?</b><p class="lpaMuted">Marca solamente los que puedes suministrar. Si falta alguno, se asignará a otra bodega.</p>${lines(available,true)}<button class="lpaBtn" id="lpaConfirm">CONFIRMAR DISPONIBILIDAD</button><div id="lpaMsg" class="lpaMuted"></div>`;el('lpaConfirm').onclick=async()=>{const indices=[...el('lpaAssignBody').querySelectorAll('input:checked')].map(x=>Number(x.dataset.i));if(!confirm('¿Confirmas la disponibilidad de '+indices.length+' productos?'))return;el('lpaConfirm').disabled=true;try{await api({action:'provider-assignment-confirm',token,indices_disponibles:indices});await load()}catch(e){el('lpaMsg').textContent=e.message;el('lpaConfirm').disabled=false}};return}
-const authorized=Boolean(a.entrega_autorizada);const accepted=status==='aceptado'||status==='en_ruta'||status==='entregado';el('lpaAssignBody').innerHTML=`<b>Disponibilidad registrada</b><p class="lpaMuted">${authorized?'Entrega autorizada por Lift Nutrientes.':'Esperando autorización de Lift Nutrientes para mostrar los datos del cliente.'}</p>${lines(confirmed,false)}${authorized?`<div class="lpaBox"><b>DATOS DE ENTREGA</b><p>Cliente: ${esc(a.cliente_nombre||'')}</p><p>Celular: ${esc(a.cliente_celular||'')}</p><p>Dirección: ${esc(a.direccion||'')}</p><p>Ciudad: ${esc(a.ciudad||'')}</p><p>Indicaciones: ${esc(a.notas||'')}</p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.direccion,a.ciudad].filter(Boolean).join(', '))}" target="_blank" rel="noopener">📍 Abrir Maps</a><button class="lpaBtn lpaLight" id="lpaCopy">COPIAR DATOS</button></div>${!accepted?'<button class="lpaBtn" id="lpaAccept">ACEPTAR ENTREGA</button>':'<p class="lpaGood">✓ Entrega aceptada</p>'}`:''}<div id="lpaMsg" class="lpaMuted"></div>`;
-if(el('lpaCopy'))el('lpaCopy').onclick=()=>copy(['Cliente: '+(a.cliente_nombre||''),'Celular: '+(a.cliente_celular||''),'Dirección: '+(a.direccion||''),'Ciudad: '+(a.ciudad||''),'Indicaciones: '+(a.notas||'')].join('\n'));
-if(el('lpaAccept'))el('lpaAccept').onclick=async()=>{try{await api({action:'provider-assignment-accept',token});await load()}catch(e){el('lpaMsg').textContent=e.message}};
-}catch(e){el('lpaAssignBody').innerHTML='<b>No se pudo abrir la asignación</b><p class="lpaError">'+esc(e.message)+'</p><p class="lpaMuted">Esta función requiere activar las acciones de asignación en Supabase.</p>'}}
+
+function lines(items,editable){
+ return (items||[]).map((x,i)=>`<div class="lcCompactProduct lpaProduct">
+ <div class="lcCompactImg">📦</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small>
+ ${editable?`<div class="lpaChoices" data-i="${i}"><button type="button" class="on" data-available="1">✓ DISPONIBLE</button><button type="button" data-available="0">✕ NO DISPONIBLE</button></div>`:''}</div></div>`).join('');
+}
+function customer(a){
+ const name=a.cliente_nombre||'',phone=a.cliente_celular||'',address=a.direccion||'',city=a.ciudad||'',notes=a.notas||'',email=a.cliente_email||'No registrado';
+ return `<div class="lcCompactTitle">DATOS DEL CLIENTE</div>
+ <div class="lcCompactGrid"><div><div><b>Cliente:</b> ${esc(name)}</div><div><b>Celular:</b> <a href="tel:${esc(phone.replace(/\D/g,''))}">${esc(phone)}</a></div><div><b>Correo:</b> ${esc(email)}</div></div>
+ <div><div><b>Ciudad:</b> ${esc(city)}</div><div><b>Dirección:</b> ${esc(address)}</div><div><b>Indicaciones:</b> ${esc(notes||'Sin indicaciones')}</div></div></div>
+ <div class="lcCompactActions"><button type="button" id="lpaCopy">📋 COPIAR DATOS Y PEDIDO</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([address,city].filter(Boolean).join(', '))}">📍 MAPS ↗</a></div>`;
+}
+async function load(){
+ if(!token)return;
+ el('liftProviderPortal').classList.add('open');document.body.style.overflow='hidden';
+ const body=el('lpaAssignBody');body.innerHTML='<div class="lcCard">Consultando pedido…</div>';
+ try{
+  const j=await api({action:'provider-assignment-view',token}),a=j.asignacion||j.assignment||j;
+  el('lpaAssignRef').textContent='Pedido #'+(a.pedido_id||'')+' · '+(a.proveedor||'Proveedor');
+  const status=a.estado||'pendiente',pending=status==='pendiente',confirmed=a.items_confirmados||[],available=Array.isArray(a.items)?a.items:[];
+  const products=pending?available:confirmed;
+  const customerVisible=Boolean(a.cliente_nombre||a.cliente_celular||a.direccion);
+  body.innerHTML=`<div class="lcCard lcCompact">
+  ${customerVisible?customer(a):'<div class="lpaMissing"><b>DATOS DEL CLIENTE PENDIENTES</b><p>Supabase todavía no entrega los datos al abrir este enlace. No compartas esta orden para despachar hasta conectar la nueva función.</p></div>'}
+  <div class="lcCompactTitle lcCompactDivider">PRODUCTOS DEL PEDIDO</div>
+  <div class="lcCompactProducts">${lines(products,pending)}</div>
+  ${pending?`<p class="lpaMuted">Todos aparecen disponibles inicialmente. Marca «No disponible» únicamente en los productos que falten.</p><button class="lpaBtn" id="lpaConfirm">✓ PROGRAMADO</button>`:
+  `<div class="lpaProgrammed">✓ ${status==='parcial'||status==='confirmado'?'PROGRAMADO':esc(status.toUpperCase())}<small>Productos aceptados: ${confirmed.length}</small></div>
+   <div class="lcCompactPayment lcPaid"><b>NO COBRAR</b><small>No recibir dinero del cliente en esta entrega. El pago al proveedor se coordina con Lift Nutrientes por WhatsApp.</small></div>
+   <div class="lcCompactStatus"><button type="button" id="lpaRoute" disabled>🚚 EN RUTA</button><button type="button" id="lpaDone" disabled>✓ ENTREGADO</button></div>
+   <div class="lcCompactEvidence"><button type="button" id="lpaPhoto" disabled>📷 TOMAR FOTO DE ENTREGA</button><small>Se habilitarán cuando Supabase admita estados y evidencia independientes por proveedor.</small></div>`}
+  <div id="lpaMsg" class="lpaMuted"></div></div>`;
+  if(el('lpaCopy'))el('lpaCopy').onclick=()=>copy(['Cliente: '+(a.cliente_nombre||''),'Celular: '+(a.cliente_celular||''),'Dirección: '+(a.direccion||''),'Ciudad: '+(a.ciudad||''),'Indicaciones: '+(a.notas||''),'','Productos:',...products.map(x=>`${x.cantidad||1} × ${x.nombre||'Producto'}`)].join('\n'));
+  if(pending){
+   body.querySelectorAll('.lpaChoices').forEach(row=>{
+    row.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{
+     row.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));
+    });
+   });
+   el('lpaConfirm').onclick=async()=>{
+    const indices=[...body.querySelectorAll('.lpaChoices')].filter(row=>row.querySelector('[data-available="1"]').classList.contains('on')).map(row=>Number(row.dataset.i));
+    if(!indices.length)return alert('Marca al menos un producto disponible. Los demás quedarán pendientes.');
+    if(!confirm('¿Programar '+indices.length+' producto(s) disponible(s)?'))return;
+    el('lpaConfirm').disabled=true;
+    try{await api({action:'provider-assignment-confirm',token,indices_disponibles:indices});await load()}
+    catch(e){el('lpaMsg').textContent=e.message;el('lpaConfirm').disabled=false}
+   };
+  }
+ }catch(e){body.innerHTML='<div class="lcCard"><b>No se pudo abrir la orden</b><p class="lpaError">'+esc(e.message)+'</p></div>'}
+}
 window.liftProviderAssign=async function(id){const password=sessionStorage.getItem(PASS)||'';if(!password)return alert('Ingresa al administrador.');const proveedor=prompt('Nombre del proveedor o bodega:');if(proveedor===null)return;try{const j=await api({action:'admin-provider-assignment-create',password,pedido_id:Number(id),proveedor:proveedor.trim()||'Proveedor'});const u=base()+'?asignacion='+encodeURIComponent(j.token);await copy(u);alert('Enlace creado. Puedes volver a copiarlo desde Ver asignaciones.');window.liftProviderPanel(id)}catch(e){alert('No se pudo crear la asignación: '+e.message)}};
-window.liftProviderPanel=async function(id){const password=sessionStorage.getItem(PASS)||'';if(!password)return alert('Ingresa al administrador.');try{const j=await api({action:'admin-provider-assignment-list',password,pedido_id:Number(id)});const list=j.asignaciones||[];let html='<div class="lpaAdmin"><b>Asignaciones del pedido #'+id+'</b>';for(const a of list){html+=`<div style="padding:9px 0;border-bottom:1px solid #eee;font-size:11px"><b>${esc(a.proveedor||'Proveedor')}</b> · ${esc(a.estado||'Pendiente')}<br>${a.token?`<button data-link="${esc(base()+'?asignacion='+encodeURIComponent(a.token))}">🔗 COPIAR ENLACE</button>`:'<span class="lpaMuted">Enlace antiguo no recuperable</span>'}<br>Confirmados: ${Number(a.cantidad_confirmada||0)} · Faltantes: ${Number(a.cantidad_faltante||0)}<br>${a.entrega_autorizada?'✓ Dirección autorizada':(Number(a.cantidad_confirmada||0)>0?`<button class="lpaApprove" data-approve="${esc(a.id)}">AUTORIZAR DIRECCIÓN</button>`:'Pendiente de confirmación')}</div>`}html+='<button data-new="1">+ ASIGNAR PRODUCTOS PENDIENTES</button><p style="font-size:10px;color:#777">Los enlaces nuevos quedan disponibles para copiar nuevamente. Los creados antes de esta actualización no se pueden recuperar.</p></div>';const old=document.getElementById('lpaAdminModal');if(old)old.remove();const modal=document.createElement('div');modal.id='lpaAdminModal';modal.style.cssText='position:fixed;inset:0;z-index:99998;background:#0009;overflow:auto;padding:30px 12px';modal.innerHTML='<div style="max-width:520px;margin:auto;background:white;border-radius:12px;padding:15px"><button id="lpaClose" style="float:right">✕</button>'+html+'</div>';document.body.append(modal);modal.querySelector('#lpaClose').onclick=()=>modal.remove();modal.querySelectorAll('[data-link]').forEach(b=>b.onclick=()=>copy(b.dataset.link));modal.querySelector('[data-new]').onclick=()=>{modal.remove();window.liftProviderAssign(id)};modal.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Autorizar acceso a la dirección del cliente para esta asignación?'))return;try{await api({action:'admin-provider-assignment-authorize',password,pedido_id:Number(id),asignacion_id:b.dataset.approve});modal.remove();window.liftProviderPanel(id)}catch(e){alert(e.message)}})}catch(e){alert('Asignaciones: '+e.message)}};
+window.liftProviderPanel=async function(id){const password=sessionStorage.getItem(PASS)||'';if(!password)return alert('Ingresa al administrador.');try{const j=await api({action:'admin-provider-assignment-list',password,pedido_id:Number(id)});const list=j.asignaciones||[];let html='<div class="lpaAdmin"><b>Asignaciones del pedido #'+id+'</b>';for(const a of list){html+=`<div style="padding:9px 0;border-bottom:1px solid #eee;font-size:11px"><b>${esc(a.proveedor||'Proveedor')}</b> · ${esc(a.estado||'Pendiente')}<br>${a.token?`<button data-link="${esc(base()+'?asignacion='+encodeURIComponent(a.token))}">🔗 COPIAR ENLACE</button>`:'<span class="lpaMuted">Enlace antiguo no recuperable</span>'}<br>Confirmados: ${Number(a.cantidad_confirmada||0)} · Faltantes: ${Number(a.cantidad_faltante||0)}<br></div>`}html+='<button data-new="1">+ ASIGNAR PRODUCTOS PENDIENTES</button><p style="font-size:10px;color:#777">Los enlaces nuevos quedan disponibles para copiar nuevamente. Los creados antes de esta actualización no se pueden recuperar.</p></div>';const old=document.getElementById('lpaAdminModal');if(old)old.remove();const modal=document.createElement('div');modal.id='lpaAdminModal';modal.style.cssText='position:fixed;inset:0;z-index:99998;background:#0009;overflow:auto;padding:30px 12px';modal.innerHTML='<div style="max-width:520px;margin:auto;background:white;border-radius:12px;padding:15px"><button id="lpaClose" style="float:right">✕</button>'+html+'</div>';document.body.append(modal);modal.querySelector('#lpaClose').onclick=()=>modal.remove();modal.querySelectorAll('[data-link]').forEach(b=>b.onclick=()=>copy(b.dataset.link));modal.querySelector('[data-new]').onclick=()=>{modal.remove();window.liftProviderAssign(id)};modal.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Autorizar acceso a la dirección del cliente para esta asignación?'))return;try{await api({action:'admin-provider-assignment-authorize',password,pedido_id:Number(id),asignacion_id:b.dataset.approve});modal.remove();window.liftProviderPanel(id)}catch(e){alert(e.message)}})}catch(e){alert('Asignaciones: '+e.message)}};
 window.liftProviderDirectory=async function(){
  const password=sessionStorage.getItem(PASS)||'';
  if(!password){alert('Ingresa primero al administrador.');return}
