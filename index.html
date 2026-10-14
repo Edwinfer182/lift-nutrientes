@@ -2183,7 +2183,7 @@ header.top .liftFilterLink{opacity:.8!important}
       <div class="liftCheckoutSectionTitle"><span>1</span><div><b>Datos de contacto</b><small>Para confirmar y mantenerte al tanto de tu pedido.</small></div></div>
       <div class="checkoutGrid liftCheckoutContact">
         <div class="field"><label for="coName">Nombre</label><input id="coName" autocomplete="name" placeholder="Nombre completo"></div>
-        <div class="field"><label for="coPhone">Celular <span>(opcional si tiene @usuario)</span></label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></div>
+        <div class="field"><label for="coPhone">Celular <span>(opcional si tiene @usuario)</span></label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000 o +1 212 555 1234"></div>
         <div class="field full liftWhatsappField"><label for="coWhatsappUser">Usuario de WhatsApp <span>(solo si aplica)</span></label><input id="coWhatsappUser" autocomplete="off" placeholder="@usuario"></div>
         <div class="field full"><label for="coEmail">Correo electrónico <span>(opcional)</span></label><input id="coEmail" type="email" autocomplete="email" placeholder="tu@correo.com"></div>
       </div>
@@ -7321,7 +7321,7 @@ body.liftAdminUnlocked .liftRecurringClientBox{display:block}
   await window.liftShareGeneratedImage(blob,file,'Cotización '+ref)
  }
  window.liftLoadDueQuotes=async function(){const box=document.getElementById('liftFollowPanel'),badge=document.getElementById('liftFollowBadge');if(!box||!document.body.classList.contains('liftAdminUnlocked'))return;box.innerHTML='<div class="liftClientEmpty">Cargando seguimientos…</div>';try{const j=await call({action:'quotes',due:true}),qs=j.cotizaciones||[];if(badge)badge.textContent=qs.length;if(!qs.length){box.innerHTML='<div class="liftClientEmpty">No tienes seguimientos pendientes para hoy.</div>';return}box.innerHTML=qs.map(q=>`<div class="liftFollowCard"><div class="liftFollowHead"><b>${esc(q.nombre)}</b><span>${esc(q.referencia||'')}</span></div><div>${esc(q.celular||q.whatsapp_usuario||'Sin celular')} · ${esc(q.ciudad)}</div><div class="liftFollowTotal">${money(q.total)} · ${esc(q.estado)}</div>${q.nota_interna?`<div style="margin-top:4px;color:#666">${esc(q.nota_interna)}</div>`:''}<div class="liftFollowActions"><button onclick="liftQuoteWhatsApp('${esc(q.celular)}','${esc(q.nombre)}','${esc(q.whatsapp_usuario||'')}')">WhatsApp</button><button onclick="liftQuoteDone(${q.id},'Ganada')">Ganada</button><button onclick="liftQuoteDone(${q.id},'No compró')">No compró</button></div></div>`).join('')}catch(e){box.innerHTML='<div class="liftClientEmpty">'+esc(e.message)+'</div>'}};
- window.liftQuoteWhatsApp=function(phone,name,user){const p=String(phone||'').replace(/\D/g,'');if(!p){alert('Este cliente está guardado como '+(user||'usuario de WhatsApp')+'. WhatsApp no permite abrir un chat por nickname desde un enlace. Búscalo por su usuario en WhatsApp.');return}const cc=p.startsWith('57')?p:'57'+p;window.open('https://wa.me/'+cc+'?text='+encodeURIComponent('Hola '+name+', ¿cómo estás? Te escribo para hacer seguimiento a la cotización que te envié.'),'_blank')};
+ window.liftQuoteWhatsApp=function(phone,name,user){const p=String(phone||'').replace(/\D/g,'');if(!p){alert('Este cliente está guardado como '+(user||'usuario de WhatsApp')+'. WhatsApp no permite abrir un chat por nickname desde un enlace. Búscalo por su usuario en WhatsApp.');return}const cc=p.length===10?'57'+p:p;window.open('https://wa.me/'+cc+'?text='+encodeURIComponent('Hola '+name+', ¿cómo estás? Te escribo para hacer seguimiento a la cotización que te envié.'),'_blank')};
  window.liftQuoteDone=async function(id,estado){await call({action:'update-quote',id,estado,seguimiento_at:null});liftLoadDueQuotes()};
  function inject(){const manual=document.getElementById('liftManualProductBox');if(manual&&!document.getElementById('liftQuoteBox')){const box=document.createElement('div');box.id='liftQuoteBox';box.className='liftQuoteBox';box.innerHTML=`<button type="button" id="liftQuoteMainBtn" class="liftQuoteBtn" onclick="liftGenerateQuote()">📄 Cotizar</button><div id="liftQuoteForm" class="liftQuoteForm"><div style="font-size:10px;color:#777;line-height:1.45">Al tocar Cotizar se guarda automáticamente el prospecto, productos, total y estado Cotizado en Supabase.</div><div id="liftQuoteStatus" class="liftQuoteStatus"></div></div>`;manual.insertAdjacentElement('afterend',box)}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);else inject();
@@ -10682,7 +10682,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
   const token=String(p.token||p.token_publico||'').trim();
   if(!token)return alert('Este pedido no devolvió token. Recarga Pedidos para consultar el dato actualizado de Supabase.');
   const phone=String(p.celular||'').replace(/\D/g,'');
-  const num=phone?(phone.startsWith('57')?phone:'57'+phone):'';
+  const num=phone?(phone.length===10?'57'+phone:phone):'';
   const url=orderUrl(p.id,token);
   const msg=`Hola ${p.nombre||''} 👋\n\nTu pedido #${p.id} está listo para continuar.\n\nPuedes consultar tu pedido y continuar con el pago aquí:\n${url}`;
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
@@ -10736,7 +10736,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
   const first=(p.items||[])[0]?.nombre||'tu pedido';
   const message=follow?`¿Cómo te fue con tu pedido de ${first}? Quería confirmar que lo recibiste todo bien.`:(messages[estado]||'Puedes consultar el estado actualizado de tu pedido.');
   const text=`Hola ${name}, ${message}\n\nConsulta tu pedido #${p.id} aquí:\n${url}`;
-  const num=phone.startsWith('57')?phone:'57'+phone;
+  const num=phone.length===10?'57'+phone:phone;
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`,'_blank');
  };
  function boot(){inject();}
@@ -10759,7 +10759,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
  const d=v=>{try{return new Date(v).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}catch(e){return String(v||'')}};
  function pay(p){const o=decodeURIComponent(String(p.origen||''));const m=o.match(/forma=([^|]+)/);return m?({pagado:'Pagado',credito:'Crédito',abono:'Abono + saldo'}[m[1]]||m[1]):'Pedido'}
  function status(p){const x=String(p.estado_operativo||'');return ({nuevo:'Nuevo',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[x]||'')}
- function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return'';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
+ function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return'';if(n.length===10)n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
  window.liftHistoryClientWhatsApp=function(id){const x=cache[id];if(!x)return;const u=phoneUrl(x.client.celular,`Hola ${x.client.nombre||''}, te escribo de Lift Nutrientes.`);if(u)window.open(u,'_blank')};
  window.liftHistoryOrderWhatsApp=function(cid,pid){const x=cache[cid],p=x?.orders.find(z=>Number(z.id)===Number(pid));if(!x||!p)return;const u=phoneUrl(x.client.celular,`Hola ${x.client.nombre||''}, te escribo por tu pedido #${p.id}.`);if(u)window.open(u,'_blank')};
  window.liftHistoryRepeat=function(cid,pid){const x=cache[cid],p=x?.orders.find(z=>Number(z.id)===Number(pid));if(!p)return;let added=0,missing=[];(p.lift_pedido_productos||[]).forEach(it=>{const current=(window.PRODUCTS||[]).find(z=>String(z.id)===String(it.producto_id));if(!current){missing.push(it.nombre);return}for(let i=0;i<Math.max(1,Number(it.cantidad||1));i++){if(typeof add==='function')add(current.id);added++}});if(added&&typeof renderCheckoutSummary==='function')renderCheckoutSummary();if(added&&typeof openCheckout==='function')openCheckout();if(missing.length)alert('Cargué los productos disponibles. Ya no encontré: '+missing.join(', '))};
@@ -10893,7 +10893,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
    const diff=Math.floor((start(due)-today)/day);return {due,reason,type,product,diff,overdue:diff<0,today:diff===0};
  }
  function message(c,r){const name=String(c.nombre||'').trim().split(/\s+/)[0]||'';const p=r.product||'tu producto';if(r.type==='cartera')return `Hola ${name}, ¿cómo estás? Te escribo de Lift Nutrientes para recordarte el saldo pendiente de tu pedido. Si ya realizaste el pago, me compartes el comprobante para actualizarlo. Gracias.`;if(r.type==='cotizado')return `Hola ${name}, ¿cómo estás? Te escribo por la cotización que te envié de ${p}. Quería saber si todavía lo estás buscando o si te ayudo a revisar disponibilidad y entrega.`;if(r.type==='postventa')return `Hola ${name}, ¿cómo te fue con tu pedido de ${p}? Quería confirmar que lo recibiste todo bien y que quedaste conforme con el producto.`;if(r.type==='recompra')return `Hola ${name}, ¿cómo estás? Por la fecha de tu último pedido de ${p}, es posible que ya estés cerca de terminarlo. Te escribo para revisar si necesitas reposición y confirmarte disponibilidad.`;if(r.type==='no_respondio')return `Hola ${name}, paso por acá porque habíamos hablado de ${p}. Si todavía lo estás buscando, te confirmo disponibilidad y entrega. Si ya lo resolviste, tranquilo.`;return `Hola ${name}, ¿cómo estás? Te escribo de Lift Nutrientes${p?' por '+p:''}. Quería saber si todavía lo estás buscando y si te puedo ayudar con disponibilidad o entrega.`}
- function wa(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '#';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
+ function wa(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '#';if(n.length===10)n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
  async function load(){const j=await call({action:'crm-list'});S.clients=Array.isArray(j.clientes)?j.clientes:[];S.followups=Array.isArray(j.seguimientos)?j.seguimientos:[];S.orders=Array.isArray(j.pedidos)?j.pedidos:[];S.quotes=Array.isArray(j.cotizaciones)?j.cotizaciones:[];S.recs=new Map(S.clients.map(c=>[+c.id,recommendation(c)]));if(!S.clients.length&&S.orders.length)throw new Error('Supabase devolvió pedidos pero no clientes. Recarga el CRM.')}
  function ensureStats(){const browse=$('crmBrowse');if(!browse)return;if(!$('crmSmartStats')){const d=document.createElement('div');d.id='crmSmartStats';d.className='crmSmartStats';browse.insertBefore(d,browse.firstChild)}}
  function counts(){const rs=[...S.recs.values()],today=rs.filter(r=>r.today).length,late=rs.filter(r=>r.overdue).length,rep=rs.filter(r=>r.type==='recompra'&&r.diff<=7).length,quotes=rs.filter(r=>r.type==='cotizado'&&r.diff<=7).length;return {today,late,rep,quotes,clients:S.clients.length,orders:S.orders.length}}
@@ -11202,7 +11202,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
    }catch(e){return new Map()}
  }
  function orderUrl(id,token){const u=new URL('https://supgo.co/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
- function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '';if(!n.startsWith('57'))n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
+ function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '';if(n.length===10)n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
 
  const STEPS=[
   {l:'Pedido',t:'Pedido realizado',d:'Tu pedido quedó registrado correctamente.'},
@@ -11760,7 +11760,7 @@ window.liftAdminAvailability=async function(id,available,btn){
         ? `✅ Pago confirmado\nPedido #${id}\nYa estamos preparando tu pedido.\n${u}`
         : `El comprobante del pedido #${id} no fue aprobado.\nPuedes revisar y subir otro comprobante aquí:\n${u}`;
       const digits=String(c.celular||'').replace(/\D/g,'');
-      const phone=digits.startsWith('57')?digits:(digits?('57'+digits):'');
+      const phone=digits.length===10?'57'+digits:digits;
       if(typeof window.liftOpenPaymentsAdmin==='function')await window.liftOpenPaymentsAdmin();
       if(phone)window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
     }catch(e){alert(e.message)}
@@ -12089,7 +12089,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
        const controls=document.createElement('div');controls.className='liftFlowControls';
        controls.innerHTML=`<div class="liftFlowTitle">PAGO DEL PEDIDO</div><div class="liftFlowPay"><button data-pay="pagado">✓ PAGADO</button><button data-pay="efectivo">💵 EFECTIVO</button><button data-pay="transferencia">🏦 TRANSFERENCIA</button><button data-pay="credito">◷ CRÉDITO</button></div><div class="liftFlowProvider"><select>${LIFT_PROVIDERS.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('')}</select><button class="ask">💬 CONSULTAR ESTADO</button></div>`;
        controls.querySelectorAll('[data-pay]').forEach(btn=>btn.onclick=async()=>{try{await api({action:'admin-set-payment',password:sessionStorage.getItem(PASS)||'',pedido_id:Number(m[1]),medio:btn.dataset.pay});controls.querySelectorAll('[data-pay]').forEach(x=>x.classList.remove('on'));btn.classList.add('on');refreshDispatchSoon(250)}catch(e){alert(e.message)}});
-       controls.querySelector('.ask').onclick=()=>{try{const proveedorNombre=controls.querySelector('select').value;const proveedor=LIFT_PROVIDERS.find(x=>x.name===proveedorNombre);if(!proveedor?.phone)throw new Error('Este proveedor no tiene número de WhatsApp configurado.');const tituloPedido=String(card.querySelector('.liftOpsTop b')?.textContent||'');const nombreDesdeTarjeta=(tituloPedido.split('·').slice(1).join('·').trim());const nombreCompleto=String(p.nombre||p.cliente_nombre||p.nombre_cliente||nombreDesdeTarjeta||'').trim();const primerNombre=nombreCompleto.split(/\s+/)[0]||'cliente';const mensaje=`Hola, ¿cómo estás? ¿Me puedes actualizar sobre el estado del pedido de ${primerNombre}?`;let numero=String(proveedor.phone||'').replace(/\D/g,'');if(!numero)throw new Error('Este proveedor no tiene número de WhatsApp configurado.');if(!numero.startsWith('57'))numero='57'+numero;window.open('https://wa.me/'+numero+'?text='+encodeURIComponent(mensaje),'_blank')}catch(e){alert(e.message)}};
+       controls.querySelector('.ask').onclick=()=>{try{const proveedorNombre=controls.querySelector('select').value;const proveedor=LIFT_PROVIDERS.find(x=>x.name===proveedorNombre);if(!proveedor?.phone)throw new Error('Este proveedor no tiene número de WhatsApp configurado.');const tituloPedido=String(card.querySelector('.liftOpsTop b')?.textContent||'');const nombreDesdeTarjeta=(tituloPedido.split('·').slice(1).join('·').trim());const nombreCompleto=String(p.nombre||p.cliente_nombre||p.nombre_cliente||nombreDesdeTarjeta||'').trim();const primerNombre=nombreCompleto.split(/\s+/)[0]||'cliente';const mensaje=`Hola, ¿cómo estás? ¿Me puedes actualizar sobre el estado del pedido de ${primerNombre}?`;let numero=String(proveedor.phone||'').replace(/\D/g,'');if(!numero)throw new Error('Este proveedor no tiene número de WhatsApp configurado.');if(numero.length===10)numero='57'+numero;window.open('https://wa.me/'+numero+'?text='+encodeURIComponent(mensaje),'_blank')}catch(e){alert(e.message)}};
        const at=card.querySelector('.liftOpsItems')||card.querySelector('.liftOpsTop');at?.insertAdjacentElement('afterend',controls);
      }
      let box=card.querySelector('.liftDispatchBadge');if(!box){box=document.createElement('div');box.className='liftDispatchBadge';const items=card.querySelector('.liftOpsItems');(items||card.querySelector('.liftOpsTop'))?.insertAdjacentElement('afterend',box)}
