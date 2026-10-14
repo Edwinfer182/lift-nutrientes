@@ -13981,8 +13981,8 @@ async function load(){
   })();
   if(!pending){
    const msg=()=>el('lpaMsg');
-   if(el('lpaRoute'))el('lpaRoute').onclick=async()=>{try{await api({action:'provider-assignment-status',token,estado:'en_ruta'});await load()}catch(e){msg().textContent=e.message}};
-   if(el('lpaDone'))el('lpaDone').onclick=async()=>{if(!confirm('¿Confirmar que los productos asignados fueron entregados?'))return;try{await api({action:'provider-assignment-status',token,estado:'entregado'});await load()}catch(e){msg().textContent=e.message}};
+   if(el('lpaRoute'))el('lpaRoute').onclick=async()=>{try{const result=await api({action:'provider-assignment-status',token,estado:'en_ruta'});await load();const notice=el('lpaMsg');if(notice)notice.textContent=result.sincronizacion?.actualizado?'✓ Pedido actualizado. Notificación de En ruta procesada.':'✓ Despacho del proveedor en ruta. El pedido general y su correo esperan los demás despachos y el pago aprobado.'}catch(e){msg().textContent=e.message}};
+   if(el('lpaDone'))el('lpaDone').onclick=async()=>{if(!confirm('¿Confirmar que los productos asignados fueron entregados?'))return;try{const result=await api({action:'provider-assignment-status',token,estado:'entregado'});await load();const notice=el('lpaMsg');if(notice)notice.textContent=result.sincronizacion?.actualizado?'✓ Pedido entregado. Notificación de entrega procesada.':'✓ Entrega del proveedor registrada. El pedido general espera las demás entregas.'}catch(e){msg().textContent=e.message}};
    if(el('lpaPhoto'))el('lpaPhoto').onclick=()=>{
     let file=document.createElement('input');file.type='file';file.accept='image/*';file.capture='environment';file.onchange=async()=>{
      if(!file.files?.[0])return;const f=file.files[0];if(f.size>5000000){msg().textContent='La foto supera 5 MB';return;}
