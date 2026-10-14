@@ -10644,7 +10644,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
 };
 window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedido_id:id,estado});const p=rows.find(x=>Number(x.id)===Number(id));if(p){p.estado_operativo=estado;const now=new Date().toISOString();if(estado==='programado'&&!p.fecha_programado)p.fecha_programado=now;if(estado==='en_ruta'&&!p.fecha_en_ruta)p.fecha_en_ruta=now;if(estado==='entregado'&&!p.fecha_entregado)p.fecha_entregado=now}if(['programado','en_ruta'].includes(estado)){try{const er=await fetch(EMAIL_FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'notify-order-status',password:pass(),pedido_id:id,estado})});const ej=await er.json().catch(()=>({}));if(!er.ok)console.warn('Correo de estado no enviado:',ej.error||er.status)}catch(mailErr){console.warn('Correo de estado no enviado:',mailErr)}}liftRenderAllOrders()}catch(e){alert('No pude cambiar el estado: '+e.message);await liftLoadAllOrders()}};
  window.liftMarkFollowup=async function(id){try{await rpc('seguimiento',{pedido_id:id,realizado:true});const p=rows.find(x=>Number(x.id)===Number(id));if(p){p.seguimiento_realizado=true;p.fecha_seguimiento=new Date().toISOString()}liftRenderAllOrders()}catch(e){alert('No pude guardar el seguimiento: '+e.message)}};
- window.liftOpsWhatsApp=function(id,follow){const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;const phone=String(p.celular||'').replace(/\D/g,'');if(!phone){alert('Este pedido no tiene celular.');return}const first=(p.items||[])[0]?.nombre||'tu pedido';const text=follow?`Hola ${p.nombre||''}, ¿cómo te fue con tu pedido de ${first}? Quería confirmar que lo recibiste todo bien. 💪`:`Hola ${p.nombre||''}, te escribo por tu pedido #${p.id}.`;const num=phone.startsWith('57')?phone:'57'+phone;window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`,'_blank')};
+ window.liftOpsWhatsApp=function(id,follow){const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;const phone=String(p.celular||'').replace(/\D/g,'');if(!phone){alert('Este pedido no tiene celular.');return}const first=(p.items||[])[0]?.nombre||'tu pedido';const token=String(p.token||p.token_publico||'').trim();if(!follow&&!token){alert('Este pedido no tiene token de consulta. Recarga Pedidos e inténtalo de nuevo.');return}const url=window.liftBuildOrderUrl?window.liftBuildOrderUrl(p.id,token):('https://supgo.co/?pedido='+encodeURIComponent(p.id)+'&token='+encodeURIComponent(token));const text=follow?`Hola ${p.nombre||''}, ¿cómo te fue con tu pedido de ${first}? Quería confirmar que lo recibiste todo bien. 💪`:`Hola ${p.nombre||''}, consulta el estado de tu pedido #${p.id} con este enlace:\n${url}`;const num=phone.startsWith('57')?phone:'57'+phone;window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`,'_blank')};
  function boot(){inject();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
@@ -11640,7 +11640,7 @@ window.liftAdminAvailability=async function(id,available,btn){
 
 <script id="lift-public-order-url-no-token-v1">
 (function(){
-  const PUBLIC_CATALOG='https://lift-nutrientes.vercel.app/catalogo/';
+  const PUBLIC_CATALOG='https://supgo.co/';
   window.liftPublicOrderUrl=function(id){
     return PUBLIC_CATALOG+'?pedido='+encodeURIComponent(String(id||'').replace(/[^0-9]/g,''));
   };
@@ -11771,7 +11771,7 @@ window.liftAdminAvailability=async function(id,available,btn){
 </style>
 <script id="lift-category-share-script-v1">
 (function(){
- const BASE='https://lift-nutrientes.vercel.app/catalogo/';
+ const BASE='https://supgo.co/';
  const clean=v=>String(v||'').trim();
 
  async function shareCategory(cat){
@@ -11820,7 +11820,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 </style>
 <script id="lift-admin-share-links-script-v2">
 (function(){
- const BASE='https://lift-nutrientes.vercel.app/catalogo/';
+ const BASE='https://supgo.co/';
  const isAdmin=()=>new URLSearchParams(location.search).has('fer') || document.body.classList.contains('admin-mode') || !!document.getElementById('adminPanel');
  const share=async(type,name)=>{
    const url=BASE+'?'+type+'='+encodeURIComponent(String(name||'').trim());
@@ -11960,7 +11960,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
  const money=n=>'$ '+Number(n||0).toLocaleString('es-CO'),state=s=>({verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'})[s]||s||'Pedido';
  async function api(data){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||j.message||('Error '+r.status));return j}
  async function copy(t){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}const x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}x.remove();return ok}
- function base(){return (location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:'https://lift-nutrientes.vercel.app/catalogo/'}
+ function base(){return (location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:'https://supgo.co/'}
  function payInfo(p){
    const ps=String(p.pago_estado||''),fm=String(p.forma_pago||''),medio=String(p.medio_pago_cliente||'');
    const due=Math.max(0,Number(p.saldo_pendiente||0)>0?Number(p.saldo_pendiente):Number(p.total||0)-Number(p.abono_inicial||0));
@@ -12542,7 +12542,7 @@ if(typeof window.liftTrackOrder==='function')await window.liftTrackOrder(r.token
 </style>
 <script id="lift-token-copy-final-fix-js">
 (function(){
-  const BASE='https://lift-nutrientes.vercel.app/catalogo/';
+  const BASE='https://supgo.co/';
 
   function buildOrderUrl(id, token){
     const u=new URL(BASE);
