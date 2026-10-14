@@ -13903,6 +13903,17 @@ document.addEventListener('click',function(e){
 #liftProviderPortal .lpaMissing{border:1px solid #f1d0b3;background:#fff8f1;padding:12px;border-radius:9px;font-size:11px}
 @media(max-width:540px){#liftProviderPortal .lcCompactGrid{grid-template-columns:1fr;gap:4px}}
 </style>
+<style id="lift-provider-visual-v2">
+#liftProviderPortal .lcCompactImg img{width:100%;height:100%;object-fit:contain;border-radius:7px}
+#liftProviderPortal .lpaChoices{display:flex;gap:8px}
+#liftProviderPortal .lpaChoices button{width:42px;height:38px;font-size:19px;font-weight:700;padding:0;border-radius:8px}
+#liftProviderPortal .lpaChoices [data-available="1"].on{background:#15803d;border-color:#15803d;color:#fff}
+#liftProviderPortal .lpaChoices [data-available="0"].on{background:#b42318;border-color:#b42318;color:#fff}
+#liftProviderPortal .lpaProduct.lpaUnavailable{background:#fff8f7}
+#liftProviderPortal .lpaProduct.lpaUnavailable .lcCompactProductInfo>b{color:#a43a32}
+#liftProviderPortal .lpaProgrammed{background:#dcfce7;border:1px solid #86efac;color:#166534}
+#liftProviderPortal .lpaBtn#lpaConfirm{background:#111;color:#fff;min-height:48px;font-weight:650}
+</style>
 <script id="lift-provider-assign-v1-js">
 (function(){
 'use strict';
@@ -13918,8 +13929,8 @@ async function copy(x){try{await navigator.clipboard.writeText(x);return true}ca
 
 function lines(items,editable){
  return (items||[]).map((x,i)=>`<div class="lcCompactProduct lpaProduct">
- <div class="lcCompactImg">📦</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small>
- ${editable?`<div class="lpaChoices" data-i="${i}"><button type="button" class="on" data-available="1">✓ DISPONIBLE</button><button type="button" data-available="0">✕ NO DISPONIBLE</button></div>`:''}</div></div>`).join('');
+ <div class="lcCompactImg" data-image-for="${i}"><span>📦</span></div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small>
+ ${editable?`<div class="lpaChoices" data-i="${i}"><button type="button" class="on" data-available="1">✓</button><button type="button" data-available="0">✕</button></div>`:''}</div></div>`).join('');
 }
 function customer(a){
  const name=a.cliente_nombre||'',phone=a.cliente_celular||'',address=a.direccion||'',city=a.ciudad||'',notes=a.notas||'',email=a.cliente_email||'No registrado';
@@ -13939,20 +13950,51 @@ async function load(){
   const products=pending?available:confirmed;
   const customerVisible=Boolean(a.cliente_nombre||a.cliente_celular||a.direccion);
   body.innerHTML=`<div class="lcCard lcCompact">
-  ${customerVisible?customer(a):'<div class="lpaMissing"><b>DATOS DEL CLIENTE PENDIENTES</b><p>Supabase todavía no entrega los datos al abrir este enlace. No compartas esta orden para despachar hasta conectar la nueva función.</p></div>'}
+  ${customerVisible?customer(a):'<div class="lpaMissing"><b>DATOS DEL CLIENTE PENDIENTES</b><p>Este enlace aún no tiene acceso a los datos del cliente. Es necesario actualizar la función de Supabase para habilitarlos desde la apertura.</p></div>'}
   <div class="lcCompactTitle lcCompactDivider">PRODUCTOS DEL PEDIDO</div>
   <div class="lcCompactProducts">${lines(products,pending)}</div>
   ${pending?`<p class="lpaMuted">Todos aparecen disponibles inicialmente. Marca «No disponible» únicamente en los productos que falten.</p><button class="lpaBtn" id="lpaConfirm">✓ PROGRAMADO</button>`:
   `<div class="lpaProgrammed">✓ ${status==='parcial'||status==='confirmado'?'PROGRAMADO':esc(status.toUpperCase())}<small>Productos aceptados: ${confirmed.length}</small></div>
    <div class="lcCompactPayment lcPaid"><b>NO COBRAR</b><small>No recibir dinero del cliente en esta entrega. El pago al proveedor se coordina con Lift Nutrientes por WhatsApp.</small></div>
-   <div class="lcCompactStatus"><button type="button" id="lpaRoute" disabled>🚚 EN RUTA</button><button type="button" id="lpaDone" disabled>✓ ENTREGADO</button></div>
-   <div class="lcCompactEvidence"><button type="button" id="lpaPhoto" disabled>📷 TOMAR FOTO DE ENTREGA</button><small>Se habilitarán cuando Supabase admita estados y evidencia independientes por proveedor.</small></div>`}
+   <div class="lcCompactStatus"><button type="button" id="lpaRoute" ${status==='entregado'||status==='en_ruta'?'disabled':''}>🚚 EN RUTA</button><button type="button" id="lpaDone" ${status==='en_ruta'?'':'disabled'}>✓ ENTREGADO</button></div>
+   <div class="lcCompactEvidence"><button type="button" id="lpaPhoto" ${status==='entregado'?'disabled':''}>📷 TOMAR FOTO DE ENTREGA</button><small>Foto obligatoria antes de marcar Entregado.</small></div>`}
   <div id="lpaMsg" class="lpaMuted"></div></div>`;
+  // Imágenes desde el catálogo público; no afecta la confirmación si falla.
+  (async()=>{
+   const norm=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+   const catalog=Array.isArray(window.PRODUCTS)?window.PRODUCTS:(Array.isArray(window.products)?window.products:[]);
+   for(let i=0;i<products.length;i++){
+    const x=products[i],target=body.querySelector('[data-image-for="'+i+'"]');if(!target)continue;
+    const found=catalog.find(z=>norm(z.name||z.nombre||z.product)===norm(x.nombre))||{};
+    let url=x.imagen||x.imagen_url||found.image||found.imagen||found.imagen_url||'';
+    if(!url){
+     try{
+      const q=encodeURIComponent('*'+String(x.nombre||'').replace(/[*,()]/g,' ').trim().slice(0,90)+'*');
+      const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos?select=imagen,product&product=ilike.'+q+'&limit=1',{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});
+      if(r.ok){const rows=await r.json();url=rows?.[0]?.imagen||''}
+     }catch(e){}
+    }
+    if(url&&(String(url).startsWith('https://')||String(url).startsWith('http://'))&&target.isConnected){
+     const img=document.createElement('img');img.src=url;img.alt=x.nombre||'Producto';img.loading='lazy';img.onerror=()=>img.remove();target.replaceChildren(img);
+    }
+   }
+  })();
+  if(!pending){
+   const msg=()=>el('lpaMsg');
+   if(el('lpaRoute'))el('lpaRoute').onclick=async()=>{try{await api({action:'provider-assignment-status',token,estado:'en_ruta'});await load()}catch(e){msg().textContent=e.message}};
+   if(el('lpaDone'))el('lpaDone').onclick=async()=>{if(!confirm('¿Confirmar que los productos asignados fueron entregados?'))return;try{await api({action:'provider-assignment-status',token,estado:'entregado'});await load()}catch(e){msg().textContent=e.message}};
+   if(el('lpaPhoto'))el('lpaPhoto').onclick=()=>{
+    let file=document.createElement('input');file.type='file';file.accept='image/*';file.capture='environment';file.onchange=async()=>{
+     if(!file.files?.[0])return;const f=file.files[0];if(f.size>5000000){msg().textContent='La foto supera 5 MB';return;}
+     try{const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)});await api({action:'provider-assignment-photo',token,image_base64:data,mime:f.type||'image/jpeg'});msg().textContent='✓ Foto guardada correctamente';}catch(e){msg().textContent=e.message}
+    };file.click();
+   };
+  }
   if(el('lpaCopy'))el('lpaCopy').onclick=()=>copy(['Cliente: '+(a.cliente_nombre||''),'Celular: '+(a.cliente_celular||''),'Dirección: '+(a.direccion||''),'Ciudad: '+(a.ciudad||''),'Indicaciones: '+(a.notas||''),'','Productos:',...products.map(x=>`${x.cantidad||1} × ${x.nombre||'Producto'}`)].join('\n'));
   if(pending){
    body.querySelectorAll('.lpaChoices').forEach(row=>{
     row.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{
-     row.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));
+     row.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));row.closest('.lpaProduct')?.classList.toggle('lpaUnavailable',btn.dataset.available==='0');
     });
    });
    el('lpaConfirm').onclick=async()=>{
