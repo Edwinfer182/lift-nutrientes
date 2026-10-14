@@ -1507,7 +1507,7 @@ button:disabled,[role="button"][aria-disabled="true"]{cursor:not-allowed;opacity
 header.top{background:#101113!important;border-bottom:1px solid #25272b!important;transition:box-shadow .24s ease!important}
 header.top .bar{max-width:1540px!important;gap:12px!important;padding:13px 20px!important;min-height:78px!important;transition:padding .24s ease,min-height .24s ease!important}
 header.top .brand{flex:0 0 auto!important;min-width:0!important}
-header.top .liftHeaderLogo{height:53px!important;max-width:180px!important;width:auto!important;transition:height .24s ease!important}
+header.top .liftHeaderLogo{height:53px!important;max-width:180px!important;width:auto!important;transition:none!important}
 header.top .search{flex:1 1 280px!important;min-width:120px!important;max-width:none!important}
 header.top #q{height:46px!important;background:#1b1c1f!important;border:1px solid #37393e!important;border-radius:12px!important;color:#fff!important;font-size:13px!important;transition:background .2s,border-color .2s,box-shadow .2s!important}
 header.top #q::placeholder{color:#a4a6aa!important}
@@ -1519,11 +1519,6 @@ header.top .iconbtn,header.top .liftHeaderIcon{border:1px solid #34363a!importan
 header.top .iconbtn:hover,header.top .liftHeaderIcon:hover{background:#2a2c31!important;border-color:#696b70!important;transform:translateY(-1px)!important}
 header.top .iconbtn:active,header.top .liftHeaderIcon:active,header.top .offersBtn:active{transform:scale(.96)!important}
 header.top .liftFilterLink{opacity:.8!important}
-header.top.liftHeaderCompact{box-shadow:0 8px 25px rgba(0,0,0,.2)!important}
-header.top.liftHeaderCompact .bar{min-height:57px!important;padding-top:6px!important;padding-bottom:6px!important}
-header.top.liftHeaderCompact .liftHeaderLogo{height:38px!important}
-header.top.liftHeaderCompact #q{height:40px!important}
-header.top.liftHeaderCompact .offersBtn{height:39px!important;min-height:39px!important}
 @media(max-width:760px){
  header.top .bar{display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:9px 11px!important;min-height:0!important}
  header.top .brand{order:0!important;margin-right:auto!important}
@@ -1535,16 +1530,11 @@ header.top.liftHeaderCompact .offersBtn{height:39px!important;min-height:39px!im
  header.top .offersBtn{order:11!important;flex:0 0 auto!important;min-width:94px!important;padding:0 10px!important}
  header.top .liftFilterLink{display:none!important}
  header.top #q{height:42px!important;font-size:12px!important}
- header.top.liftHeaderCompact .bar{padding-top:6px!important;padding-bottom:6px!important}
- header.top.liftHeaderCompact .liftHeaderLogo{height:31px!important}
- header.top.liftHeaderCompact #q{height:38px!important}
-}
+   }
 @media(max-width:380px){header.top .bar{gap:6px!important;padding-left:7px!important;padding-right:7px!important}header.top .search{flex-basis:calc(100% - 99px)!important}header.top .offersBtn{min-width:89px!important;padding:0 7px!important}header.top .liftHeaderLogo{max-width:112px!important}}
 @media(prefers-reduced-motion:reduce){header.top *,header.top{transition:none!important}}
 </style>
-<script id="lift-header-compact-behavior-20261009">
-(function(){function init(){var h=document.querySelector('header.top');if(!h)return;var scheduled=false;function update(){scheduled=false;h.classList.toggle('liftHeaderCompact',window.scrollY>95)}window.addEventListener('scroll',function(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}},{passive:true});update()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();
-</script>
+
 
 <style id="lift-service-four-across-clean-v1">
 /* Cuatro avisos en una sola fila, sin divisor central ni espacio vacío. */
@@ -1630,7 +1620,200 @@ header.top.liftHeaderCompact .offersBtn{height:39px!important;min-height:39px!im
 .liftDirectPayNotice{display:block;font-size:10px;line-height:1.5;color:#777;margin-top:12px}
 @media(max-width:480px){.liftPayMethods .liftPayMethodCopy strong{font-size:12px}.liftDirectPayBox{padding:12px}}
 </style>
-<style id="lift-pay-logos-corrected">.liftPayMethods .liftPayBankIcon,.liftPayMethods .liftPayBoldIcon{overflow:hidden;background:#fff;border:1px solid #ededed}.liftPayMethods .liftPayBankIcon img{display:block;width:37px;height:32px;object-fit:contain}.liftPayMethods .liftPayBoldIcon img{display:block;width:33px;height:33px;object-fit:contain;border-radius:0}</style></head><body>
+<style id="lift-pay-logos-corrected">.liftPayMethods .liftPayBankIcon,.liftPayMethods .liftPayBoldIcon{overflow:hidden;background:#fff;border:1px solid #ededed}.liftPayMethods .liftPayBankIcon img{display:block;width:37px;height:32px;object-fit:contain}.liftPayMethods .liftPayBoldIcon img{display:block;width:33px;height:33px;object-fit:contain;border-radius:0}</style><style id="lift-payment-summary-redesign-20261014">
+#liftTrackResult .liftOrderRedesign{margin:12px 0!important;padding:15px!important;background:#fff!important;border:1px solid #dedede!important}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead{padding-bottom:10px;border-bottom:1px solid #eee}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead b{font-size:12px!important;letter-spacing:.015em}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead strong{font-size:19px!important;font-weight:700!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProducts{margin-top:11px!important;gap:7px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct{padding:9px!important;grid-template-columns:64px minmax(0,1fr) auto!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:64px!important;height:64px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:12px!important;font-weight:600!important;line-height:1.4}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo span,#liftTrackResult .liftOrderRedesign .liftTrackProductInfo small{font-size:10px!important;color:#666!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:12px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals>div{font-size:11px!important;padding:5px 1px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand{font-size:15px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand b{font-size:21px!important;font-weight:700!important}
+#liftTrackResult .liftDeliveryDisclosure{margin-top:12px;border-top:1px solid #e9e9e9}
+#liftTrackResult .liftDeliveryDisclosure summary{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0 2px;cursor:pointer;font-size:11px;font-weight:600;list-style:none}
+#liftTrackResult .liftDeliveryDisclosure summary::-webkit-details-marker{display:none}
+#liftTrackResult .liftDeliveryDisclosure summary span{font-size:10px;color:#666;font-weight:400}
+#liftTrackResult .liftDeliveryDisclosure[open] summary span{font-size:0}
+#liftTrackResult .liftDeliveryDisclosure[open] summary span:after{content:'Ocultar detalles ▴';font-size:10px}
+#liftTrackResult .liftNextCard:has(.liftPayMethods){background:#f5fbf6!important;padding:12px!important;margin-top:10px!important}
+#liftTrackResult .liftNextCard:has(.liftPayMethods) .liftNextText{margin-bottom:6px!important}
+#liftTrackResult .liftPayMethods{margin-top:10px!important}
+#liftTrackResult .liftPayMethodsHeading{font-size:14px!important;margin:0 0 8px!important}
+#liftTrackResult .liftPayMethodsGroup{margin:0 0 7px!important}
+#liftTrackResult .liftPayMethodsLabel{display:none!important}
+#liftTrackResult .liftPayMethodRow{min-height:54px!important;padding:8px 11px!important;gap:10px!important;border-radius:10px!important}
+#liftTrackResult .liftPayMethodIcon{width:34px!important;height:34px!important;flex:0 0 34px!important}
+#liftTrackResult .liftPayMethodCopy strong{font-size:12px!important}
+#liftTrackResult .liftPayMethodCopy small{font-size:9px!important;margin-top:2px!important}
+@media(max-width:600px){#liftTrackResult .liftOrderRedesign .liftTrackProduct{grid-template-columns:54px minmax(0,1fr) auto!important}#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:54px!important;height:54px!important}#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:11px!important}#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:11px!important}}
+</style>
+<style id="lift-track-actual-compact-v2">
+/* Rediseño visual efectivo de la consulta de pedidos */
+#liftTrackResult{font-family:Poppins,Arial,sans-serif}
+#liftTrackResult .liftNextCard:has(.liftPayMethods){background:#fff!important;border:1px solid #e6e6e6!important;border-radius:12px!important;padding:13px!important;box-shadow:none!important}
+#liftTrackResult .liftNextCard:has(.liftPayMethods) .liftNextEyebrow{font-size:9px!important}
+#liftTrackResult .liftNextCard:has(.liftPayMethods) .liftNextTitle{font-size:15px!important;line-height:1.2!important;margin:4px 0!important}
+#liftTrackResult .liftNextCard:has(.liftPayMethods) .liftNextText{font-size:11px!important;line-height:1.4!important;margin:3px 0 8px!important}
+#liftTrackResult .liftPayMethods{margin:7px 0 0!important}
+#liftTrackResult .liftPayMethodsHeading{font-size:12px!important;font-weight:600!important;margin:0 0 7px!important}
+#liftTrackResult .liftPayMethodsGroup{margin:0!important}
+#liftTrackResult .liftPayMethodsGroup+.liftPayMethodsGroup{margin-top:5px!important}
+#liftTrackResult .liftPayMethodsLabel{display:none!important}
+#liftTrackResult .liftPayMethodRow{height:48px!important;min-height:48px!important;padding:5px 10px!important;gap:9px!important;border-radius:8px!important;box-shadow:none!important}
+#liftTrackResult .liftPayMethodIcon{width:28px!important;height:28px!important;flex:0 0 28px!important}
+#liftTrackResult .liftPayMethodIcon img{width:26px!important;height:26px!important;object-fit:contain!important}
+#liftTrackResult .liftPayMethodRadio{width:15px!important;height:15px!important;flex:0 0 15px!important}
+#liftTrackResult .liftPayMethodCopy strong{font-size:11px!important;font-weight:600!important;line-height:1.2!important}
+#liftTrackResult .liftPayMethodCopy small{font-size:9px!important;line-height:1.2!important;margin-top:1px!important}
+#liftTrackResult .liftPayMethodChevron{font-size:17px!important}
+#liftTrackResult .liftOrderRedesign{padding:12px!important;margin:8px 0!important;border-radius:12px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProducts{gap:0!important;margin-top:7px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct{grid-template-columns:70px minmax(0,1fr) auto!important;border:0!important;border-bottom:1px solid #ededed!important;border-radius:0!important;padding:9px 2px!important;gap:11px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:70px!important;height:70px!important;object-fit:contain!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:13px!important;color:#111!important;font-weight:600!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo span,#liftTrackResult .liftOrderRedesign .liftTrackProductInfo small{font-size:11px!important;color:#666!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:13px!important;font-weight:600!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand{border-top:1px solid #ddd!important;margin-top:6px!important;padding-top:9px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand b{font-size:23px!important}
+#liftTrackResult .liftDeliveryDisclosure summary{min-height:36px!important}
+@media(max-width:600px){#liftTrackResult .liftOrderRedesign .liftTrackProduct{grid-template-columns:60px minmax(0,1fr) auto!important;gap:7px!important}#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:60px!important;height:60px!important}#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:12px!important}#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:12px!important}}
+</style>
+<style id="lift-track-density-contrast-v3">
+#liftTrackResult .liftOrderRedesign{padding:10px 12px!important;margin:8px 0!important}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead{padding-bottom:5px!important}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead strong{font-size:14px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProducts{gap:3px!important;margin-top:6px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct{grid-template-columns:42px minmax(0,1fr) auto!important;gap:8px!important;padding:5px 2px!important;border:0!important;border-bottom:1px solid #eee!important;border-radius:0!important;min-height:48px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:40px!important;height:40px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:11px!important;line-height:1.25!important;color:#151515!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo span,#liftTrackResult .liftOrderRedesign .liftTrackProductInfo small{font-size:10px!important;line-height:1.2!important;color:#424242!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:11px!important;color:#111!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals{margin-top:5px!important;padding-top:4px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals>div{padding:2px 0!important;font-size:11px!important;color:#333!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand{font-size:12px!important;margin-top:3px!important;padding-top:5px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand b{font-size:16px!important}
+#liftTrackResult .liftDeliveryDisclosure{margin-top:7px!important}
+#liftTrackResult .liftDeliveryDisclosure summary{font-size:12px!important;color:#111!important;padding:9px 0 2px!important}
+#liftTrackResult .liftDeliveryDisclosure summary span{color:#333!important;font-size:10px!important}
+#liftTrackResult .liftTrackCustomer{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin:8px 0 3px!important}
+#liftTrackResult .liftTrackCustomer .liftTrackCustomerField{min-height:0!important;padding:7px 9px!important;border:1px solid #dedede!important;border-radius:7px!important;background:#fff!important;display:flex!important;flex-direction:column!important;gap:2px!important;min-width:0!important}
+#liftTrackResult .liftTrackCustomer .liftTrackCustomerField small{font-size:10px!important;color:#454545!important;font-weight:600!important;letter-spacing:0!important}
+#liftTrackResult .liftTrackCustomer .liftTrackCustomerField b{font-size:11px!important;color:#111!important;font-weight:500!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+@media(max-width:480px){#liftTrackResult .liftTrackCustomer{grid-template-columns:1fr!important}#liftTrackResult .liftOrderRedesign .liftTrackProduct{grid-template-columns:40px minmax(0,1fr) auto!important}}
+</style>
+<style id="lift-report-inline-global-v4">
+#liftTrackResult .liftReportOrder{padding:13px 15px!important;background:#fff!important;border:1px solid #e3e3e3!important;border-radius:12px!important}
+#liftTrackResult .liftReportTitle{font-family:Poppins,sans-serif;font-size:13px!important;font-weight:500!important;color:#111!important;margin:0 0 9px!important;letter-spacing:0!important}
+#liftTrackResult .liftReportProductsTitle{margin-top:14px!important;padding-top:12px!important;border-top:1px solid #e8e8e8!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:flex!important;flex-direction:column!important;gap:4px!important;margin:0!important;padding:0!important;background:transparent!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{display:grid!important;grid-template-columns:90px minmax(0,1fr)!important;align-items:start!important;gap:9px!important;min-height:0!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{font-size:11px!important;font-weight:500!important;line-height:1.5!important;color:#444!important;text-transform:none!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:11px!important;font-weight:400!important;line-height:1.5!important;color:#111!important;overflow-wrap:anywhere!important}
+#liftTrackResult .liftReportOrder .liftTrackProducts{gap:0!important}
+#liftTrackResult .liftReportOrder .liftTrackProduct{padding:7px 0!important;min-height:48px!important}
+#liftTrackResult .liftReportOrder .liftTrackProduct img{width:42px!important;height:42px!important;object-fit:contain!important}
+#liftTrackResult .liftReportOrder .liftTrackProductInfo b{font-size:11px!important;font-weight:500!important}
+#liftTrackResult .liftReportOrder .liftTrackProductPrice{font-size:11px!important;font-weight:500!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals{margin-top:5px!important;padding-top:7px!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals>div{padding:3px 0!important;font-size:11px!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals .grand{margin-top:5px!important;padding-top:7px!important;font-size:14px!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals .grand b{font-size:17px!important;font-weight:600!important}
+@media(max-width:480px){#liftTrackResult .liftReportOrder .liftTrackCustomerField{grid-template-columns:76px minmax(0,1fr)!important;gap:6px!important}}
+</style>
+
+<style id="lift-track-customer-tight-v6">
+/* Mi pedido: etiquetas y valores juntos, renglones realmente compactos. */
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:flex!important;flex-direction:column!important;gap:2px!important;margin:0!important;padding:0!important;}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;column-gap:7px!important;align-items:start!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;line-height:1.3!important;}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{display:block!important;margin:0!important;padding:0!important;font-size:11px!important;line-height:1.3!important;letter-spacing:0!important;}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{font-weight:500!important;color:#222!important;}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-weight:400!important;color:#111!important;overflow-wrap:anywhere!important;}
+</style>
+<style id="lift-track-v7-clean">
+#liftTrackModal .liftOrderCard{position:relative;padding-top:42px!important}
+#liftTrackModal .liftTrackX{position:absolute;right:13px;top:10px;z-index:15;width:34px;height:34px;border:1px solid #ddd;border-radius:50%;background:#fff;color:#111;font-size:25px;line-height:1;cursor:pointer;display:grid;place-items:center}
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px 14px!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{display:flex!important;align-items:baseline!important;gap:5px!important;min-width:0!important;line-height:1.25!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{flex:0 0 auto!important;width:auto!important;color:#333!important;font-weight:500!important;font-size:11px!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{min-width:0!important;overflow-wrap:anywhere!important;color:#111!important;font-size:11px!important}
+#liftTrackResult .liftPaymentTop{margin:9px 0 12px}
+#liftTrackResult .liftPaymentTop .liftPayMethodRow{min-height:46px!important;padding:7px 10px!important;gap:9px!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodsLabel{margin:5px 0!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodCopy small{font-size:9px!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodCopy strong{font-size:11px!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodIcon{width:30px!important;height:30px!important}
+/* Barra de avance visible: se conservan los puntos y estados del pedido. */
+@media(max-width:430px){#liftTrackResult .liftReportOrder .liftTrackCustomer{column-gap:9px!important}#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:10px!important}}
+</style>
+<style id="lift-track-v8-inline-fields">
+/* Cada campo mantiene etiqueta y valor en la MISMA fila. */
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px 12px!important;align-items:start!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;column-gap:5px!important;row-gap:0!important;align-items:start!important;margin:0!important;padding:1px 0!important;min-width:0!important;min-height:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{display:block!important;width:auto!important;margin:0!important;padding:0!important;line-height:1.35!important;font-size:11px!important;white-space:normal!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{font-weight:500!important;color:#222!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-weight:400!important;color:#111!important;overflow-wrap:anywhere!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField:nth-child(4),#liftTrackResult .liftReportOrder .liftTrackCustomerField:nth-child(6){grid-column:1/-1!important}
+@media(max-width:430px){#liftTrackResult .liftReportOrder .liftTrackCustomer{gap:5px 8px!important}#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:10px!important}}
+</style>
+
+<style id="lift-track-v9-balanced-columns">
+/* Dos columnas de tres campos, etiquetas y valores en la misma línea. */
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:repeat(3,auto)!important;grid-auto-flow:column!important;gap:5px 14px!important;align-items:start!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{grid-column:auto!important;grid-row:auto!important;display:flex!important;align-items:baseline!important;gap:4px!important;padding:0!important;margin:0!important;min-width:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{flex:0 0 auto!important;white-space:nowrap!important;font-size:11px!important;line-height:1.35!important;font-weight:500!important;color:#222!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{flex:1 1 auto!important;min-width:0!important;overflow-wrap:anywhere!important;font-size:11px!important;line-height:1.35!important;font-weight:400!important;color:#111!important}
+@media(max-width:430px){#liftTrackResult .liftReportOrder .liftTrackCustomer{gap:5px 9px!important}#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:10px!important}}
+</style>
+<style id="lift-customer-two-real-columns-v10">
+#liftTrackResult .liftReportOrder .liftTrackCustomer.liftCustomerSix{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:auto!important;grid-auto-flow:row!important;gap:8px 18px!important;align-items:start!important;margin:5px 0 10px!important;padding:0!important}
+#liftTrackResult .liftReportOrder .liftCustomerSix>.liftCustomerColumn{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;min-height:0!important;box-shadow:none!important}
+#liftTrackResult .liftReportOrder .liftCustomerSix .liftCustomerPair{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:baseline!important;gap:4px!important;margin:0!important;padding:0!important;min-height:0!important;border:0!important;background:none!important;line-height:1.4!important}
+#liftTrackResult .liftReportOrder .liftCustomerSix .liftCustomerPair strong{flex:0 0 auto!important;font-size:11px!important;font-weight:500!important;color:#222!important;white-space:nowrap!important}
+#liftTrackResult .liftReportOrder .liftCustomerSix .liftCustomerPair span{flex:1 1 auto!important;min-width:0!important;font-size:11px!important;font-weight:400!important;color:#111!important;overflow-wrap:anywhere!important;white-space:normal!important}
+@media(max-width:430px){#liftTrackResult .liftReportOrder .liftTrackCustomer.liftCustomerSix{gap:8px!important}#liftTrackResult .liftReportOrder .liftCustomerSix .liftCustomerPair strong,#liftTrackResult .liftReportOrder .liftCustomerSix .liftCustomerPair span{font-size:10px!important}}
+</style>
+<style id="lift-mi-pedido-tipografia-unificada-v11">
+/* Una sola familia para todos los elementos de la consulta de pedido. */
+#liftTrackResult, #liftTrackResult *, #liftTrackResult *::before, #liftTrackResult *::after,
+#liftTrackModal, #liftTrackModal *, #liftTrackModal *::before, #liftTrackModal *::after {
+  font-family: 'Poppins', Arial, sans-serif !important;
+}
+#liftTrackResult .liftPayMethodCopy{gap:0!important;justify-content:center!important}
+#liftTrackResult .liftPayMethodCopy strong{font-family:inherit!important;font-size:11px!important;font-weight:500!important;line-height:1.4!important}
+#liftTrackResult .liftPayMethodCopy small{display:none!important}
+</style>
+<style id="lift-pay-inline-selection-v14">
+/* Opciones de pago: detalle debajo de su propio medio, selección visible y texto legible */
+#liftTrackResult .liftPayMethodsGroup{margin-bottom:6px!important}
+#liftTrackResult .liftPayDetailsInline{width:100%;margin:8px 0 5px}
+#liftTrackResult .liftPayDetailsInline:empty{display:none}
+#liftTrackResult .liftPayDetailsInline .liftDirectPayBox{margin-top:0}
+#liftTrackResult .liftPayMethodRow.is-selected .liftPayMethodRadio{border-color:#168c48!important;background:#fff!important;display:grid;place-items:center}
+#liftTrackResult .liftPayMethodRow.is-selected .liftPayMethodRadio::after{content:"";width:9px;height:9px;background:#16a34a;border-radius:50%;display:block}
+#liftTrackResult .liftPayMethodRow.is-selected{border-color:#16a34a!important}
+#liftTrackResult .liftDirectPayBox p,#liftTrackResult .liftDirectPayNotice{color:#424242!important;font-weight:400!important}
+#liftTrackResult .liftDirectPayKey small{color:#555!important;font-weight:400!important}
+#liftTrackResult .liftDirectPayTitle{color:#171717!important}
+</style>
+<style id="liftBreBPaymentV15">
+#liftTrackResult .liftDirectPayBox{color:#171717;font-family:Poppins,Arial,sans-serif}
+#liftTrackResult .liftDirectPayBox p{color:#343434!important;font-size:12px;line-height:1.5}
+#liftTrackResult .liftDirectPayKey{margin-top:9px}
+#liftTrackResult .liftDirectPayKey small,#liftTrackResult .liftDirectPayOwner small{color:#4b5563!important;font-size:11px}
+#liftTrackResult .liftDirectPayKey strong,#liftTrackResult .liftDirectPayOwner strong{color:#151515;font-weight:600}
+#liftTrackResult .liftDirectPayOwner{display:flex;flex-direction:column;gap:4px;margin-top:10px;padding:9px 12px}
+#liftTrackResult .liftDirectPayNotice{color:#444!important;font-size:11px;line-height:1.5;margin-top:8px}
+#liftTrackResult .liftDirectPayOwnerInline{display:block;margin-top:5px;color:#333!important;font-size:11px;font-weight:400}
+#liftTrackResult .liftDirectPayWhatsapp{background:#25D366!important;color:#fff!important;gap:9px;font-size:12px}
+#liftTrackResult .liftDirectPayWhatsapp:hover{background:#1da851!important}
+#liftTrackResult .liftDirectPayWhatsapp svg{flex:none}
+</style>
+</head><body>
 
 <script id="lift-mobile-share-fix-v1">
 (function(){
@@ -10929,9 +11112,9 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
 
  const STEPS=[
   {l:'Pedido',t:'Pedido realizado',d:'Tu pedido quedó registrado correctamente.'},
-  {l:'Disponibilidad',t:'Confirmando disponibilidad',d:'Verificamos cada producto. Al terminar este paso se habilita el pago.'},
+  {l:'Disponible',t:'Confirmando disponibilidad',d:'Verificamos cada producto. Al terminar este paso se habilita el pago.'},
   {l:'Pago',t:'Pago',d:'Eliges el medio de pago. Si haces transferencia, subes el comprobante aquí.'},
-  {l:'Preparando',t:'Preparando pedido',d:'Con el pago aprobado, organizamos los productos para despacho.'},
+  {l:'Preparación',t:'Preparando pedido',d:'Con el pago aprobado, organizamos los productos para despacho.'},
   {l:'En ruta',t:'Pedido en ruta',d:'El pedido salió hacia la dirección registrada.'},
   {l:'Entregado',t:'Pedido entregado',d:'El pedido llegó y el proceso quedó completado.'}
  ];
@@ -10955,7 +11138,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
  }
  function journey(p){
    const at=stage(p);
-   return `<div class="liftJourney"><div class="liftJourneyLine">${STEPS.map((x,i)=>`<div class="liftJourneyStep ${i<at?'done':i===at?'current':''}" onclick="liftExplainStep(${i})"><div class="liftJourneyDot">${i<at?'✓':i===at?'●':''}</div><div class="liftJourneyLabel">${x.l}</div></div>`).join('')}</div><div id="liftJourneyHelp" class="liftJourneyHelp"><b>${STEPS[at].t}</b><p>${STEPS[at].d}</p></div></div>`
+   return `<div class="liftJourney"><div class="liftJourneyLine">${STEPS.map((x,i)=>`<div class="liftJourneyStep ${i<at?'done':i===at?'current':''}"><div class="liftJourneyDot">${i<at?'✓':i===at?'●':''}</div><div class="liftJourneyLabel">${x.l}</div></div>`).join('')}</div></div>`
  }
  window.liftExplainStep=i=>{const x=STEPS[i],b=$('liftJourneyHelp');if(b)b.innerHTML=`<b>${x.t}</b><p>${x.d}</p>`};
  window.liftToggleOrderDetails=()=>$('liftCompactDetails')?.classList.toggle('open');
@@ -10999,15 +11182,24 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
     if(s==='pendiente_pago'&&ps==='por_verificar') action='<div style="margin-top:10px;font-size:10px;color:#166534">✓ Comprobante cargado. Estamos revisándolo.</div>';
     else if(s==='pendiente_pago'&&ps==='aprobado') action='<div style="margin-top:10px;font-size:10px;color:#166534">✓ Pago aprobado.</div>';
     else if(s==='pendiente_pago'&&ps==='contraentrega') action='<div style="margin-top:10px;font-size:10px;color:#166534">✓ Efectivo contraentrega seleccionado.</div>';
-    else if(s==='pendiente_pago') action=`<div class="liftPayMethods" role="group" aria-label="Elige cómo pagar"><div class="liftPayMethodsHeading">Elige cómo pagar</div><div class="liftPayMethodsGroup"><div class="liftPayMethodsLabel">Transferencia directa</div><button type="button" class="liftPayMethodRow" onclick="liftChoosePayment('${id}','${esc(tok)}','transferencia')"><span class="liftPayMethodRadio" aria-hidden="true"></span><span class="liftPayMethodIcon liftPayBankIcon" aria-hidden="true"><img src="data:image/png;base64,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" alt=""></span><span class="liftPayMethodCopy"><strong>Llave Bre-B</strong><small>Transferencia directa antes del envío</small></span><span class="liftPayMethodChevron" aria-hidden="true">›</span></button></div><div class="liftPayMethodsGroup"><div class="liftPayMethodsLabel">Pago en línea</div><button type="button" class="liftPayMethodRow" onclick="liftBoldProductionPay('${id}','${esc(tok)}',this)"><span class="liftPayMethodRadio" aria-hidden="true"></span><span class="liftPayMethodIcon liftPayBoldIcon"><img src="data:image/png;base64,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" alt="Bold"></span><span class="liftPayMethodCopy"><strong>Tarjeta de crédito o débito</strong><small>Pago seguro con Bold</small></span><span class="liftPayMethodChevron" aria-hidden="true">›</span></button></div></div><div id="liftPayDetails-${id}"></div>`;
+    else if(s==='pendiente_pago') action=`<div class="liftPayMethods" role="group" aria-label="Elige cómo pagar"><div class="liftPayMethodsHeading">Elige cómo pagar</div><div class="liftPayMethodsGroup"><div class="liftPayMethodsLabel">Transferencia directa</div><button type="button" class="liftPayMethodRow" onclick="liftChoosePayment('${id}','${esc(tok)}','transferencia')"><span class="liftPayMethodRadio" aria-hidden="true"></span><span class="liftPayMethodIcon liftPayBankIcon" aria-hidden="true"><img src="data:image/png;base64,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" alt=""></span><span class="liftPayMethodCopy"><strong>Bre-B</strong></span><span class="liftPayMethodChevron" aria-hidden="true">›</span></button><div id="liftPayDetails-${id}" class="liftPayDetailsInline" data-total="${total}"></div></div><div class="liftPayMethodsGroup"><div class="liftPayMethodsLabel">Pago en línea</div><button type="button" class="liftPayMethodRow" onclick="liftBoldProductionPay('${id}','${esc(tok)}',this)"><span class="liftPayMethodRadio" aria-hidden="true"></span><span class="liftPayMethodIcon liftPayBoldIcon"><img src="data:image/png;base64,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" alt="Bold"></span><span class="liftPayMethodCopy"><strong>Pagos en línea · Bold</strong></span><span class="liftPayMethodChevron" aria-hidden="true">›</span></button></div></div>`;
     else if(n.unavailable) action=`<div class="liftUnavailableActions"><button onclick="liftUnavailableHelp('${id}','${esc(tok)}','esperar')">Esperar reposición</button><button onclick="liftUnavailableHelp('${id}','${esc(tok)}','cambiar')">Cambiar producto</button><button onclick="liftUnavailableHelp('${id}','${esc(tok)}','quitar')">Quitar producto</button><button onclick="liftUnavailableHelp('${id}','${esc(tok)}','ayuda')">Contactar LIFT</button></div>`;
 
     out.innerHTML=`<div class="liftOrderRef"><small>PEDIDO</small><b>#${esc(id)}</b></div>
       ${journey(p)}
       ${dispatch.tipo==='guia'&&dispatch.guia?`<div class="liftNextCard"><b>🚚 Seguimiento del envío</b><p>${esc(dispatch.transportadora||'Transportadora')} · Guía: <strong>${esc(dispatch.guia)}</strong></p><div style="display:flex;gap:9px;flex-wrap:wrap"><button type="button" onclick="navigator.clipboard.writeText(this.dataset.guia)" data-guia="${esc(dispatch.guia)}">Copiar guía</button><a href="${esc(({'Coordinadora':'https://coordinadora.com/rastreo/','Inter Rapidísimo':'https://siguetuenvio.interrapidisimo.com/','Envía':'https://envia.co/'})[dispatch.transportadora]||'https://www.google.com/search?q='+encodeURIComponent(dispatch.transportadora+' seguimiento guía'))}" target="_blank" rel="noopener noreferrer">Consultar envío ↗</a></div></div>`:dispatch.tipo==='local'?`<div class="liftNextCard"><b>🛵 Tu pedido salió a ruta</b><p>El mensajero realiza varias entregas. No manejamos una hora exacta de llegada.</p></div>`:''}
-      <div class="liftNextCard"><div class="liftNextEyebrow">QUÉ SIGUE AHORA</div><div class="liftNextTitle">${esc(n.title)}</div><div class="liftNextText">${esc(n.text)}</div>${action}</div>
-      <div class="liftCompactPurchase"><div class="liftCompactPurchaseHead"><b>TU COMPRA</b><strong>${money(total)}</strong></div><div class="liftCompactItems">${itemSummary}</div><button class="liftCompactToggle" onclick="liftToggleOrderDetails()" type="button">Ver detalles ▾</button>
-      <div id="liftCompactDetails" class="liftCompactDetails"><div class="liftTrackCustomer"><div><small>CLIENTE</small><b>${esc(p.nombre||'')}</b>${p.celular?`<span>${esc(p.celular)}</span>`:''}</div><div><small>ENTREGA</small><b>${esc(p.direccion||'Dirección registrada')}</b><span>${esc(p.ciudad||'')}</span></div></div><div class="liftTrackProducts">${products}</div><div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}<div><span>Envío</span><b>${ship?money(ship):'GRATIS'}</b></div>${disc?`<div class="discount"><span>Descuento</span><b>− ${money(disc)}</b></div>`:''}<div class="grand"><span>Total</span><b>${money(total)}</b></div></div></div></div>
+      ${action?`<div class="liftPaymentTop">${action}</div>`:``}
+      <div class="liftCompactPurchase liftOrderRedesign liftReportOrder">
+        <div class="liftReportTitle">DATOS DEL CLIENTE</div>
+        <div class="liftTrackCustomer liftCustomerSix">
+          <div class="liftCustomerColumn">${[['Cliente',p.nombre||p.cliente_nombre],['Celular',p.celular||p.telefono||phone],['Correo',p.correo||p.email||p.cliente_email]].map(([label,value])=>`<div class="liftCustomerPair"><strong>${label}:</strong><span>${esc(value==null||String(value).trim()===''?'No registrado':String(value))}</span></div>`).join('')}</div>
+          <div class="liftCustomerColumn">${[['Ciudad',p.ciudad],['Dirección',p.direccion||p.direccion_entrega],['Indicaciones',p.notas||p.observaciones||p.nota_entrega]].map(([label,value])=>`<div class="liftCustomerPair"><strong>${label}:</strong><span>${esc(value==null||String(value).trim()===''?'No registrado':String(value))}</span></div>`).join('')}</div>
+        </div>
+        <div class="liftReportTitle liftReportProductsTitle">PRODUCTOS DEL PEDIDO</div>
+        <div class="liftTrackProducts">${products}</div>
+        <div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}<div><span>Envío</span><b>${ship?money(ship):'GRATIS'}</b></div>${disc?`<div class="discount"><span>Descuento</span><b>− ${money(disc)}</b></div>`:''}<div class="grand"><span>Total a pagar</span><b>${money(total)}</b></div></div>
+      </div>
+
       ${p.tiene_evidencia_entrega?`<div class="liftDeliveryProof"><div class="liftDeliveryProofHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><small>La foto se carga únicamente cuando la abras.</small></div><button id="liftPublicEvidenceBtn-${esc(id)}" class="liftDeliveryProofBtn" type="button" onclick="liftViewPublicEvidence('${esc(id)}','${esc(tok)}','${esc(p.celular||phone)}')">📷 VER FOTO</button></div><div id="liftPublicEvidenceViewer-${esc(id)}" class="liftProofViewer"></div></div>`:''}
       ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>ENLACE DE TU PEDIDO</small><b>${esc(orderUrl(id,tok))}</b></div><button type="button" onclick="liftCopyOrderLink('${id}','${esc(tok)}')">Copiar enlace</button></div><p>Guarda este enlace para volver a consultar tu pedido y continuar con el pago.</p></div>`:''}`;
    }catch(e){out.innerHTML='<div style="color:#b42318;font-size:11px">'+esc(e.message)+'</div>'}
@@ -11035,7 +11227,16 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
      if(btn){btn.textContent='✓ Copiada';setTimeout(()=>btn.textContent='Copiar llave',1800);}
    }catch(e){window.prompt('Copia la llave Bre-B:',key)}
  };
+ window.liftCopyBreBValue=async function(btn,amount){
+   const value=String(Math.round(Number(amount)||0));
+   try{
+     if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(value);
+     else{const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.appendChild(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('No se pudo copiar');}
+     if(btn){btn.textContent='✓ Copiado';setTimeout(()=>btn.textContent='Copiar valor',1800);}
+   }catch(e){window.prompt('Copia el valor:',value)}
+ };
  window.liftBoldProductionPay=async function(id,token,btn){
+   const group=btn?.closest('.liftPayMethods');if(group){group.querySelectorAll('.liftPayMethodRow').forEach(row=>{const active=row===btn;row.classList.toggle('is-selected',active);row.setAttribute('aria-pressed',String(active));});const details=$('liftPayDetails-'+id);if(details)details.innerHTML='';}
    if(!token){alert('No se encontró el acceso a este pedido.');return}
    const previous=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Preparando pago seguro…'}
    try{
@@ -11049,14 +11250,14 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
  window.liftChoosePayment=async function(id,token,medio){
    try{
     await api({action:'public-select-payment',pedido_id:Number(id),token,medio});
+    const details=$('liftPayDetails-'+id);const group=details?.closest('.liftPayMethods');if(group){group.querySelectorAll('.liftPayMethodRow').forEach(row=>{const active=row.getAttribute('onclick')?.includes("'transferencia'")===true;row.classList.toggle('is-selected',active);row.setAttribute('aria-pressed',String(active));});}
     if(medio==='efectivo'){await liftTrackOrder(token);return}
     const box=$('liftPayDetails-'+id);
     if(box)box.innerHTML=`<div class="liftDirectPayBox">
-      <div class="liftDirectPayTitle">Transferencia por Llave Bre-B</div>
-      <p>Realiza la transferencia por el valor de tu pedido y envíanos el comprobante por WhatsApp. Verificaremos el pago antes de preparar tu pedido.</p>
-      <div class="liftDirectPayKey"><span><small>Llave Bre-B</small><strong>@edwin4518</strong></span><button type="button" onclick="liftCopyBreBKey(this)">Copiar llave</button></div>
-      <a class="liftDirectPayWhatsapp" target="_blank" rel="noopener noreferrer" href="https://wa.me/573137380766?text=${encodeURIComponent('Hola, realicé la transferencia por Llave Bre-B para el pedido #'+id+'. Adjunto el comprobante para que verifiquen el pago.')}">Enviar comprobante por WhatsApp ↗</a>
-      <small class="liftDirectPayNotice">El pago será revisado y aprobado manualmente. No envíes dinero a cuentas diferentes de las suministradas oficialmente.</small>
+      <div class="liftDirectPayTitle">Paga fácilmente con Bre-B</div>
+      <div class="liftDirectPayKey"><span><small>Valor de tu pedido</small><strong>${Number(box.dataset.total||0).toLocaleString('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0})}</strong></span><button type="button" onclick="liftCopyBreBValue(this,${Number(box.dataset.total||0)})">Copiar valor</button></div>
+      <div class="liftDirectPayKey"><span><small>Nuestra llave Bre-B</small><strong>@edwin4518</strong><small class="liftDirectPayOwnerInline">Titular: Edwin Fernando Muñoz Tobon</small></span><button type="button" onclick="liftCopyBreBKey(this)">Copiar llave</button></div>
+      <a class="liftDirectPayWhatsapp" target="_blank" rel="noopener noreferrer" href="https://wa.me/573137380766?text=${encodeURIComponent('Hola, realicé la transferencia por Bre-B para el pedido #'+id+'. Te comparto el comprobante de pago.')}"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.07 0C5.49 0 .13 5.36.12 11.95a11.9 11.9 0 0 0 1.6 5.98L0 24l6.23-1.63a11.95 11.95 0 0 0 5.84 1.49h.01c6.59 0 11.95-5.36 11.96-11.95a11.88 11.88 0 0 0-3.52-8.43ZM12.08 21.84a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.7.97.99-3.61-.24-.37a9.9 9.9 0 0 1-1.52-5.29c0-5.47 4.45-9.92 9.93-9.92a9.86 9.86 0 0 1 7.01 2.91 9.87 9.87 0 0 1 2.9 7.02c0 5.47-4.46 9.92-9.96 9.92Zm5.44-7.43c-.3-.15-1.77-.87-2.05-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.23-.65.08-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.9 1.22 3.1.15.2 2.1 3.21 5.09 4.5.71.31 1.26.49 1.69.63.71.23 1.35.2 1.86.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z"/></svg><span>Enviar comprobante por WhatsApp</span></a>
     </div>`;
 
    }catch(e){alert(e.message)}
@@ -11262,7 +11463,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
 (function(){
  const old=window.liftTrackOrder;
  if(typeof old!=='function')return;
- const stages=['Pedido','Disponibilidad','Pago','Preparando','En ruta','Entregado'];
+ const stages=['Pedido','Disponible','Pago','Preparación','En ruta','Entregado'];
  function currentIndex(){
    const nodes=[...document.querySelectorAll('#liftTrackResult .liftJourneyStep')];
    return Math.max(0,nodes.findIndex(n=>n.classList.contains('current')));
@@ -12325,7 +12526,7 @@ window.liftVariantMoney=function(value){
 @media(max-width:760px){.liftTrackBtn{height:40px;padding:0 10px;font-size:0}.liftTrackBtn:before{content:'📦';font-size:17px}.liftOrderActions{grid-template-columns:1fr}.liftTrackSteps{grid-template-columns:1fr 1fr}.liftOrderModal{padding:8px}.liftOrderCard{width:100%;border-radius:15px}}
 </style>
 <div id="liftOrderSuccessModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><h2>Pedido generado</h2><div class="liftOrderSub">Guarda este número para consultar el estado de tu compra.</div><div class="liftOrderRef"><small>NÚMERO DE PEDIDO</small><b id="liftPublicOrderRef">LIFT-00000</b></div><div id="liftPublicOrderTotal" style="text-align:center;font-size:14px;font-weight:600"></div><div class="liftPayOptions"><div class="liftPayOption"><b>💳 MEDIOS DE PAGO</b><p><strong>⚡ Llave Bre-B</strong> · <strong>💳 Tarjeta de crédito:</strong> solicita tu link de pago Bold. <strong>El pago con tarjeta tiene un valor adicional correspondiente a la comisión cobrada por la pasarela Bold.</strong> · <strong>🏪 Corresponsal bancario:</strong> confirma primero con nosotros el número de cuenta.</p><p>⚠️ No nos hacemos responsables por pagos enviados a cuentas o números no suministrados oficialmente para tu pedido.</p><p><strong>No manejamos Addi ni Sistecrédito.</strong></p><div class="liftPayData"><div class="liftPayLine"><span>Llave Bre-B · @edwin4518</span><button type="button" onclick="liftCopyPay('@edwin4518')">Copiar</button></div></div></div></div><div class="liftOrderActions"><button class="primary" type="button" onclick="liftOrderWhatsApp()">WhatsApp</button><button class="dark" type="button" onclick="liftOpenTrackFromLast()">Ver mi pedido</button></div><button class="liftOrderClose" type="button" onclick="liftCloseOrderSuccess()">Cerrar</button></div></div>
-<div id="liftTrackModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><h2>Mi pedido</h2><div class="liftOrderSub">Consulta con el número de pedido y el celular usado en la compra.</div><div class="liftTrackForm"><input id="liftTrackRef" placeholder="Ej: 132"><input id="liftTrackPhone" inputmode="tel" placeholder="Celular"><button class="checkoutSend" style="margin:0" type="button" onclick="liftTrackOrder()">Consultar pedido</button></div><div id="liftTrackResult" class="liftTrackResult"></div><button class="liftOrderClose" type="button" onclick="liftCloseTrack()">Cerrar</button></div></div>
+<div id="liftTrackModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><button type="button" class="liftTrackX" onclick="liftCloseTrack()" aria-label="Cerrar">×</button><h2>Mi pedido</h2><div class="liftOrderSub">Consulta con el número de pedido y el celular usado en la compra.</div><div class="liftTrackForm"><input id="liftTrackRef" placeholder="Ej: 132"><input id="liftTrackPhone" inputmode="tel" placeholder="Celular"><button class="checkoutSend" style="margin:0" type="button" onclick="liftTrackOrder()">Consultar pedido</button></div><div id="liftTrackResult" class="liftTrackResult"></div></div></div>
 <script id="lift-public-order-stage1-script">
 (function(){
  const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
