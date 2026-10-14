@@ -11188,7 +11188,6 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
     out.innerHTML=`<div class="liftOrderRef"><small>PEDIDO</small><b>#${esc(id)}</b></div>
       ${journey(p)}
       ${dispatch.tipo==='guia'&&dispatch.guia?`<div class="liftNextCard"><b>🚚 Seguimiento del envío</b><p>${esc(dispatch.transportadora||'Transportadora')} · Guía: <strong>${esc(dispatch.guia)}</strong></p><div style="display:flex;gap:9px;flex-wrap:wrap"><button type="button" onclick="navigator.clipboard.writeText(this.dataset.guia)" data-guia="${esc(dispatch.guia)}">Copiar guía</button><a href="${esc(({'Coordinadora':'https://coordinadora.com/rastreo/','Inter Rapidísimo':'https://siguetuenvio.interrapidisimo.com/','Envía':'https://envia.co/'})[dispatch.transportadora]||'https://www.google.com/search?q='+encodeURIComponent(dispatch.transportadora+' seguimiento guía'))}" target="_blank" rel="noopener noreferrer">Consultar envío ↗</a></div></div>`:dispatch.tipo==='local'?`<div class="liftNextCard"><b>🛵 Tu pedido salió a ruta</b><p>El mensajero realiza varias entregas. No manejamos una hora exacta de llegada.</p></div>`:''}
-      ${action?`<div class="liftPaymentTop">${action}</div>`:``}
       <div class="liftCompactPurchase liftOrderRedesign liftReportOrder">
         <div class="liftReportTitle">DATOS DEL CLIENTE</div>
         <div class="liftTrackCustomer liftCustomerSix">
@@ -11199,6 +11198,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
         <div class="liftTrackProducts">${products}</div>
         <div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}<div><span>Envío</span><b>${ship?money(ship):'GRATIS'}</b></div>${disc?`<div class="discount"><span>Descuento</span><b>− ${money(disc)}</b></div>`:''}<div class="grand"><span>Total a pagar</span><b>${money(total)}</b></div></div>
       </div>
+      ${action?`<div class="liftPaymentTop">${action}</div>`:``}
 
       ${p.tiene_evidencia_entrega?`<div class="liftDeliveryProof"><div class="liftDeliveryProofHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><small>La foto se carga únicamente cuando la abras.</small></div><button id="liftPublicEvidenceBtn-${esc(id)}" class="liftDeliveryProofBtn" type="button" onclick="liftViewPublicEvidence('${esc(id)}','${esc(tok)}','${esc(p.celular||phone)}')">📷 VER FOTO</button></div><div id="liftPublicEvidenceViewer-${esc(id)}" class="liftProofViewer"></div></div>`:''}
       ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>ENLACE DE TU PEDIDO</small><b>${esc(orderUrl(id,tok))}</b></div><button type="button" onclick="liftCopyOrderLink('${id}','${esc(tok)}')">Copiar enlace</button></div><p>Guarda este enlace para volver a consultar tu pedido y continuar con el pago.</p></div>`:''}`;
