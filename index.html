@@ -14009,6 +14009,20 @@ body.liftAdminUnlocked #liftCalcPanel.liftCalcOpen{display:block}
 </script>
 
 
+<style id="lift-mobile-float-separation-v3">
+@media(max-width:760px){
+  /* Carrito visible a la derecha, con contraste alto. */
+  button.floating{display:grid!important;position:fixed!important;right:16px!important;left:auto!important;bottom:calc(20px + env(safe-area-inset-bottom, 0px))!important;width:60px!important;height:60px!important;padding:0!important;background:#101010!important;color:#fff!important;border:2px solid #fff!important;border-radius:50%!important;box-shadow:0 5px 22px rgba(0,0,0,.35)!important;z-index:15995!important;place-items:center!important}
+  button.floating:before{font-size:26px!important}
+  button.floating .badge{font-size:12px!important;right:-3px!important;top:-6px!important}
+  /* WhatsApp permanece medio oculto por el borde izquierdo. */
+  #liftHelpWhatsApp{left:-25px!important;right:auto!important;bottom:calc(22px + env(safe-area-inset-bottom, 0px))!important;width:52px!important;min-width:52px!important;height:52px!important;padding:0!important;justify-content:flex-end!important;gap:0!important;border-radius:50%!important;overflow:hidden!important;transform:none!important;transition:left .2s ease,box-shadow .2s ease!important}
+  #liftHelpWhatsApp svg{width:23px!important;height:23px!important;margin-right:4px!important;flex-shrink:0!important}
+  #liftHelpWhatsApp .liftHelpHint{display:none!important}
+  #liftHelpWhatsApp:hover,#liftHelpWhatsApp:focus-visible{left:8px!important;transform:none!important}
+  #liftAdminToolsDock{bottom:calc(92px + env(safe-area-inset-bottom, 0px))!important}
+}
+</style>
 <!-- LIFT: herramientas flotantes organizadas y ayuda WhatsApp -->
 <style id="lift-floating-tools-v2">
 #liftHelpWhatsApp{position:fixed;left:18px;right:auto;bottom:18px;z-index:15990;display:flex;align-items:center;gap:9px;height:52px;padding:0 16px;border-radius:999px;background:#16a34a;color:#fff;text-decoration:none;box-shadow:0 7px 24px #0003;font:600 12px Poppins,Arial,sans-serif;transition:transform .2s,box-shadow .2s;white-space:nowrap}
@@ -14043,6 +14057,21 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){dock.classList.remove('open');btn.setAttribute('aria-expanded','false')}});
 })();
 </script>
+
+<style id="lift-mobile-sticky-cart-clearance-v4">
+@media(max-width:760px){
+  /* Mantener el carrito accesible sin cubrir el CTA fijo de producto. */
+  body button.floating{bottom:calc(94px + env(safe-area-inset-bottom, 0px))!important;right:12px!important;width:54px!important;height:54px!important;z-index:15995!important;}
+  /* El botón de compra debe contrastar claramente con el fondo blanco. */
+  #liftMonoAdd{background:#111!important;color:#fff!important;border:2px solid #111!important;font-weight:600!important;box-shadow:0 3px 12px rgba(0,0,0,.18)!important;}
+  #liftMonoAdd:disabled{opacity:.5!important;}
+  /* Media bola de WhatsApp en el lado opuesto, sin invadir el selector de cantidad. */
+  body #liftHelpWhatsApp{left:-26px!important;right:auto!important;bottom:calc(98px + env(safe-area-inset-bottom, 0px))!important;width:52px!important;min-width:52px!important;height:52px!important;padding:0!important;display:flex!important;justify-content:flex-end!important;overflow:hidden!important;border-radius:50%!important;}
+  body #liftHelpWhatsApp .liftHelpHint{display:none!important;}
+  body #liftHelpWhatsApp svg{margin-right:4px!important;}
+  body #liftHelpWhatsApp:hover,body #liftHelpWhatsApp:focus-visible{left:6px!important;}
+}
+</style>
 </body>
 </html>
 
