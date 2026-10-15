@@ -14225,3 +14225,45 @@ button:active{transform:scale(.98)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
+
+<style id="lift-pdf-provider-styles">
+#liftPdfAdmin{position:fixed;inset:0;z-index:999999;background:#0009;display:flex;align-items:center;justify-content:center;padding:14px}
+#liftPdfAdmin .liftPdfBox{background:#fff;color:#111;width:min(660px,96vw);max-height:88vh;overflow:auto;border-radius:13px;padding:20px;font-family:Poppins,sans-serif}
+#liftPdfAdmin .liftPdfRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:10px 0;font-size:12px}
+#liftPdfAdmin button{border:1px solid #ddd;border-radius:7px;background:#111;color:#fff;padding:9px 12px;cursor:pointer;font-size:11px}
+#liftPdfAdmin button:disabled{opacity:.35;cursor:not-allowed}
+#liftPdfAdmin .liftPdfSecondary{background:#fff;color:#111}
+#liftPdfAdmin small{color:#777;display:block}
+@media(max-width:500px){#liftPdfAdmin .liftPdfRow{grid-template-columns:1fr 1fr}#liftPdfAdmin .liftPdfRow>div{grid-column:1/-1}}
+</style>
+<script id="lift-pdf-provider-module">
+(function(){
+ const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-catalogos-pdf';
+ const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ let providers=['Andrés','Cooper 3','Daniel','Evolución Muscular','Golem Nutrition','MAXFITNESS','Mutantes','Suas','Tópico','Vitaness Distribuidor']; // Respaldo: proveedores registrados, no marcas inventadas.
+ const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const auth=()=>sessionStorage.getItem('liftAdminCloudPasswordV1')||'';
+ async function api(body){const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json',apikey:KEY,Authorization:'Bearer '+KEY},body:JSON.stringify({...body,password:auth()})});const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw Error(j.error||'Error '+r.status);return j}
+ window.liftPdfProvidersOpen=async function(){
+  if(!auth())return alert('Abre primero la sesión del administrador.');
+  document.getElementById('liftPdfAdmin')?.remove();
+  const root=document.createElement('div');root.id='liftPdfAdmin';
+  root.innerHTML='<div class="liftPdfBox"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">PDF de proveedores</h3><button id="liftPdfClose" class="liftPdfSecondary">✕ Cerrar</button></div><p style="font-size:11px;color:#666">Archivos privados. Se cargan solo al abrirlos.</p><div id="liftPdfStatus" style="font-size:11px;color:#777">Consultando documentos…</div><div id="liftPdfRows"></div></div>';
+  document.body.append(root);root.querySelector('#liftPdfClose').onclick=()=>root.remove();
+  // Obtiene la lista real de proveedores registrados en Supabase al abrir la pantalla.
+  try{const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_proveedores?select=nombre&order=nombre.asc',{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});if(r.ok){const list=await r.json();if(Array.isArray(list)&&list.length)providers=[...new Set(list.map(p=>String(p.nombre||'').trim()).filter(Boolean))]}}catch(e){console.warn('Proveedores: usando lista de respaldo',e)}
+  const status=root.querySelector('#liftPdfStatus'),rows=root.querySelector('#liftPdfRows');let catalogos=[];
+  async function refresh(){try{const data=await api({action:'list'});catalogos=data.catalogos||[];status.textContent='PDF disponibles: '+catalogos.length;render()}catch(e){status.textContent='No se pudo conectar con la función de PDF: '+e.message;render()}}
+  function render(){const names=[...new Set(providers)].sort((a,b)=>a.localeCompare(b,'es'));
+   rows.innerHTML=names.map((name,i)=>{const item=catalogos.find(x=>x.nombre===name);return '<div class="liftPdfRow"><div><b>'+esc(name)+'</b><small>'+(item?esc(item.archivo_nombre)+' · '+new Date(item.actualizado_en).toLocaleDateString('es-CO'):'Sin PDF')+'</small></div><button data-open="'+i+'" '+(item?'':'disabled')+'>📄 Ver PDF</button><button class="liftPdfSecondary" data-upload="'+i+'">'+(item?'Reemplazar':'Subir PDF')+'</button></div>'}).join('');
+   rows.querySelectorAll('[data-open]').forEach(b=>b.onclick=async()=>{const name=names[Number(b.dataset.open)];const tab=window.open('about:blank','_blank');try{const j=await api({action:'open',nombre:name});if(tab)tab.location.href=j.url;else window.location.href=j.url}catch(e){tab?.close();alert(e.message)}});
+   rows.querySelectorAll('[data-upload]').forEach(b=>b.onclick=()=>{const name=names[Number(b.dataset.upload)];const input=document.createElement('input');input.type='file';input.accept='.pdf,application/pdf';input.onchange=async()=>{const file=input.files?.[0];if(!file)return;if(file.type&&file.type!=='application/pdf'||!file.name.toLowerCase().endsWith('.pdf'))return alert('Selecciona un PDF');if(file.size>20*1024*1024)return alert('El PDF supera 20 MB');b.disabled=true;status.textContent='Subiendo '+file.name+'…';try{const j=await api({action:'upload',nombre:name,archivo_nombre:file.name});const upload=await fetch(j.upload_url,{method:'PUT',headers:{'Content-Type':'application/pdf'},body:file});if(!upload.ok)throw Error('Falló la subida del PDF ('+upload.status+')');await api({action:'save',nombre:name,archivo_nombre:file.name,path:j.path});await refresh()}catch(e){alert('No se pudo guardar: '+e.message);status.textContent=e.message}finally{b.disabled=false}};input.click()});
+  }
+
+  await refresh();
+ };
+ // Añade un acceso al módulo administrativo existente, sin tocar los botones de despacho.
+ const attach=()=>{const row=document.querySelector('.liftAdminToolsRow');if(row&&!row.querySelector('#liftPdfShortcut')){const b=document.createElement('button');b.id='liftPdfShortcut';b.type='button';b.textContent='📄 PDF proveedores';b.onclick=window.liftPdfProvidersOpen;const abandoned=row.querySelector('#liftAbandonOpenBtn');if(abandoned)abandoned.after(b);else row.appendChild(b)}};
+ new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach();
+})();
+</script>
