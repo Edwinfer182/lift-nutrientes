@@ -12075,6 +12075,19 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 @media(max-width:520px){.lcDecision,.lcFinalActions{grid-template-columns:1fr}.lcInstructionTitle{font-size:14px}}
 @media(max-width:520px){.lcGrid{grid-template-columns:1fr}.lcHead,.lcCard{border-radius:12px}}
 </style>
+<style id="lift-courier-availability-20261015">
+#liftCourierApp .lcAvailability{margin:14px 0;padding:12px;border:1px solid #e1e1e1;border-radius:12px;background:#fff}
+#liftCourierApp .lcAvailabilityHead{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px;gap:6px;align-items:center;font-size:10px;font-weight:600;margin-bottom:7px}
+#liftCourierApp .lcAvailabilityHead span:not(:first-child){text-align:center}
+#liftCourierApp .lcAvailabilityRow{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px;gap:6px;align-items:center;padding:10px 0;border-top:1px solid #eee}
+#liftCourierApp .lcAvailabilityName{font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#liftCourierApp .lcAvailabilityPick{margin:auto;width:32px;height:32px;border:2px solid #d1d5db;border-radius:50%;background:white;cursor:pointer;display:grid;place-items:center;font-size:17px;font-weight:700;color:transparent}
+#liftCourierApp .lcAvailabilityPick[data-checked="true"][data-value="disponible"]{background:#15803d;border-color:#15803d;color:white}
+#liftCourierApp .lcAvailabilityPick[data-checked="true"][data-value="agotado"]{background:#b91c1c;border-color:#b91c1c;color:white}
+#liftCourierApp .lcAvailabilitySubmit{width:100%;margin-top:12px;min-height:44px;background:#111;border:0;color:#fff;border-radius:10px;font:600 12px Poppins,Arial;cursor:pointer}
+#liftCourierApp .lcAvailabilitySubmit:disabled{opacity:.35;cursor:not-allowed}
+#liftCourierApp .lcAvailabilityHelp{font-size:10px;color:#777;line-height:1.45;margin-top:8px}
+</style>
 <div id="liftCourierApp"><div class="lcWrap"><div class="lcHead"><b>LIFT · ORDEN DE ENTREGA</b><small id="lcRef">Consultando pedido…</small></div><div id="lcBody"><div class="lcCard">Cargando…</div></div></div></div>
 
 <style id="lift-courier-compact-20261014">
@@ -12197,6 +12210,13 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
         <div class="lcCompactActions"><button id="lcCopyOrder" type="button">📋 COPIAR DATOS Y PEDIDO</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.direccion,p.barrio,p.ciudad,p.departamento].filter(Boolean).join(', '))}">📍 MAPS ↗</a></div>
         <div class="lcCompactTitle lcCompactDivider">PRODUCTOS DEL PEDIDO</div>
         <div class="lcCompactProducts">${(p.items||[]).map(x=>`<div class="lcCompactProduct"><div class="lcCompactImg">${(x.imagen||x.imagen_url||x.image)?`<img src="${esc(x.imagen||x.imagen_url||x.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'📦'}</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small></div></div>`).join('')}</div>
+        <div class="lcAvailability" id="lcAvailability">
+          <div class="lcCompactTitle">CONFIRMAR DISPONIBILIDAD</div>
+          <div class="lcAvailabilityHead"><span>Producto</span><span>Disponible</span><span>Agotado</span></div>
+          ${(p.items||[]).map((x,i)=>`<div class="lcAvailabilityRow"><div class="lcAvailabilityName">${esc(x.nombre||'Producto')} <small>× ${Number(x.cantidad||1)}</small></div><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="disponible" data-checked="false" aria-label="Disponible: ${esc(x.nombre||'Producto')}">✓</button><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="agotado" data-checked="false" aria-label="Agotado: ${esc(x.nombre||'Producto')}">✕</button></div>`).join('')}
+          <button type="button" class="lcAvailabilitySubmit" id="lcAvailabilitySubmit" disabled>MARCA TODOS LOS PRODUCTOS</button>
+          <div class="lcAvailabilityHelp" id="lcAvailabilityHelp">Selecciona disponible o agotado para cada producto. Esta confirmación no cambia el estado del pedido.</div>
+        </div>
         <div class="lcCompactPayment ${pi.kind==='paid'?'lcPaid':''}"><b>${esc(pi.title)}</b>${pi.amount?`<strong>${money(pi.amount)}</strong>`:''}<small>${esc(pi.detail||'')}</small></div>
         ${pi.transfer?`<details class="lcPayDetails"><summary>Datos para pago</summary><div class="lcAccount"><b>Llave Bre-B:</b> @edwin4518</div></details><button id="lcPayProofBtn" class="lcProofBtn">📎 Subir comprobante</button><input id="lcPayProof" type="file" accept="image/*" capture="environment" hidden>`:''}
         <div class="lcCompactStatus"><button id="lcRoute" type="button" ${route||done?'disabled':''}>🚚 ${route||done?'EN RUTA ✓':'EN RUTA'}</button><button id="lcDone" type="button" ${!route||done?'disabled':''}>✓ ${done?'ENTREGADO ✓':'ENTREGADO'}</button></div>
@@ -12207,6 +12227,39 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
         <input id="lcPhoto" type="file" accept="image/*" capture="environment" hidden><div id="lcMsg"></div>
       </div>`;
 
+    // Confirmación de disponibilidad en el mismo portal de mensajero.
+    // El servidor debe validar el token, persistir la respuesta y enviar el correo.
+    const availabilityMarks={};
+    const availabilityRoot=$('lcAvailability');
+    const availabilitySubmit=$('lcAvailabilitySubmit');
+    const availabilityHelp=$('lcAvailabilityHelp');
+    function updateAvailability(){
+      const n=(p.items||[]).length;
+      const selected=Object.keys(availabilityMarks).length;
+      const ready=n>0&&selected===n;
+      const any=Object.values(availabilityMarks).includes('disponible');
+      availabilitySubmit.disabled=!ready;
+      availabilitySubmit.textContent=!ready?'MARCA TODOS LOS PRODUCTOS':any?'✓ TOMAR PEDIDO':'✕ NO TOMAR PEDIDO';
+    }
+    availabilityRoot?.querySelectorAll('.lcAvailabilityPick').forEach(btn=>btn.addEventListener('click',()=>{
+      const i=Number(btn.dataset.item);availabilityMarks[i]=btn.dataset.value;
+      availabilityRoot.querySelectorAll('.lcAvailabilityPick[data-item="'+i+'"]')?.forEach(b=>b.dataset.checked=String(b===btn));
+      updateAvailability();
+    }));
+    if(availabilitySubmit)availabilitySubmit.onclick=async()=>{
+      const items=(p.items||[]).map((x,i)=>({indice:i,nombre:String(x.nombre||'Producto'),cantidad:Number(x.cantidad||1),estado:availabilityMarks[i]}));
+      if(items.some(x=>!['disponible','agotado'].includes(x.estado)))return;
+      const decision=items.some(x=>x.estado==='disponible')?'tomar':'no_tomar';
+      if(!confirm('¿Confirmas '+(decision==='tomar'?'TOMAR':'NO TOMAR')+' el pedido con las disponibilidades marcadas?'))return;
+      availabilitySubmit.disabled=true;availabilityHelp.textContent='Guardando confirmación y enviando correo…';
+      try{
+        const response=await api({action:'courier-availability-confirm',token:courierToken,decision,items});
+        if(!response.ok)throw new Error(response.error||'No se confirmó la disponibilidad');
+        availabilityHelp.textContent=response.email_sent===false?'✓ Respuesta guardada, pero no se pudo confirmar el envío del correo.':'✓ Confirmación registrada y notificación enviada.';
+        availabilityRoot.querySelectorAll('.lcAvailabilityPick').forEach(b=>b.disabled=true);
+        availabilitySubmit.textContent='✓ CONFIRMADO';
+      }catch(e){availabilityHelp.textContent='No se guardó la respuesta: '+(e.message||e);availabilitySubmit.disabled=false;}
+    };
     if($('lcCopyOrder'))$('lcCopyOrder').onclick=async()=>{
       const ok=await copy(copyOrderText);
       const b=$('lcCopyOrder');if(b){const old=b.textContent;b.textContent=ok?'✓ PEDIDO COPIADO':'COPIA MANUALMENTE';setTimeout(()=>b.textContent=old,1400)}
