@@ -14238,7 +14238,7 @@ button:active{transform:scale(.98)}
 #liftPdfAdmin .liftPdfProvider{padding:13px 0;border-bottom:1px solid #ddd}
 #liftPdfAdmin .liftPdfProviderHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px;font-size:13px}
 #liftPdfAdmin .liftPdfDocument{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:7px;align-items:center;padding:7px 0;font-size:11px}
-#liftPdfAdmin .liftPdfDocument span{overflow-wrap:anywhere}
+#liftPdfAdmin .liftPdfDocument span,#liftPdfAdmin .liftPdfDocument small{overflow-wrap:anywhere}
 @media(max-width:600px){#liftPdfAdmin .liftPdfDocument{grid-template-columns:repeat(3,1fr)}#liftPdfAdmin .liftPdfDocument>div{grid-column:1/-1}}
 </style>
 <script id="lift-pdf-provider-module">
@@ -14253,18 +14253,19 @@ button:active{transform:scale(.98)}
   if(!auth())return alert('Abre primero la sesión del administrador.');
   document.getElementById('liftPdfAdmin')?.remove();
   const root=document.createElement('div');root.id='liftPdfAdmin';
-  root.innerHTML='<div class="liftPdfBox"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">PDF de proveedores</h3><button id="liftPdfClose" class="liftPdfSecondary">✕ Cerrar</button></div><p style="font-size:11px;color:#666">Archivos privados. Se cargan solo al abrirlos.</p><div id="liftPdfStatus" style="font-size:11px;color:#777">Consultando documentos…</div><div id="liftPdfRows"></div></div>';
+  root.innerHTML='<div class="liftPdfBox"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">Documentos de proveedores</h3><button id="liftPdfClose" class="liftPdfSecondary">✕ Cerrar</button></div><p style="font-size:11px;color:#666">PDF privados y enlaces externos. Solo para administración.</p><div style="display:flex;gap:8px;margin-bottom:10px"><button id="liftCreateProvider">＋ Crear proveedor</button></div><div id="liftPdfStatus" style="font-size:11px;color:#777">Consultando documentos…</div><div id="liftPdfRows"></div></div>';
   document.body.append(root);root.querySelector('#liftPdfClose').onclick=()=>root.remove();
   // Obtiene la lista real de proveedores registrados en Supabase al abrir la pantalla.
   try{const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_proveedores?select=nombre&order=nombre.asc',{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});if(r.ok){const list=await r.json();if(Array.isArray(list)&&list.length)providers=[...new Set(list.map(p=>String(p.nombre||'').trim()).filter(Boolean))]}}catch(e){console.warn('Proveedores: usando lista de respaldo',e)}
-  const status=root.querySelector('#liftPdfStatus'),rows=root.querySelector('#liftPdfRows');let catalogos=[];
-  async function refresh(){try{const data=await api({action:'list'});catalogos=data.catalogos||[];status.textContent='PDF disponibles: '+catalogos.length;render()}catch(e){status.textContent='No se pudo conectar con la función de PDF: '+e.message;render()}}
+  const status=root.querySelector('#liftPdfStatus'),rows=root.querySelector('#liftPdfRows');let catalogos=[],enlaces=[];root.querySelector('#liftCreateProvider').onclick=async()=>{const nombre=(prompt('Nombre del nuevo proveedor:')||'').trim();if(!nombre)return;try{await api({action:'create_provider',nombre});providers=[...new Set([...providers,nombre])];await refresh()}catch(e){alert('No se pudo crear el proveedor: '+e.message)}};
+  async function refresh(){try{const data=await api({action:'list'});catalogos=data.catalogos||[];enlaces=data.enlaces||[];if(Array.isArray(data.proveedores))providers=data.proveedores.map(p=>p.nombre).filter(Boolean);status.textContent=catalogos.length+' PDF · '+enlaces.length+' enlaces';render()}catch(e){status.textContent='No se pudo conectar con la función de PDF: '+e.message;render()}}
   function render(){
-   const names=[...new Set([...providers,...catalogos.map(x=>x.nombre)])].sort((a,b)=>a.localeCompare(b,'es'));
+   const names=[...new Set([...providers,...catalogos.map(x=>x.nombre),...enlaces.map(x=>x.nombre)])].sort((a,b)=>a.localeCompare(b,'es'));
    rows.innerHTML=names.map((name,i)=>{
     const docs=catalogos.filter(x=>x.nombre===name);
     const files=docs.map(d=>'<div class="liftPdfDocument"><div><span>📄 '+esc(d.archivo_nombre)+'</span><small>'+new Date(d.actualizado_en).toLocaleDateString('es-CO')+'</small></div><button data-open="'+esc(d.id)+'">Ver PDF</button><button class="liftPdfSecondary" data-replace="'+esc(d.id)+'">Reemplazar</button><button class="liftPdfSecondary" data-delete="'+esc(d.id)+'">Eliminar</button></div>').join('');
-    return '<section class="liftPdfProvider"><div class="liftPdfProviderHead"><b>'+esc(name)+'</b><button data-upload="'+i+'">＋ Agregar PDF</button></div>'+(files||'<small>Sin documentos cargados</small>')+'</section>';
+    const links=enlaces.filter(x=>x.nombre===name).map(d=>'<div class="liftPdfDocument"><div><span>🔗 '+esc(d.titulo)+'</span><small>'+esc(d.url)+'</small></div><button data-link-open="'+esc(d.id)+'">Abrir enlace</button><button class="liftPdfSecondary" data-link-delete="'+esc(d.id)+'">Eliminar</button></div>').join('');
+    return '<section class="liftPdfProvider"><div class="liftPdfProviderHead"><b>'+esc(name)+'</b><div style="display:flex;gap:6px;flex-wrap:wrap"><button data-upload="'+i+'">＋ PDF</button><button data-add-link="'+i+'">＋ Enlace</button></div></div>'+(files+links||'<small>Sin documentos ni enlaces</small>')+'</section>';
    }).join('');
    async function uploadFile(name,oldId){
     const input=document.createElement('input');input.type='file';input.accept='.pdf,application/pdf';
@@ -14274,6 +14275,9 @@ button:active{transform:scale(.98)}
      catch(e){alert('No se pudo guardar: '+e.message);status.textContent=e.message}
     };input.click();
    }
+   rows.querySelectorAll('[data-add-link]').forEach(b=>b.onclick=async()=>{const nombre=names[Number(b.dataset.addLink)];const titulo=(prompt('Nombre del enlace (ejemplo: Lista de precios):')||'').trim();if(!titulo)return;const url=(prompt('Pega el enlace HTTPS de Google Sheets u otra página:')||'').trim();if(!url)return;try{await api({action:'add_link',nombre,titulo,url});await refresh()}catch(e){alert('No se pudo guardar el enlace: '+e.message)}});
+   rows.querySelectorAll('[data-link-open]').forEach(b=>b.onclick=()=>{const doc=enlaces.find(x=>x.id===b.dataset.linkOpen);if(doc){const u=new URL(doc.url);if(u.protocol==='https:')window.open(u.href,'_blank','noopener,noreferrer')}});
+   rows.querySelectorAll('[data-link-delete]').forEach(b=>b.onclick=async()=>{const doc=enlaces.find(x=>x.id===b.dataset.linkDelete);if(!doc||!confirm('¿Eliminar el enlace '+doc.titulo+'?'))return;try{await api({action:'delete_link',nombre:doc.nombre,id:doc.id});await refresh()}catch(e){alert(e.message)}});
    rows.querySelectorAll('[data-upload]').forEach(b=>b.onclick=()=>uploadFile(names[Number(b.dataset.upload)]));
    rows.querySelectorAll('[data-open]').forEach(b=>b.onclick=async()=>{const doc=catalogos.find(x=>x.id===b.dataset.open);if(!doc)return;const tab=window.open('about:blank','_blank');try{const j=await api({action:'open',nombre:doc.nombre,id:doc.id});if(tab)tab.location.href=j.url;else window.location.href=j.url}catch(e){tab?.close();alert(e.message)}});
    rows.querySelectorAll('[data-replace]').forEach(b=>b.onclick=()=>{const doc=catalogos.find(x=>x.id===b.dataset.replace);if(doc)uploadFile(doc.nombre,doc.id)});
