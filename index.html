@@ -10687,7 +10687,7 @@ body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
  let rows=[],quick='pendientes';
  const pass=()=>{try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}};
  async function rpc(action,payload={}){const r=await fetch(RPC,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass(),p_action:action,p_payload:payload})});const j=await r.json().catch(()=>null);if(!r.ok)throw new Error(j?.message||j?.error||'No se pudo consultar pedidos');return j}
- function inject(){const tabs=document.querySelector('.liftOrdersTabs');if(!tabs||$('liftOrdersTabAll'))return;const b=document.createElement('button');b.id='liftOrdersTabAll';b.textContent='Todos';b.onclick=()=>liftOrdersTab('all');tabs.insertBefore(b,tabs.firstChild);const providerTab=document.createElement('button');providerTab.id='liftOrdersTabProviders';providerTab.type='button';providerTab.textContent='📦 Proveedores';providerTab.onclick=()=>window.liftProviderDirectory?.();tabs.appendChild(providerTab);const pay=document.createElement('button');pay.id='liftOrdersTabPayments';pay.type='button';pay.textContent='💳 Pagos';pay.onclick=()=>window.liftOpenPaymentsAdmin?.();tabs.appendChild(pay);const hist=$('liftOrdersHistory');if(!hist)return;const v=document.createElement('div');v.id='liftOrdersAll';v.className='liftOrdersView';v.innerHTML=`<div class="liftOpsToolbar"><input id="liftOpsSearch" placeholder="Buscar pedido, cliente, celular, producto o dirección" oninput="liftRenderAllOrders()"><select id="liftOpsStatusFilter" onchange="liftRenderAllOrders()"><option value="">Todos los estados</option><option value="nuevo">Nuevo</option><option value="programado">Programado</option><option value="en_ruta">En ruta</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select></div><div class="liftOpsQuick"><button data-q="pendientes" onclick="liftOpsQuick('pendientes')">Pendientes</button><button data-q="hoy" onclick="liftOpsQuick('hoy')">Hoy</button><button data-q="ruta" onclick="liftOpsQuick('ruta')">En ruta</button><button data-q="seguimiento" onclick="liftOpsQuick('seguimiento')">Seguimientos</button><button data-q="todos" onclick="liftOpsQuick('todos')">Todos</button></div><div id="liftOpsStats" class="liftOpsStats"></div><div id="liftOpsList"><div class="liftOpsEmpty">Cargando pedidos…</div></div>`;hist.parentNode.insertBefore(v,hist);}
+ function inject(){const tabs=document.querySelector('.liftOrdersTabs');if(!tabs||$('liftOrdersTabAll'))return;const b=document.createElement('button');b.id='liftOrdersTabAll';b.textContent='Todos';b.onclick=()=>liftOrdersTab('all');tabs.insertBefore(b,tabs.firstChild);const pay=document.createElement('button');pay.id='liftOrdersTabPayments';pay.type='button';pay.textContent='💳 Pagos';pay.onclick=()=>window.liftOpenPaymentsAdmin?.();tabs.appendChild(pay);const hist=$('liftOrdersHistory');if(!hist)return;const v=document.createElement('div');v.id='liftOrdersAll';v.className='liftOrdersView';v.innerHTML=`<div class="liftOpsToolbar"><input id="liftOpsSearch" placeholder="Buscar pedido, cliente, celular, producto o dirección" oninput="liftRenderAllOrders()"><select id="liftOpsStatusFilter" onchange="liftRenderAllOrders()"><option value="">Todos los estados</option><option value="nuevo">Nuevo</option><option value="programado">Programado</option><option value="en_ruta">En ruta</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select></div><div class="liftOpsQuick"><button data-q="pendientes" onclick="liftOpsQuick('pendientes')">Pendientes</button><button data-q="hoy" onclick="liftOpsQuick('hoy')">Hoy</button><button data-q="ruta" onclick="liftOpsQuick('ruta')">En ruta</button><button data-q="seguimiento" onclick="liftOpsQuick('seguimiento')">Seguimientos</button><button data-q="todos" onclick="liftOpsQuick('todos')">Todos</button></div><div id="liftOpsStats" class="liftOpsStats"></div><div id="liftOpsList"><div class="liftOpsEmpty">Cargando pedidos…</div></div>`;hist.parentNode.insertBefore(v,hist);}
  const oldTab=window.liftOrdersTab;window.liftOrdersTab=function(tab){inject();['All','History','Old'].forEach(x=>$('liftOrders'+x)?.classList.remove('active'));['All','History','Old'].forEach(x=>$('liftOrdersTab'+x)?.classList.remove('active'));if(tab==='all'){$('liftOrdersAll')?.classList.add('active');$('liftOrdersTabAll')?.classList.add('active');liftLoadAllOrders();return}if(typeof oldTab==='function')return oldTab(tab)};
  const oldOpen=window.liftOpenOrders;window.liftOpenOrders=function(){const r=typeof oldOpen==='function'?oldOpen.apply(this,arguments):($('liftOrdersModal')?.classList.add('open'));setTimeout(()=>liftOrdersTab('all'),0);return r};
  window.liftLoadAllOrders=async function(){inject();const box=$('liftOpsList');if(box)box.innerHTML='<div class="liftOpsEmpty">Cargando pedidos…</div>';try{const j=await rpc('list');rows=Array.isArray(j)?j:[];
@@ -10721,7 +10721,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
   else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 };
- function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${p.despacho_tipo==='guia'?`<div class="liftOpsFollow">🚚 ${esc(p.despacho_transportadora||'')} · Guía: ${esc(p.despacho_guia||'')} <button type="button" data-guia="${esc(p.despacho_guia||'')}" onclick="navigator.clipboard.writeText(this.dataset.guia)">Copiar</button></div>`:p.despacho_tipo==='local'?`<div class="liftOpsFollow">🛵 Salió a ruta en la ciudad. Sin hora prometida de entrega.</div>`:''}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><select onchange="liftChooseOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftProviderAssign(${p.id})" class="liftCourierAdminBtn">📦 Asignar proveedor</button><button onclick="liftProviderPanel(${p.id})" class="liftCourierAdminBtn">✓ Ver asignaciones</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Enlace mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
+ function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${p.despacho_tipo==='guia'?`<div class="liftOpsFollow">🚚 ${esc(p.despacho_transportadora||'')} · Guía: ${esc(p.despacho_guia||'')} <button type="button" data-guia="${esc(p.despacho_guia||'')}" onclick="navigator.clipboard.writeText(this.dataset.guia)">Copiar</button></div>`:p.despacho_tipo==='local'?`<div class="liftOpsFollow">🛵 Salió a ruta en la ciudad. Sin hora prometida de entrega.</div>`:''}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><select onchange="liftChooseOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Enlace mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
  window.liftChooseOrderStatus=function(id,estado){
  if(estado!=='en_ruta'){window.liftSetOrderStatus(id,estado);return}
  const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;
@@ -13862,162 +13862,7 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
-<style id="lift-provider-assign-v1">
-#liftProviderPortal{display:none;position:fixed;inset:0;z-index:99999;background:#f5f5f5;overflow:auto;font-family:Poppins,Arial,sans-serif;color:#111}
-#liftProviderPortal.open{display:block}.lpaWrap{max-width:650px;margin:0 auto;padding:22px 13px 55px}.lpaBox{background:white;border:1px solid #e6e6e6;border-radius:13px;padding:17px;margin-top:12px}.lpaHead{background:#111;color:white;border-radius:13px;padding:20px}.lpaHead b{font-size:19px}.lpaHead small{display:block;color:#ddd}.lpaLine{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #eee;font-size:12px}.lpaLine:last-child{border:0}.lpaLine input{width:21px;height:21px;accent-color:#111}.lpaBtn{width:100%;border:0;border-radius:10px;background:#111;color:white;min-height:47px;font:600 12px Poppins;cursor:pointer;margin-top:12px}.lpaBtn:disabled{opacity:.5}.lpaLight{background:white;color:#111;border:1px solid #bbb}.lpaMuted{font-size:11px;color:#666;line-height:1.5}.lpaError{color:#9f1239}.lpaGood{color:#166534}.lpaAdmin{margin:10px 0;border:1px solid #ddd;border-radius:10px;padding:12px;background:#fff}.lpaAdmin button{margin:5px 5px 0 0;border:1px solid #ccc;background:#fff;border-radius:7px;padding:8px;cursor:pointer;font:600 10px Poppins}.lpaAdmin .lpaApprove{background:#111;color:white}
-</style>
-<div id="liftProviderPortal"><div class="lpaWrap"><div class="lpaHead"><b>LIFT · ORDEN DE ENTREGA</b><small id="lpaAssignRef">Consultando asignación…</small></div><div id="lpaAssignBody" class="lpaBox">Cargando…</div></div></div>
-<style id="lift-provider-directory-style">
-#lpaDirectory{position:fixed;inset:0;z-index:99997;background:#f6f6f6;overflow:auto;font-family:Poppins,Arial,sans-serif;color:#111;padding:22px 12px}#lpaDirectory .lpaDirPanel{max-width:980px;margin:auto}#lpaDirectory .lpaDirTop{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px}#lpaDirectory .lpaDirTop b{font-size:23px;display:block}#lpaDirectory small{font-size:11px;color:#777}#lpaDirectory button{cursor:pointer;border:1px solid #222;background:#111;color:white;border-radius:6px;padding:10px 13px;font:inherit;font-size:11px}#lpaDirectory .lpaDirSearch{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:14px}#lpaDirectory .lpaDirSearch input{border:1px solid #ddd;background:#fff;padding:13px;width:min(520px,75%);border-radius:7px;font:inherit;font-size:12px}#lpaDirectory .lpaDirGroup{background:white;border:1px solid #e5e5e5;margin-bottom:13px;padding:16px;border-radius:9px}#lpaDirectory h3{margin:0 0 10px;font-size:16px}#lpaDirectory .lpaDirItem{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #eee;padding:14px 0}#lpaDirectory .lpaDirItem p{font-size:11px;color:#555;margin:7px 0}#lpaDirectory .lpaDirBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}#lpaDirectory .lpaDirStatus{font-size:10px;background:#eee;border-radius:5px;padding:4px 7px;margin-left:8px}#lpaDirectory .lpaDirEmpty{padding:30px;text-align:center;color:#666}@media(max-width:600px){#lpaDirectory .lpaDirItem{align-items:stretch;flex-direction:column}#lpaDirectory .lpaDirBtns{justify-content:flex-start}#lpaDirectory .lpaDirTop b{font-size:17px}}
-</style>
-<style id="lift-unified-provider-style">
-#liftProviderPortal{background:#f4f4f4!important;z-index:2147483001!important}
-#liftProviderPortal .lpaWrap{max-width:650px;padding:8px 9px 22px}
-#liftProviderPortal .lpaHead{background:#080808;border-radius:14px;padding:14px 16px;margin-bottom:7px}
-#liftProviderPortal .lpaHead b{font-size:16px}
-#liftProviderPortal #lpaAssignBody{padding:0;border:0;background:transparent;margin-top:0}
-#liftProviderPortal .lcCard{background:#fff;border:1px solid #e5e5e5;border-radius:12px;margin-top:7px}
-#liftProviderPortal .lcCompact{padding:18px}
-#liftProviderPortal .lcCompactTitle{font-size:12px;font-weight:600;margin:0 0 12px}
-#liftProviderPortal .lcCompactGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:12px;line-height:1.9}
-#liftProviderPortal .lcCompactActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}
-#liftProviderPortal .lcCompactActions>*{min-height:42px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#111;font:600 11px Poppins,Arial;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}
-#liftProviderPortal .lcCompactDivider{border-top:1px solid #e7e7e7;padding-top:15px;margin-top:15px}
-#liftProviderPortal .lcCompactProduct{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee}
-#liftProviderPortal .lcCompactImg{width:52px;height:52px;flex:0 0 52px;background:#fafafa;border-radius:7px;display:grid;place-items:center}
-#liftProviderPortal .lcCompactProductInfo{display:grid;gap:3px;font-size:12px;flex:1}
-#liftProviderPortal .lcCompactProductInfo small{font-size:10px;color:#777}
-#liftProviderPortal .lpaChoices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-#liftProviderPortal .lpaChoices button{border:1px solid #ddd;background:#fff;border-radius:8px;padding:10px 4px;font:600 10px Poppins,Arial;cursor:pointer}
-#liftProviderPortal .lpaChoices button.on{background:#111;border-color:#111;color:#fff}
-#liftProviderPortal .lpaProgrammed{background:#e3f8e9;padding:13px;border-radius:9px;font-weight:600;font-size:12px;margin-top:15px}
-#liftProviderPortal .lpaProgrammed small{display:block;color:#555;font-weight:300;margin-top:5px}
-#liftProviderPortal .lcCompactPayment{margin-top:15px;padding:12px;background:#e3f8e9;border-radius:9px;display:grid;gap:4px;font-size:12px}
-#liftProviderPortal .lcCompactPayment small{font-size:11px}
-#liftProviderPortal .lcCompactStatus{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
-#liftProviderPortal .lcCompactStatus button{min-height:50px;background:#111;color:#fff;border:0;border-radius:10px;font:700 12px Poppins,Arial}
-#liftProviderPortal .lcCompactStatus button:disabled,#liftProviderPortal .lcCompactEvidence button:disabled{background:#ededed;color:#999;cursor:not-allowed}
-#liftProviderPortal .lcCompactEvidence{margin-top:12px;display:grid;gap:6px}
-#liftProviderPortal .lcCompactEvidence button{min-height:44px;background:#fff;border:1px solid #111;border-radius:9px;font:600 12px Poppins,Arial}
-#liftProviderPortal .lcCompactEvidence small{font-size:10px;color:#777}
-#liftProviderPortal .lpaMissing{border:1px solid #f1d0b3;background:#fff8f1;padding:12px;border-radius:9px;font-size:11px}
-@media(max-width:540px){#liftProviderPortal .lcCompactGrid{grid-template-columns:1fr;gap:4px}}
-</style>
-<style id="lift-provider-visual-v2">
-#liftProviderPortal .lcCompactImg img{width:100%;height:100%;object-fit:contain;border-radius:7px}
-#liftProviderPortal .lpaChoices{display:flex;gap:8px}
-#liftProviderPortal .lpaChoices button{width:42px;height:38px;font-size:19px;font-weight:700;padding:0;border-radius:8px}
-#liftProviderPortal .lpaChoices [data-available="1"].on{background:#15803d;border-color:#15803d;color:#fff}
-#liftProviderPortal .lpaChoices [data-available="0"].on{background:#b42318;border-color:#b42318;color:#fff}
-#liftProviderPortal .lpaProduct.lpaUnavailable{background:#fff8f7}
-#liftProviderPortal .lpaProduct.lpaUnavailable .lcCompactProductInfo>b{color:#a43a32}
-#liftProviderPortal .lpaProgrammed{background:#dcfce7;border:1px solid #86efac;color:#166534}
-#liftProviderPortal .lpaBtn#lpaConfirm{background:#111;color:#fff;min-height:48px;font-weight:650}
-</style>
-<script id="lift-provider-assign-v1-js">
-(function(){
-'use strict';
-const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-asignaciones';
-const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
-const PASS='liftAdminCloudPasswordV1';
-const token=new URLSearchParams(location.search).get('asignacion');
-const el=id=>document.getElementById(id);
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(body){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);let r;try{r=await fetch(FN,{signal:controller.signal,method:'POST',headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY},body:JSON.stringify(body)});}catch(e){throw Error(e.name==='AbortError'?'La consulta tardó demasiado. Revisa la conexión e intenta de nuevo.':e.message)}finally{clearTimeout(timer)}const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw Error(j.error||j.message||'No se pudo completar la operación');return j}
-const base=()=>location.origin+location.pathname;
-async function copy(x){try{await navigator.clipboard.writeText(x);return true}catch(e){prompt('Copia este enlace:',x);return false}}
 
-function lines(items,editable){
- return (items||[]).map((x,i)=>`<div class="lcCompactProduct lpaProduct">
- <div class="lcCompactImg" data-image-for="${i}"><span>📦</span></div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small>
- ${editable?`<div class="lpaChoices" data-i="${i}"><button type="button" class="on" data-available="1">✓</button><button type="button" data-available="0">✕</button></div>`:''}</div></div>`).join('');
-}
-function customer(a){
- const name=a.cliente_nombre||'',phone=a.cliente_celular||'',address=a.direccion||'',city=a.ciudad||'',notes=a.notas||'',email=a.cliente_email||'No registrado';
- return `<div class="lcCompactTitle">DATOS DEL CLIENTE</div>
- <div class="lcCompactGrid"><div><div><b>Cliente:</b> ${esc(name)}</div><div><b>Celular:</b> <a href="tel:${esc(phone.replace(/\D/g,''))}">${esc(phone)}</a></div><div><b>Correo:</b> ${esc(email)}</div></div>
- <div><div><b>Ciudad:</b> ${esc(city)}</div><div><b>Dirección:</b> ${esc(address)}</div><div><b>Indicaciones:</b> ${esc(notes||'Sin indicaciones')}</div></div></div>
- <div class="lcCompactActions"><button type="button" id="lpaCopy">📋 COPIAR DATOS Y PEDIDO</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([address,city].filter(Boolean).join(', '))}">📍 MAPS ↗</a></div>`;
-}
-async function load(){
- if(!token)return;
- el('liftProviderPortal').classList.add('open');document.body.style.overflow='hidden';
- const body=el('lpaAssignBody');body.innerHTML='<div class="lcCard">Consultando pedido…</div>';
- try{
-  const j=await api({action:'provider-assignment-view',token}),a=j.asignacion||j.assignment||j;
-  el('lpaAssignRef').textContent='Pedido #'+(a.pedido_id||'')+' · '+(a.proveedor||'Proveedor');
-  const status=a.estado||'pendiente',pending=status==='pendiente',confirmed=a.items_confirmados||[],available=Array.isArray(a.items)?a.items:[];
-  const products=pending?available:confirmed;
-  const customerVisible=Boolean(a.cliente_nombre||a.cliente_celular||a.direccion);
-  body.innerHTML=`<div class="lcCard lcCompact">
-  ${customerVisible?customer(a):'<div class="lpaMissing"><b>DATOS DEL CLIENTE PENDIENTES</b><p>Este enlace aún no tiene acceso a los datos del cliente. Es necesario actualizar la función de Supabase para habilitarlos desde la apertura.</p></div>'}
-  <div class="lcCompactTitle lcCompactDivider">PRODUCTOS DEL PEDIDO</div>
-  <div class="lcCompactProducts">${lines(products,pending)}</div>
-  ${pending?`<p class="lpaMuted">Marca los productos disponibles. Esta pantalla solo confirma disponibilidad. El despacho, la foto y las notificaciones se gestionan desde la orden original del mensajero.</p><button class="lpaBtn" id="lpaConfirm">✓ CONFIRMAR PRODUCTOS</button>`:
-  `<div class="lpaProgrammed">✓ DISPONIBILIDAD REGISTRADA<small>Productos aceptados: ${confirmed.length}</small></div>
-   <p class="lpaMuted">Confirmación guardada. Para Programado, En ruta, Entregado, evidencia y correos utiliza el enlace de mensajero del pedido, que conserva el sistema original.</p>`}
-  <div id="lpaMsg" class="lpaMuted"></div></div>`;
-  // Imágenes desde el catálogo público; no afecta la confirmación si falla.
-  (async()=>{
-   const norm=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-   const catalog=Array.isArray(window.PRODUCTS)?window.PRODUCTS:(Array.isArray(window.products)?window.products:[]);
-   for(let i=0;i<products.length;i++){
-    const x=products[i],target=body.querySelector('[data-image-for="'+i+'"]');if(!target)continue;
-    const found=catalog.find(z=>norm(z.name||z.nombre||z.product)===norm(x.nombre))||{};
-    let url=x.imagen||x.imagen_url||found.image||found.imagen||found.imagen_url||'';
-    if(!url){
-     try{
-      const q=encodeURIComponent('*'+String(x.nombre||'').replace(/[*,()]/g,' ').trim().slice(0,90)+'*');
-      const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos?select=imagen,product&product=ilike.'+q+'&limit=1',{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});
-      if(r.ok){const rows=await r.json();url=rows?.[0]?.imagen||''}
-     }catch(e){}
-    }
-    if(url&&(String(url).startsWith('https://')||String(url).startsWith('http://'))&&target.isConnected){
-     const img=document.createElement('img');img.src=url;img.alt=x.nombre||'Producto';img.loading='lazy';img.onerror=()=>img.remove();target.replaceChildren(img);
-    }
-   }
-  })();
-  if(el('lpaCopy'))el('lpaCopy').onclick=()=>copy(['Cliente: '+(a.cliente_nombre||''),'Celular: '+(a.cliente_celular||''),'Dirección: '+(a.direccion||''),'Ciudad: '+(a.ciudad||''),'Indicaciones: '+(a.notas||''),'','Productos:',...products.map(x=>`${x.cantidad||1} × ${x.nombre||'Producto'}`)].join('\n'));
-  if(pending){
-   body.querySelectorAll('.lpaChoices').forEach(row=>{
-    row.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{
-     row.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));row.closest('.lpaProduct')?.classList.toggle('lpaUnavailable',btn.dataset.available==='0');
-    });
-   });
-   el('lpaConfirm').onclick=async()=>{
-    const indices=[...body.querySelectorAll('.lpaChoices')].filter(row=>row.querySelector('[data-available="1"]').classList.contains('on')).map(row=>Number(row.dataset.i));
-    if(!indices.length)return alert('Marca al menos un producto disponible. Los demás quedarán pendientes.');
-    if(!confirm('¿Programar '+indices.length+' producto(s) disponible(s)?'))return;
-    el('lpaConfirm').disabled=true;
-    try{await api({action:'provider-assignment-confirm',token,indices_disponibles:indices});await load()}
-    catch(e){el('lpaMsg').textContent=e.message;el('lpaConfirm').disabled=false}
-   };
-  }
- }catch(e){body.innerHTML='<div class="lcCard"><b>No se pudo abrir la orden</b><p class="lpaError">'+esc(e.message)+'</p></div>'}
-}
-window.liftProviderAssign=async function(id){const password=sessionStorage.getItem(PASS)||'';if(!password)return alert('Ingresa al administrador.');const proveedor=prompt('Nombre del proveedor o bodega:');if(proveedor===null)return;try{const j=await api({action:'admin-provider-assignment-create',password,pedido_id:Number(id),proveedor:proveedor.trim()||'Proveedor'});const u=base()+'?asignacion='+encodeURIComponent(j.token);await copy(u);alert('Enlace creado. Puedes volver a copiarlo desde Ver asignaciones.');window.liftProviderPanel(id)}catch(e){alert('No se pudo crear la asignación: '+e.message)}};
-window.liftProviderPanel=async function(id){const password=sessionStorage.getItem(PASS)||'';if(!password)return alert('Ingresa al administrador.');try{const j=await api({action:'admin-provider-assignment-list',password,pedido_id:Number(id)});const list=j.asignaciones||[];let html='<div class="lpaAdmin"><b>Asignaciones del pedido #'+id+'</b>';for(const a of list){html+=`<div style="padding:9px 0;border-bottom:1px solid #eee;font-size:11px"><b>${esc(a.proveedor||'Proveedor')}</b> · ${esc(a.estado||'Pendiente')}<br>${a.token?`<button data-link="${esc(base()+'?asignacion='+encodeURIComponent(a.token))}">🔗 COPIAR ENLACE</button>`:'<span class="lpaMuted">Enlace antiguo no recuperable</span>'}<br>Confirmados: ${Number(a.cantidad_confirmada||0)} · Faltantes: ${Number(a.cantidad_faltante||0)}<br></div>`}html+='<button data-new="1">+ ASIGNAR PRODUCTOS PENDIENTES</button><p style="font-size:10px;color:#777">Los enlaces nuevos quedan disponibles para copiar nuevamente. Los creados antes de esta actualización no se pueden recuperar.</p></div>';const old=document.getElementById('lpaAdminModal');if(old)old.remove();const modal=document.createElement('div');modal.id='lpaAdminModal';modal.style.cssText='position:fixed;inset:0;z-index:99998;background:#0009;overflow:auto;padding:30px 12px';modal.innerHTML='<div style="max-width:520px;margin:auto;background:white;border-radius:12px;padding:15px"><button id="lpaClose" style="float:right">✕</button>'+html+'</div>';document.body.append(modal);modal.querySelector('#lpaClose').onclick=()=>modal.remove();modal.querySelectorAll('[data-link]').forEach(b=>b.onclick=()=>copy(b.dataset.link));modal.querySelector('[data-new]').onclick=()=>{modal.remove();window.liftProviderAssign(id)};modal.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Autorizar acceso a la dirección del cliente para esta asignación?'))return;try{await api({action:'admin-provider-assignment-authorize',password,pedido_id:Number(id),asignacion_id:b.dataset.approve});modal.remove();window.liftProviderPanel(id)}catch(e){alert(e.message)}})}catch(e){alert('Asignaciones: '+e.message)}};
-window.liftProviderDirectory=async function(){
- const password=sessionStorage.getItem(PASS)||'';
- if(!password){alert('Ingresa primero al administrador.');return}
- document.getElementById('lpaDirectory')?.remove();
- const root=document.createElement('div');root.id='lpaDirectory';root.innerHTML='<div class="lpaDirPanel"><div class="lpaDirTop"><div><b>Proveedores y asignaciones</b><small>Enlaces reutilizables y seguimiento por pedido</small></div><button id="lpaDirClose" type="button">✕ Cerrar</button></div><div id="lpaDirContent">Consultando asignaciones…</div></div>';
- document.body.append(root);root.querySelector('#lpaDirClose').onclick=()=>root.remove();
- const content=root.querySelector('#lpaDirContent');
- try{
-  const j=await api({action:'admin-provider-assignment-all',password});const all=j.asignaciones||[];
-  const groups=new Map();for(const a of all){const name=(a.proveedor||'Proveedor').trim();if(!groups.has(name))groups.set(name,[]);groups.get(name).push(a)}
-  const render=(filter='')=>{const matches=[...groups.entries()].filter(([name,arr])=>(name+' '+arr.map(a=>a.pedido_id).join(' ')).toLowerCase().includes(filter.toLowerCase()));
-   content.innerHTML='<div class="lpaDirSearch"><input id="lpaDirSearch" placeholder="Buscar proveedor o número de pedido" value="'+esc(filter)+'"><span>'+all.length+' asignaciones · '+groups.size+' proveedores</span></div>'+(matches.length?matches.map(([name,arr])=>'<section class="lpaDirGroup"><h3>'+esc(name)+' <small>'+arr.length+' asignaciones</small></h3>'+arr.map(a=>{const items=a.items||[],requested=items.reduce((n,i)=>n+Number(i.cantidad_solicitada||0),0),confirmed=items.reduce((n,i)=>n+Number(i.cantidad_confirmada||0),0);const link=a.token?base()+'?asignacion='+encodeURIComponent(a.token):'';return '<div class="lpaDirItem"><div><b>Pedido #'+a.pedido_id+'</b> <span class="lpaDirStatus">'+esc(a.estado||'pendiente')+'</span><p>'+esc(items.map(i=>i.nombre+' ('+i.cantidad_confirmada+'/'+i.cantidad_solicitada+')').join(' · '))+'</p><small>Confirmados: '+confirmed+' / '+requested+' · '+(a.entrega_autorizada?'Dirección autorizada':'Dirección protegida')+'</small></div><div class="lpaDirBtns">'+(link?'<button data-copy="'+esc(link)+'">🔗 Copiar enlace</button>':'<span>Enlace anterior no recuperable</span>')+'<button data-order="'+a.pedido_id+'">Ver pedido</button></div></div>'}).join('')+'</section>').join(''):'<p class="lpaDirEmpty">No hay asignaciones para esta búsqueda.</p>');
-   content.querySelector('#lpaDirSearch').oninput=e=>{const val=e.target.value;render(val);const inp=content.querySelector('#lpaDirSearch');inp.focus();inp.setSelectionRange(val.length,val.length)};
-   content.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>copy(b.dataset.copy));
-   content.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>window.liftProviderPanel(Number(b.dataset.order)));
-  };render();
- }catch(e){content.innerHTML='<p class="lpaError">No se pudo cargar la lista: '+esc(e.message)+'</p><button id="lpaDirRetry">Reintentar</button>';content.querySelector('#lpaDirRetry').onclick=()=>{root.remove();window.liftProviderDirectory()}}
-};
-if(token)load();
-})();
-</script>
 
 </body>
 </html>
