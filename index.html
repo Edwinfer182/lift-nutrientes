@@ -1929,6 +1929,7 @@ header.top .liftFilterLink{opacity:.8!important}
 body.liftAdminUnlocked #cart .liftCartAdminOnly,
 body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 </style>
+<style id="lift-group-price-authority">.liftMonoPriceArea .liftMonoPrice{color:#111!important}.liftMonoPriceArea .offerPrices .liftMonoPrice{color:#168451!important}</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2657,6 +2658,7 @@ function liftGroupCardOffer(p){
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
   const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
   if(!offered.length)return null;
+  return null; // Ofertas por sabor no modifican el precio único del grupo.
   const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
   const lowest=Math.min(...priced.map(x=>x.sale));
   const lowestRow=priced.find(x=>x.sale===lowest)||priced[0];
@@ -2696,11 +2698,14 @@ function liftVariantOffer(v){
   return p&&typeof offerOf==='function'?offerOf(p):null;
 }
 function liftVariantNormalPrice(g,v,p){
-  return (v?.precio!=null&&Number(v.precio)>0)?Number(v.precio):(Number(g?.precio||0)>0?Number(g.precio):Number(p?.price||0));
+  // La ficha principal del grupo determina el precio de todos los sabores.
+  const groupPrice=Number(g?.precio||0);
+  if(groupPrice>0)return groupPrice;
+  const main=liftGroupVariants(g).map(x=>liftVariantProduct(x)).find(Boolean);
+  return Number(main?.price||p?.price||0);
 }
 function liftVariantSalePrice(g,v,p){
-  const o=liftVariantOffer(v);
-  return o&&Number(o.price)>0?Number(o.price):liftVariantNormalPrice(g,v,p);
+  return liftVariantNormalPrice(g,v,p);
 }
 window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
 
@@ -2712,7 +2717,7 @@ window.liftSelectGroupVariant=function(groupId,variantId){
   const img=String(v.imagen||p?.image||g.imagen||'').trim();
   const normalPrice=liftVariantNormalPrice(g,v,p);
   const salePrice=liftVariantSalePrice(g,v,p);
-  const vo=liftVariantOffer(v);
+  const vo=null;
   const main=document.getElementById('liftMonoMainImg'); if(main&&img)main.src=img;
   const priceArea=document.querySelector('.liftMonoPriceArea');
   if(priceArea&&salePrice>0)priceArea.innerHTML=vo
@@ -2732,7 +2737,7 @@ window.liftAddSelectedGroupVariant=function(groupId,quantity=1){
     p.id,
     String(v.sabor||'Variación'),
     String(v.imagen||p.image||g.imagen||''),
-    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:!!liftVariantOffer(v)},
+    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:false},
     quantity
   );
   return true;
@@ -2747,7 +2752,7 @@ function liftInjectGroupVariantPicker(productId){
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
   box.innerHTML=`<div class="liftVariantPickerHead"><b id="liftGroupVariantSelected">Sabor: ${esc(current.sabor||'Variación')}</b></div>
-  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=liftVariantOffer(v),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
+  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=null,normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
   `;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
@@ -3120,7 +3125,7 @@ function items(){
       const vv=g&&typeof liftGroupVariants==='function'?liftGroupVariants(g):[];
       const v=vv.find(x=>String(x.id)===String(stored.variantId));
       const vp=v&&typeof liftVariantProduct==='function'?liftVariantProduct(v):base;
-      const vprice=Number(stored.variantPrice||0)>0?Number(stored.variantPrice):(v?.precio!=null&&Number(v.precio)>0?Number(v.precio):(Number(g?.precio||0)>0?Number(g.precio):Number(vp?.price||base.price||0)));
+      const vprice=g&&typeof liftVariantNormalPrice==='function'?liftVariantSalePrice(g,v,vp):Number(base.price||0);
       p={...(vp||base),
         name:String(g?.nombre||base.name||''),
         brand:String(g?.marca||base.brand||''),
@@ -4079,7 +4084,7 @@ function renderProductDetail(p){
           targetProduct=liftVariantProduct(selected)||p;
           flavor=String(selected.sabor||'Variación');
           variantImage=String(selected.imagen||targetProduct.image||grouped.imagen||'');
-          variantMeta={groupId:Number(grouped.id),variantId:Number(selected.id),variantPrice:liftVariantSalePrice(grouped,selected,targetProduct),variantNormalPrice:liftVariantNormalPrice(grouped,selected,targetProduct),variantOffer:!!liftVariantOffer(selected)};
+          variantMeta={groupId:Number(grouped.id),variantId:Number(selected.id),variantPrice:liftVariantSalePrice(grouped,selected,targetProduct),variantNormalPrice:liftVariantNormalPrice(grouped,selected,targetProduct),variantOffer:false};
         }
       }else if(f){
         flavor=String(f.name||'');
@@ -10263,7 +10268,7 @@ header .liftSearchEnhanced::before{
 <style id="lift-promo-price-system-v2">
 /* Una sola lectura visual para ofertas: normal gris/tachado, promo verde. */
 .oldPrice,.cartOldPrice,.checkoutOldPrice{color:#858585!important;text-decoration:line-through!important;text-decoration-thickness:1.5px!important;text-decoration-color:#777!important;opacity:1!important;font-weight:500!important}
-.promoPrice,.offerPrices .price.promoPrice,.liftMonoPriceArea .liftMonoPrice,.liftVariantPrices b{color:#168451!important}
+.promoPrice,.offerPrices .price.promoPrice,.liftVariantPrices b{color:#168451!important}
 .cartOldPrice{display:block;font-size:10px!important;line-height:1.1;margin-bottom:3px}
 #cart .cartprice .promoPrice{color:#168451!important;font-weight:700!important}
 .checkoutOldPrice{font-size:10px!important;line-height:1.15;margin-bottom:3px}
@@ -10410,7 +10415,7 @@ header .liftSearchEnhanced::before{
 
 <!-- LIFT · PROMOS + REGALOS COMPATIBLES CON GRUPOS DE VARIACIONES · 2026-10-01 -->
 <style id="lift-promo-gift-variants-v1-css">
-.liftGiftOfferBtn{height:38px;border:1px solid #d9d9d9;border-radius:9px;background:#fff;padding:0 10px;font:600 10px Poppins,Arial;cursor:pointer;white-space:nowrap}.liftGiftOfferBtn:hover{background:#f6f6f6}.liftOfferGiftText{font-size:10px;color:#168451;font-weight:600;margin-top:4px;line-height:1.35}.liftGiftModal{position:fixed;inset:0;z-index:2147483640;background:rgba(0,0,0,.58);display:none;place-items:center;padding:16px}.liftGiftModal.open{display:grid}.liftGiftCard{width:min(94vw,720px);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:18px;box-shadow:0 25px 80px rgba(0,0,0,.28)}.liftGiftHead{display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:14px}.liftGiftHead h3{margin:0;font-size:18px}.liftGiftClose{border:0;background:#eee;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px}.liftGiftSection{border-top:1px solid #eee;padding-top:13px;margin-top:13px}.liftGiftSection h4{font-size:12px;margin:0 0 8px}.liftGiftGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftGiftField{display:grid;gap:5px;font-size:10px;font-weight:600}.liftGiftField.full{grid-column:1/-1}.liftGiftField input,.liftGiftField select{height:40px;border:1px solid #ddd;border-radius:9px;padding:0 10px;font:inherit}.liftGiftVariants{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}.liftGiftVariant{display:flex;gap:6px;align-items:center;border:1px solid #ddd;border-radius:999px;padding:7px 10px;font-size:10px}.liftGiftSearchResults{border:1px solid #e4e4e4;border-radius:10px;max-height:220px;overflow:auto;margin-top:7px}.liftGiftSearchItem{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:7px;border-bottom:1px solid #eee}.liftGiftSearchItem:last-child{border-bottom:0}.liftGiftSearchItem img{width:42px;height:42px;object-fit:contain}.liftGiftSearchItem b{font-size:10px}.liftGiftSearchItem small{display:block;color:#777;font-size:9px}.liftGiftSelected{display:grid;grid-template-columns:52px 1fr auto;gap:9px;align-items:center;border:1px solid #d8eadf;background:#f6fff9;border-radius:11px;padding:9px;margin-top:8px}.liftGiftSelected img{width:52px;height:52px;object-fit:contain}.liftGiftSelected b{font-size:11px}.liftGiftActions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.liftGiftDetail{display:grid;grid-template-columns:68px 1fr;gap:12px;align-items:center;border:1px solid #dce9df;background:#f7fff9;border-radius:13px;padding:10px 12px;margin:10px 0 12px}.liftGiftDetail img{width:68px;height:68px;object-fit:contain;background:#fff;border-radius:9px}.liftGiftDetailTitle{font-size:10px;color:#168451;font-weight:700;letter-spacing:.05em}.liftGiftDetailName{font-size:13px;font-weight:600;margin-top:2px}.liftGiftDetailMeta{font-size:10px;color:#777;margin-top:3px}.liftGiftTextOnly{font-size:10px;color:#168451;font-weight:600;margin-top:5px;line-height:1.35}.promoPrice,.liftMonoPriceArea .liftMonoPrice{color:#168451!important}.liftVariantPrices b{color:#168451!important}
+.liftGiftOfferBtn{height:38px;border:1px solid #d9d9d9;border-radius:9px;background:#fff;padding:0 10px;font:600 10px Poppins,Arial;cursor:pointer;white-space:nowrap}.liftGiftOfferBtn:hover{background:#f6f6f6}.liftOfferGiftText{font-size:10px;color:#168451;font-weight:600;margin-top:4px;line-height:1.35}.liftGiftModal{position:fixed;inset:0;z-index:2147483640;background:rgba(0,0,0,.58);display:none;place-items:center;padding:16px}.liftGiftModal.open{display:grid}.liftGiftCard{width:min(94vw,720px);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:18px;box-shadow:0 25px 80px rgba(0,0,0,.28)}.liftGiftHead{display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:14px}.liftGiftHead h3{margin:0;font-size:18px}.liftGiftClose{border:0;background:#eee;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px}.liftGiftSection{border-top:1px solid #eee;padding-top:13px;margin-top:13px}.liftGiftSection h4{font-size:12px;margin:0 0 8px}.liftGiftGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftGiftField{display:grid;gap:5px;font-size:10px;font-weight:600}.liftGiftField.full{grid-column:1/-1}.liftGiftField input,.liftGiftField select{height:40px;border:1px solid #ddd;border-radius:9px;padding:0 10px;font:inherit}.liftGiftVariants{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}.liftGiftVariant{display:flex;gap:6px;align-items:center;border:1px solid #ddd;border-radius:999px;padding:7px 10px;font-size:10px}.liftGiftSearchResults{border:1px solid #e4e4e4;border-radius:10px;max-height:220px;overflow:auto;margin-top:7px}.liftGiftSearchItem{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:7px;border-bottom:1px solid #eee}.liftGiftSearchItem:last-child{border-bottom:0}.liftGiftSearchItem img{width:42px;height:42px;object-fit:contain}.liftGiftSearchItem b{font-size:10px}.liftGiftSearchItem small{display:block;color:#777;font-size:9px}.liftGiftSelected{display:grid;grid-template-columns:52px 1fr auto;gap:9px;align-items:center;border:1px solid #d8eadf;background:#f6fff9;border-radius:11px;padding:9px;margin-top:8px}.liftGiftSelected img{width:52px;height:52px;object-fit:contain}.liftGiftSelected b{font-size:11px}.liftGiftActions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.liftGiftDetail{display:grid;grid-template-columns:68px 1fr;gap:12px;align-items:center;border:1px solid #dce9df;background:#f7fff9;border-radius:13px;padding:10px 12px;margin:10px 0 12px}.liftGiftDetail img{width:68px;height:68px;object-fit:contain;background:#fff;border-radius:9px}.liftGiftDetailTitle{font-size:10px;color:#168451;font-weight:700;letter-spacing:.05em}.liftGiftDetailName{font-size:13px;font-weight:600;margin-top:2px}.liftGiftDetailMeta{font-size:10px;color:#777;margin-top:3px}.liftGiftTextOnly{font-size:10px;color:#168451;font-weight:600;margin-top:5px;line-height:1.35}.promoPrice{color:#168451!important}.liftVariantPrices b{color:#168451!important}
 @media(max-width:700px){.lafOfferRow{grid-template-columns:1fr 95px!important}.liftGiftOfferBtn{grid-column:1/-1}.liftGiftGrid{grid-template-columns:1fr}.liftGiftField.full{grid-column:auto}.liftGiftCard{padding:14px}.liftGiftDetail{grid-template-columns:56px 1fr}.liftGiftDetail img{width:56px;height:56px}}
 </style>
 <div id="liftGiftOfferModal" class="liftGiftModal" aria-hidden="true"><div class="liftGiftCard"><div class="liftGiftHead"><div><h3>Configurar oferta</h3><div id="liftGiftOfferProduct" class="lafMeta"></div></div><button class="liftGiftClose" type="button" onclick="liftCloseGiftOfferEditor()">×</button></div><div id="liftGiftOfferEditorBody"></div></div></div>
@@ -12651,16 +12656,16 @@ window.liftVariantMoney=function(value){
      let nid=nextId();const final=[];
      for(const r of rows){
        if(r.producto_id){
-         const p=product(r.producto_id);if(p){p.flavor=r.sabor;p.flavors=[r.sabor];if(r.imagen)p.image=r.imagen;if(r.precio)p.price=r.precio;await window.liftCatalogAdminCall({action:'save',product:p})}
+         const p=product(r.producto_id);if(p){p.flavor=r.sabor;p.flavors=[r.sabor];if(r.imagen)p.image=r.imagen;p.price=Number(groupBase.precio||currentProduct.price||0);await window.liftCatalogAdminCall({action:'save',product:p})}
          final.push({...r,producto_id:Number(r.producto_id)});
        }else{
          while(products().some(p=>Number(p.id)===Number(nid)))nid++;
-         const np={id:nid++,name:groupBase.nombre,brand:groupBase.marca,category:groupBase.categoria,presentation:groupBase.presentacion,price:r.precio||groupBase.precio,trainerPrice:currentProduct.trainerPrice||null,image:r.imagen||groupBase.imagen,description:currentProduct.description||'',flavor:r.sabor,flavors:[r.sabor]};
+         const np={id:nid++,name:groupBase.nombre,brand:groupBase.marca,category:groupBase.categoria,presentation:groupBase.presentacion,price:groupBase.precio,trainerPrice:currentProduct.trainerPrice||null,image:r.imagen||groupBase.imagen,description:currentProduct.description||'',flavor:r.sabor,flavors:[r.sabor]};
          await window.liftCatalogAdminCall({action:'save',product:np});products().push(np);final.push({...r,producto_id:Number(np.id)});
        }
      }
      if(currentGroup)await window.liftCatalogAdminCall({action:'delete-variant-group',id:Number(currentGroup.id)});
-     const res=await window.liftCatalogAdminCall({action:'merge-variants',product_ids:final.map(r=>r.producto_id),group:groupBase,variants:final.map((r,i)=>({producto_id:r.producto_id,sabor:r.sabor,imagen:r.imagen||'',precio:r.precio||null,orden:i}))});
+     const res=await window.liftCatalogAdminCall({action:'merge-variants',product_ids:final.map(r=>r.producto_id),group:groupBase,variants:final.map((r,i)=>({producto_id:r.producto_id,sabor:r.sabor,imagen:r.imagen||'',precio:groupBase.precio,orden:i}))});
      if(typeof window.liftReloadVariantGroups==='function')await window.liftReloadVariantGroups();
      if(typeof window.lafLoadVariantGroups==='function')await window.lafLoadVariantGroups().catch(()=>{});
      if(typeof render==='function')render();
