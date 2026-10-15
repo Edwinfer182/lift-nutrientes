@@ -12945,3 +12945,77 @@ button:active{transform:scale(.98)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
+
+
+<!-- LIFT · Corrección de acciones flotantes en móvil · 2026-10-15 -->
+<style id="lift-mobile-cta-separation-20261015">
+@media (max-width:760px){
+  /* El botón principal debe verse claramente, incluso sobre un fondo blanco. */
+  .liftMonoBtns #liftMonoAdd,
+  #liftMonoAdd{
+    background:#111!important;
+    color:#fff!important;
+    border:2px solid #111!important;
+    box-shadow:0 4px 15px rgba(0,0,0,.20)!important;
+    font-weight:700!important;
+    opacity:1!important;
+  }
+  #liftMonoAdd .liftActionIcon{color:#fff!important}
+  #liftMonoAdd:active{background:#303030!important}
+  #liftMonoAdd.success{background:#146c37!important;border-color:#146c37!important;color:#fff!important}
+  /* El acceso de WhatsApp ocupa su propia zona por encima de la acción de compra. */
+  body.liftDetailWhatsAppMobile .liftMobileWhatsappHelp{
+    position:fixed!important;
+    left:14px!important;
+    right:auto!important;
+    bottom:calc(106px + env(safe-area-inset-bottom, 0px))!important;
+    width:56px!important;
+    min-width:56px!important;
+    max-width:56px!important;
+    height:56px!important;
+    min-height:56px!important;
+    padding:0!important;
+    border-radius:50%!important;
+    display:flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    overflow:hidden!important;
+    z-index:55!important;
+    box-shadow:0 5px 16px rgba(0,0,0,.18)!important;
+  }
+  body.liftDetailWhatsAppMobile .liftMobileWhatsappHelp .liftMobileWhatsappText{display:none!important}
+  body.liftDetailWhatsAppMobile .liftMobileWhatsappHelp svg,
+  body.liftDetailWhatsAppMobile .liftMobileWhatsappHelp img{max-height:29px!important;max-width:29px!important}
+}
+</style>
+<script id="lift-mobile-cta-separation-script-20261015">
+(function(){
+  function sync(){
+    if(!window.matchMedia('(max-width:760px)').matches)return;
+    const add=document.getElementById('liftMonoAdd');
+    if(!add)return;
+    const shown=!!(add.getClientRects().length && getComputedStyle(add).visibility!=='hidden');
+    document.body.classList.toggle('liftDetailWhatsAppMobile',shown);
+    if(!shown)return;
+    const candidates=document.querySelectorAll('a,button,[role="button"]');
+    for(const el of candidates){
+      if(el.closest('.liftMonoBtns')||el.classList.contains('liftMobileWhatsappHelp'))continue;
+      const txt=(el.textContent||'').trim();
+      if(!/necesitas ayuda/i.test(txt))continue;
+      const style=getComputedStyle(el);
+      if(style.position!=='fixed' && style.position!=='sticky' && !el.closest('[style*="fixed"]'))continue;
+      el.classList.add('liftMobileWhatsappHelp');
+      for(const child of el.children){
+        if(/necesitas ayuda/i.test(child.textContent||'') && !child.querySelector('svg,img'))child.classList.add('liftMobileWhatsappText');
+      }
+      break;
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
+  document.addEventListener('click',()=>requestAnimationFrame(sync),true);
+  window.addEventListener('resize',sync,{passive:true});
+  const mo=new MutationObserver(()=>{if(!document.body)return;requestAnimationFrame(sync)});
+  function start(){if(document.body)mo.observe(document.body,{childList:true,subtree:true});sync()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
