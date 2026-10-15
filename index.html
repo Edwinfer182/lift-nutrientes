@@ -12098,8 +12098,19 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 #liftCourierApp .lcCompactPayment.lcPaid{background:#e8f7ec;border:1px solid #c5e9cd}
 @media(max-width:520px){#liftCourierApp .lcAvailabilityIntegrated{grid-template-columns:42px minmax(0,1fr) 48px 48px;gap:5px}#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 48px 48px;gap:5px}#liftCourierApp .lcAvailabilityHead span{font-size:9px}#liftCourierApp .lcAvailabilityIntegrated .lcCompactImg{width:42px;height:42px;flex-basis:42px}#liftCourierApp .lcAvailabilityIntegrated .lcAvailabilityPick{width:28px;height:28px}}
 </style>
-<style id="lift-courier-provider-cost-v1">
-#liftCourierApp .lcCostCard{margin:14px 0;padding:15px;border:1px solid #ddd;border-radius:12px;background:#fafafa;display:grid;gap:10px}#liftCourierApp .lcCostCard>b{font-size:12px}#liftCourierApp .lcCostCard>small{font-size:10px;color:#666}#liftCourierApp .lcCostLine{display:grid;grid-template-columns:minmax(0,1fr) minmax(125px,42%);gap:10px;align-items:center;font-size:11px}#liftCourierApp .lcCostLine input{width:100%;min-width:0;padding:10px;border:1px solid #ccc;border-radius:9px;background:white;font:inherit}#liftCourierApp .lcCostTotal{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ddd;padding-top:12px;font-size:11px;font-weight:700}#liftCourierApp .lcCostTotal strong{font-size:19px}@media(max-width:480px){#liftCourierApp .lcCostLine{grid-template-columns:1fr}#liftCourierApp .lcCostLine input{width:100%}}
+<style id="lift-courier-provider-cost-v2">
+#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 62px 62px 118px;gap:7px}
+#liftCourierApp .lcAvailabilityIntegrated{grid-template-columns:52px minmax(0,1fr) 62px 62px 118px;gap:7px}
+#liftCourierApp .lcCostInput{width:100%;min-width:0;height:38px;border:1px solid #ccc;border-radius:8px;padding:5px 8px;font:500 12px Poppins,Arial;background:#fff}
+#liftCourierApp .lcCostExtras{display:grid;gap:10px;margin-top:14px;border-top:1px solid #e7e7e7;padding-top:12px}
+#liftCourierApp .lcCostLine{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,55%);gap:10px;align-items:center;font-size:11px}
+#liftCourierApp .lcCostLine input,#liftCourierApp .lcCostLine textarea{width:100%;min-width:0;padding:10px;border:1px solid #ccc;border-radius:9px;background:white;font:inherit}
+#liftCourierApp .lcCostLine textarea{min-height:90px;resize:vertical;line-height:1.45}
+#liftCourierApp .lcCostTotal{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ddd;padding-top:12px;font-size:11px;font-weight:700}
+#liftCourierApp .lcCostTotal strong{font-size:19px}
+#liftCourierApp .lcCostExtras>small{font-size:10px;color:#777}
+#liftCourierApp .lcTakenProducts{display:grid;gap:0}
+@media(max-width:560px){#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 38px 38px 90px;gap:4px}#liftCourierApp .lcAvailabilityIntegrated{grid-template-columns:38px minmax(0,1fr) 38px 38px 90px;gap:4px}#liftCourierApp .lcAvailabilityIntegrated .lcCompactImg{width:38px;height:38px;flex-basis:38px}#liftCourierApp .lcAvailabilityPick{width:27px!important;height:27px!important}#liftCourierApp .lcAvailabilityHead span{font-size:8px!important}#liftCourierApp .lcCostInput{font-size:10px;padding:4px}#liftCourierApp .lcCostLine{grid-template-columns:1fr}#liftCourierApp .lcCostLine textarea{min-height:105px}}
 </style>
 <div id="liftCourierApp"><div class="lcWrap"><div class="lcHead"><b>LIFT · ORDEN DE ENTREGA</b><small id="lcRef">Consultando pedido…</small></div><div id="lcBody"><div class="lcCard">Cargando…</div></div></div></div>
 
@@ -12223,14 +12234,15 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
         </div>
         <div class="lcCompactActions"><button id="lcCopyOrder" type="button">📋 COPIAR DATOS Y PEDIDO</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.direccion,p.barrio,p.ciudad,p.departamento].filter(Boolean).join(', '))}">📍 MAPS ↗</a></div>
         <div class="lcCompactTitle lcCompactDivider">PRODUCTOS DEL PEDIDO</div>
-        <div class="lcAvailability" id="lcAvailability" ${alreadyTaken?'style="display:none"':''}>
-          <div class="lcAvailabilityHead"><span>Producto</span><span>Disponible</span><span>Agotado</span></div>
-          <div class="lcCompactProducts">${(p.items||[]).map((x,i)=>`<div class="lcCompactProduct lcAvailabilityIntegrated"><div class="lcCompactImg">${(x.imagen||x.imagen_url||x.image)?`<img src="${esc(x.imagen||x.imagen_url||x.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'📦'}</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small></div><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="disponible" data-checked="false" aria-label="Disponible: ${esc(x.nombre||'Producto')}">✓</button><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="agotado" data-checked="false" aria-label="Agotado: ${esc(x.nombre||'Producto')}">✕</button></div>`).join('')}</div>
+        ${alreadyTaken?`<div class="lcTakenProducts">${(p.items||[]).map(x=>`<div class="lcCompactProduct"><div class="lcCompactImg">${x.imagen?`<img src="${esc(x.imagen)}" alt="" loading="lazy">`:'📦'}</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small></div></div>`).join('')}</div>`:`
+        <div class="lcAvailability" id="lcAvailability">
+          <div class="lcAvailabilityHead"><span>Producto</span><span>Disponible</span><span>Agotado</span><span>Precio unitario</span></div>
+          <div class="lcCompactProducts">${(p.items||[]).map((x,i)=>`<div class="lcCompactProduct lcAvailabilityIntegrated"><div class="lcCompactImg">${(x.imagen||x.imagen_url||x.image)?`<img src="${esc(x.imagen||x.imagen_url||x.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'📦'}</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small></div><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="disponible" data-checked="false" aria-label="Disponible: ${esc(x.nombre||'Producto')}">✓</button><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="agotado" data-checked="false" aria-label="Agotado: ${esc(x.nombre||'Producto')}">✕</button><input class="lcCostInput" type="number" min="0" step="1" inputmode="numeric" data-lc-cost="${i}" placeholder="$ Costo"></div>`).join('')}</div>
+          <div class="lcCostExtras" id="lcCostCard"><label class="lcCostLine"><span>Domicilio proveedor</span><input id="lcCostDelivery" type="number" min="0" step="1" inputmode="numeric" placeholder="Valor domicilio"></label><label class="lcCostLine"><span>Datos bancarios completos</span><textarea id="lcCostBankDetails" maxlength="1200" placeholder="Banco, tipo de cuenta, número, titular, cédula o llave. Puedes pegar todos los datos juntos."></textarea></label><div class="lcCostTotal">TOTAL A TRANSFERIR <strong id="lcCostTotal">$0</strong></div><small id="lcCostNotice">Al tomar el pedido se enviarán estos datos al administrador por correo.</small></div>
           <button type="button" class="lcAvailabilitySubmit" id="lcAvailabilitySubmit" disabled>MARCA TODOS LOS PRODUCTOS</button>
-          <div class="lcAvailabilityHelp" id="lcAvailabilityHelp">Marca cada producto. Esta confirmación no cambia el estado del pedido.</div>
-        </div>
-        ${!alreadyTaken?`<div class="lcCostCard" id="lcCostCard"><b>VALORES PARA TRANSFERENCIA AL PROVEEDOR</b><small>Escribe el costo unitario de cada producto. Estos valores no son los precios del cliente.</small>${(p.items||[]).map((x,i)=>`<label class="lcCostLine"><span>${esc(x.nombre||'Producto')} · x${Number(x.cantidad||1)}</span><input type="number" min="0" step="1" inputmode="numeric" data-lc-cost="${i}" placeholder="Costo unitario $" required></label>`).join('')}<label class="lcCostLine"><span>Domicilio del proveedor</span><input id="lcCostDelivery" type="number" min="0" step="1" inputmode="numeric" value="0"></label><label class="lcCostLine"><span>Banco</span><input id="lcCostBank" type="text" maxlength="80" placeholder="Nombre del banco"></label><label class="lcCostLine"><span>Número de cuenta o llave</span><input id="lcCostAccount" type="text" maxlength="100" placeholder="Cuenta para transferencia"></label><label class="lcCostLine"><span>Titular</span><input id="lcCostOwner" type="text" maxlength="100" placeholder="Nombre del titular"></label><div class="lcCostTotal">TOTAL A TRANSFERIR <strong id="lcCostTotal">$0</strong></div><small id="lcCostNotice">La solicitud se preparará para enviarla por correo. El envío se confirma desde tu aplicación de correo.</small></div>`:''}
-        <div class="lcCompactPayment ${pi.kind==='paid'?'lcPaid':''}" ${alreadyTaken?'style="display:none"':''}><b>${esc(pi.title)}</b>${pi.amount?`<strong>${money(pi.amount)}</strong>`:''}<small>${esc(pi.detail||'')}</small></div>
+          <div class="lcAvailabilityHelp" id="lcAvailabilityHelp">Marca cada producto y completa los valores y datos bancarios.</div>
+        </div>`}
+        <div class="lcCompactPayment ${pi.kind==='paid'?'lcPaid':''}" ${!alreadyTaken?'style="display:none"':''}><b>${esc(pi.title)}</b>${pi.amount?`<strong>${money(pi.amount)}</strong>`:''}<small>${esc(pi.detail||'')}</small></div>
 
         <div class="lcCompactStatus" ${!alreadyTaken?'style="display:none"':''}><button id="lcRoute" type="button" ${route||done?'disabled':''}>🚚 ${route||done?'EN RUTA ✓':'EN RUTA'}</button><button id="lcDone" type="button" ${!route||done?'disabled':''}>✓ ${done?'ENTREGADO ✓':'ENTREGADO'}</button></div>
         ${!route&&!done?'<small class="lcCompactHint">Primero marca «En ruta». Al entregar, sube la foto de evidencia.</small>':''}
@@ -12244,61 +12256,54 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
     // El servidor debe validar el token, persistir la respuesta y enviar el correo.
     const costInputs=[...document.querySelectorAll('[data-lc-cost]')];
     const costMoney=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO');
-    function costData(){const prices=costInputs.map((el,i)=>({nombre:String(p.items[i]?.nombre||'Producto'),cantidad:Number(p.items[i]?.cantidad||1),precio_unitario:Number(el.value||0)}));const domicilio=Number($('lcCostDelivery')?.value||0);return {precios:prices,domicilio,banco:$('lcCostBank')?.value.trim()||'',cuenta:$('lcCostAccount')?.value.trim()||'',titular:$('lcCostOwner')?.value.trim()||'',total:prices.reduce((a,x)=>a+x.cantidad*x.precio_unitario,0)+domicilio};}
-    function updateCost(){const data=costData();if($('lcCostTotal'))$('lcCostTotal').textContent=costMoney(data.total)}
-    document.querySelectorAll('#lcCostCard input').forEach(el=>el.addEventListener('input',updateCost));
+    function costData(){const prices=costInputs.map((el,i)=>({nombre:String(p.items[i]?.nombre||'Producto'),cantidad:Number(p.items[i]?.cantidad||1),estado:availabilityMarks[i],precio_unitario:Number(el.value||0)}));const domicilio=Number($('lcCostDelivery')?.value||0);return {precios:prices,domicilio,datos_bancarios:$('lcCostBankDetails')?.value.trim()||'',total:prices.reduce((a,x)=>a+(x.estado==='disponible'?x.cantidad*x.precio_unitario:0),0)+domicilio};}
+    function updateCost(){if($('lcCostTotal'))$('lcCostTotal').textContent=costMoney(costData().total)}
+    document.querySelectorAll('#lcAvailability input,#lcAvailability textarea').forEach(el=>el.addEventListener('input',()=>{updateCost();updateAvailability()}));
     const availabilityMarks={};
     const availabilityRoot=$('lcAvailability');
     const availabilitySubmit=$('lcAvailabilitySubmit');
     const availabilityHelp=$('lcAvailabilityHelp');
     function updateAvailability(){
+      if(!availabilitySubmit)return;
       const n=(p.items||[]).length;
-      const selected=Object.keys(availabilityMarks).length;
-      const ready=n>0&&selected===n;
+      const ready=n>0&&Object.keys(availabilityMarks).length===n;
       const any=Object.values(availabilityMarks).includes('disponible');
-      availabilitySubmit.disabled=!ready;
-      availabilitySubmit.textContent=!ready?'MARCA TODOS LOS PRODUCTOS':any?'✓ TOMAR PEDIDO':'✕ NO TOMAR PEDIDO';
+      const cost=costData();
+      const valid=ready&&(!any||(costInputs.every((el,i)=>availabilityMarks[i]!=='disponible'||(el.value.trim()!==''&&Number(el.value)>0))))&&(!any||($('lcCostDelivery')?.value.trim()!==''&&cost.domicilio>=0&&cost.datos_bancarios.length>=12));
+      availabilitySubmit.disabled=!valid;
+      availabilitySubmit.textContent=!ready?'MARCA TODOS LOS PRODUCTOS':!any?'✕ NO TOMAR PEDIDO':valid?'✓ TOMAR PEDIDO':'COMPLETA VALORES Y DATOS BANCARIOS';
     }
     availabilityRoot?.querySelectorAll('.lcAvailabilityPick').forEach(btn=>btn.addEventListener('click',()=>{
       const i=Number(btn.dataset.item);availabilityMarks[i]=btn.dataset.value;
       availabilityRoot.querySelectorAll('.lcAvailabilityPick[data-item="'+i+'"]')?.forEach(b=>b.dataset.checked=String(b===btn));
-      updateAvailability();
+      const price=costInputs[i];if(price){price.disabled=btn.dataset.value==='agotado';if(price.disabled)price.value='';}
+      updateCost();updateAvailability();
     }));
     if(availabilitySubmit)availabilitySubmit.onclick=async()=>{
       const items=(p.items||[]).map((x,i)=>({indice:i,nombre:String(x.nombre||'Producto'),cantidad:Number(x.cantidad||1),estado:availabilityMarks[i]}));
       if(items.some(x=>!['disponible','agotado'].includes(x.estado)))return;
       const decision=items.some(x=>x.estado==='disponible')?'tomar':'no_tomar';
       const cost=costData();
-      if(decision==='tomar'&&(costInputs.some(el=>el.value.trim()===''||!Number.isFinite(Number(el.value))||Number(el.value)<0)||!Number.isFinite(cost.domicilio)||cost.domicilio<0||!cost.banco||!cost.cuenta||!cost.titular)){alert('Completa los precios, domicilio y datos bancarios para solicitar la transferencia.');return;}
-      if(!confirm('¿Confirmas '+(decision==='tomar'?'TOMAR':'NO TOMAR')+' el pedido con las disponibilidades marcadas?'))return;
+      if(decision==='tomar'&&(costInputs.some((el,i)=>availabilityMarks[i]==='disponible'&&(!el.value.trim()||Number(el.value)<=0))||$('lcCostDelivery')?.value.trim()===''||cost.domicilio<0||cost.datos_bancarios.length<12)){alert('Completa los costos de los productos disponibles, domicilio y datos bancarios.');return;}
+      if(!confirm('¿Confirmas '+(decision==='tomar'?'TOMAR':'NO TOMAR')+' el pedido?'))return;
       availabilitySubmit.disabled=true;availabilityHelp.textContent='Guardando confirmación y enviando correo…';
       try{
-        const response=await api({action:'courier-availability-confirm',token:courierToken,decision,items});
-        if(!response.ok)throw new Error(response.error||'No se confirmó la disponibilidad');
-        availabilityHelp.textContent=response.email_sent===false?'✓ Respuesta guardada, pero no se pudo confirmar el envío del correo.':'✓ Confirmación registrada y notificación enviada.';
-        availabilityRoot.querySelectorAll('.lcAvailabilityPick').forEach(b=>b.disabled=true);
-        availabilitySubmit.textContent='✓ CONFIRMADO';
-        if(decision==='tomar'){
-          try{localStorage.setItem(decisionKey,'accepted')}catch(_){}
-          const lines=cost.precios.map(x=>x.nombre+' x'+x.cantidad+': '+costMoney(x.precio_unitario)+' c/u = '+costMoney(x.cantidad*x.precio_unitario));
-          const subject='Solicitud de transferencia proveedor · Pedido #'+p.id;
-          const body=['Pedido #'+p.id,'Cliente: '+(c.nombre||p.nombre||''),'',...lines,'Domicilio: '+costMoney(cost.domicilio),'TOTAL A TRANSFERIR: '+costMoney(cost.total),'','Banco: '+cost.banco,'Cuenta / llave: '+cost.cuenta,'Titular: '+cost.titular].join('\n');
-          const mail='mailto:edwinfdo182@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-          window.location.href=mail;
-          setTimeout(loadCourier,500);
-        }else{setTimeout(loadCourier,500)}
-      }catch(e){availabilityHelp.textContent='No se guardó la respuesta: '+(e.message||e);availabilitySubmit.disabled=false;}
+        const response=await api({action:'courier-availability-confirm',token:courierToken,decision,items,costos:decision==='tomar'?cost:null});
+        availabilityHelp.textContent=response.email_sent===false?'✓ Respuesta guardada. No se pudo confirmar el envío del correo.':'✓ Confirmación registrada.';
+        if(decision==='tomar')try{localStorage.setItem(decisionKey,'accepted')}catch(_){}
+        await loadCourier();
+      }catch(e){availabilityHelp.textContent='No se guardó la respuesta: '+(e.message||e);updateAvailability();}
     };
     if($('lcCopyOrder'))$('lcCopyOrder').onclick=async()=>{
       const ok=await copy(copyOrderText);
       const b=$('lcCopyOrder');if(b){const old=b.textContent;b.textContent=ok?'✓ PEDIDO COPIADO':'COPIA MANUALMENTE';setTimeout(()=>b.textContent=old,1400)}
     };
-    $('lcRoute').onclick=()=>{
+    if($('lcRoute'))$('lcRoute').onclick=()=>{
       if(confirm('VALIDA UNA SEGUNDA VEZ\n\n¿Ya revisaste cliente, dirección, productos y cobro?\n\nAl confirmar, el pedido quedará EN RUTA.')) setStatus('en_ruta');
     };
     if($('lcPhotoBtn'))$('lcPhotoBtn').onclick=()=>$('lcPhoto').click();
     if($('lcPhoto'))$('lcPhoto').onchange=e=>upload(e,'courier-photo');
-    $('lcDone').onclick=()=>{if(!p.tiene_foto){alert('Debes tomar y guardar la foto de entrega antes de finalizar.');$('lcPhoto')?.click();return}const box=$('lcFinalReview');if(box){box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'center'})}};
+    if($('lcDone'))$('lcDone').onclick=()=>{if(!p.tiene_foto){alert('Debes tomar y guardar la foto de entrega antes de finalizar.');$('lcPhoto')?.click();return}const box=$('lcFinalReview');if(box){box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'center'})}};
     if($('lcViewEvidence'))$('lcViewEvidence').onclick=async()=>{
       const box=$('lcEvidenceViewer'),btn=$('lcViewEvidence');if(!box)return;
       if(box.classList.contains('open')){box.classList.remove('open');box.innerHTML='';btn.textContent='📷 VER FOTO';return}
