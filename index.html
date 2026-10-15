@@ -12088,6 +12088,16 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
 #liftCourierApp .lcAvailabilitySubmit:disabled{opacity:.35;cursor:not-allowed}
 #liftCourierApp .lcAvailabilityHelp{font-size:10px;color:#777;line-height:1.45;margin-top:8px}
 </style>
+<style id="lift-courier-integrated-availability-v2">
+#liftCourierApp .lcAvailability{margin:0;padding:0;border:0;border-radius:0}
+#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 66px 66px;margin:8px 0 0;padding:0 0 8px;border-bottom:1px solid #eee}
+#liftCourierApp .lcAvailabilityIntegrated{display:grid;grid-template-columns:52px minmax(0,1fr) 66px 66px;gap:10px;align-items:center}
+#liftCourierApp .lcAvailabilityIntegrated .lcCompactProductInfo{min-width:0}
+#liftCourierApp .lcAvailabilityIntegrated .lcAvailabilityPick{width:30px;height:30px}
+#liftCourierApp .lcAvailabilitySubmit{margin-top:14px}
+#liftCourierApp .lcCompactPayment.lcPaid{background:#e8f7ec;border:1px solid #c5e9cd}
+@media(max-width:520px){#liftCourierApp .lcAvailabilityIntegrated{grid-template-columns:42px minmax(0,1fr) 48px 48px;gap:5px}#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 48px 48px;gap:5px}#liftCourierApp .lcAvailabilityHead span{font-size:9px}#liftCourierApp .lcAvailabilityIntegrated .lcCompactImg{width:42px;height:42px;flex-basis:42px}#liftCourierApp .lcAvailabilityIntegrated .lcAvailabilityPick{width:28px;height:28px}}
+</style>
 <div id="liftCourierApp"><div class="lcWrap"><div class="lcHead"><b>LIFT · ORDEN DE ENTREGA</b><small id="lcRef">Consultando pedido…</small></div><div id="lcBody"><div class="lcCard">Cargando…</div></div></div></div>
 
 <style id="lift-courier-compact-20261014">
@@ -12160,7 +12170,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
  async function loadCourier(){
    if(!courierToken)return;$('liftCourierApp').classList.add('open');document.body.style.overflow='hidden';
    try{
-    const j=await api({action:'courier-view',token:courierToken}),p=j.pedido,c=p.cliente||{},pi=courierPayInfo(p),done=p.estado==='entregado',route=p.estado==='en_ruta';
+    const j=await api({action:'courier-view',token:courierToken}),p=j.pedido,c=p.cliente||{},pi={kind:'paid',title:'NO COBRAR AL CLIENTE',detail:'El pago se gestiona directamente con Lift Nutrientes.',amount:0},done=p.estado==='entregado',route=p.estado==='en_ruta';
     $('lcRef').textContent=p.referencia||('#'+p.id);
 
     const decisionKey='liftCourierDecision:'+courierToken;
@@ -12209,16 +12219,14 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
         </div>
         <div class="lcCompactActions"><button id="lcCopyOrder" type="button">📋 COPIAR DATOS Y PEDIDO</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.direccion,p.barrio,p.ciudad,p.departamento].filter(Boolean).join(', '))}">📍 MAPS ↗</a></div>
         <div class="lcCompactTitle lcCompactDivider">PRODUCTOS DEL PEDIDO</div>
-        <div class="lcCompactProducts">${(p.items||[]).map(x=>`<div class="lcCompactProduct"><div class="lcCompactImg">${(x.imagen||x.imagen_url||x.image)?`<img src="${esc(x.imagen||x.imagen_url||x.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'📦'}</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small></div></div>`).join('')}</div>
         <div class="lcAvailability" id="lcAvailability">
-          <div class="lcCompactTitle">CONFIRMAR DISPONIBILIDAD</div>
           <div class="lcAvailabilityHead"><span>Producto</span><span>Disponible</span><span>Agotado</span></div>
-          ${(p.items||[]).map((x,i)=>`<div class="lcAvailabilityRow"><div class="lcAvailabilityName">${esc(x.nombre||'Producto')} <small>× ${Number(x.cantidad||1)}</small></div><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="disponible" data-checked="false" aria-label="Disponible: ${esc(x.nombre||'Producto')}">✓</button><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="agotado" data-checked="false" aria-label="Agotado: ${esc(x.nombre||'Producto')}">✕</button></div>`).join('')}
+          <div class="lcCompactProducts">${(p.items||[]).map((x,i)=>`<div class="lcCompactProduct lcAvailabilityIntegrated"><div class="lcCompactImg">${(x.imagen||x.imagen_url||x.image)?`<img src="${esc(x.imagen||x.imagen_url||x.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'📦'}</div><div class="lcCompactProductInfo"><b>${esc(x.nombre||'Producto')}</b><small>${esc([x.marca,x.presentacion,x.sabor].filter(Boolean).join(' · '))}</small><small>Cantidad: ${Number(x.cantidad||1)}</small></div><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="disponible" data-checked="false" aria-label="Disponible: ${esc(x.nombre||'Producto')}">✓</button><button type="button" class="lcAvailabilityPick" data-item="${i}" data-value="agotado" data-checked="false" aria-label="Agotado: ${esc(x.nombre||'Producto')}">✕</button></div>`).join('')}</div>
           <button type="button" class="lcAvailabilitySubmit" id="lcAvailabilitySubmit" disabled>MARCA TODOS LOS PRODUCTOS</button>
-          <div class="lcAvailabilityHelp" id="lcAvailabilityHelp">Selecciona disponible o agotado para cada producto. Esta confirmación no cambia el estado del pedido.</div>
+          <div class="lcAvailabilityHelp" id="lcAvailabilityHelp">Marca cada producto. Esta confirmación no cambia el estado del pedido.</div>
         </div>
         <div class="lcCompactPayment ${pi.kind==='paid'?'lcPaid':''}"><b>${esc(pi.title)}</b>${pi.amount?`<strong>${money(pi.amount)}</strong>`:''}<small>${esc(pi.detail||'')}</small></div>
-        ${pi.transfer?`<details class="lcPayDetails"><summary>Datos para pago</summary><div class="lcAccount"><b>Llave Bre-B:</b> @edwin4518</div></details><button id="lcPayProofBtn" class="lcProofBtn">📎 Subir comprobante</button><input id="lcPayProof" type="file" accept="image/*" capture="environment" hidden>`:''}
+
         <div class="lcCompactStatus"><button id="lcRoute" type="button" ${route||done?'disabled':''}>🚚 ${route||done?'EN RUTA ✓':'EN RUTA'}</button><button id="lcDone" type="button" ${!route||done?'disabled':''}>✓ ${done?'ENTREGADO ✓':'ENTREGADO'}</button></div>
         ${!route&&!done?'<small class="lcCompactHint">Primero marca «En ruta». Al entregar, sube la foto de evidencia.</small>':''}
         ${route&&!done?`<div class="lcCompactEvidence"><button id="lcPhotoBtn" type="button">📷 ${p.tiene_foto?'CAMBIAR FOTO DE ENTREGA':'TOMAR FOTO DE ENTREGA'}</button>${p.tiene_foto?'<small>✓ Evidencia guardada en Supabase</small>':'<small>Foto obligatoria antes de marcar «Entregado»</small>'}</div>`:''}
