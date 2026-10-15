@@ -2204,7 +2204,7 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 </div>
 <div id="status" class="status"></div><main id="grid" class="grid"></main>
 </section></div>
-<button class="floating" onclick="openOff('cart')">🛒 Carrito <span id="count2" class="badge">0</span></button>
+<button class="floating" type="button" onclick="liftToggleFloatingCart()" aria-label="Abrir carrito" aria-expanded="false">🛒 Carrito <span id="count2" class="badge">0</span></button>
 <div id="overlay" class="overlay" onclick="closeOff()"></div>
 <aside id="filters" class="off left"><div class="offhead"><h2>Marcas / categorías</h2><button class="close" onclick="closeOff()">×</button></div><div class="offbody"><div id="mobileFilters"></div></div></aside>
 <aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Continuar pedido</button><button class="secondary liftCartAdminOnly" onclick="copyOrder()">Copiar pedido</button></div></aside>
@@ -14072,6 +14072,54 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
   body #liftHelpWhatsApp:hover,body #liftHelpWhatsApp:focus-visible{left:6px!important;}
 }
 </style>
+
+<!-- LIFT: el mismo boton flotante abre y cierra el carrito -->
+<style id="lift-cart-toggle-mobile-v1">
+@media(max-width:760px){
+  body.liftFloatingCartOpen button.floating{
+    display:grid!important;
+    position:fixed!important;
+    z-index:85!important;
+    right:15px!important;
+    bottom:calc(92px + env(safe-area-inset-bottom, 0px))!important;
+    background:#111!important;
+    color:#fff!important;
+    border:2px solid #fff!important;
+    box-shadow:0 5px 20px rgba(0,0,0,.35)!important;
+  }
+}
+</style>
+<script id="lift-cart-toggle-mobile-script">
+(function(){
+  function syncFloatingCart(){
+    var cart=document.getElementById('cart');
+    var button=document.querySelector('button.floating');
+    var open=!!cart && cart.classList.contains('open');
+    document.body.classList.toggle('liftFloatingCartOpen',open);
+    if(button){
+      button.setAttribute('aria-expanded',String(open));
+      button.setAttribute('aria-label',open?'Cerrar carrito':'Abrir carrito');
+    }
+  }
+  window.liftToggleFloatingCart=function(){
+    var cart=document.getElementById('cart');
+    if(!cart)return;
+    if(cart.classList.contains('open')){
+      if(typeof window.closeOff==='function')window.closeOff();
+    }else if(typeof window.openOff==='function')window.openOff('cart');
+    syncFloatingCart();
+  };
+  function init(){
+    var cart=document.getElementById('cart');
+    if(cart && typeof MutationObserver!=='undefined'){
+      new MutationObserver(syncFloatingCart).observe(cart,{attributes:true,attributeFilter:['class']});
+    }
+    syncFloatingCart();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
 </body>
 </html>
 
