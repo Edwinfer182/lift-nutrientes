@@ -46,4 +46,4 @@ jobs:
             git push
           fi
 
-# Generar todas las marcas habilitadas y actualizar sus fichas individuales (2026-10-16).
+# Regenerar todas las marcas con Open Graph al inicio del head (2026-10-16).
