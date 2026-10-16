@@ -14482,31 +14482,55 @@ button:active{transform:scale(.98)}
 </script>
 
 
-<!-- Lift: plantilla compartida de ficha completa. Conserva el catálogo y sus módulos. -->
-<script id="lift-product-page-template-v1">
+<!-- Plantilla individual: reutiliza el detalle real, carrito y pie del catálogo. -->
+<style id="lift-individual-template-v2">
+body.liftIndividualPage .sidebar{display:none!important}
+body.liftIndividualPage .layout{display:block!important;min-height:0!important}
+body.liftIndividualPage .content{width:100%!important;max-width:1250px!important;margin:auto!important;padding:12px 16px 45px!important}
+body.liftIndividualPage .content > :not(#liftMonoOff):not(#liftIndividualStatus){display:none!important}
+body.liftIndividualPage #liftMonoBackdrop{display:none!important}
+body.liftIndividualPage #liftMonoOff,body.liftIndividualPage #liftMonoOff.open{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;min-height:450px!important;box-shadow:none!important;border:0!important;border-radius:0!important;overflow:visible!important;display:block!important;background:#fff!important}
+body.liftIndividualPage #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}
+body.liftIndividualPage #liftMonoClose{display:none!important}
+body.liftIndividualPage .liftMonoBody{padding:20px!important}
+body.liftIndividualPage #liftIndividualStatus{padding:55px 15px;text-align:center;color:#555;font-size:15px}
+@media(max-width:760px){body.liftIndividualPage .content{padding:8px 5px 30px!important}body.liftIndividualPage .liftMonoBody{padding:15px 10px!important}body.liftIndividualPage #liftMonoOff,body.liftIndividualPage #liftMonoOff.open{height:auto!important;max-height:none!important;transform:none!important}}
+</style>
+<script id="lift-individual-template-v2">
 (function(){
- const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
- const params=new URLSearchParams(location.search);
- const requested=params.get('slug')||params.get('producto')||decodeURIComponent(location.pathname.split('/').pop()||'').replace(/\.html$/i,'');
- if(!requested||requested==='index'||requested==='plantilla')return;
- const pick=()=>{
-  const all=window.PRODUCTS||[];
-  return all.find(p=>String(p.seo?.slug||p.slug||'').replace(/\.html$/,'')===requested)
-   ||all.find(p=>normalize(p.name||p.nombre)===normalize(requested))
-   ||all.find(p=>String(p.id)===requested);
- };
+ const qs=new URLSearchParams(location.search);
+ const requested=(qs.get('slug')||qs.get('producto')||'').trim();
+ if(!requested)return;
+ document.body.classList.add('liftIndividualPage');
+ const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ const status=document.createElement('div');status.id='liftIndividualStatus';status.textContent='Cargando producto…';
+ const content=document.querySelector('.content');if(content)content.prepend(status);
+ const slug=norm(requested.replace(/\.html$/i,''));
+ function match(p){
+  const fields=[p?.seo?.slug,p?.slug,p?.seo_slug,p?.seoSlug,p?.url_slug];
+  if(fields.some(v=>v&&norm(v.replace(/\.html$/i,''))===slug))return true;
+  if(norm(p?.name||p?.nombre)===slug||String(p?.id)===requested)return true;
+  if(typeof window.liftPublicProductUrl==='function'){
+   try{const url=window.liftPublicProductUrl(p);if(url&&norm(url.split('/').pop().replace(/\.html$/i,''))===slug)return true}catch(e){}
+  }
+  return false;
+ }
  let tries=0;
  const timer=setInterval(()=>{
-  const p=pick();
-  if(p&&typeof window.openLiftProductById==='function'){
+  const products=window.PRODUCTS||[];
+  const p=products.find(match);
+  if(p&&typeof window.openLiftProductById==='function'&&content){
    clearInterval(timer);
    window.openLiftProductById(p.id);
+   const panel=document.getElementById('liftMonoOff');
+   if(panel)content.appendChild(panel);
+   document.body.style.overflow='';
+   status.remove();
    document.title=(p.seo?.title||p.name||'Producto')+' | Lift Nutrientes';
-   const meta=document.querySelector('meta[name="description"]');
-   if(meta)meta.content=p.seo?.meta||p.description||'Producto de Lift Nutrientes';
+   const meta=document.querySelector('meta[name="description"]');if(meta)meta.content=p.seo?.meta||p.description||'Producto en Lift Nutrientes';
    return;
   }
-  if(++tries>80){clearInterval(timer);console.warn('No se encontró el producto para slug:',requested);}
+  if(++tries>=120){clearInterval(timer);status.textContent='No encontramos este producto. Revisa que el slug exista en Supabase.';}
  },250);
 })();
 </script>
