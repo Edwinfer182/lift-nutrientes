@@ -72,6 +72,13 @@ body.seoProductView .status,body.seoProductView .chips{display:none!important}
 body.seoProductView .layout{display:grid!important;grid-template-columns:var(--side,292px) minmax(0,1fr)!important;max-width:1500px!important;margin:auto!important}
 body.seoProductView .sidebar{display:block!important;position:sticky!important;top:12px!important;align-self:start!important;height:calc(100vh - 32px)!important;max-height:calc(100vh - 32px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-width:thin!important}
 body.seoProductView .content{width:100%!important;min-width:0!important;margin:0!important;max-width:none!important;padding:15px!important}
+body.seoProductView #desktopFilters{height:calc(100vh - 180px)!important;max-height:calc(100vh - 180px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important}
+body.seoProductView .layout{align-items:start!important;min-height:0!important;height:auto!important}
+body.seoProductView .sidebar{min-height:0!important;contain:layout!important}
+body.seoProductView .content{align-self:start!important;min-height:0!important}
+body.seoProductView .content>div:not(#liftMonoOff):not(.liftBanners),body.seoProductView .content>.toolbar{display:none!important}
+body.seoProductView footer{clear:both!important}
+
 body.seoProductView #liftMonoBackdrop,body.seoProductView #liftMonoClose,body.seoProductView .liftMonoPageLink,body.seoProductView .liftMonoClose,body.seoProductView .liftMonoOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body.seoProductView #liftMonoOff,body.seoProductView #liftMonoOff.open{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;min-height:450px!important;overflow:visible!important;box-shadow:none!important;border:0!important;border-radius:0!important;display:block!important;z-index:auto!important;margin:0!important;padding:0!important;background:#fff!important}
 body.seoProductView #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important}body.seoProductView #liftMonoOff header,body.seoProductView #liftMonoOff .liftMonoHead{position:relative!important}body.seoProductView .content #liftMonoOff{isolation:isolate!important}html:has(body.seoProductView),body.seoProductView{height:auto!important;min-height:0!important;overflow-y:hidden!important}body.seoProductView #liftMonoOff,body.seoProductView #liftMonoBody{overflow-y:visible!important}html:has(body.seoProductView){overflow:hidden!important}body.seoProductView{overflow:hidden!important}body.seoProductView footer{position:relative!important}
@@ -84,7 +91,7 @@ body.seoProductView #liftMonoBody{height:auto!important;max-height:none!importan
  const id=new URLSearchParams(location.search).get('id');
  document.documentElement.style.setProperty('overflow','hidden','important');
  const base='https://supgo.co/';
- function resize(){try{const h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.getBoundingClientRect().height);parent.postMessage({type:'liftSeoHeight',height:h+12},location.origin)}catch(e){}}
+ function resize(){try{const footer=document.querySelector('footer');const h=footer?Math.ceil(footer.getBoundingClientRect().bottom+window.scrollY):Math.ceil(document.body.getBoundingClientRect().height);parent.postMessage({type:'liftSeoHeight',height:h+12},location.origin)}catch(e){}}
  function start(){
   document.body.classList.add('seoProductView');
   document.body.style.setProperty('overflow','hidden','important');
