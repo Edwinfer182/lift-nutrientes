@@ -2142,7 +2142,7 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 
   window.liftStaticProductUrl=function(p){
     const row=window.liftStaticProductRow(p);
-    return row && row.slug ? `./productos/${encodeURIComponent(row.slug)}.html` : '';
+    return row && row.slug ? `/catalogo/productos/${encodeURIComponent(row.slug)}.html` : '';
   };
 
   window.goLiftStaticProduct=function(id){
@@ -2650,14 +2650,15 @@ function liftGroupCardProduct(g,fallback){
   };
 }
 function liftGroupOffers(g){
-  return liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v),o:liftVariantOffer(v)})).filter(x=>x.o&&Number(x.o.price)>0);
+  return liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v),o:liftVariantOffer(v)})).filter(x=>x.o);
 }
 function liftGroupCardOffer(p){
   if(!p?._variantGroupId)return null;
   const g=liftGroupById(p._variantGroupId); if(!g)return null;
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
-  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o&&Number(x.o.price)>0);
+  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
   if(!offered.length)return null;
+  return null; // Ofertas por sabor no modifican el precio único del grupo.
   const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
   const lowest=Math.min(...priced.map(x=>x.sale));
   const lowestRow=priced.find(x=>x.sale===lowest)||priced[0];
@@ -2704,10 +2705,7 @@ function liftVariantNormalPrice(g,v,p){
   return Number(main?.price||p?.price||0);
 }
 function liftVariantSalePrice(g,v,p){
-  const normal=liftVariantNormalPrice(g,v,p);
-  const offer=liftVariantOffer(v);
-  const sale=Number(offer?.price);
-  return Number.isFinite(sale)&&sale>0&&sale<normal?sale:normal;
+  return liftVariantNormalPrice(g,v,p);
 }
 window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
 
@@ -2719,7 +2717,7 @@ window.liftSelectGroupVariant=function(groupId,variantId){
   const img=String(v.imagen||p?.image||g.imagen||'').trim();
   const normalPrice=liftVariantNormalPrice(g,v,p);
   const salePrice=liftVariantSalePrice(g,v,p);
-  const vo=liftVariantOffer(v)&&salePrice<normalPrice;
+  const vo=null;
   const main=document.getElementById('liftMonoMainImg'); if(main&&img)main.src=img;
   const priceArea=document.querySelector('.liftMonoPriceArea');
   if(priceArea&&salePrice>0)priceArea.innerHTML=vo
@@ -2739,7 +2737,7 @@ window.liftAddSelectedGroupVariant=function(groupId,quantity=1){
     p.id,
     String(v.sabor||'Variación'),
     String(v.imagen||p.image||g.imagen||''),
-    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:!!(liftVariantOffer(v)&&liftVariantSalePrice(g,v,p)<liftVariantNormalPrice(g,v,p))},
+    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:false},
     quantity
   );
   return true;
@@ -2754,7 +2752,7 @@ function liftInjectGroupVariantPicker(productId){
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
   box.innerHTML=`<div class="liftVariantPickerHead"><b id="liftGroupVariantSelected">Sabor: ${esc(current.sabor||'Variación')}</b></div>
-  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp),vo=!!liftVariantOffer(v)&&sale<normal;return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
+  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=null,normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
   `;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
@@ -2808,8 +2806,8 @@ function filtered(){
       base=VISIBLE_PRODUCTS.filter(p=>(state.cat==='Todos'||norm(p.category||'')===norm(state.cat))&&(state.brand==='Todas'||p.brand===state.brand));
     }
   }
-  let out=liftCatalogGrouped(base);
-  if(state.offerOnly)out=out.filter(hasOffer);
+  let out=base.filter(p=>!state.offerOnly||hasOffer(p));
+  out=liftCatalogGrouped(out);
   if(state.sort==='nameAsc') out=[...out].sort((a,b)=>String(a?.name||'').localeCompare(String(b?.name||''),'es',{sensitivity:'base',numeric:true}));
   else if(state.sort==='nameDesc') out=[...out].sort((a,b)=>String(b?.name||'').localeCompare(String(a?.name||''),'es',{sensitivity:'base',numeric:true}));
   else if(state.sort==='priceAsc') out=[...out].sort((a,b)=>priceOf(a)-priceOf(b));
@@ -3917,13 +3915,26 @@ function relatedProductDetailHTML(p){
 
 
   const LIFT_PRODUCT_PAGES = {
-    16: './productos/iso100-dymatize-5-lbs.html'
+    16: '/catalogo/productos/iso100-dymatize-5-lbs.html'
   };
   
 function liftProductSlug(text){ return window.liftProductSlug(text); }
 function liftPublicProductUrl(p){ return window.liftPublicProductUrl(p); }
 function liftProductPageUrl(p){
   return liftPublicProductUrl(p);
+}
+// Usa las URLs HTML ya publicadas; nunca reemplaza la pagina individual por ?producto=.
+function liftExistingIndividualUrl(p){
+  if(!p || p.__private) return '';
+  // Enlace individual conocido del catalogo original.
+  if(String(p.id)==='16') return '/catalogo/productos/iso100-dymatize-5-lbs.html';
+  const existing=typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
+  if(existing){
+    try { return new URL(existing, location.origin+'/catalogo/').pathname; } catch(e) {}
+  }
+  const seoSlug=p.seo && p.seo.slug ? String(p.seo.slug).trim() : '';
+  const slug=(seoSlug || window.liftProductSlug(p.name||'')).replace(/\.html$/i,'');
+  return '/catalogo/productos/'+encodeURIComponent(slug)+'.html';
 }
 function liftProductIdFromParam(value){
   const m=String(value||'').match(/^(\d+)/);
@@ -4045,8 +4056,8 @@ function renderProductDetail(p){
           </details>
         </div>
           <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
+          ${!p.__private?`<a class="liftMonoPageLink" href="${liftExistingIndividualUrl(p)}" title="Abrir la ficha individual del producto">↗ Ver página individual del producto</a>`:''}
           ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
-          ${liftStaticProductUrl(p)?`<a class="liftMonoPageLink" href="${liftStaticProductUrl(p)}">Ver página del producto →</a>`:''}
         </div>
         <div class="liftMonoVariantsBelow">
           ${iso100FlavorStrip(p)}
@@ -6201,6 +6212,29 @@ window.shareLiftProductImage=async function(id){
  <div id="lafCreateVariantRows" class="lafCreateVariantRows"></div>
 </div>
 <label id="lafLegacyFlavorsField" class="lafField full">Sabores simples<textarea id="lafFlavors" placeholder="Uno por línea o separados por coma"></textarea></label>
+
+<div class="lafField full" id="liftSeoEditor" style="display:block;border:1px solid #ddd;padding:16px;margin-top:12px;border-radius:10px">
+ <details open><summary style="cursor:pointer;font-weight:800;font-size:16px">SEO y datos enriquecidos <span id="liftSeoOverall" style="font-size:12px">🔴 Sin revisar</span></summary>
+ <p style="font-size:12px;color:#666">Se guarda junto al producto. Los datos Schema se calculan con el precio y estado comercial, sin duplicarlos.</p>
+ <div class="lafForm">
+ <label class="lafField full">Frase clave objetivo (máximo 4 palabras)<input id="liftSeoKeyword" class="liftSeoInput"></label>
+ <label class="lafField full">4 frases relacionadas (una por línea)<textarea id="liftSeoRelated" rows="4" class="liftSeoInput"></textarea></label>
+ <label class="lafField full">Título SEO (máximo 60 caracteres)<input id="liftSeoTitle" class="liftSeoInput"></label>
+ <label class="lafField full">Slug / URL amigable<input id="liftSeoSlug" class="liftSeoInput"></label>
+ <label class="lafField full">Metadescripción<input id="liftSeoMeta" class="liftSeoInput"></label>
+ <label class="lafField full">Descripción SEO en HTML (+300 palabras)<textarea id="liftSeoHtml" rows="9" class="liftSeoInput" placeholder="Incluye datos técnicos comprobados. No inventes certificaciones ni tablas nutricionales."></textarea></label>
+ <label class="lafField full">ALT imagen principal<input id="liftSeoAlt1" class="liftSeoInput"></label>
+ <label class="lafField full">ALT imagen secundaria<input id="liftSeoAlt2" class="liftSeoInput"></label>
+ <label class="lafField">SKU (opcional)<input id="liftSeoSku" class="liftSeoInput"></label>
+ <label class="lafField">GTIN (opcional, solo si es real)<input id="liftSeoGtin" class="liftSeoInput"></label>
+ <label class="lafField full">URL oficial del fabricante (opcional)<input id="liftSeoManufacturer" class="liftSeoInput"></label>
+ </div>
+ <div id="liftSeoSignals" aria-live="polite" style="margin:12px 0;font-size:12px"></div>
+ <h4>Datos enriquecidos · JSON-LD</h4><p style="font-size:12px;color:#666">Vista previa del Schema. No significa que Google lo haya validado o indexado.</p>
+ <textarea id="liftSeoJson" rows="9" readonly style="width:100%;font-family:monospace;font-size:11px"></textarea>
+ <div class="lafTools"><button type="button" class="lafBtn" onclick="navigator.clipboard.writeText(document.getElementById('liftSeoJson').value)">Copiar JSON-LD</button><button type="button" class="lafBtn" onclick="window.open('https://search.google.com/test/rich-results','_blank','noopener')">Prueba de Google</button></div>
+ </details>
+</div>
   </div><input type="hidden" id="lafEditId"><datalist id="lafBrands"></datalist><datalist id="lafCategories"></datalist><div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" onclick="lafSaveProduct()">Guardar producto</button><button class="lafBtn" onclick="lafClearForm()">Limpiar</button><button id="lafDeleteBtn" class="lafBtn danger" style="display:none" onclick="lafDeleteCurrent()">Eliminar producto</button></div><div id="lafFormResult" class="lafResult"></div></div></section>
   <section id="laf-offers" class="lafPane"><div class="lafNote">Crea o elimina ofertas con precio promocional y fecha de vencimiento. Al vencer, vuelve automáticamente al precio detal normal.</div><div class="lafTools"><input id="lafOfferSearch" class="lafInput" placeholder="Buscar producto..." oninput="lafRenderOffers()"></div><div id="lafOfferList"></div></section>
   <section id="laf-combos" class="lafPane"><div class="lafNote">Los combos se manejan como productos de la categoría <b>Combos</b>. Puedes crearlos, editar precio, imagen y descripción desde aquí.</div><button class="lafBtn primary" onclick="lafNewCombo()">+ Crear combo</button><div id="lafComboList" class="lafList" style="margin-top:10px"></div></section>
@@ -6499,8 +6533,8 @@ window.shareLiftProductImage=async function(id){
      orden:i
    })).filter(v=>v.sabor);
  }
- window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafSecondaryImages','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
- window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();liftSecondaryEditorLoad(p.id)};
+ window.lafClearForm=function(){window.liftSeoClear?.();['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafSecondaryImages','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
+ window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;window.liftSeoLoad?.(p.seo||{});lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();liftSecondaryEditorLoad(p.id)};
  window.lafSaveProduct=async function(){
  const editId=$('lafEditId').value;
  const wantsVariants=!editId && $('lafHasVariants')?.value==='yes';
@@ -6517,7 +6551,7 @@ window.shareLiftProductImage=async function(id){
      let id=nextId();
      for(const v of variants){
        while(PRODUCTS.some(p=>Number(p.id)===Number(id)))id++;
-       const vp={id:id++,name,brand,category,presentation,price:v.precio||price,trainerPrice,image:v.imagen||image,description,flavor:v.sabor,flavors:[v.sabor]};
+       const vp={id:id++,name,brand,category,presentation,price:v.precio||price,trainerPrice,image:v.imagen||image,description,flavor:v.sabor,flavors:[v.sabor],seo:window.liftSeoRead?.()||{}};
        await window.liftCatalogAdminCall({action:'save',product:vp});
        created.push({...vp,_variantImage:v.imagen,_variantOverridePrice:v.precio});
      }
@@ -6544,7 +6578,7 @@ window.shareLiftProductImage=async function(id){
  const id=editId;
  let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;
  if(!p){p={id:nextId()};PRODUCTS.push(p)}
- p.name=name;p.brand=brand;p.category=category;p.presentation=presentation;p.price=price;p.trainerPrice=trainerPrice;p.image=image;p.description=description;
+ p.name=name;p.brand=brand;p.category=category;p.presentation=presentation;p.price=price;p.trainerPrice=trainerPrice;p.image=image;p.description=description;p.seo=window.liftSeoRead?.()||{};
  p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
  const secondaryText=$('lafSecondaryImages').value;
  const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);
@@ -14120,6 +14154,61 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
   else init();
+})();
+</script>
+<script id="lift-seo-editor-v1">
+(function(){
+ const ids=['Keyword','Related','Title','Slug','Meta','Html','Alt1','Alt2','Sku','Gtin','Manufacturer'];
+ const el=k=>document.getElementById('liftSeo'+k);
+ const count=(s,phrase)=>{if(!phrase)return 0;const escaped=phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');try{return (s.match(new RegExp('(^|[^\\p{L}\\p{N}])'+escaped+'(?=$|[^\\p{L}\\p{N}])','giu'))||[]).length}catch(e){return s.toLowerCase().split(phrase.toLowerCase()).length-1}};
+ const textOf=html=>{const d=document.createElement('div');d.innerHTML=html;d.querySelectorAll('script,style').forEach(n=>n.remove());return d.textContent||''};
+ const slugify=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ window.liftSeoRead=()=>Object.fromEntries(ids.map(k=>[k.toLowerCase(),el(k)?.value.trim()||'']));
+ window.liftSeoLoad=data=>{ids.forEach(k=>{if(el(k))el(k).value=data[k.toLowerCase()]||''});audit()};
+ window.liftSeoClear=()=>window.liftSeoLoad({});
+ function audit(){
+  if(!el('Keyword'))return;
+  const v=window.liftSeoRead(),keyword=v.keyword,related=v.related.split('\n').map(x=>x.trim()).filter(Boolean),plain=textOf(v.html),words=plain.trim().split(/\s+/).filter(Boolean).length,occ=count(plain,keyword);
+  const first=(plain.trim().split(/\n/)[0]||'').toLowerCase();
+  const doc=document.createElement('div');doc.innerHTML=v.html;
+  const links=[...doc.querySelectorAll('a[href]')];const internal=links.some(a=>/^\/(creatinas|ganadores|pre-entrenos|proteinas)(\/|$)/.test(a.getAttribute('href')||''));
+  const external=links.some(a=>{try{const u=new URL(a.getAttribute('href'),location.origin);return u.protocol==='https:'&&u.hostname!==location.hostname}catch(e){return false}});
+  const checks=[['Frase objetivo de 1 a 4 palabras',!!keyword&&keyword.split(/\s+/).length<=4],['Título SEO máximo 60 caracteres',!!v.title&&v.title.length<=60],['Slug definido',!!v.slug],['Metadescripción incluye frase objetivo',!!keyword&&v.meta.toLowerCase().includes(keyword.toLowerCase())],['Descripción más de 300 palabras',words>300],['Frase objetivo 6 a 8 veces ('+occ+')',occ>=6&&occ<=8],['Frase objetivo en primera línea',!!keyword&&first.includes(keyword.toLowerCase())],['4 frases relacionadas de máximo 4 palabras',related.length===4&&related.every(x=>x.split(/\s+/).length<=4)],['4 frases relacionadas dentro del HTML',related.length===4&&related.every(x=>count(plain,x)>=1)],['Frases relacionadas fuera de enlaces',related.every(x=>!links.some(a=>count(a.textContent||'',x)>0))],['Enlace interno a categorías',internal],['Enlace externo HTTPS',external],['2 textos ALT con frase objetivo',!!keyword&&v.alt1.toLowerCase().includes(keyword.toLowerCase())&&v.alt2.toLowerCase().includes(keyword.toLowerCase())]];
+  const ok=checks.filter(x=>x[1]).length;
+  el('Signals').innerHTML=checks.map(([name,valid])=>'<div style="padding:4px 0">'+(valid?'🟢':'🔴')+' '+name+'</div>').join('');
+  el('Overall').textContent=(ok===checks.length?'🟢':ok===0?'🔴':'🟡')+' '+ok+'/'+checks.length;
+  const name=document.getElementById('lafName')?.value.trim()||'Producto sin nombre';
+  const image=document.getElementById('lafImage')?.value.trim()||'';
+  const brand=document.getElementById('lafBrand')?.value.trim()||'';
+  const price=Number((document.getElementById('lafPrice')?.value||'').replace(/[^\d]/g,''));
+  const status=document.getElementById('lafStatus')?.value==='out'?'https://schema.org/OutOfStock':'https://schema.org/InStock';
+  const schema={'@context':'https://schema.org','@type':'Product',name,description:v.meta||document.getElementById('lafDescription')?.value||'',...(image?{image:[image]}:{}),...(brand?{brand:{'@type':'Brand',name:brand}}:{}),...(v.sku?{sku:v.sku}:{}),...(v.gtin?{gtin:v.gtin}:{}),...(price>0?{offers:{'@type':'Offer',priceCurrency:'COP',price:String(price),availability:status,...(v.slug?{url:location.origin+'/productos/'+slugify(v.slug)}:{})}}:{})};
+  el('Json').value=JSON.stringify(schema,null,2);
+ }
+ document.addEventListener('input',e=>{if(e.target.closest('#liftSeoEditor')||['lafName','lafPrice','lafBrand','lafImage','lafStatus','lafDescription'].includes(e.target.id))audit()});
+ document.addEventListener('change',e=>{if(e.target.id==='lafStatus')audit()});
+ document.addEventListener('DOMContentLoaded',audit);
+})();
+</script>
+<script id="lift-seo-supabase-v1">
+(function(){
+const fields=['Keyword','Related','Title','Slug','Meta','Html','Alt1','Alt2','Sku','Gtin','Manufacturer'];
+const field=k=>document.getElementById('liftSeo'+k);
+window.liftSeoRead=function(){
+  const seo={};
+  for(const k of fields) seo[k.toLowerCase()]=(field(k)?.value||'').trim();
+  seo.related=seo.related.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,4);
+  return seo;
+};
+window.liftSeoLoad=function(seo){
+  seo=seo||{};
+  for(const k of fields){
+    const el=field(k);if(!el)continue;
+    const v=seo[k.toLowerCase()];
+    el.value=k==='Related'?(Array.isArray(v)?v.join('\n'):(v||'')):(v||'');
+  }
+};
+window.liftSeoClear=function(){window.liftSeoLoad({});};
 })();
 </script>
 </body>
