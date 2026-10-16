@@ -2650,15 +2650,14 @@ function liftGroupCardProduct(g,fallback){
   };
 }
 function liftGroupOffers(g){
-  return liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v),o:liftVariantOffer(v)})).filter(x=>x.o);
+  return liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v),o:liftVariantOffer(v)})).filter(x=>x.o&&Number(x.o.price)>0);
 }
 function liftGroupCardOffer(p){
   if(!p?._variantGroupId)return null;
   const g=liftGroupById(p._variantGroupId); if(!g)return null;
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
-  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
+  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o&&Number(x.o.price)>0);
   if(!offered.length)return null;
-  return null; // Ofertas por sabor no modifican el precio único del grupo.
   const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
   const lowest=Math.min(...priced.map(x=>x.sale));
   const lowestRow=priced.find(x=>x.sale===lowest)||priced[0];
@@ -2705,7 +2704,10 @@ function liftVariantNormalPrice(g,v,p){
   return Number(main?.price||p?.price||0);
 }
 function liftVariantSalePrice(g,v,p){
-  return liftVariantNormalPrice(g,v,p);
+  const normal=liftVariantNormalPrice(g,v,p);
+  const offer=liftVariantOffer(v);
+  const sale=Number(offer?.price);
+  return Number.isFinite(sale)&&sale>0&&sale<normal?sale:normal;
 }
 window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
 
@@ -2717,7 +2719,7 @@ window.liftSelectGroupVariant=function(groupId,variantId){
   const img=String(v.imagen||p?.image||g.imagen||'').trim();
   const normalPrice=liftVariantNormalPrice(g,v,p);
   const salePrice=liftVariantSalePrice(g,v,p);
-  const vo=null;
+  const vo=liftVariantOffer(v)&&salePrice<normalPrice;
   const main=document.getElementById('liftMonoMainImg'); if(main&&img)main.src=img;
   const priceArea=document.querySelector('.liftMonoPriceArea');
   if(priceArea&&salePrice>0)priceArea.innerHTML=vo
@@ -2737,7 +2739,7 @@ window.liftAddSelectedGroupVariant=function(groupId,quantity=1){
     p.id,
     String(v.sabor||'Variación'),
     String(v.imagen||p.image||g.imagen||''),
-    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:false},
+    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:!!(liftVariantOffer(v)&&liftVariantSalePrice(g,v,p)<liftVariantNormalPrice(g,v,p))},
     quantity
   );
   return true;
@@ -2752,7 +2754,7 @@ function liftInjectGroupVariantPicker(productId){
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
   box.innerHTML=`<div class="liftVariantPickerHead"><b id="liftGroupVariantSelected">Sabor: ${esc(current.sabor||'Variación')}</b></div>
-  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=null,normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
+  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp),vo=!!liftVariantOffer(v)&&sale<normal;return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
   `;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
@@ -2806,8 +2808,8 @@ function filtered(){
       base=VISIBLE_PRODUCTS.filter(p=>(state.cat==='Todos'||norm(p.category||'')===norm(state.cat))&&(state.brand==='Todas'||p.brand===state.brand));
     }
   }
-  let out=base.filter(p=>!state.offerOnly||hasOffer(p));
-  out=liftCatalogGrouped(out);
+  let out=liftCatalogGrouped(base);
+  if(state.offerOnly)out=out.filter(hasOffer);
   if(state.sort==='nameAsc') out=[...out].sort((a,b)=>String(a?.name||'').localeCompare(String(b?.name||''),'es',{sensitivity:'base',numeric:true}));
   else if(state.sort==='nameDesc') out=[...out].sort((a,b)=>String(b?.name||'').localeCompare(String(a?.name||''),'es',{sensitivity:'base',numeric:true}));
   else if(state.sort==='priceAsc') out=[...out].sort((a,b)=>priceOf(a)-priceOf(b));
