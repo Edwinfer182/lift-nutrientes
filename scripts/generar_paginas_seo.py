@@ -65,6 +65,10 @@ def build(row):
 def main():
  rows=fetch()
  valid=[r for r in rows if allowed(r)]
+ preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
+ if preview_id:
+  valid=[r for r in valid if str(r["id"])==preview_id]
+  if not valid: raise RuntimeError("Producto de prueba no encontrado: "+preview_id)
  if not valid: raise RuntimeError("No hay productos validos para generar")
  OUT.mkdir(exist_ok=True)
  urls=[]
@@ -73,6 +77,6 @@ def main():
   (OUT/filename).write_text(content,encoding="utf-8")
   urls.append(BASE+"/productos/"+filename)
  sitemap='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+''.join("<url><loc>"+esc(u)+"</loc></url>\\n" for u in urls)+"</urlset>\\n"
- (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
+ if not preview_id: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"paginas HTML sin iframe; no se eliminaron archivos anteriores.")
 if __name__=="__main__": main()
