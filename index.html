@@ -139,6 +139,10 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 .liftCheckoutSectionTitle{display:flex;gap:10px;align-items:flex-start;margin:20px 0 10px}.liftCheckoutSectionTitle>span{display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:#111;color:#fff;font-size:11px}.liftCheckoutSectionTitle b{display:block;font-size:14px;font-weight:600;color:#151515}.liftCheckoutSectionTitle small{display:block;margin-top:2px;font-size:10px;line-height:1.35;color:#888}.liftCheckoutContact,.liftCheckoutDelivery{gap:10px}.liftCheckoutContact .field label,.liftCheckoutDelivery .field label{font-size:11px}.liftCheckoutContact .field label span,.liftCheckoutDelivery .field label span{font-weight:300;color:#999}.liftCheckoutContact .field input,.liftCheckoutDelivery .field input{height:42px}.liftCheckoutDelivery textarea{min-height:74px}.liftWhatsappField{display:none}.liftAdminUnlocked #checkoutModal .liftWhatsappField{display:flex}
 .liftCheckoutSummaryCard{margin-top:0;padding:13px;border:1px solid #e3e3e3;border-radius:13px;background:#fafafa}.liftCheckoutSummaryCard .checkoutItems{margin-bottom:8px}.liftCheckoutSummaryCard .checkoutLine{font-size:13px}.liftCheckoutSummaryCard .checkoutLine.total{font-size:18px}.liftPrefsTitle{margin-top:18px}.liftCheckoutPrefs{border:1px solid #e3e3e3;border-radius:13px;overflow:hidden;background:#fff}.liftPrefRow{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;cursor:pointer}.liftPrefRow+.liftPrefRow,.liftRememberHello+.liftForgetData+.liftPrefRow{border-top:1px solid #eee}.liftPrefRow input{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;accent-color:#111}.liftPrefRow span{min-width:0}.liftPrefRow b{display:block;font-size:11px;font-weight:600;color:#222}.liftPrefRow small{display:block;margin-top:2px;font-size:9.5px;line-height:1.4;color:#7b7b7b}.liftPrefRow.required{background:#fafafa}.liftPrefRow.required small button{border:0;background:transparent;padding:0;color:#111;text-decoration:underline;font:inherit;font-weight:600;cursor:pointer}.liftRememberHello{padding:0 12px 8px 40px;font-size:10px;color:#333}.liftForgetData{margin:0 0 9px 40px;border:0;background:transparent;padding:0;color:#777;text-decoration:underline;font:inherit;font-size:9.5px;cursor:pointer}.liftCheckoutActionArea{margin-top:14px}.liftCheckoutActionArea .checkoutSend{margin-top:0;min-height:50px;font-size:13px;font-weight:600}.liftCheckoutTrust{text-align:center;padding:8px 8px 2px;font-size:9.5px;line-height:1.4;color:#888}.liftCheckoutActionArea .checkoutHint{margin-top:10px}.couponBox{grid-column:1/-1}.checkoutFlavorNote{padding:8px 10px!important;font-size:10px!important}
 @media(max-width:760px){.liftCheckoutSteps{margin-bottom:14px}.liftCheckoutSectionTitle{margin-top:16px}.liftCheckoutContact,.liftCheckoutDelivery{gap:9px}.liftCheckoutSummaryCard{padding:11px}.liftPrefRow{padding:10px 11px}}
+
+/* Checkout: mostrar el sabor junto al nombre, incluso en el resumen compacto. */
+#checkoutModal .checkoutProductName .liftInlineFlavor{font-weight:600;color:#252525;font-size:inherit}
+#checkoutModal .checkoutProductName{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important}
 </style>
 
 <style id="iso100-flavor-style">
@@ -2779,13 +2783,13 @@ function liftInjectGroupVariantPicker(productId){
 
 const _liftBaseOfferOf=offerOf, _liftBaseHasOffer=hasOffer, _liftBasePriceOf=priceOf, _liftBaseCompareAtOf=compareAtOf, _liftBaseSavingOf=savingOf, _liftBaseOfferBadges=offerBadges, _liftBaseOfferDetails=offerDetails, _liftBasePriceHTML=priceHTML;
 offerOf=function(p){return _liftBaseOfferOf(p)};
-hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
-priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
-compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
+hasOffer=function(p){return p?._isVariantGroupCard?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
+priceOf=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
+compareAtOf=function(p){return p?._isVariantGroupCard?Number(p.price||0):_liftBaseCompareAtOf(p)};
 savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
-offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
-offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
-priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
+offerBadges=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
+offerDetails=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
+priceHTML=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
   const VISIBLE_PRODUCTS=liftVisibleProducts();
@@ -3137,9 +3141,8 @@ function items(){
       const vv=g&&typeof liftGroupVariants==='function'?liftGroupVariants(g):[];
       const v=vv.find(x=>String(x.id)===String(stored.variantId));
       const vp=v&&typeof liftVariantProduct==='function'?liftVariantProduct(v):base;
-      const vprice=g&&v&&typeof liftVariantNormalPrice==='function'?liftVariantNormalPrice(g,v,vp):Number(vp?.price||base.price||0);
+      const vprice=g&&typeof liftVariantNormalPrice==='function'?liftVariantSalePrice(g,v,vp):Number(base.price||0);
       p={...(vp||base),
-        id:vp?.id??base.id,
         name:String(g?.nombre||base.name||''),
         brand:String(g?.marca||base.brand||''),
         category:String(g?.categoria||base.category||''),
@@ -3305,7 +3308,7 @@ function renderCheckoutSummary(){
   const discount=checkoutCouponDiscount(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
     const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=(adminTrainerMode()||trainerCouponActive())&&eff<pub;
-    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName"><span class="liftInlineQty">${x.q} ×</span> ${esc(x.p.name)} <span class="liftInlineBrand">· ${esc(x.p.brand || x.p.marca || 'Sin marca')}</span></div>${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${hasOffer(x.p)?offerUntilHTML(x.p,'checkoutOfferUntil'):''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div class="checkoutOldPrice">${fmt(pub*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:(savingOf(x.p)?`<div class="checkoutOldPrice">${fmt(compareAtOf(x.p)*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:fmt(eff*x.q))}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
+    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName"><span class="liftInlineQty">${x.q} ×</span> ${esc(x.p.name)}${x.p._cartFlavor?` <span class="liftInlineFlavor">· ${esc(x.p._cartFlavor)}</span>`:''} <span class="liftInlineBrand">· ${esc(x.p.brand || x.p.marca || 'Sin marca')}</span></div>${hasOffer(x.p)?offerUntilHTML(x.p,'checkoutOfferUntil'):''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div class="checkoutOldPrice">${fmt(pub*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:(savingOf(x.p)?`<div class="checkoutOldPrice">${fmt(compareAtOf(x.p)*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:fmt(eff*x.q))}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
   }).join('')}</div>`;
   const prog=document.getElementById('checkoutShippingProgress');
   if(prog)prog.innerHTML='';
