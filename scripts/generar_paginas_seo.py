@@ -62,6 +62,84 @@ def build(row):
 <a class="btn" href="{BASE}/?ofertas=1">Ver ofertas</a></section></main>
 <footer>Lift Nutrientes · <a href="{BASE}/">supgo.co</a></footer></body></html>'''
 
+def build_direct(row, shared):
+ """Ficha individual real, sin iframe, basada en el index y sus controles."""
+ filename, seo=build(row)
+ pid=str(row["id"])
+ name=str(row["product"].get("name") or row["product"].get("nombre"))
+ head_meta=seo.split("<head>",1)[1].split("</head>",1)[0]
+ head_meta=re.sub(r"<style>.*?</style>","",head_meta,flags=re.S)
+ head_meta=re.sub(r"<script type=\"application/ld\\+json\">",'<script type="application/ld+json">',head_meta)
+ page=shared.replace("</head>",head_meta+"</head>",1)
+ page=page.replace("</body>",'''
+<style id="lift-seo-direct-layout">
+body.liftIndividualPage .layout{align-items:start!important;min-height:0!important}
+body.liftIndividualPage .sidebar{display:block!important;position:sticky!important;top:76px!important;align-self:start!important;height:calc(100vh - 90px)!important;max-height:calc(100vh - 90px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+body.liftIndividualPage .content{min-width:0!important;padding:10px 14px 35px!important}
+body.liftIndividualPage .content > :not(#liftMonoOff):not(#liftIndividualStatus){display:none!important}
+body.liftIndividualPage #liftMonoBackdrop{display:none!important}
+body.liftIndividualPage #liftMonoOff,body.liftIndividualPage #liftMonoOff.open{position:relative!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;box-shadow:none!important;border:0!important;overflow:visible!important;display:block!important}
+body.liftIndividualPage #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}
+body.liftIndividualPage #liftMonoClose,body.liftIndividualPage .liftMonoPageLink{display:none!important}
+body.liftIndividualPage .liftMonoBody{padding:16px!important}
+@media(max-width:760px){body.liftIndividualPage .layout{display:block!important}body.liftIndividualPage .sidebar{display:none!important}body.liftIndividualPage .content{padding:6px!important}body.liftIndividualPage .liftMonoBody{padding:12px!important}}
+</style>
+<script id="lift-seo-direct-init">
+(function(){
+ const ID=__LIFT_ID__;
+ function init(){
+  document.body.classList.add('liftIndividualPage');
+  const main=document.querySelector('.content');
+  if(!main)return;
+  const status=document.createElement('p');
+  status.id='liftIndividualStatus';status.textContent='Cargando ficha del producto…';main.prepend(status);
+  let tries=0;
+  const timer=setInterval(function(){
+   const product=(window.PRODUCTS||[]).find(p=>String(p.id)===String(ID));
+   if(product&&typeof window.openLiftProductById==='function'){
+    window.openLiftProductById(ID);
+    const panel=document.getElementById('liftMonoOff');
+    if(panel){
+     clearInterval(timer);main.appendChild(panel);panel.classList.add('open');
+     document.querySelectorAll('#liftMonoBackdrop,.liftMonoOverlay,#liftMonoOverlay').forEach(el=>el.classList.remove('open','show'));
+     document.body.style.overflow='';status.remove();
+    }
+   }
+   if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
+  },200);
+  document.addEventListener('click',function(e){
+   const item=e.target.closest('.sidebar .filterItem,.sidebar .checkItem');
+   if(item){
+    const name=(item.textContent||'').trim().replace(/\\s*\\d+\\s*$/,'');
+    const panel=item.closest('[id],[data-filter]');
+    const isBrand=/lab|brand|marca/i.test((panel?.id||'')+' '+(panel?.getAttribute('data-filter')||''));
+    if(name){e.preventDefault();e.stopImmediatePropagation();location.href='https://supgo.co/?'+(isBrand?'marca':'categoria')+'='+encodeURIComponent(name);}
+   }
+  },true);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script></body>'''.replace('__LIFT_ID__',pid),1)
+ page=re.sub(r'<title>.*?</title>', '',page,count=1,flags=re.S)
+ return filename,page
+
+def shared_template():
+ source=(ROOT/"index.html").read_text(encoding="utf-8")
+ # Extrae scripts y estilos a archivos compartidos, sin cambiar su orden de ejecución.
+ assets=ROOT/"productos-assets";assets.mkdir(exist_ok=True)
+ import hashlib
+ def externalize(match):
+  tag,body,closing=match.group(1),match.group(2),match.group(3)
+  if not body.strip():return match.group(0)
+  kind="js" if tag.lower().startswith("<script") else "css"
+  if kind=="js" and ("src=" in tag.lower() or "application/ld+json" in tag.lower()):return match.group(0)
+  digest=hashlib.sha256(body.encode("utf-8")).hexdigest()[:16]
+  name=f"shared-{digest}.{kind}"
+  (assets/name).write_text(body,encoding="utf-8")
+  if kind=="css":return '<link rel="stylesheet" href="/productos-assets/'+name+'">'
+  return '<script src="/productos-assets/'+name+'"></script>'
+ return re.sub(r'(<script\\b[^>]*>|<style\\b[^>]*>)(.*?)(</script>|</style>)',externalize,source,flags=re.S|re.I)
+
 def main():
  rows=fetch()
  valid=[r for r in rows if allowed(r)]
@@ -71,12 +149,13 @@ def main():
   if not valid: raise RuntimeError("Producto de prueba no encontrado: "+preview_id)
  if not valid: raise RuntimeError("No hay productos validos para generar")
  OUT.mkdir(exist_ok=True)
+ shared=shared_template()
  urls=[]
  for row in valid:
-  filename,content=build(row)
+  filename,content=build_direct(row,shared)
   (OUT/filename).write_text(content,encoding="utf-8")
   urls.append(BASE+"/productos/"+filename)
  sitemap='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+''.join("<url><loc>"+esc(u)+"</loc></url>\\n" for u in urls)+"</urlset>\\n"
  if not preview_id: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
- print("Generadas",len(urls),"paginas HTML sin iframe; no se eliminaron archivos anteriores.")
+ print("Generadas",len(urls),"fichas completas sin iframe con recursos compartidos.")
 if __name__=="__main__": main()
