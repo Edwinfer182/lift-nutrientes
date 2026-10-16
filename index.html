@@ -2142,7 +2142,7 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 
   window.liftStaticProductUrl=function(p){
     const row=window.liftStaticProductRow(p);
-    return row && row.slug ? `/catalogo/productos/${encodeURIComponent(row.slug)}.html` : '';
+    return row && row.slug ? `/productos/${encodeURIComponent(row.slug)}.html` : '';
   };
 
   window.goLiftStaticProduct=function(id){
@@ -3915,7 +3915,7 @@ function relatedProductDetailHTML(p){
 
 
   const LIFT_PRODUCT_PAGES = {
-    16: '/catalogo/productos/iso100-dymatize-5-lbs.html'
+    16: '/productos/iso100-dymatize-5-lbs.html'
   };
   
 function liftProductSlug(text){ return window.liftProductSlug(text); }
@@ -3927,14 +3927,14 @@ function liftProductPageUrl(p){
 function liftExistingIndividualUrl(p){
   if(!p || p.__private) return '';
   // Enlace individual conocido del catalogo original.
-  if(String(p.id)==='16') return '/catalogo/productos/iso100-dymatize-5-lbs.html';
+  if(String(p.id)==='16') return '/productos/iso100-dymatize-5-lbs.html';
   const existing=typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
   if(existing){
     try { return new URL(existing, location.origin+'/catalogo/').pathname; } catch(e) {}
   }
   const seoSlug=p.seo && p.seo.slug ? String(p.seo.slug).trim() : '';
   const slug=(seoSlug || window.liftProductSlug(p.name||'')).replace(/\.html$/i,'');
-  return '/catalogo/productos/'+encodeURIComponent(slug)+'.html';
+  return '/productos/'+encodeURIComponent(slug)+'.html';
 }
 function liftProductIdFromParam(value){
   const m=String(value||'').match(/^(\d+)/);
