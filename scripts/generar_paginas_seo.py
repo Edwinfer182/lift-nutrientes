@@ -31,6 +31,19 @@ def fetch_seo():
   if len(batch)<500:break
  return result
 
+def fetch_allowed_brands():
+ """La selección de marcas se administra en Supabase."""
+ result=set()
+ for offset in range(0,100000,500):
+  query=urllib.parse.urlencode({"select":"marca,habilitada","limit":"500","offset":str(offset)})
+  req=urllib.request.Request(URL+"/rest/v1/lift_seo_marcas?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
+  with urllib.request.urlopen(req,timeout=40) as res: batch=json.load(res)
+  for item in batch:
+   if item.get("habilitada") is True: result.add(str(item["marca"]).strip().casefold())
+  if len(batch)<500:break
+ if not result:raise RuntimeError("No hay marcas SEO habilitadas en Supabase")
+ return result
+
 def allowed(row):
  p=row.get("product")
  if not isinstance(p,dict) or not (p.get("name") or p.get("nombre")):return False
@@ -224,7 +237,8 @@ def main():
  rows=fetch()
  seo_rows=fetch_seo()
  for row in rows:row["_seo"]=seo_rows.get(str(row["id"]),{})
- valid=[r for r in rows if allowed(r)]
+ allowed_brands=fetch_allowed_brands()
+ valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
  preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
  if preview_id:
   valid=[r for r in valid if str(r["id"])==preview_id]
