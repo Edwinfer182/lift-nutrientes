@@ -92,6 +92,19 @@ body.liftIndividualPage .liftMonoBtns{position:relative!important;bottom:auto!im
 body.liftIndividualPage .sidebar{z-index:2!important}
 body.liftIndividualPage .sidebar .filterItem,body.liftIndividualPage .sidebar button{pointer-events:auto!important}
 body.liftIndividualPage .searchResults{z-index:1100!important}
+
+/* El carrito es un panel global: debe quedar por encima del encabezado sticky. */
+body.liftIndividualPage .overlay,
+body.liftIndividualPage #overlay,
+body.liftIndividualPage .off.right,
+body.liftIndividualPage .off.left,
+body.liftIndividualPage #cartOff,
+body.liftIndividualPage #cartOverlay,
+body.liftIndividualPage .cartDrawer,
+body.liftIndividualPage .cartBackdrop{z-index:2100!important}
+body.liftIndividualPage .checkoutModal,
+body.liftIndividualPage #checkoutModal{z-index:2200!important}
+
 /* La ficha es una página, no un modal: sin botón de cerrar ni tirador superior. */
 body.liftIndividualPage #liftMonoClose,
 body.liftIndividualPage .liftMonoClose,
