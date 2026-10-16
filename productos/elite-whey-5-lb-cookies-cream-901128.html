@@ -14286,6 +14286,19 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
   const timer=setInterval(function(){
    const product=(window.PRODUCTS||[]).find(p=>String(p.id)===String(ID));
    if(product&&typeof window.openLiftProductById==='function'){
+    // Esperar a que Supabase termine de cargar los grupos de sabores.
+    // No abrir prematuramente una ficha aislada si pertenece a un grupo.
+    const group=typeof window.liftGroupByProductId==='function'?window.liftGroupByProductId(ID):null;
+    const groupsReady=typeof window.liftGroupByProductId==='function';
+    if(!groupsReady&&tries<50)return;
+    if(group&&typeof window.liftGroupVariants==='function'){
+     const variants=window.liftGroupVariants(group)||[];
+     const selected=variants.find(v=>String(v.id)===String(ID)||String(v.producto_id)===String(ID)||String(v.productId)===String(ID));
+     if(selected){
+      window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
+      window.LIFT_SELECTED_GROUP_VARIANT[String(group.id)]=String(selected.id);
+     }
+    }
     window.openLiftProductById(ID);
     const panel=document.getElementById('liftMonoOff');
     if(panel){
