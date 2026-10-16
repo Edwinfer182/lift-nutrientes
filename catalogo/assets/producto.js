@@ -12,7 +12,7 @@ async function liftSyncIndividual(){
   if(!Number.isSafeInteger(id))return;
   const endpoint=LIFT_SB_URL+'/rest/v1/lift_productos?id=eq.'+encodeURIComponent(id)+'&select=id,product,activo';
   try{
-    const response=await fetch(endpoint,{headers:{apikey:LIFT_SB_KEY,Authorization:'Bearer '+LIFT_SB_KEY},cache:'no-store'});
+    const response=await fetch(endpoint,{headers:{apikey:LIFT_SB_KEY},cache:'no-store'});
     if(!response.ok)throw Error('Supabase HTTP '+response.status);
     const rows=await response.json();
     if(!Array.isArray(rows)||!rows.length)return; // Producto antiguo sin registro actualizado.
