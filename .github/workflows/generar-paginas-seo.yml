@@ -8,7 +8,7 @@ on:
       marca:
         description: "Marca a generar (vacío = todas las habilitadas)"
         type: string
-        default: "Dymatize"
+        default: ""
       solo_creatina_iron:
         description: "Generar solo Creatina Iron (ID 102) para validar"
         type: boolean
@@ -34,7 +34,7 @@ jobs:
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
-          SEO_BRAND_ONLY: ${{ github.event_name == 'push' && 'Dymatize' || github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
+          SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
       - name: Publicar páginas generadas
         run: |
@@ -46,4 +46,4 @@ jobs:
             git push
           fi
 
-# Regenerar fichas individuales con correcciones de carrito y checkout (2026-10-16).
+# Generar todas las marcas habilitadas y actualizar sus fichas individuales (2026-10-16).
