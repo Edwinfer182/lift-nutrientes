@@ -2674,7 +2674,7 @@ function liftGroupCardOffer(p){
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
   const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
   if(!offered.length)return null;
-  return null; // Ofertas por sabor no modifican el precio único del grupo.
+  // Las ofertas vigentes de cada sabor prevalecen sobre el precio base del grupo.
   const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
   const lowest=Math.min(...priced.map(x=>x.sale));
   const lowestRow=priced.find(x=>x.sale===lowest)||priced[0];
@@ -2721,7 +2721,10 @@ function liftVariantNormalPrice(g,v,p){
   return Number(main?.price||p?.price||0);
 }
 function liftVariantSalePrice(g,v,p){
-  return liftVariantNormalPrice(g,v,p);
+  const normal=liftVariantNormalPrice(g,v,p);
+  const offer=liftVariantOffer(v);
+  const promotional=Number(offer?.price||0);
+  return offer&&promotional>0&&promotional<normal?promotional:normal;
 }
 window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
 
@@ -2733,7 +2736,7 @@ window.liftSelectGroupVariant=function(groupId,variantId){
   const img=String(v.imagen||p?.image||g.imagen||'').trim();
   const normalPrice=liftVariantNormalPrice(g,v,p);
   const salePrice=liftVariantSalePrice(g,v,p);
-  const vo=null;
+  const vo=liftVariantOffer(v)&&salePrice<normalPrice;
   const main=document.getElementById('liftMonoMainImg'); if(main&&img)main.src=img;
   const priceArea=document.querySelector('.liftMonoPriceArea');
   if(priceArea&&salePrice>0)priceArea.innerHTML=vo
@@ -2753,7 +2756,7 @@ window.liftAddSelectedGroupVariant=function(groupId,quantity=1){
     p.id,
     String(v.sabor||'Variación'),
     String(v.imagen||p.image||g.imagen||''),
-    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:false},
+    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:!!liftVariantOffer(v)&&liftVariantSalePrice(g,v,p)<liftVariantNormalPrice(g,v,p)},
     quantity
   );
   return true;
@@ -2768,7 +2771,7 @@ function liftInjectGroupVariantPicker(productId){
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
   box.innerHTML=`<div class="liftVariantPickerHead"><b id="liftGroupVariantSelected">Sabor: ${esc(current.sabor||'Variación')}</b></div>
-  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=null,normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
+  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp),vo=!!liftVariantOffer(v)&&sale<normal;return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
   `;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
@@ -2782,7 +2785,7 @@ function liftInjectGroupVariantPicker(productId){
 }
 
 const _liftBaseOfferOf=offerOf, _liftBaseHasOffer=hasOffer, _liftBasePriceOf=priceOf, _liftBaseCompareAtOf=compareAtOf, _liftBaseSavingOf=savingOf, _liftBaseOfferBadges=offerBadges, _liftBaseOfferDetails=offerDetails, _liftBasePriceHTML=priceHTML;
-offerOf=function(p){return p?._variantGroupId?null:_liftBaseOfferOf(p)};
+offerOf=function(p){return _liftBaseOfferOf(p)};
 hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
 priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
 compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
@@ -14296,14 +14299,33 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
    }
    if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
   },200);
-  function goHome(){window.location.assign('https://supgo.co/');}
+  function goHome(type,value){
+   const u=new URL('https://supgo.co/');
+   if(type&&value)u.searchParams.set(type,String(value));
+   window.location.assign(u.toString());
+  }
+  function selectedFilter(el){
+   const button=el.closest('[onclick]');
+   const code=button?.getAttribute('onclick')||'';
+   const match=code.match(/(?:setBrand|setCat|selectLaboratoryVisual)\s*\(\s*(['"])(.*?)\1\s*\)/);
+   if(match)return {type:/setCat/.test(code)?'categoria':'marca',value:match[2]};
+   const label=button?.querySelector('span')?.textContent?.trim()||button?.textContent?.trim();
+   if(button?.classList.contains('filterItem')&&label)return {type:button.closest('#catList,#categoriesList')?'categoria':'marca',value:label};
+   return null;
+  }
   document.addEventListener('click',function(e){
    const el=e.target.closest('button,a,[role="button"],.brand,.filterItem,.labVisualCard,.labCard,.categoryCard');
    if(!el)return;
    const sidebar=el.closest('.sidebar');
    if(sidebar){
     if(el.closest('input,.searchInput')||el.matches('input'))return;
-    e.preventDefault();e.stopImmediatePropagation();goHome();return;
+    const selected=selectedFilter(el);
+    if(!selected)return;
+    e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;
+   }
+   if(el.closest('.labVisualCard,.categoryCard')&&!el.closest('.sidebar')){
+    const selected=selectedFilter(el);
+    if(selected){e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;}
    }
    if(el.closest('.top')){
     const cls=(el.className?.baseVal||el.className||'').toString();
