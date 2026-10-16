@@ -1983,7 +1983,7 @@ function liftGroupCardOffer(p){
   if(!p?._variantGroupId)return null;
   const g=liftGroupById(p._variantGroupId); if(!g)return null;
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
-  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
+  const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o&&Number(x.o.price)>0);
   if(!offered.length)return null;
   const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
   const lowest=Math.min(...priced.map(x=>x.sale));
@@ -1991,7 +1991,7 @@ function liftGroupCardOffer(p){
   const promoRows=priced.filter(x=>x.offer&&x.sale<x.normal);
   const promoLowest=promoRows.length?Math.min(...promoRows.map(x=>x.sale)):null;
   const promoRow=promoRows.find(x=>x.sale===promoLowest)||null;
-  return {count:offered.length,lowest,normalLowest:promoRow?promoRow.normal:(lowestRow?.normal||lowest),promoLowest};
+  return {count:offered.length,lowest,normalLowest:promoRow?promoRow.normal:(lowestRow?.normal||lowest),promoLowest,allOnSamePrice:priced.every(x=>x.offer&&x.sale===promoLowest)};
 }
 function liftCatalogGrouped(arr){
   const source=Array.isArray(arr)?arr:[];
@@ -2097,14 +2097,18 @@ function liftInjectGroupVariantPicker(productId){
 }
 
 const _liftBaseOfferOf=offerOf, _liftBaseHasOffer=hasOffer, _liftBasePriceOf=priceOf, _liftBaseCompareAtOf=compareAtOf, _liftBaseSavingOf=savingOf, _liftBaseOfferBadges=offerBadges, _liftBaseOfferDetails=offerDetails, _liftBasePriceHTML=priceHTML;
-offerOf=function(p){return p?._variantGroupId?null:_liftBaseOfferOf(p)};
+offerOf=function(p){
+  if(!p?._variantGroupId)return _liftBaseOfferOf(p);
+  const go=liftGroupCardOffer(p);
+  return go&&go.promoLowest>0?{price:go.promoLowest}:null;
+};
 hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
-priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
-compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
+priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?Number(go.promoLowest||go.lowest):_liftBasePriceOf(p)};
+compareAtOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?Number(go.normalLowest||p.price||0):_liftBaseCompareAtOf(p)};
 savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
 offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
 offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
-priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
+priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);const prefix=go.allOnSamePrice?'':'Desde ';return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">${prefix}${fmt(sale)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
   const VISIBLE_PRODUCTS=liftVisibleProducts();
