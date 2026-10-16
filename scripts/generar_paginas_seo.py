@@ -80,7 +80,10 @@ def build(row):
  canonical=f"{BASE}/productos/{filename}"
  brand=str(p.get("brand") or p.get("marca") or "")
  description=str(p.get("description") or p.get("descripcion") or "").strip()
- image=str(seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "")
+ image=str(seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
+ if image.startswith("//"):image="https:"+image
+ elif image.startswith("/"):image=BASE+image
+ elif image and not image.startswith(("https://","http://")):image=""
  price=p.get("price",p.get("precio"))
  promotion=active_offer(row)
  try: amount=float(price); valid_price=amount>0
@@ -121,7 +124,11 @@ def build(row):
 <title>{esc(title)}</title><meta name="description" content="{esc(meta)}">
 <link rel="canonical" href="{esc(canonical)}"><meta property="og:type" content="product">
 <meta property="og:title" content="{esc(name)}"><meta property="og:description" content="{esc(meta)}">
-<meta property="og:url" content="{esc(canonical)}"><meta property="og:image" content="{esc(image)}">
+<meta property="og:url" content="{esc(canonical)}">
+<meta property="og:site_name" content="Lift Nutrientes"><meta property="og:locale" content="es_CO">
+{f'<meta property="og:image" content="{esc(image)}"><meta property="og:image:alt" content="{esc(name)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{esc(image)}">' if image else '<meta name="twitter:card" content="summary">'}
+<meta name="twitter:title" content="{esc(name)}"><meta name="twitter:description" content="{esc(meta)}">
+{f'<meta property="product:price:amount" content="{amount:g}"><meta property="product:price:currency" content="COP">' if valid_price else ''}
 <script type="application/ld+json">{schema}</script>
 <style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}header{{background:#090909;color:white;padding:20px 5%}}header a{{color:white;text-decoration:none;font-weight:700}}nav{{padding:16px 5%;border-bottom:1px solid #ddd;display:flex;gap:20px;flex-wrap:wrap}}nav a{{color:#222;text-decoration:none}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}.btn{{display:inline-block;background:#111;color:white;padding:14px 20px;text-decoration:none;margin:8px 8px 8px 0}}footer{{padding:35px 5%;border-top:1px solid #ddd}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
 </head><body><header><a href="{BASE}/">LIFT NUTRIENTES</a></header>
@@ -140,7 +147,11 @@ def build_direct(row, shared):
  head_meta=seo.split("<head>",1)[1].split("</head>",1)[0]
  head_meta=re.sub(r"<style>.*?</style>","",head_meta,flags=re.S)
  head_meta=re.sub(r"<script type=\"application/ld\\+json\">",'<script type="application/ld+json">',head_meta)
- page=shared.replace("</head>",head_meta+"</head>",1)
+ # Quitar metadatos sociales genéricos del catálogo para que el bot encuentre
+ # una sola imagen, título y URL correspondientes al producto compartido.
+ page=re.sub(r'<meta\\b(?=[^>]*(?:property|name)\\s*=\\s*["\\'](?:og:[^"\\']+|twitter:[^"\\']+|description)["\\'])[^>]*>', '', shared, flags=re.I)
+ page=re.sub(r'<link\\b(?=[^>]*rel\\s*=\\s*["\\']canonical["\\'])[^>]*>', '', page, flags=re.I)
+ page=page.replace("</head>",head_meta+"</head>",1)
  page=page.replace("</body>",'''
 <style id="lift-seo-direct-layout">
 body.liftIndividualPage .layout{align-items:start!important;min-height:0!important}
