@@ -1937,9 +1937,9 @@ body.seoProductView .status,body.seoProductView .chips{display:none!important}
 body.seoProductView .layout{display:grid!important;grid-template-columns:var(--side,292px) minmax(0,1fr)!important;max-width:1500px!important;margin:auto!important}
 body.seoProductView .sidebar{display:block!important;position:relative!important;overflow:visible!important}
 body.seoProductView .content{width:100%!important;min-width:0!important;margin:0!important;max-width:none!important;padding:15px!important}
-body.seoProductView #liftMonoBackdrop,body.seoProductView #liftMonoClose,body.seoProductView .liftMonoPageLink{display:none!important}
-body.seoProductView #liftMonoOff,body.seoProductView #liftMonoOff.open{position:relative!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;min-height:450px!important;overflow:visible!important;box-shadow:none!important;border:0!important;border-radius:0!important;display:block!important}
-body.seoProductView #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important}
+body.seoProductView #liftMonoBackdrop,body.seoProductView #liftMonoClose,body.seoProductView .liftMonoPageLink,body.seoProductView .liftMonoClose,body.seoProductView .liftMonoOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important}
+body.seoProductView #liftMonoOff,body.seoProductView #liftMonoOff.open{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;min-height:450px!important;overflow:visible!important;box-shadow:none!important;border:0!important;border-radius:0!important;display:block!important;z-index:auto!important;margin:0!important;padding:0!important;background:#fff!important}
+body.seoProductView #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important}body.seoProductView #liftMonoOff header,body.seoProductView #liftMonoOff .liftMonoHead{position:relative!important}body.seoProductView .content #liftMonoOff{isolation:isolate!important}
 @media(max-width:760px){body.seoProductView .layout{display:block!important}body.seoProductView .sidebar{display:block!important;position:relative!important;height:auto!important;max-height:240px!important;overflow:auto!important}body.seoProductView .content{padding:5px!important}}
 </style>
 </head><body>
@@ -14240,8 +14240,11 @@ window.liftSeoClear=function(){window.liftSeoLoad({});};
     window.openLiftProductById(id);
     const panel=document.getElementById('liftMonoOff');
     if(panel){
-     main.appendChild(panel);panel.classList.add('open');
+     main.appendChild(panel);panel.classList.remove('open');
      document.getElementById('liftMonoBackdrop')?.classList.remove('open');
+     document.getElementById('liftMonoBackdrop')?.remove();
+     document.getElementById('liftMonoClose')?.remove();
+     panel.querySelectorAll('.liftMonoClose,.liftMonoPageLink').forEach(el=>el.remove());
      document.body.style.overflow='';
      clearInterval(timer);resize();
      if(window.ResizeObserver)new ResizeObserver(resize).observe(document.body);
