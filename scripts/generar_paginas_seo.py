@@ -151,7 +151,7 @@ def build_direct(row, shared):
  # una sola imagen, título y URL correspondientes al producto compartido.
  page=re.sub(r"""<meta\b(?=[^>]*(?:property|name)\s*=\s*["'](?:og:[^"']+|twitter:[^"']+|description)["'])[^>]*>""", "", shared, flags=re.I)
  page=re.sub(r"""<link\b(?=[^>]*rel\s*=\s*["']canonical["'])[^>]*>""", "", page, flags=re.I)
- page=page.replace("</head>",head_meta+"</head>",1)
+ # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.\n page=page.replace("<head>","<head>\\n"+head_meta+"\\n",1)
  page=page.replace("</body>",'''
 <style id="lift-seo-direct-layout">
 body.liftIndividualPage .layout{align-items:start!important;min-height:0!important}
