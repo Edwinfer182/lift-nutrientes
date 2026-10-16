@@ -2426,7 +2426,7 @@ PRODUCTS.forEach(p=>Object.assign(p,{_attr:attrs(p)}));
 // La fuente persistente y única es Supabase: lift_catalog_config.clave = "weekly_offers".
 const WEEKLY_OFFERS={}
 
-function offerOf(p){const o=WEEKLY_OFFERS[p.id]||null;if(!o)return null;if(o.promoUntil&&Date.now()>new Date(o.promoUntil).getTime())return null;return o}
+function offerOf(p){if(!p)return null;if(p._variantGroupId&&!p._isVariantGroupCard&&!p._variantProductId&&p._cartFlavor)return null;const o=WEEKLY_OFFERS[p._variantProductId||p.id]||null;if(!o)return null;if(o.promoUntil&&Date.now()>new Date(o.promoUntil).getTime())return null;return o}
 function hasOffer(p){return !!offerOf(p)}
 function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
 function compareAtOf(p){return p.price}
@@ -3139,10 +3139,13 @@ function items(){
     if(stored.groupId){
       const g=typeof liftGroupById==='function'?liftGroupById(stored.groupId):null;
       const vv=g&&typeof liftGroupVariants==='function'?liftGroupVariants(g):[];
-      const v=vv.find(x=>String(x.id)===String(stored.variantId));
+      const v=vv.find(x=>String(x.id)===String(stored.variantId))||vv.find(x=>String(x.sabor||'').trim().toLowerCase()===String(flavor||'').trim().toLowerCase());
       const vp=v&&typeof liftVariantProduct==='function'?liftVariantProduct(v):base;
-      const vprice=g&&typeof liftVariantNormalPrice==='function'?liftVariantSalePrice(g,v,vp):Number(base.price||0);
+      const vprice=g&&v&&typeof liftVariantNormalPrice==='function'?liftVariantNormalPrice(g,v,vp):Number(base.price||0);
       p={...(vp||base),
+        id:v&&vp?vp.id:base.id,
+        _variantProductId:v&&vp?vp.id:null,
+        _isVariantGroupCard:false,
         name:String(g?.nombre||base.name||''),
         brand:String(g?.marca||base.brand||''),
         category:String(g?.categoria||base.category||''),
@@ -3236,7 +3239,7 @@ function checkoutItemsList(){
     const base=PRODUCTS.find(x=>x.id===checkoutSingleId);
     if(!base)return [];
     const meta=window.LIFT_SINGLE_META;
-    const p=meta&&String(meta.id)===String(base.id)?{...base,image:meta.image||base.image,_cartFlavor:meta.flavor||''}:base;
+    const p=meta&&String(meta.id)===String(base.id)?{...base,image:meta.image||base.image,_cartFlavor:meta.flavor||'',_isVariantGroupCard:false}:base;
     return [{p,q:1}]
   }
   return items()
