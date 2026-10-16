@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://supgo.co/sitemap-productos.xml
