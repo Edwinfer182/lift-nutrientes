@@ -3137,8 +3137,9 @@ function items(){
       const vv=g&&typeof liftGroupVariants==='function'?liftGroupVariants(g):[];
       const v=vv.find(x=>String(x.id)===String(stored.variantId));
       const vp=v&&typeof liftVariantProduct==='function'?liftVariantProduct(v):base;
-      const vprice=g&&typeof liftVariantNormalPrice==='function'?liftVariantSalePrice(g,v,vp):Number(base.price||0);
+      const vprice=g&&v&&typeof liftVariantNormalPrice==='function'?liftVariantNormalPrice(g,v,vp):Number(vp?.price||base.price||0);
       p={...(vp||base),
+        id:vp?.id??base.id,
         name:String(g?.nombre||base.name||''),
         brand:String(g?.marca||base.brand||''),
         category:String(g?.categoria||base.category||''),
