@@ -332,7 +332,7 @@ def main():
   filename,content=build_direct(row,shared)
   (OUT/filename).write_text(content,encoding="utf-8")
   urls.append(BASE+"/productos/"+filename)
- sitemap='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+''.join("<url><loc>"+esc(u)+"</loc></url>\n" for u in urls)+"</urlset>\n"
+ sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas completas sin iframe con recursos compartidos.")
 if __name__=="__main__": main()
