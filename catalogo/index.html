@@ -2020,8 +2020,17 @@ function liftGroupVariants(g){
 }
 function liftVariantProduct(v){return PRODUCTS.find(p=>String(p.id)===String(v?.producto_id))||null}
 function liftVariantOffer(v){
-  const p=liftVariantProduct(v);
-  return p&&typeof offerOf==='function'?offerOf(p):null;
+  // La promoción pertenece al ID real de la variante en weekly_offers,
+  // incluso cuando su registro individual aún no aparece en PRODUCTS.
+  const id=v?.producto_id;
+  if(id==null)return null;
+  const o=WEEKLY_OFFERS[String(id)]||null;
+  if(!o)return null;
+  if(o.promoUntil){
+    const expires=new Date(o.promoUntil).getTime();
+    if(Number.isFinite(expires)&&Date.now()>expires)return null;
+  }
+  return Number(o.price)>0?o:null;
 }
 function liftVariantNormalPrice(g,v,p){
   return (v?.precio!=null&&Number(v.precio)>0)?Number(v.precio):(Number(g?.precio||0)>0?Number(g.precio):Number(p?.price||0));
