@@ -1,11 +1,18 @@
 name: Generar páginas SEO de productos
 on:
+  push:
+    paths:
+      - '.github/workflows/generar-paginas-seo.yml'
   workflow_dispatch:
     inputs:
+      marca:
+        description: "Marca a generar (vacío = todas las habilitadas)"
+        type: string
+        default: "Dymatize"
       solo_creatina_iron:
         description: "Generar solo Creatina Iron (ID 102) para validar"
         type: boolean
-        default: true
+        default: false
   schedule:
     - cron: '25 9 * * *'
 permissions:
@@ -27,6 +34,7 @@ jobs:
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
+          SEO_BRAND_ONLY: ${{ github.event_name == 'push' && 'Dymatize' || github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
       - name: Publicar páginas generadas
         run: |
