@@ -2140,7 +2140,10 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
     return null;
   };
 
-  window.liftStaticProductUrl=function(p){return p&&!p.__private&&p.id!=null?'/productos/?id='+encodeURIComponent(String(p.id)):'';};
+  window.liftStaticProductUrl=function(p){
+    const row=window.liftStaticProductRow(p);
+    return row && row.slug ? `/productos/${encodeURIComponent(row.slug)}.html` : '';
+  };
 
   window.goLiftStaticProduct=function(id){
     const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
@@ -3921,7 +3924,18 @@ function liftProductPageUrl(p){
   return liftPublicProductUrl(p);
 }
 // Usa las URLs HTML ya publicadas; nunca reemplaza la pagina individual por ?producto=.
-function liftExistingIndividualUrl(p){return p&&!p.__private&&p.id!=null?'/productos/?id='+encodeURIComponent(String(p.id)):'';}
+function liftExistingIndividualUrl(p){
+  if(!p || p.__private) return '';
+  // Enlace individual conocido del catalogo original.
+  if(String(p.id)==='16') return '/productos/iso100-dymatize-5-lbs.html';
+  const existing=typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
+  if(existing){
+    try { return new URL(existing, location.origin+'/catalogo/').pathname; } catch(e) {}
+  }
+  const seoSlug=p.seo && p.seo.slug ? String(p.seo.slug).trim() : '';
+  const slug=(seoSlug || window.liftProductSlug(p.name||'')).replace(/\.html$/i,'');
+  return '/productos/'+encodeURIComponent(slug)+'.html';
+}
 function liftProductIdFromParam(value){
   const m=String(value||'').match(/^(\d+)/);
   return m ? m[1] : '';
@@ -14197,17 +14211,6 @@ window.liftSeoLoad=function(seo){
 window.liftSeoClear=function(){window.liftSeoLoad({});};
 })();
 </script>
-
-<script id="lift-stable-product-route-v1">
-(function(){
- const page=p=>p&&!p.__private&&p.id!=null?'/productos/?id='+encodeURIComponent(String(p.id)):'';
- window.liftStaticProductUrl=page;
- window.goLiftStaticProduct=function(id){const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));if(p)location.assign(page(p));};
- window.addEventListener('DOMContentLoaded',()=>{
-  document.addEventListener('click',function(e){const a=e.target.closest('a.liftMonoPageLink');if(!a)return;const p=window.liftMonoCurrentProduct||window.currentLiftProduct; if(p&&p.id!=null)a.href=page(p);},true);
- });
-})();
-</script>
 </body>
 </html>
 
@@ -14478,35 +14481,5 @@ button:active{transform:scale(.98)}
  // Añade un acceso al módulo administrativo existente, sin tocar los botones de despacho.
  const attach=()=>{const row=document.querySelector('.liftAdminToolsRow');if(row&&!row.querySelector('#liftPdfShortcut')){const b=document.createElement('button');b.id='liftPdfShortcut';b.type='button';b.textContent='📄 PDF proveedores';b.onclick=window.liftPdfProvidersOpen;const abandoned=row.querySelector('#liftAbandonOpenBtn');if(abandoned)abandoned.after(b);else row.appendChild(b)}};
  new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach();
-})();
-</script>
-
-
-<!-- Lift: plantilla compartida de ficha completa. Conserva el catálogo y sus módulos. -->
-<script id="lift-product-page-template-v1">
-(function(){
- const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
- const params=new URLSearchParams(location.search);
- const requested=params.get('slug')||params.get('producto')||decodeURIComponent(location.pathname.split('/').pop()||'').replace(/\.html$/i,'');
- if(!requested||requested==='index'||requested==='plantilla')return;
- const pick=()=>{
-  const all=window.PRODUCTS||[];
-  return all.find(p=>String(p.seo?.slug||p.slug||'').replace(/\.html$/,'')===requested)
-   ||all.find(p=>normalize(p.name||p.nombre)===normalize(requested))
-   ||all.find(p=>String(p.id)===requested);
- };
- let tries=0;
- const timer=setInterval(()=>{
-  const p=pick();
-  if(p&&typeof window.openLiftProductById==='function'){
-   clearInterval(timer);
-   window.openLiftProductById(p.id);
-   document.title=(p.seo?.title||p.name||'Producto')+' | Lift Nutrientes';
-   const meta=document.querySelector('meta[name="description"]');
-   if(meta)meta.content=p.seo?.meta||p.description||'Producto de Lift Nutrientes';
-   return;
-  }
-  if(++tries>80){clearInterval(timer);console.warn('No se encontró el producto para slug:',requested);}
- },250);
 })();
 </script>
