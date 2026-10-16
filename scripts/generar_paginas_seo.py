@@ -139,11 +139,6 @@ def wrap_product(row):
  return filename,head+"""
 <body style="margin:0;font-family:Poppins,Arial,sans-serif">
 <iframe id="liftProductFrame" title="Ficha de producto y opciones de compra" src="/producto-vista.html?id="""+str(pid)+"""" scrolling="no" style="display:block;width:100%;height:1200px;border:0;overflow:hidden" loading="eager"></iframe>
-<article style="max-width:1100px;margin:35px auto;padding:20px">
-<h1>"""+esc(name)+"""</h1><p>"""+esc(brand)+"""</p>"""+img+"""
-<p>"""+esc(description or "Consulta sabores, presentaciones y disponibilidad en Lift Nutrientes.")+"""</p>
-<p><a href="https://supgo.co/?producto="""+str(pid)+"""">Consultar en el catálogo</a></p>
-</article>
 <script>
 window.addEventListener('message',function(e){
  if(e.origin!==location.origin||e.source!==document.getElementById('liftProductFrame').contentWindow)return;
