@@ -218,14 +218,33 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
    }
    if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
   },200);
-  function goHome(){window.location.assign('https://supgo.co/');}
+  function goHome(type,value){
+   const u=new URL('https://supgo.co/');
+   if(type&&value)u.searchParams.set(type,String(value));
+   window.location.assign(u.toString());
+  }
+  function selectedFilter(el){
+   const button=el.closest('[onclick]');
+   const code=button?.getAttribute('onclick')||'';
+   const match=code.match(/(?:setBrand|setCat|selectLaboratoryVisual)\\s*\\(\\s*(['"])(.*?)\\1\\s*\\)/);
+   if(match)return {type:/setCat/.test(code)?'categoria':'marca',value:match[2]};
+   const label=button?.querySelector('span')?.textContent?.trim()||button?.textContent?.trim();
+   if(button?.classList.contains('filterItem')&&label)return {type:button.closest('#catList,#categoriesList')?'categoria':'marca',value:label};
+   return null;
+  }
   document.addEventListener('click',function(e){
    const el=e.target.closest('button,a,[role="button"],.brand,.filterItem,.labVisualCard,.labCard,.categoryCard');
    if(!el)return;
    const sidebar=el.closest('.sidebar');
    if(sidebar){
     if(el.closest('input,.searchInput')||el.matches('input'))return;
-    e.preventDefault();e.stopImmediatePropagation();goHome();return;
+    const selected=selectedFilter(el);
+    if(!selected)return;
+    e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;
+   }
+   if(el.closest('.labVisualCard,.categoryCard')&&!el.closest('.sidebar')){
+    const selected=selectedFilter(el);
+    if(selected){e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;}
    }
    if(el.closest('.top')){
     const cls=(el.className?.baseVal||el.className||'').toString();
