@@ -14256,8 +14256,14 @@ window.liftSeoClear=function(){window.liftSeoLoad({});};
    if(++count>120)clearInterval(timer);
   },200);
   document.addEventListener('click',function(e){
-   const el=e.target.closest('a[href]');
-   if(el){const href=el.getAttribute('href');if(href&&!href.startsWith('#')&&!href.startsWith('javascript:')){e.preventDefault();parent.location.href=new URL(href,base).href;}}
+   const el=e.target.closest('a[href],button,[role="button"]');
+   if(!el)return;
+   const href=el.getAttribute('href');
+   if(href&&!href.startsWith('#')&&!href.startsWith('javascript:')){e.preventDefault();e.stopImmediatePropagation();parent.location.assign(new URL(href,base).href);return;}
+   const label=((el.textContent||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).trim().toLowerCase();
+   const offers=/ofertas/.test(label);
+   const logo=!!el.closest('header')&&(/inicio|logo|lift nutrientes/.test(label)||!!el.querySelector('img'));
+   if(offers||logo){e.preventDefault();e.stopImmediatePropagation();parent.location.assign(base+(offers?'?ofertas=1':''));return;}
    document.getElementById('liftMonoBackdrop')?.classList.remove('open');
    setTimeout(resize,100);
   },true);
