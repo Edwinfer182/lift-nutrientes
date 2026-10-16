@@ -239,6 +239,10 @@ def main():
  for row in rows:row["_seo"]=seo_rows.get(str(row["id"]),{})
  allowed_brands=fetch_allowed_brands()
  valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
+ brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
+ if brand_only:
+  if brand_only not in allowed_brands:raise RuntimeError("Marca no habilitada para SEO: "+brand_only)
+  valid=[r for r in valid if str((r["product"].get("brand") or r["product"].get("marca") or "")).strip().casefold()==brand_only]
  preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
  if preview_id:
   valid=[r for r in valid if str(r["id"])==preview_id]
@@ -252,6 +256,6 @@ def main():
   (OUT/filename).write_text(content,encoding="utf-8")
   urls.append(BASE+"/productos/"+filename)
  sitemap='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+''.join("<url><loc>"+esc(u)+"</loc></url>\\n" for u in urls)+"</urlset>\\n"
- if not preview_id: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
+ if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas completas sin iframe con recursos compartidos.")
 if __name__=="__main__": main()
