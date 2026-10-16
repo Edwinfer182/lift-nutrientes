@@ -45,3 +45,5 @@ jobs:
             git commit -m "SEO: actualizar fichas individuales desde Supabase"
             git push
           fi
+
+# Regenerar fichas individuales con correcciones de carrito y checkout (2026-10-16).
