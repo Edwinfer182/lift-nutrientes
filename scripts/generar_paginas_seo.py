@@ -74,7 +74,7 @@ body.seoProductView .sidebar{display:block!important;position:relative!important
 body.seoProductView .content{width:100%!important;min-width:0!important;margin:0!important;max-width:none!important;padding:15px!important}
 body.seoProductView #liftMonoBackdrop,body.seoProductView #liftMonoClose,body.seoProductView .liftMonoPageLink,body.seoProductView .liftMonoClose,body.seoProductView .liftMonoOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body.seoProductView #liftMonoOff,body.seoProductView #liftMonoOff.open{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;min-height:450px!important;overflow:visible!important;box-shadow:none!important;border:0!important;border-radius:0!important;display:block!important;z-index:auto!important;margin:0!important;padding:0!important;background:#fff!important}
-body.seoProductView #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important}body.seoProductView #liftMonoOff header,body.seoProductView #liftMonoOff .liftMonoHead{position:relative!important}body.seoProductView .content #liftMonoOff{isolation:isolate!important}html:has(body.seoProductView),body.seoProductView{height:auto!important;min-height:0!important;overflow-y:hidden!important}body.seoProductView #liftMonoOff,body.seoProductView #liftMonoBody{overflow-y:visible!important}
+body.seoProductView #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important}body.seoProductView #liftMonoOff header,body.seoProductView #liftMonoOff .liftMonoHead{position:relative!important}body.seoProductView .content #liftMonoOff{isolation:isolate!important}html:has(body.seoProductView),body.seoProductView{height:auto!important;min-height:0!important;overflow-y:hidden!important}body.seoProductView #liftMonoOff,body.seoProductView #liftMonoBody{overflow-y:visible!important}html:has(body.seoProductView){overflow:hidden!important}body.seoProductView{overflow:hidden!important}body.seoProductView footer{position:relative!important}
 @media(max-width:760px){body.seoProductView .layout{display:block!important}body.seoProductView .sidebar{display:block!important;position:relative!important;height:auto!important;max-height:240px!important;overflow:auto!important}body.seoProductView .content{padding:5px!important}}
 </style>
 """
@@ -82,11 +82,12 @@ body.seoProductView #liftMonoBody{height:auto!important;max-height:none!importan
 <script id="seo-product-viewer-script">
 (function(){
  const id=new URLSearchParams(location.search).get('id');
- document.documentElement.style.overflowY='hidden';
+ document.documentElement.style.setProperty('overflow','hidden','important');
  const base='https://supgo.co/';
  function resize(){try{const h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.getBoundingClientRect().height);parent.postMessage({type:'liftSeoHeight',height:h+12},location.origin)}catch(e){}}
  function start(){
   document.body.classList.add('seoProductView');
+  document.body.style.setProperty('overflow','hidden','important');
   const main=document.querySelector('.content');
   if(!main||!id)return;
   let count=0;
@@ -101,7 +102,7 @@ body.seoProductView #liftMonoBody{height:auto!important;max-height:none!importan
      document.getElementById('liftMonoBackdrop')?.remove();
      document.getElementById('liftMonoClose')?.remove();
      panel.querySelectorAll('.liftMonoClose,.liftMonoPageLink').forEach(el=>el.remove());
-     document.body.style.overflow='';
+     document.body.style.setProperty('overflow','hidden','important');
      clearInterval(timer);resize();
      if(window.ResizeObserver)new ResizeObserver(resize).observe(document.body);
      setTimeout(resize,1000);setTimeout(resize,3000);setInterval(resize,1500);
@@ -143,7 +144,7 @@ def wrap_product(row):
 window.addEventListener('message',function(e){
  if(e.origin!==location.origin||e.source!==document.getElementById('liftProductFrame').contentWindow)return;
  if(e.data&&e.data.type==='liftSeoHeight'&&Number.isFinite(e.data.height))
-  document.getElementById('liftProductFrame').style.height=Math.min(15000,Math.max(650,e.data.height))+'px';
+  document.getElementById('liftProductFrame').style.height=Math.min(30000,Math.max(650,e.data.height))+'px';
 });
 </script></body></html>"""
 
