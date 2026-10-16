@@ -61,17 +61,104 @@ def build(row):
 <a class="btn" href="{BASE}/?producto={pid}">Ver opciones y agregar al carrito</a>
 <a class="btn" href="{BASE}/?ofertas=1">Ver ofertas</a></section></main>
 <footer>Lift Nutrientes · <a href="{BASE}/">supgo.co</a></footer></body></html>'''
+
+def build_viewer():
+ """Una sola copia de la interfaz real; cada ficha la carga con su ID."""
+ source=(ROOT/"index.html").read_text(encoding="utf-8")
+ css=r"""
+<style id="seo-product-viewer">
+body.seoProductView .hero,body.seoProductView .liftBanners,body.seoProductView #grid,
+body.seoProductView .status,body.seoProductView .chips{display:none!important}
+body.seoProductView .layout{display:grid!important;grid-template-columns:var(--side,292px) minmax(0,1fr)!important;max-width:1500px!important;margin:auto!important}
+body.seoProductView .sidebar{display:block!important;position:relative!important;overflow:visible!important}
+body.seoProductView .content{width:100%!important;min-width:0!important;margin:0!important;max-width:none!important;padding:15px!important}
+body.seoProductView #liftMonoBackdrop,body.seoProductView #liftMonoClose,body.seoProductView .liftMonoPageLink{display:none!important}
+body.seoProductView #liftMonoOff,body.seoProductView #liftMonoOff.open{position:relative!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;min-height:450px!important;overflow:visible!important;box-shadow:none!important;border:0!important;border-radius:0!important;display:block!important}
+body.seoProductView #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important}
+@media(max-width:760px){body.seoProductView .layout{display:block!important}body.seoProductView .sidebar{display:block!important;position:relative!important;height:auto!important;max-height:240px!important;overflow:auto!important}body.seoProductView .content{padding:5px!important}}
+</style>
+"""
+ js=r"""
+<script id="seo-product-viewer-script">
+(function(){
+ const id=new URLSearchParams(location.search).get('id');
+ const base='https://supgo.co/';
+ function resize(){try{parent.postMessage({type:'liftSeoHeight',height:Math.max(document.body.scrollHeight,document.documentElement.scrollHeight)},location.origin)}catch(e){}}
+ function start(){
+  document.body.classList.add('seoProductView');
+  const main=document.querySelector('.content');
+  if(!main||!id)return;
+  let count=0;
+  const timer=setInterval(function(){
+   const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
+   if(p&&typeof window.openLiftProductById==='function'){
+    window.openLiftProductById(id);
+    const panel=document.getElementById('liftMonoOff');
+    if(panel){
+     main.appendChild(panel);panel.classList.add('open');
+     document.getElementById('liftMonoBackdrop')?.classList.remove('open');
+     document.body.style.overflow='';
+     clearInterval(timer);resize();
+     if(window.ResizeObserver)new ResizeObserver(resize).observe(document.body);
+     setTimeout(resize,1000);setTimeout(resize,3000);
+    }
+   }
+   if(++count>120)clearInterval(timer);
+  },200);
+  document.addEventListener('click',function(e){
+   const el=e.target.closest('a[href]');
+   if(el){const href=el.getAttribute('href');if(href&&!href.startsWith('#')&&!href.startsWith('javascript:')){e.preventDefault();parent.location.href=new URL(href,base).href;}}
+   document.getElementById('liftMonoBackdrop')?.classList.remove('open');
+   setTimeout(resize,100);
+  },true);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+"""
+ # El visor se basa en el index original; no modifica el index publicado.
+ source=source.replace("</head>",css+"</head>",1)
+ source=source.replace("</body>",js+"</body>",1)
+ (ROOT/"producto-vista.html").write_text(source,encoding="utf-8")
+
+def wrap_product(row):
+ """HTML SEO legible en origen y visor compartido con el diseño del catálogo."""
+ p=row["product"];pid=row["id"]
+ filename,original=build(row)
+ # Conserva las etiquetas SEO y los datos estructurados del HTML original.
+ head=original.split("</head>",1)[0]+"</head>"
+ name=str(p.get("name") or p.get("nombre"))
+ description=str(p.get("description") or p.get("descripcion") or "")
+ image=str(p.get("image") or p.get("imagen") or "")
+ brand=str(p.get("brand") or p.get("marca") or "")
+ img=('<img loading="lazy" width="200" alt="'+esc(name)+'" src="'+esc(image)+'">') if image else ""
+ return filename,head+"""
+<body style="margin:0;font-family:Poppins,Arial,sans-serif">
+<iframe id="liftProductFrame" title="Ficha de producto y opciones de compra" src="/producto-vista.html?id="""+str(pid)+"""" style="display:block;width:100%;height:1200px;border:0" loading="eager"></iframe>
+<article style="max-width:1100px;margin:35px auto;padding:20px">
+<h1>"""+esc(name)+"""</h1><p>"""+esc(brand)+"""</p>"""+img+"""
+<p>"""+esc(description or "Consulta sabores, presentaciones y disponibilidad en Lift Nutrientes.")+"""</p>
+<p><a href="https://supgo.co/?producto="""+str(pid)+"""">Consultar en el catálogo</a></p>
+</article>
+<script>
+window.addEventListener('message',function(e){
+ if(e.origin!==location.origin||e.source!==document.getElementById('liftProductFrame').contentWindow)return;
+ if(e.data&&e.data.type==='liftSeoHeight'&&Number.isFinite(e.data.height))
+  document.getElementById('liftProductFrame').style.height=Math.min(15000,Math.max(650,e.data.height))+'px';
+});
+</script></body></html>"""
+
 def main():
- rows=fetch(); valid=[r for r in rows if allowed(r)]
- if not valid:raise RuntimeError("No se recibieron productos válidos: se cancela la publicación")
+ rows=fetch();valid=[r for r in rows if allowed(r)]
+ if not valid:raise RuntimeError("No se recibieron productos válidos")
+ build_viewer()
  OUT.mkdir(exist_ok=True)
  urls=[]
  for row in valid:
-  name,content=build(row)
-  (OUT/name).write_text(content,encoding="utf-8")
-  urls.append(f"{BASE}/productos/{name}")
- # Solo sitemap de páginas creadas por este proceso; no borrar archivos anteriores.
- sitemap='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+''.join(f"<url><loc>{esc(u)}</loc></url>\\n" for u in urls)+"</urlset>\\n"
+  filename,content=wrap_product(row)
+  (OUT/filename).write_text(content,encoding="utf-8")
+  urls.append(BASE+"/productos/"+filename)
+ sitemap='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+''.join("<url><loc>"+esc(u)+"</loc></url>\\n" for u in urls)+"</urlset>\\n"
  (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
- print(f"Registros: {len(rows)}; páginas generadas: {len(urls)}; no se eliminaron archivos existentes.")
+ print("Generadas",len(urls),"páginas con visor compartido. Sin eliminar archivos anteriores.")
 if __name__=="__main__":main()
