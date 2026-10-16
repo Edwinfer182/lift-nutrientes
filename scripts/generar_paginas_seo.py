@@ -31,6 +31,31 @@ def fetch_seo():
   if len(batch)<500:break
  return result
 
+def fetch_offers():
+ query=urllib.parse.urlencode({"select":"valor","clave":"eq.weekly_offers","limit":"1"})
+ req=urllib.request.Request(URL+"/rest/v1/lift_catalog_config?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
+ with urllib.request.urlopen(req,timeout=40) as res: rows=json.load(res)
+ value=rows[0].get("valor") if rows else {}
+ if isinstance(value,str):value=json.loads(value)
+ return value if isinstance(value,dict) else {}
+
+def active_offer(row):
+ o=row.get("_offer")
+ if not isinstance(o,dict):return None
+ until=o.get("promoUntil")
+ if until:
+  try:
+   expiry=datetime.fromisoformat(str(until).replace("Z","+00:00"))
+   if expiry.tzinfo is None:expiry=expiry.replace(tzinfo=timezone.utc)
+   if datetime.now(timezone.utc)>expiry:return None
+  except ValueError:pass
+ try:
+  base=float(row["product"].get("price") or row["product"].get("precio") or 0)
+  sale=float(o.get("price"))
+  if sale<=0 or base<=sale:return None
+ except (TypeError,ValueError):return None
+ return base,sale
+
 def fetch_allowed_brands():
  """La selección de marcas se administra en Supabase."""
  result=set()
@@ -57,6 +82,7 @@ def build(row):
  description=str(p.get("description") or p.get("descripcion") or "").strip()
  image=str(seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "")
  price=p.get("price",p.get("precio"))
+ promotion=active_offer(row)
  try: amount=float(price); valid_price=amount>0
  except (ValueError,TypeError):valid_price=False;amount=0
  title=str(seo_data.get("titulo_seo") or (name+" | Lift Nutrientes"))[:140]
@@ -69,6 +95,7 @@ def build(row):
  for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
   value=p.get(source)
   if value: product_schema[target]=str(value).strip()
+ if promotion:amount=promotion[1]
  if valid_price:
   offer={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"seller":{"@type":"Organization","name":"Lift Nutrientes","url":BASE}}
   stock=p.get("stock")
@@ -85,6 +112,10 @@ def build(row):
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
  img=f'<img src="{esc(image)}" alt="{esc(name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
  price_html=f'<p class="price">$ {int(amount):,}</p>'.replace(",","\u002e") if valid_price else "<p>Consultar precio</p>"
+ if promotion:
+  original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
+  discounted=("$ {:,.0f}".format(promotion[1])).replace(",",".")
+  price_html='<p><del style="color:#777;margin-right:12px">'+original+'</del><strong style="color:#168451;font-size:26px">'+discounted+'</strong></p>'
  return filename, f'''<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title><meta name="description" content="{esc(meta)}">
@@ -236,7 +267,10 @@ def shared_template():
 def main():
  rows=fetch()
  seo_rows=fetch_seo()
- for row in rows:row["_seo"]=seo_rows.get(str(row["id"]),{})
+ offers=fetch_offers()
+ for row in rows:
+  row["_seo"]=seo_rows.get(str(row["id"]),{})
+  row["_offer"]=offers.get(str(row["id"]))
  allowed_brands=fetch_allowed_brands()
  valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
  brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
