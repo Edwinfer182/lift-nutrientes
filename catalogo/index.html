@@ -5521,7 +5521,23 @@ window.shareLiftProductImage=async function(id){
  <div id="lafCreateVariantRows" class="lafCreateVariantRows"></div>
 </div>
 <label id="lafLegacyFlavorsField" class="lafField full">Sabores simples<textarea id="lafFlavors" placeholder="Uno por línea o separados por coma"></textarea></label>
-  </div><input type="hidden" id="lafEditId"><datalist id="lafBrands"></datalist><datalist id="lafCategories"></datalist><div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" onclick="lafSaveProduct()">Guardar producto</button><button class="lafBtn" onclick="lafClearForm()">Limpiar</button><button id="lafDeleteBtn" class="lafBtn danger" style="display:none" onclick="lafDeleteCurrent()">Eliminar producto</button></div><div id="lafFormResult" class="lafResult"></div></div></section>
+  </div><details id="liftSeoPanel" style="grid-column:1/-1;border:1px solid #ddd;padding:14px;margin:12px 0;border-radius:8px">
+<summary style="cursor:pointer;font-weight:700">SEO del producto · guardar en Supabase</summary>
+<p style="font-size:12px;color:#666">Estos campos se guardan con el producto. La publicación del SEO en el HTML indexable requiere una actualización posterior de las páginas.</p>
+<div class="lafForm" style="margin-top:12px">
+<label class="lafField full">Palabra clave principal<input id="liftSeoKeyword" placeholder="ashwagandha ksm 66"></label>
+<label class="lafField full">Cuatro palabras clave relacionadas (una por línea)<textarea id="liftSeoRelated" rows="4"></textarea></label>
+<label class="lafField full">Título SEO (máximo 60 caracteres)<input id="liftSeoTitle" maxlength="60"></label>
+<label class="lafField full">Slug de página individual<input id="liftSeoSlug" placeholder="ashwagandha-ksm-66-proscience"></label>
+<label class="lafField full">Metadescripción<textarea id="liftSeoMeta" rows="3"></textarea></label>
+<label class="lafField full">Descripción técnica SEO (HTML permitido)<textarea id="liftSeoHtml" rows="9"></textarea></label>
+<label class="lafField full">Texto ALT imagen principal<input id="liftSeoAlt1"></label>
+<label class="lafField full">Texto ALT segunda imagen<input id="liftSeoAlt2"></label>
+<label class="lafField">SKU<input id="liftSeoSku"></label>
+<label class="lafField">GTIN / código de barras<input id="liftSeoGtin"></label>
+<label class="lafField full">URL oficial del fabricante<input id="liftSeoManufacturer" type="url"></label>
+</div><div id="liftSeoStatus" style="font-size:12px;margin-top:8px"></div>
+</details><input type="hidden" id="lafEditId"><datalist id="lafBrands"></datalist><datalist id="lafCategories"></datalist><div class="lafTools" style="margin-top:12px"><button class="lafBtn primary" onclick="lafSaveProduct()">Guardar producto</button><button class="lafBtn" onclick="lafClearForm()">Limpiar</button><button id="lafDeleteBtn" class="lafBtn danger" style="display:none" onclick="lafDeleteCurrent()">Eliminar producto</button></div><div id="lafFormResult" class="lafResult"></div></div></section>
   <section id="laf-offers" class="lafPane"><div class="lafNote">Crea o elimina ofertas con precio promocional y fecha de vencimiento. Al vencer, vuelve automáticamente al precio detal normal.</div><div class="lafTools"><input id="lafOfferSearch" class="lafInput" placeholder="Buscar producto..." oninput="lafRenderOffers()"></div><div id="lafOfferList"></div></section>
   <section id="laf-combos" class="lafPane"><div class="lafNote">Los combos se manejan como productos de la categoría <b>Combos</b>. Puedes crearlos, editar precio, imagen y descripción desde aquí.</div><button class="lafBtn primary" onclick="lafNewCombo()">+ Crear combo</button><div id="lafComboList" class="lafList" style="margin-top:10px"></div></section>
   <section id="laf-categories" class="lafPane">
@@ -5819,8 +5835,8 @@ window.shareLiftProductImage=async function(id){
      orden:i
    })).filter(v=>v.sabor);
  }
- window.lafClearForm=function(){['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafSecondaryImages','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
- window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();liftSecondaryEditorLoad(p.id)};
+ window.lafClearForm=function(){window.liftSeoClear?.();['lafEditId','lafName','lafBrand','lafCategory','lafPresentation','lafPrice','lafTrainerPrice','lafImage','lafSecondaryImages','lafDescription','lafFlavors'].forEach(id=>$(id).value='');$('lafStatus').value='';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();$('lafFormTitle').textContent='Crear producto';$('lafDeleteBtn').style.display='none';$('lafFormResult').textContent=''};
+ window.lafEdit=function(id){const p=PRODUCTS.find(x=>String(x.id)===String(id));if(!p)return;window.liftSeoLoad?.(p.seo);lafTab('create',document.querySelector('.lafTab[data-pane="create"]'));$('lafEditId').value=p.id;$('lafName').value=p.name||'';$('lafBrand').value=p.brand||'';$('lafCategory').value=p.category||'';$('lafPresentation').value=p.presentation||'';$('lafPrice').value=fmt(p.price);$('lafTrainerPrice').value=p.trainerPrice?fmt(p.trainerPrice):'';$('lafImage').value=p.image||'';$('lafDescription').value=p.description||'';$('lafFlavors').value=Array.isArray(p.flavors)?p.flavors.join('\n'):'';$('lafStatus').value=meta().out?.[p.id]?'out':'';$('lafFormTitle').textContent='Editar producto';$('lafDeleteBtn').style.display='inline-flex';if($('lafHasVariants'))$('lafHasVariants').value='no';if($('lafCreateVariantRows'))$('lafCreateVariantRows').innerHTML='';lafToggleCreateVariants();liftSecondaryEditorLoad(p.id)};
  window.lafSaveProduct=async function(){
  const editId=$('lafEditId').value;
  const wantsVariants=!editId && $('lafHasVariants')?.value==='yes';
@@ -5837,7 +5853,7 @@ window.shareLiftProductImage=async function(id){
      let id=nextId();
      for(const v of variants){
        while(PRODUCTS.some(p=>Number(p.id)===Number(id)))id++;
-       const vp={id:id++,name,brand,category,presentation,price:v.precio||price,trainerPrice,image:v.imagen||image,description,flavor:v.sabor,flavors:[v.sabor]};
+       const vp={id:id++,name,brand,category,presentation,price:v.precio||price,trainerPrice,image:v.imagen||image,description,seo:window.liftSeoRead?.()||{},flavor:v.sabor,flavors:[v.sabor]};
        await window.liftCatalogAdminCall({action:'save',product:vp});
        created.push({...vp,_variantImage:v.imagen,_variantOverridePrice:v.precio});
      }
@@ -5863,7 +5879,7 @@ window.shareLiftProductImage=async function(id){
  const id=editId;
  let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;
  if(!p){p={id:nextId()};PRODUCTS.push(p)}
- p.name=name;p.brand=brand;p.category=category;p.presentation=presentation;p.price=price;p.trainerPrice=trainerPrice;p.image=image;p.description=description;
+ p.name=name;p.brand=brand;p.category=category;p.presentation=presentation;p.price=price;p.trainerPrice=trainerPrice;p.image=image;p.description=description;p.seo=window.liftSeoRead?.()||p.seo||{};
  p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
  const secondaryText=$('lafSecondaryImages').value;
  const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);
@@ -12752,7 +12768,15 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
  });
 })();
 </script>
-</body>
+<script id="lift-seo-supabase-v1">
+(function(){
+const ids=['Keyword','Related','Title','Slug','Meta','Html','Alt1','Alt2','Sku','Gtin','Manufacturer'];
+const $=k=>document.getElementById('liftSeo'+k);
+window.liftSeoRead=function(){const o={};for(const k of ids)o[k.toLowerCase()]=$ (k)?.value?.trim()||'';o.related=o.related.split(/\\n+/).map(v=>v.trim()).filter(Boolean).slice(0,4);return o};
+window.liftSeoLoad=function(seo){seo=seo||{};for(const k of ids){const el=$(k);if(el)el.value=k==='Related'?(Array.isArray(seo.related)?seo.related.join('\\n'):seo.related||''):(seo[k.toLowerCase()]||'')}};
+window.liftSeoClear=function(){window.liftSeoLoad({})};
+})();
+</script></body>
 </html>
 
 <!-- LIFT · VISTA CLIENTE PEDIDO TIPO TRACKING · 2026-10-06 -->
