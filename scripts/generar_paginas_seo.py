@@ -148,37 +148,27 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
    }
    if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
   },200);
-  function go(path){window.location.assign('https://supgo.co/'+(path||''));}
+  function goHome(){window.location.assign('https://supgo.co/');}
   document.addEventListener('click',function(e){
    const el=e.target.closest('button,a,[role="button"],.brand,.filterItem,.labVisualCard,.labCard,.categoryCard');
    if(!el)return;
    const sidebar=el.closest('.sidebar');
-   const label=(el.textContent||'').trim().replace(/\\s*\\d+\\s*(productos?)?\\s*$/i,'');
-   const cls=(el.className?.baseVal||el.className||'').toString();
    if(sidebar){
-    const tab=el.closest('.filterTabs')||/filterTab/.test(cls);
-    if(tab){e.preventDefault();e.stopImmediatePropagation();go(label.toLowerCase().includes('categor')?'?categorias=1':'?laboratorios=1');return;}
-    if(/buscar|search/i.test(cls)||el.matches('input'))return;
-    const labPanel=el.closest('[id*="lab"],[class*="lab"],[id*="brand"],[class*="brand"]');
-    const isLab=!!labPanel||/lab|marca|brand/i.test(cls);
-    const card=el.closest('.labVisualCard,.labCard,.filterItem,.categoryCard,.categoryItem')||el;
-    const preferred=card.querySelector('.labVisualName,.labName,.labCardName,.categoryName,.filterItemName,[data-brand-name],[data-category-name]');
-    const raw=(preferred?.getAttribute('data-brand-name')||preferred?.getAttribute('data-category-name')||preferred?.textContent||card.getAttribute('data-brand')||card.getAttribute('data-category')||card.getAttribute('data-name')||'').trim();
-    const firstLine=(raw||card.innerText||label).split(/\\n/).map(x=>x.trim()).filter(Boolean)[0]||'';
-    const clean=firstLine.replace(/\\s*\\d+\\s*productos?\\s*$/i,'').trim();
-    const forbidden=/^(copiar enlace|duplicar|editar|eliminar|⋮|\\u22ee)/i;
-    if(clean&&!forbidden.test(clean)){e.preventDefault();e.stopImmediatePropagation();go((isLab?'?marca=':'?categoria=')+encodeURIComponent(clean));return;}
+    if(el.closest('input,.searchInput')||el.matches('input'))return;
+    e.preventDefault();e.stopImmediatePropagation();goHome();return;
    }
    if(el.closest('.top')){
+    const cls=(el.className?.baseVal||el.className||'').toString();
+    const label=(el.textContent||'').trim();
     const isLogo=!!el.closest('.brand')||/logo/i.test(cls);
     const isOffers=/offersBtn/i.test(cls)||/ofertas/i.test(label);
-    if(isLogo||isOffers){e.preventDefault();e.stopImmediatePropagation();go(isOffers?'?ofertas=1':'');return;}
+    if(isLogo||isOffers){e.preventDefault();e.stopImmediatePropagation();goHome();return;}
    }
   },true);
   document.addEventListener('keydown',function(e){
    if(e.key!=='Enter')return;
    const input=e.target.closest('.top input[type="search"],.top .search input');
-   if(input&&input.value.trim()){e.preventDefault();e.stopImmediatePropagation();go('?buscar='+encodeURIComponent(input.value.trim()));}
+   if(input&&input.value.trim()){e.preventDefault();e.stopImmediatePropagation();goHome();}
   },true);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
