@@ -2140,22 +2140,31 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
     return null;
   };
 
+  // Las marcas autorizadas se leen de Supabase. En caso de error, no se inventan enlaces.
+  const SEO_SB='https://vdxkknftyssjyfbdieqa.supabase.co';
+  const SEO_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+  let allowedBrands=null;
+  const normBrand=v=>String(v||'SIN MARCA').trim().toLocaleLowerCase('es');
+  const seoSlug=v=>String(v||'producto').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x00-\x7F]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,110)||'producto';
+  window.liftSeoBrandsReady=fetch(SEO_SB+'/rest/v1/lift_seo_marcas?select=marca,habilitada&limit=500',{
+    headers:{apikey:SEO_KEY,Authorization:'Bearer '+SEO_KEY}
+  }).then(r=>{if(!r.ok)throw Error('SEO brands '+r.status);return r.json()}).then(rows=>{
+    allowedBrands=new Set(rows.filter(x=>x.habilitada===true).map(x=>normBrand(x.marca)));
+    return allowedBrands;
+  }).catch(err=>{console.warn('No se pudo consultar marcas SEO',err);return null});
+  window.liftSeoBrandAllowed=p=>!!p&&!!allowedBrands&&allowedBrands.has(normBrand(p.brand||p.marca));
   window.liftStaticProductUrl=function(p){
-    const row=window.liftStaticProductRow(p);
-    return row && row.slug ? `/productos/${encodeURIComponent(row.slug)}.html` : '';
+    if(!p || p.__private || p.hidden || p.oculto || !window.liftSeoBrandAllowed(p))return '';
+    // El generador usa nombre normalizado + ID real de Supabase.
+    return '/productos/'+seoSlug(p.name||p.nombre)+'-'+encodeURIComponent(String(p.id))+'.html';
   };
-
   window.goLiftStaticProduct=function(id){
     const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
-    if(!p || p.__private) return;
+    if(!p || p.__private)return;
     const url=window.liftStaticProductUrl(p);
-    if(url){
-      location.href=url;
-      return;
-    }
-    // If an unusually new product has no generated static page yet, use quick view
-    // rather than sending the customer to a 404.
-    if(typeof window.openLiftProductById==='function') window.openLiftProductById(p.id);
+    if(url){location.href=url;return;}
+    // Marca excluida, datos SEO sin cargar o sin página: conserva la ficha habitual.
+    if(typeof window.openLiftProductById==='function')window.openLiftProductById(p.id);
   };
 })();
 </script>
@@ -3925,16 +3934,8 @@ function liftProductPageUrl(p){
 }
 // Usa las URLs HTML ya publicadas; nunca reemplaza la pagina individual por ?producto=.
 function liftExistingIndividualUrl(p){
-  if(!p || p.__private) return '';
-  // Enlace individual conocido del catalogo original.
-  if(String(p.id)==='16') return '/productos/iso100-dymatize-5-lbs.html';
-  const existing=typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
-  if(existing){
-    try { return new URL(existing, location.origin+'/catalogo/').pathname; } catch(e) {}
-  }
-  const seoSlug=p.seo && p.seo.slug ? String(p.seo.slug).trim() : '';
-  const slug=(seoSlug || window.liftProductSlug(p.name||'')).replace(/\.html$/i,'');
-  return '/productos/'+encodeURIComponent(slug)+'.html';
+  if(!p || p.__private)return '';
+  return typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
 }
 function liftProductIdFromParam(value){
   const m=String(value||'').match(/^(\d+)/);
@@ -4056,7 +4057,7 @@ function renderProductDetail(p){
           </details>
         </div>
           <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
-          ${!p.__private?`<a class="liftMonoPageLink" href="${liftExistingIndividualUrl(p)}" title="Abrir la ficha individual del producto">↗ Ver página individual del producto</a>`:''}
+          ${liftExistingIndividualUrl(p)?`<a class="liftMonoPageLink" href="${liftExistingIndividualUrl(p)}" title="Abrir la ficha individual del producto">↗ Ver página individual del producto</a>`:''}
           ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
         </div>
         <div class="liftMonoVariantsBelow">
