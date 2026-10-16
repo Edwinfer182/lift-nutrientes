@@ -20,27 +20,38 @@ def fetch():
   rows+=batch
   if len(batch)<500: break
  return rows
+def fetch_seo():
+ """Lee SEO editable desde la tabla de Supabase; los campos vacíos usan valores automáticos."""
+ result={}
+ for offset in range(0,100000,500):
+  query=urllib.parse.urlencode({"select":"producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo","limit":"500","offset":str(offset)})
+  req=urllib.request.Request(URL+"/rest/v1/lift_producto_seo?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
+  with urllib.request.urlopen(req,timeout=40) as res: batch=json.load(res)
+  for item in batch: result[str(item["producto_id"])]=item
+  if len(batch)<500:break
+ return result
+
 def allowed(row):
  p=row.get("product")
  if not isinstance(p,dict) or not (p.get("name") or p.get("nombre")):return False
  if row.get("activo") is False or p.get("__deleted") or p.get("__private") or p.get("adminOnly") or p.get("hidden") or p.get("oculto"):return False
  return True
 def build(row):
- p=row["product"]; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
+ p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
  canonical=f"{BASE}/productos/{filename}"
  brand=str(p.get("brand") or p.get("marca") or "")
  description=str(p.get("description") or p.get("descripcion") or "").strip()
- image=str(p.get("image") or p.get("imagen") or "")
+ image=str(seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "")
  price=p.get("price",p.get("precio"))
  try: amount=float(price); valid_price=amount>0
  except (ValueError,TypeError):valid_price=False;amount=0
- title=(name+" | Lift Nutrientes")[:140]
- meta=(description or f"Consulta {name} de {brand} en Lift Nutrientes. Presentaciones, precio y disponibilidad en Colombia.")[:160]
+ title=str(seo_data.get("titulo_seo") or (name+" | Lift Nutrientes"))[:140]
+ meta=str(seo_data.get("meta_descripcion") or description or f"Consulta {name} de {brand} en Lift Nutrientes. Presentaciones, precio y disponibilidad en Colombia.")[:160]
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(pid)}
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
  if image:product_schema["image"]=[image]
- if description:product_schema["description"]=description
+ if description or seo_data.get("meta_descripcion"):product_schema["description"]=description or str(seo_data["meta_descripcion"])
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
  for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
   value=p.get(source)
@@ -211,6 +222,8 @@ def shared_template():
 
 def main():
  rows=fetch()
+ seo_rows=fetch_seo()
+ for row in rows:row["_seo"]=seo_rows.get(str(row["id"]),{})
  valid=[r for r in rows if allowed(r)]
  preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
  if preview_id:
