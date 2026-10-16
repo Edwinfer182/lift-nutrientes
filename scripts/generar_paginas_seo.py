@@ -41,7 +41,22 @@ def build(row):
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
  if image:product_schema["image"]=[image]
  if description:product_schema["description"]=description
- if valid_price:product_schema["offers"]={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"availability":"https://schema.org/InStock" if p.get("stock") is True else "https://schema.org/LimitedAvailability"}
+ # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
+ for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
+  value=p.get(source)
+  if value: product_schema[target]=str(value).strip()
+ if valid_price:
+  offer={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"seller":{"@type":"Organization","name":"Lift Nutrientes","url":BASE}}
+  stock=p.get("stock")
+  if stock is True or (isinstance(stock,(int,float)) and not isinstance(stock,bool) and stock>0):
+   offer["availability"]="https://schema.org/InStock"
+  elif stock is False or (isinstance(stock,(int,float)) and not isinstance(stock,bool) and stock==0):
+   offer["availability"]="https://schema.org/OutOfStock"
+  elif str(p.get("availability") or "").lower() in ("instock","in_stock","disponible"):
+   offer["availability"]="https://schema.org/InStock"
+  elif str(p.get("availability") or "").lower() in ("outofstock","out_of_stock","agotado"):
+   offer["availability"]="https://schema.org/OutOfStock"
+  product_schema["offers"]=offer
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
  img=f'<img src="{esc(image)}" alt="{esc(name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
