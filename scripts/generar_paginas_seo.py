@@ -161,7 +161,13 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
     if(/buscar|search/i.test(cls)||el.matches('input'))return;
     const labPanel=el.closest('[id*="lab"],[class*="lab"],[id*="brand"],[class*="brand"]');
     const isLab=!!labPanel||/lab|marca|brand/i.test(cls);
-    if(label){e.preventDefault();e.stopImmediatePropagation();go((isLab?'?marca=':'?categoria=')+encodeURIComponent(label));return;}
+    const card=el.closest('.labVisualCard,.labCard,.filterItem,.categoryCard,.categoryItem')||el;
+    const preferred=card.querySelector('.labVisualName,.labName,.labCardName,.categoryName,.filterItemName,[data-brand-name],[data-category-name]');
+    const raw=(preferred?.getAttribute('data-brand-name')||preferred?.getAttribute('data-category-name')||preferred?.textContent||card.getAttribute('data-brand')||card.getAttribute('data-category')||card.getAttribute('data-name')||'').trim();
+    const firstLine=(raw||card.innerText||label).split(/\\n/).map(x=>x.trim()).filter(Boolean)[0]||'';
+    const clean=firstLine.replace(/\\s*\\d+\\s*productos?\\s*$/i,'').trim();
+    const forbidden=/^(copiar enlace|duplicar|editar|eliminar|⋮|\\u22ee)/i;
+    if(clean&&!forbidden.test(clean)){e.preventDefault();e.stopImmediatePropagation();go((isLab?'?marca=':'?categoria=')+encodeURIComponent(clean));return;}
    }
    if(el.closest('.top')){
     const isLogo=!!el.closest('.brand')||/logo/i.test(cls);
