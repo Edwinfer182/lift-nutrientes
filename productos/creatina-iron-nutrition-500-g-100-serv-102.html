@@ -17,18 +17,18 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 
 <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&sz=w512">
 <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&sz=w512">
-<meta name="description" content="Catálogo de suplementos y nutrición deportiva de Lift Nutrientes.">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Catálogo Lift Nutrientes">
-<meta property="og:description" content="Consulta productos, disponibilidad y precios en el catálogo de Lift Nutrientes.">
-<meta property="og:image" content="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&sz=w1200">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="1200">
-<meta property="og:image:alt" content="Lift Nutrientes">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Catálogo Lift Nutrientes">
-<meta name="twitter:description" content="Consulta productos, disponibilidad y precios en el catálogo de Lift Nutrientes.">
-<meta name="twitter:image" content="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&sz=w1200">
+
+
+
+
+
+
+
+
+
+
+
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@200;300;400;500;600;700&family=Roboto:wght@300;400;500;600;700&display=swap');
 :root{--bg:#fff;--card:#fff;--ink:#111;--muted:#727272;--line:#e7e7e7;--accent:#e31b23;--dark:#0e0e0e;--shadow:0 10px 28px rgba(0,0,0,.08);--side:292px}
@@ -139,6 +139,10 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 .liftCheckoutSectionTitle{display:flex;gap:10px;align-items:flex-start;margin:20px 0 10px}.liftCheckoutSectionTitle>span{display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:#111;color:#fff;font-size:11px}.liftCheckoutSectionTitle b{display:block;font-size:14px;font-weight:600;color:#151515}.liftCheckoutSectionTitle small{display:block;margin-top:2px;font-size:10px;line-height:1.35;color:#888}.liftCheckoutContact,.liftCheckoutDelivery{gap:10px}.liftCheckoutContact .field label,.liftCheckoutDelivery .field label{font-size:11px}.liftCheckoutContact .field label span,.liftCheckoutDelivery .field label span{font-weight:300;color:#999}.liftCheckoutContact .field input,.liftCheckoutDelivery .field input{height:42px}.liftCheckoutDelivery textarea{min-height:74px}.liftWhatsappField{display:none}.liftAdminUnlocked #checkoutModal .liftWhatsappField{display:flex}
 .liftCheckoutSummaryCard{margin-top:0;padding:13px;border:1px solid #e3e3e3;border-radius:13px;background:#fafafa}.liftCheckoutSummaryCard .checkoutItems{margin-bottom:8px}.liftCheckoutSummaryCard .checkoutLine{font-size:13px}.liftCheckoutSummaryCard .checkoutLine.total{font-size:18px}.liftPrefsTitle{margin-top:18px}.liftCheckoutPrefs{border:1px solid #e3e3e3;border-radius:13px;overflow:hidden;background:#fff}.liftPrefRow{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;cursor:pointer}.liftPrefRow+.liftPrefRow,.liftRememberHello+.liftForgetData+.liftPrefRow{border-top:1px solid #eee}.liftPrefRow input{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;accent-color:#111}.liftPrefRow span{min-width:0}.liftPrefRow b{display:block;font-size:11px;font-weight:600;color:#222}.liftPrefRow small{display:block;margin-top:2px;font-size:9.5px;line-height:1.4;color:#7b7b7b}.liftPrefRow.required{background:#fafafa}.liftPrefRow.required small button{border:0;background:transparent;padding:0;color:#111;text-decoration:underline;font:inherit;font-weight:600;cursor:pointer}.liftRememberHello{padding:0 12px 8px 40px;font-size:10px;color:#333}.liftForgetData{margin:0 0 9px 40px;border:0;background:transparent;padding:0;color:#777;text-decoration:underline;font:inherit;font-size:9.5px;cursor:pointer}.liftCheckoutActionArea{margin-top:14px}.liftCheckoutActionArea .checkoutSend{margin-top:0;min-height:50px;font-size:13px;font-weight:600}.liftCheckoutTrust{text-align:center;padding:8px 8px 2px;font-size:9.5px;line-height:1.4;color:#888}.liftCheckoutActionArea .checkoutHint{margin-top:10px}.couponBox{grid-column:1/-1}.checkoutFlavorNote{padding:8px 10px!important;font-size:10px!important}
 @media(max-width:760px){.liftCheckoutSteps{margin-bottom:14px}.liftCheckoutSectionTitle{margin-top:16px}.liftCheckoutContact,.liftCheckoutDelivery{gap:9px}.liftCheckoutSummaryCard{padding:11px}.liftPrefRow{padding:10px 11px}}
+
+/* Checkout: mostrar el sabor junto al nombre, incluso en el resumen compacto. */
+#checkoutModal .checkoutProductName .liftInlineFlavor{font-weight:600;color:#252525;font-size:inherit}
+#checkoutModal .checkoutProductName{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important}
 </style>
 
 <style id="iso100-flavor-style">
@@ -1934,7 +1938,11 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 <title>Creatina Iron Nutrition 500 G 100 Serv | Lift Nutrientes</title><meta name="description" content="Consulta Creatina Iron Nutrition 500 G 100 Serv de Smart Nutrition en Lift Nutrientes. Presentaciones, precio y disponibilidad en Colombia.">
 <link rel="canonical" href="https://supgo.co/productos/creatina-iron-nutrition-500-g-100-serv-102.html"><meta property="og:type" content="product">
 <meta property="og:title" content="Creatina Iron Nutrition 500 G 100 Serv"><meta property="og:description" content="Consulta Creatina Iron Nutrition 500 G 100 Serv de Smart Nutrition en Lift Nutrientes. Presentaciones, precio y disponibilidad en Colombia.">
-<meta property="og:url" content="https://supgo.co/productos/creatina-iron-nutrition-500-g-100-serv-102.html"><meta property="og:image" content="https://lh3.googleusercontent.com/d/1WgTsfF74d80FErFRBZ_qsN_pDnB08hD_=w1200">
+<meta property="og:url" content="https://supgo.co/productos/creatina-iron-nutrition-500-g-100-serv-102.html">
+<meta property="og:site_name" content="Lift Nutrientes"><meta property="og:locale" content="es_CO">
+<meta property="og:image" content="https://lh3.googleusercontent.com/d/1WgTsfF74d80FErFRBZ_qsN_pDnB08hD_=w1200"><meta property="og:image:alt" content="Creatina Iron Nutrition 500 G 100 Serv"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://lh3.googleusercontent.com/d/1WgTsfF74d80FErFRBZ_qsN_pDnB08hD_=w1200">
+<meta name="twitter:title" content="Creatina Iron Nutrition 500 G 100 Serv"><meta name="twitter:description" content="Consulta Creatina Iron Nutrition 500 G 100 Serv de Smart Nutrition en Lift Nutrientes. Presentaciones, precio y disponibilidad en Colombia.">
+<meta property="product:price:amount" content="130000"><meta property="product:price:currency" content="COP">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Product", "name": "Creatina Iron Nutrition 500 G 100 Serv", "url": "https://supgo.co/productos/creatina-iron-nutrition-500-g-100-serv-102.html", "sku": "102", "brand": {"@type": "Brand", "name": "Smart Nutrition"}, "image": ["https://lh3.googleusercontent.com/d/1WgTsfF74d80FErFRBZ_qsN_pDnB08hD_=w1200"], "offers": {"@type": "Offer", "url": "https://supgo.co/productos/creatina-iron-nutrition-500-g-100-serv-102.html", "priceCurrency": "COP", "price": 130000, "seller": {"@type": "Organization", "name": "Lift Nutrientes", "url": "https://supgo.co"}}}</script>
 
 </head><body>
@@ -2147,22 +2155,31 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
     return null;
   };
 
+  // Las marcas autorizadas se leen de Supabase. En caso de error, no se inventan enlaces.
+  const SEO_SB='https://vdxkknftyssjyfbdieqa.supabase.co';
+  const SEO_KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+  let allowedBrands=null;
+  const normBrand=v=>String(v||'SIN MARCA').trim().toLocaleLowerCase('es');
+  const seoSlug=v=>String(v||'producto').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x00-\x7F]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,110)||'producto';
+  window.liftSeoBrandsReady=fetch(SEO_SB+'/rest/v1/lift_seo_marcas?select=marca,habilitada&limit=500',{
+    headers:{apikey:SEO_KEY,Authorization:'Bearer '+SEO_KEY}
+  }).then(r=>{if(!r.ok)throw Error('SEO brands '+r.status);return r.json()}).then(rows=>{
+    allowedBrands=new Set(rows.filter(x=>x.habilitada===true).map(x=>normBrand(x.marca)));
+    return allowedBrands;
+  }).catch(err=>{console.warn('No se pudo consultar marcas SEO',err);return null});
+  window.liftSeoBrandAllowed=p=>!!p&&!!allowedBrands&&allowedBrands.has(normBrand(p.brand||p.marca));
   window.liftStaticProductUrl=function(p){
-    const row=window.liftStaticProductRow(p);
-    return row && row.slug ? `/productos/${encodeURIComponent(row.slug)}.html` : '';
+    if(!p || p.__private || p.hidden || p.oculto || !window.liftSeoBrandAllowed(p))return '';
+    // El generador usa nombre normalizado + ID real de Supabase.
+    return '/productos/'+seoSlug(p.name||p.nombre)+'-'+encodeURIComponent(String(p.id))+'.html';
   };
-
   window.goLiftStaticProduct=function(id){
     const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
-    if(!p || p.__private) return;
+    if(!p || p.__private)return;
     const url=window.liftStaticProductUrl(p);
-    if(url){
-      location.href=url;
-      return;
-    }
-    // If an unusually new product has no generated static page yet, use quick view
-    // rather than sending the customer to a 404.
-    if(typeof window.openLiftProductById==='function') window.openLiftProductById(p.id);
+    if(url){location.href=url;return;}
+    // Marca excluida, datos SEO sin cargar o sin página: conserva la ficha habitual.
+    if(typeof window.openLiftProductById==='function')window.openLiftProductById(p.id);
   };
 })();
 </script>
@@ -2420,7 +2437,7 @@ PRODUCTS.forEach(p=>Object.assign(p,{_attr:attrs(p)}));
 // La fuente persistente y única es Supabase: lift_catalog_config.clave = "weekly_offers".
 const WEEKLY_OFFERS={}
 
-function offerOf(p){const o=WEEKLY_OFFERS[p.id]||null;if(!o)return null;if(o.promoUntil&&Date.now()>new Date(o.promoUntil).getTime())return null;return o}
+function offerOf(p){if(!p)return null;if(p._variantGroupId&&!p._isVariantGroupCard&&!p._variantProductId&&p._cartFlavor)return null;const o=WEEKLY_OFFERS[p._variantProductId||p.id]||null;if(!o)return null;if(o.promoUntil&&Date.now()>new Date(o.promoUntil).getTime())return null;return o}
 function hasOffer(p){return !!offerOf(p)}
 function priceOf(p){const o=offerOf(p);return o?o.price:p.price}
 function compareAtOf(p){return p.price}
@@ -2665,7 +2682,7 @@ function liftGroupCardOffer(p){
   const all=liftGroupVariants(g).map(v=>({v,p:liftVariantProduct(v)}));
   const offered=all.map(x=>({...x,o:liftVariantOffer(x.v)})).filter(x=>x.o);
   if(!offered.length)return null;
-  return null; // Ofertas por sabor no modifican el precio único del grupo.
+  // Las ofertas vigentes de cada sabor prevalecen sobre el precio base del grupo.
   const priced=all.map(x=>({ ...x, sale:liftVariantSalePrice(g,x.v,x.p), normal:liftVariantNormalPrice(g,x.v,x.p), offer:liftVariantOffer(x.v) })).filter(x=>Number.isFinite(x.sale));
   const lowest=Math.min(...priced.map(x=>x.sale));
   const lowestRow=priced.find(x=>x.sale===lowest)||priced[0];
@@ -2712,7 +2729,10 @@ function liftVariantNormalPrice(g,v,p){
   return Number(main?.price||p?.price||0);
 }
 function liftVariantSalePrice(g,v,p){
-  return liftVariantNormalPrice(g,v,p);
+  const normal=liftVariantNormalPrice(g,v,p);
+  const offer=liftVariantOffer(v);
+  const promotional=Number(offer?.price||0);
+  return offer&&promotional>0&&promotional<normal?promotional:normal;
 }
 window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
 
@@ -2724,7 +2744,7 @@ window.liftSelectGroupVariant=function(groupId,variantId){
   const img=String(v.imagen||p?.image||g.imagen||'').trim();
   const normalPrice=liftVariantNormalPrice(g,v,p);
   const salePrice=liftVariantSalePrice(g,v,p);
-  const vo=null;
+  const vo=liftVariantOffer(v)&&salePrice<normalPrice;
   const main=document.getElementById('liftMonoMainImg'); if(main&&img)main.src=img;
   const priceArea=document.querySelector('.liftMonoPriceArea');
   if(priceArea&&salePrice>0)priceArea.innerHTML=vo
@@ -2744,7 +2764,7 @@ window.liftAddSelectedGroupVariant=function(groupId,quantity=1){
     p.id,
     String(v.sabor||'Variación'),
     String(v.imagen||p.image||g.imagen||''),
-    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:false},
+    {groupId:Number(g.id),variantId:Number(v.id),variantPrice:liftVariantSalePrice(g,v,p),variantNormalPrice:liftVariantNormalPrice(g,v,p),variantOffer:!!liftVariantOffer(v)&&liftVariantSalePrice(g,v,p)<liftVariantNormalPrice(g,v,p)},
     quantity
   );
   return true;
@@ -2759,7 +2779,7 @@ function liftInjectGroupVariantPicker(productId){
   const box=document.createElement('div');
   box.id='liftGroupVariantPicker'; box.className='liftVariantPicker';
   box.innerHTML=`<div class="liftVariantPickerHead"><b id="liftGroupVariantSelected">Sabor: ${esc(current.sabor||'Variación')}</b></div>
-  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),vo=null,normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp);return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
+  <div class="liftVariantChips">${vv.map(v=>{const vp=liftVariantProduct(v),vi=String(v.imagen||vp?.image||g.imagen||'').trim(),normal=liftVariantNormalPrice(g,v,vp),sale=liftVariantSalePrice(g,v,vp),vo=!!liftVariantOffer(v)&&sale<normal;return `<button type="button" class="liftVariantChip${String(v.id)===String(current.id)?' active':''}" data-variant-id="${esc(v.id)}" onclick="liftSelectGroupVariant(${Number(g.id)},${Number(v.id)})">${vo?'<span class="liftVariantOfferBadge">OFERTA</span>':''}<span class="liftVariantThumb">${vi?`<img src="${esc(vi)}" alt="${esc(v.sabor||'Variación')}" loading="lazy">`:''}</span><span class="liftVariantFlavor">${esc(v.sabor||'Variación')}</span>${vo?`<span class="liftVariantPrices"><s>${fmt(normal)}</s><b>${fmt(sale)}</b></span>`:''}</button>`}).join('')}</div>
   `;
   const priceArea=info.querySelector('.liftMonoPriceArea');
   priceArea?.insertAdjacentElement('afterend',box);
@@ -2773,14 +2793,14 @@ function liftInjectGroupVariantPicker(productId){
 }
 
 const _liftBaseOfferOf=offerOf, _liftBaseHasOffer=hasOffer, _liftBasePriceOf=priceOf, _liftBaseCompareAtOf=compareAtOf, _liftBaseSavingOf=savingOf, _liftBaseOfferBadges=offerBadges, _liftBaseOfferDetails=offerDetails, _liftBasePriceHTML=priceHTML;
-offerOf=function(p){return p?._variantGroupId?null:_liftBaseOfferOf(p)};
-hasOffer=function(p){return p?._variantGroupId?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
-priceOf=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
-compareAtOf=function(p){return p?._variantGroupId?Number(p.price||0):_liftBaseCompareAtOf(p)};
+offerOf=function(p){return _liftBaseOfferOf(p)};
+hasOffer=function(p){return p?._isVariantGroupCard?!!liftGroupCardOffer(p):_liftBaseHasOffer(p)};
+priceOf=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;return go?go.lowest:_liftBasePriceOf(p)};
+compareAtOf=function(p){return p?._isVariantGroupCard?Number(p.price||0):_liftBaseCompareAtOf(p)};
 savingOf=function(p){return Math.max(0,compareAtOf(p)-priceOf(p))};
-offerBadges=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
-offerDetails=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
-priceHTML=function(p){const go=p?._variantGroupId?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
+offerBadges=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;return go?`<span class="saleBadge">${go.count} ${go.count===1?'SABOR':'SABORES'} EN OFERTA</span>`:_liftBaseOfferBadges(p)};
+offerDetails=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;return go?`<div class="flavorNote"><b>${go.count} ${go.count===1?'sabor':'sabores'} en promoción</b></div>`:_liftBaseOfferDetails(p)};
+priceHTML=function(p){const go=p?._isVariantGroupCard?liftGroupCardOffer(p):null;if(!go)return _liftBasePriceHTML(p);const old=Number(go.normalLowest||0),sale=Number(go.promoLowest||go.lowest||0);return `<div class="offerPrices">${old>sale?`<span class="oldPrice">${fmt(old)}</span>`:''}<span class="price promoPrice">Desde ${fmt(sale)}</span></div>${offerDetails(p)}`};
 
 function filtered(){
   const VISIBLE_PRODUCTS=liftVisibleProducts();
@@ -3130,10 +3150,13 @@ function items(){
     if(stored.groupId){
       const g=typeof liftGroupById==='function'?liftGroupById(stored.groupId):null;
       const vv=g&&typeof liftGroupVariants==='function'?liftGroupVariants(g):[];
-      const v=vv.find(x=>String(x.id)===String(stored.variantId));
+      const v=vv.find(x=>String(x.id)===String(stored.variantId))||vv.find(x=>String(x.sabor||'').trim().toLowerCase()===String(flavor||'').trim().toLowerCase());
       const vp=v&&typeof liftVariantProduct==='function'?liftVariantProduct(v):base;
-      const vprice=g&&typeof liftVariantNormalPrice==='function'?liftVariantSalePrice(g,v,vp):Number(base.price||0);
+      const vprice=g&&v&&typeof liftVariantNormalPrice==='function'?liftVariantNormalPrice(g,v,vp):Number(base.price||0);
       p={...(vp||base),
+        id:v&&vp?vp.id:base.id,
+        _variantProductId:v&&vp?vp.id:null,
+        _isVariantGroupCard:false,
         name:String(g?.nombre||base.name||''),
         brand:String(g?.marca||base.brand||''),
         category:String(g?.categoria||base.category||''),
@@ -3227,7 +3250,7 @@ function checkoutItemsList(){
     const base=PRODUCTS.find(x=>x.id===checkoutSingleId);
     if(!base)return [];
     const meta=window.LIFT_SINGLE_META;
-    const p=meta&&String(meta.id)===String(base.id)?{...base,image:meta.image||base.image,_cartFlavor:meta.flavor||''}:base;
+    const p=meta&&String(meta.id)===String(base.id)?{...base,image:meta.image||base.image,_cartFlavor:meta.flavor||'',_isVariantGroupCard:false}:base;
     return [{p,q:1}]
   }
   return items()
@@ -3299,7 +3322,7 @@ function renderCheckoutSummary(){
   const discount=checkoutCouponDiscount(its);
   document.getElementById('checkoutItems').innerHTML=`<div class="checkoutProductList">${its.map(x=>{
     const pub=priceOf(x.p),eff=checkoutUnitPrice(x.p),isTrainer=(adminTrainerMode()||trainerCouponActive())&&eff<pub;
-    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName"><span class="liftInlineQty">${x.q} ×</span> ${esc(x.p.name)} <span class="liftInlineBrand">· ${esc(x.p.brand || x.p.marca || 'Sin marca')}</span></div>${x.p._cartFlavor?`<div class="checkoutProductFlavor">Sabor: <b>${esc(x.p._cartFlavor)}</b></div>`:''}${hasOffer(x.p)?offerUntilHTML(x.p,'checkoutOfferUntil'):''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div class="checkoutOldPrice">${fmt(pub*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:(savingOf(x.p)?`<div class="checkoutOldPrice">${fmt(compareAtOf(x.p)*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:fmt(eff*x.q))}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
+    return `<div class="checkoutProduct"><img class="checkoutProductImg" src="${x.p.image}" alt="${esc(x.p.name)}"><div class="checkoutProductInfo"><div class="checkoutProductName"><span class="liftInlineQty">${x.q} ×</span> ${esc(x.p.name)}${x.p._cartFlavor?` <span class="liftInlineFlavor">· ${esc(x.p._cartFlavor)}</span>`:''} <span class="liftInlineBrand">· ${esc(x.p.brand || x.p.marca || 'Sin marca')}</span></div>${hasOffer(x.p)?offerUntilHTML(x.p,'checkoutOfferUntil'):''}${x.q>1?`<span class="checkoutProductQty">${x.q} unidades</span>`:''}${isTrainer?`<div style="font-size:10px;color:#168451;margin-top:4px">🏋️ Precio entrenador</div>`:''}</div><div class="checkoutProductPrice">${isTrainer?`<div class="checkoutOldPrice">${fmt(pub*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:(savingOf(x.p)?`<div class="checkoutOldPrice">${fmt(compareAtOf(x.p)*x.q)}</div><span class="promoPrice">${fmt(eff*x.q)}</span>`:fmt(eff*x.q))}${(x.p._manualProduct||x.p._checkoutOnly)?`<button type="button" class="liftManualRemove" title="Sacar del pedido" onclick="liftRemoveManualCheckoutItem(decodeURIComponent('${encodeURIComponent(String(x.key))}'))">×</button>`:''}</div></div>`;
   }).join('')}</div>`;
   const prog=document.getElementById('checkoutShippingProgress');
   if(prog)prog.innerHTML='';
@@ -3932,16 +3955,8 @@ function liftProductPageUrl(p){
 }
 // Usa las URLs HTML ya publicadas; nunca reemplaza la pagina individual por ?producto=.
 function liftExistingIndividualUrl(p){
-  if(!p || p.__private) return '';
-  // Enlace individual conocido del catalogo original.
-  if(String(p.id)==='16') return '/productos/iso100-dymatize-5-lbs.html';
-  const existing=typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
-  if(existing){
-    try { return new URL(existing, location.origin+'/catalogo/').pathname; } catch(e) {}
-  }
-  const seoSlug=p.seo && p.seo.slug ? String(p.seo.slug).trim() : '';
-  const slug=(seoSlug || window.liftProductSlug(p.name||'')).replace(/\.html$/i,'');
-  return '/productos/'+encodeURIComponent(slug)+'.html';
+  if(!p || p.__private)return '';
+  return typeof window.liftStaticProductUrl==='function' ? window.liftStaticProductUrl(p) : '';
 }
 function liftProductIdFromParam(value){
   const m=String(value||'').match(/^(\d+)/);
@@ -4063,7 +4078,7 @@ function renderProductDetail(p){
           </details>
         </div>
           <div id="liftMonoActionStatus" class="liftMonoActionStatus" aria-live="polite"></div>
-          ${!p.__private?`<a class="liftMonoPageLink" href="${liftExistingIndividualUrl(p)}" title="Abrir la ficha individual del producto">↗ Ver página individual del producto</a>`:''}
+          ${liftExistingIndividualUrl(p)?`<a class="liftMonoPageLink" href="${liftExistingIndividualUrl(p)}" title="Abrir la ficha individual del producto">↗ Ver página individual del producto</a>`:''}
           ${p.description?`<details class="liftMonoDescription" open><summary>Descripción</summary><div>${esc(p.description)}</div></details>`:''}
         </div>
         <div class="liftMonoVariantsBelow">
@@ -14282,6 +14297,19 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
   const timer=setInterval(function(){
    const product=(window.PRODUCTS||[]).find(p=>String(p.id)===String(ID));
    if(product&&typeof window.openLiftProductById==='function'){
+    // Esperar a que Supabase termine de cargar los grupos de sabores.
+    // No abrir prematuramente una ficha aislada si pertenece a un grupo.
+    const group=typeof window.liftGroupByProductId==='function'?window.liftGroupByProductId(ID):null;
+    const groupsReady=typeof window.liftGroupByProductId==='function';
+    if(!groupsReady&&tries<50)return;
+    if(group&&typeof window.liftGroupVariants==='function'){
+     const variants=window.liftGroupVariants(group)||[];
+     const selected=variants.find(v=>String(v.id)===String(ID)||String(v.producto_id)===String(ID)||String(v.productId)===String(ID));
+     if(selected){
+      window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
+      window.LIFT_SELECTED_GROUP_VARIANT[String(group.id)]=String(selected.id);
+     }
+    }
     window.openLiftProductById(ID);
     const panel=document.getElementById('liftMonoOff');
     if(panel){
@@ -14295,14 +14323,33 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
    }
    if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
   },200);
-  function goHome(){window.location.assign('https://supgo.co/');}
+  function goHome(type,value){
+   const u=new URL('https://supgo.co/');
+   if(type&&value)u.searchParams.set(type,String(value));
+   window.location.assign(u.toString());
+  }
+  function selectedFilter(el){
+   const button=el.closest('[onclick]');
+   const code=button?.getAttribute('onclick')||'';
+   const match=code.match(/(?:setBrand|setCat|selectLaboratoryVisual)\s*\(\s*(['"])(.*?)\1\s*\)/);
+   if(match)return {type:/setCat/.test(code)?'categoria':'marca',value:match[2]};
+   const label=button?.querySelector('span')?.textContent?.trim()||button?.textContent?.trim();
+   if(button?.classList.contains('filterItem')&&label)return {type:button.closest('#catList,#categoriesList')?'categoria':'marca',value:label};
+   return null;
+  }
   document.addEventListener('click',function(e){
    const el=e.target.closest('button,a,[role="button"],.brand,.filterItem,.labVisualCard,.labCard,.categoryCard');
    if(!el)return;
    const sidebar=el.closest('.sidebar');
    if(sidebar){
     if(el.closest('input,.searchInput')||el.matches('input'))return;
-    e.preventDefault();e.stopImmediatePropagation();goHome();return;
+    const selected=selectedFilter(el);
+    if(!selected)return;
+    e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;
+   }
+   if(el.closest('.labVisualCard,.categoryCard')&&!el.closest('.sidebar')){
+    const selected=selectedFilter(el);
+    if(selected){e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;}
    }
    if(el.closest('.top')){
     const cls=(el.className?.baseVal||el.className||'').toString();
