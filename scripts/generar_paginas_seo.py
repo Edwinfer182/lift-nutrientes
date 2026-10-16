@@ -92,6 +92,20 @@ body.liftIndividualPage .liftMonoBtns{position:relative!important;bottom:auto!im
 body.liftIndividualPage .sidebar{z-index:2!important}
 body.liftIndividualPage .sidebar .filterItem,body.liftIndividualPage .sidebar button{pointer-events:auto!important}
 body.liftIndividualPage .searchResults{z-index:1100!important}
+/* La ficha es una página, no un modal: sin botón de cerrar ni tirador superior. */
+body.liftIndividualPage #liftMonoClose,
+body.liftIndividualPage .liftMonoClose,
+body.liftIndividualPage #liftMonoOff .liftMonoClose,
+body.liftIndividualPage #liftMonoOff [aria-label="Cerrar"],
+body.liftIndividualPage #liftMonoOff .liftMonoHandle,
+body.liftIndividualPage #liftMonoOff .liftMonoDragHandle{display:none!important}
+body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visible!important;opacity:1!important}
+@media(max-width:760px){
+ body.liftIndividualPage .top .bar .cartDesktop{display:flex!important;visibility:visible!important;opacity:1!important;order:4!important;min-width:42px!important;min-height:40px!important;padding:0 10px!important}
+ body.liftIndividualPage .top .search{order:5!important;flex-basis:100%!important}
+ body.liftIndividualPage #liftMonoOff .liftMonoNav{z-index:2!important}
+}
+
 
 @media(max-width:760px){body.liftIndividualPage .layout{display:block!important}body.liftIndividualPage .sidebar{display:none!important}body.liftIndividualPage .content{padding:6px!important}body.liftIndividualPage .liftMonoBody{padding:12px!important}}
 </style>
@@ -114,6 +128,9 @@ body.liftIndividualPage .searchResults{z-index:1100!important}
      clearInterval(timer);main.appendChild(panel);panel.classList.add('open');
      document.querySelectorAll('#liftMonoBackdrop,.liftMonoOverlay,#liftMonoOverlay').forEach(el=>el.classList.remove('open','show'));
      document.body.style.overflow='';status.remove();
+     panel.querySelectorAll('#liftMonoClose,.liftMonoClose,.liftMonoHandle,.liftMonoDragHandle,[aria-label="Cerrar"]').forEach(x=>x.remove());
+     document.querySelectorAll('.top .cartDesktop').forEach(x=>{x.style.setProperty('display','flex','important');x.style.setProperty('visibility','visible','important');});
+     
     }
    }
    if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
