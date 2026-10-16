@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/workflows/generar-paginas-seo.yml'
+      - 'scripts/generar_paginas_seo.py'
   workflow_dispatch:
     inputs:
       marca:
