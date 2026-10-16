@@ -14498,24 +14498,32 @@ body.liftIndividualPage #liftIndividualStatus{padding:55px 15px;text-align:cente
 </style>
 <script id="lift-individual-template-v2">
 (function(){
- const qs=new URLSearchParams(location.search);
- const requested=(qs.get('slug')||qs.get('producto')||'').trim();
+ const params=new URLSearchParams(location.search);
+ const requested=(params.get('slug')||params.get('producto')||'').trim();
  if(!requested)return;
  document.body.classList.add('liftIndividualPage');
- const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
- const status=document.createElement('div');status.id='liftIndividualStatus';status.textContent='Cargando producto…';
- const content=document.querySelector('.content');if(content)content.prepend(status);
+ const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
  const slug=norm(requested.replace(/\.html$/i,''));
+ const content=document.querySelector('.content');
+ const status=document.createElement('div');
+ status.id='liftIndividualStatus';
+ status.textContent='Cargando producto…';
+ if(content)content.prepend(status);
  function match(p){
   const fields=[p?.seo?.slug,p?.slug,p?.seo_slug,p?.seoSlug,p?.url_slug];
-  if(fields.some(v=>v&&norm(v.replace(/\.html$/i,''))===slug))return true;
+  if(fields.some(v=>v&&norm(String(v).replace(/\.html$/i,''))===slug))return true;
   if(norm(p?.name||p?.nombre)===slug||String(p?.id)===requested)return true;
-  if(typeof window.liftPublicProductUrl==='function'){
-   try{const url=window.liftPublicProductUrl(p);if(url&&norm(url.split('/').pop().replace(/\.html$/i,''))===slug)return true}catch(e){}
+  for(const fn of ['liftPublicProductUrl','liftStaticProductUrl']){
+   if(typeof window[fn]==='function'){
+    try{const url=window[fn](p);if(url&&norm(new URL(url,location.origin).pathname.split('/').pop().replace(/\.html$/i,''))===slug)return true}catch(e){}
+   }
   }
-  return false;
+  // Compatibilidad con slugs antiguos que incluyen presentación y laboratorio.
+  const tokens=slug.split('-').filter(Boolean);
+  const hay=norm([p?.name,p?.brand,p?.presentation,p?.flavor].filter(Boolean).join(' ')).split('-');
+  return tokens.length>=3&&tokens.every(t=>hay.includes(t));
  }
- let tries=0;
+ let attempts=0;
  const timer=setInterval(()=>{
   const products=window.PRODUCTS||[];
   const p=products.find(match);
@@ -14523,14 +14531,21 @@ body.liftIndividualPage #liftIndividualStatus{padding:55px 15px;text-align:cente
    clearInterval(timer);
    window.openLiftProductById(p.id);
    const panel=document.getElementById('liftMonoOff');
-   if(panel)content.appendChild(panel);
+   if(!panel){status.textContent='No se pudo crear la ficha del producto.';return;}
+   content.appendChild(panel);
    document.body.style.overflow='';
    status.remove();
    document.title=(p.seo?.title||p.name||'Producto')+' | Lift Nutrientes';
-   const meta=document.querySelector('meta[name="description"]');if(meta)meta.content=p.seo?.meta||p.description||'Producto en Lift Nutrientes';
+   const meta=document.querySelector('meta[name="description"]');
+   if(meta)meta.content=p.seo?.meta||p.description||'Producto en Lift Nutrientes';
    return;
   }
-  if(++tries>=120){clearInterval(timer);status.textContent='No encontramos este producto. Revisa que el slug exista en Supabase.';}
+  if(++attempts>=80){
+   clearInterval(timer);
+   status.textContent=products.length
+    ? 'No se encontró el producto con el slug «'+requested+'». Comprueba el slug guardado en Supabase.'
+    : 'No se pudieron cargar los productos desde Supabase. Revisa la conexión del catálogo.';
+  }
  },250);
 })();
 </script>
