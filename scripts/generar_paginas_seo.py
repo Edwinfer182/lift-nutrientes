@@ -149,6 +149,8 @@ def build_direct(row, shared):
  head_meta=re.sub(r"<script type=\"application/ld\\+json\">",'<script type="application/ld+json">',head_meta)
  # Quitar metadatos sociales genéricos del catálogo para que el bot encuentre
  # una sola imagen, título y URL correspondientes al producto compartido.
+ # Remover titulo generico antes de colocar el titulo exclusivo del producto.
+ shared=re.sub(r'<title>.*?</title>', '', shared, count=1, flags=re.S|re.I)
  page=re.sub(r"""<meta\b(?=[^>]*(?:property|name)\s*=\s*["'](?:og:[^"']+|twitter:[^"']+|description)["'])[^>]*>""", "", shared, flags=re.I)
  page=re.sub(r"""<link\b(?=[^>]*rel\s*=\s*["']canonical["'])[^>]*>""", "", page, flags=re.I)
  # Evitar que instrucciones de administracion se indexen en fichas publicas.
