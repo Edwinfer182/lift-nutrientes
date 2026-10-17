@@ -165,7 +165,8 @@ def build_direct(row, shared):
  img=f'<img src="{esc(image)}" alt="{esc(name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
  static_section=f'<main id="liftSEOStatic" style="max-width:1000px;margin:24px auto;padding:20px;font:16px Arial,sans-serif"><p>{esc(brand)}</p><h1>{esc(name)}</h1>{img}<p>{esc(description or "Consulta presentaciones, precios y disponibilidad de este producto en Lift Nutrientes.")}</p><p><a href="{BASE}/?producto={urllib.parse.quote(pid)}">Consultar producto y agregar al carrito</a></p></main>'
  page=page.replace("<body>", "<body>"+static_section,1)
- # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.\n page=page.replace("<head>","<head>\\n"+head_meta+"\\n",1)
+ # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
+ page=page.replace("<head>","<head>\n"+head_meta+"\n",1)
  page=page.replace("</body>",'''
 <style id="lift-seo-direct-layout">
 body.liftIndividualPage .layout{align-items:start!important;min-height:0!important}
