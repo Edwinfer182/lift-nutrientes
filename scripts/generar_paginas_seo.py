@@ -151,6 +151,18 @@ def build_direct(row, shared):
  # una sola imagen, título y URL correspondientes al producto compartido.
  page=re.sub(r"""<meta\b(?=[^>]*(?:property|name)\s*=\s*["'](?:og:[^"']+|twitter:[^"']+|description)["'])[^>]*>""", "", shared, flags=re.I)
  page=re.sub(r"""<link\b(?=[^>]*rel\s*=\s*["']canonical["'])[^>]*>""", "", page, flags=re.I)
+ # Evitar que instrucciones de administracion se indexen en fichas publicas.
+ page=page.replace('Selecciona primero 2 o más productos en la pestaña <b>Productos</b>. Aquí se crea una sola ficha padre sin borrar los productos originales. Cada fila conserva su ID y puede tener su propia imagen.', 'Administración de variaciones')
+ p=row["product"]
+ brand=str(p.get("brand") or p.get("marca") or "")
+ description=str(p.get("description") or p.get("descripcion") or "").strip()
+ image=str((row.get("_seo") or {}).get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
+ if image.startswith("//"): image="https:"+image
+ elif image.startswith("/"): image=BASE+image
+ elif image and not image.startswith(("http://","https://")): image=""
+ img=f'<img src="{esc(image)}" alt="{esc(name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
+ static_section=f'<main id="liftSEOStatic" style="max-width:1000px;margin:24px auto;padding:20px;font:16px Arial,sans-serif"><p>{esc(brand)}</p><h1>{esc(name)}</h1>{img}<p>{esc(description or "Consulta presentaciones, precios y disponibilidad de este producto en Lift Nutrientes.")}</p><p><a href="{BASE}/?producto={urllib.parse.quote(pid)}">Consultar producto y agregar al carrito</a></p></main>'
+ page=page.replace("<body>", "<body>"+static_section,1)
  # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.\n page=page.replace("<head>","<head>\\n"+head_meta+"\\n",1)
  page=page.replace("</body>",'''
 <style id="lift-seo-direct-layout">
@@ -234,7 +246,7 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
     if(panel){
      clearInterval(timer);main.appendChild(panel);panel.classList.add('open');
      document.querySelectorAll('#liftMonoBackdrop,.liftMonoOverlay,#liftMonoOverlay').forEach(el=>el.classList.remove('open','show'));
-     document.body.style.overflow='';status.remove();
+     document.body.style.overflow='';status.remove();document.getElementById('liftSEOStatic')?.remove();
      panel.querySelectorAll('#liftMonoClose,.liftMonoClose,.liftMonoHandle,.liftMonoDragHandle,[aria-label="Cerrar"]').forEach(x=>x.remove());
      document.querySelectorAll('.top .cartDesktop').forEach(x=>{x.style.setProperty('display','flex','important');x.style.setProperty('visibility','visible','important');});
      
@@ -287,7 +299,7 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script></body>'''.replace('__LIFT_ID__',pid),1)
- page=re.sub(r'<title>.*?</title>', '',page,count=1,flags=re.S)
+ if page.lower().count('<title>') != 1: raise RuntimeError('SEO sin titulo unico: '+filename)
  return filename,page
 
 def shared_template():
@@ -305,7 +317,7 @@ def shared_template():
   (assets/name).write_text(body,encoding="utf-8")
   if kind=="css":return '<link rel="stylesheet" href="/productos-assets/'+name+'">'
   return '<script src="/productos-assets/'+name+'"></script>'
- return re.sub(r'(<script\\b[^>]*>|<style\\b[^>]*>)(.*?)(</script>|</style>)',externalize,source,flags=re.S|re.I)
+ return re.sub(r'(<script\b[^>]*>|<style\b[^>]*>)(.*?)(</script>|</style>)',externalize,source,flags=re.S|re.I)
 
 def main():
  rows=fetch()
