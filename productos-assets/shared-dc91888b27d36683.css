@@ -1,0 +1,31 @@
+
+/* Mejora de fichas: jerarquía, fotografía, acciones y espaciado */
+.grid .liftVitanessCard{border:1px solid #e9e9e9!important;border-radius:15px!important;overflow:hidden!important;box-shadow:0 2px 9px rgba(0,0,0,.025)!important;transition:transform .18s,box-shadow .18s!important}
+.grid .liftVitanessCard:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.09)!important}
+.grid .liftVitanessCard .pic{height:205px!important;padding:9px 12px 3px!important;background:#fff!important}
+.grid .liftVitanessCard .pic img[data-lift-card-main]{max-width:96%!important;max-height:96%!important;object-fit:contain!important}
+.grid .liftVitanessCard .body{padding:9px 12px 5px!important;min-height:unset!important;gap:4px!important}
+.grid .liftVitanessCard .liftCardSection{font-size:9px!important;letter-spacing:.035em!important;color:#858585!important;line-height:1.35!important}
+.grid .liftVitanessCard .name{font-size:13px!important;font-weight:500!important;line-height:1.35!important;min-height:0!important;max-height:54px!important}
+.grid .liftVitanessCard .liftCardPresentation{margin-top:0!important}
+.grid .liftVitanessCard .liftCardFlavor{font-size:10px!important;color:#555!important;margin-top:3px!important}
+.grid .liftVitanessCard .prices{margin:5px 0 0!important;padding:0!important}
+.grid .liftVitanessCard .priceBox .price{font-size:19px!important;font-weight:650!important;letter-spacing:-.02em!important}
+.grid .liftVitanessCard .cardQuickActions{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding:5px 12px 12px!important;margin-top:auto!important}
+.grid .liftVitanessCard .cardQuickBuyBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;flex:1 1 auto!important;width:auto!important;min-width:0!important;height:39px!important;min-height:39px!important;padding:0 9px!important;border-radius:10px!important;font-size:11px!important;font-weight:600!important}
+.grid .liftVitanessCard .cardQuickBuyBtn svg{flex:0 0 16px!important}
+.grid .liftVitanessCard .liftBuyLabel{display:inline!important;white-space:nowrap!important}
+.grid .liftVitanessCard .cardShareImageBtn{flex:0 0 39px!important;width:39px!important;height:39px!important;min-width:39px!important;min-height:39px!important;border-radius:10px!important}
+.grid .liftVitanessCard .liftCardFav{width:32px!important;height:32px!important;box-shadow:0 2px 8px rgba(0,0,0,.07)!important}
+@media(max-width:760px){
+.grid .liftVitanessCard{min-height:0!important;border-radius:13px!important}
+.grid .liftVitanessCard .pic{height:166px!important;padding:7px 8px 2px!important}
+.grid .liftVitanessCard .pic img[data-lift-card-main]{max-width:97%!important;max-height:97%!important}
+.grid .liftVitanessCard .body{padding:7px 9px 3px!important;min-height:0!important;gap:3px!important}
+.grid .liftVitanessCard .name{font-size:12px!important;font-weight:500!important;max-height:50px!important}
+.grid .liftVitanessCard .priceBox .price{font-size:17px!important}
+.grid .liftVitanessCard .cardQuickActions{padding:6px 9px 10px!important;gap:5px!important}
+.grid .liftVitanessCard .cardQuickBuyBtn{height:36px!important;min-height:36px!important;padding:0 5px!important;gap:4px!important;font-size:10px!important}
+.grid .liftVitanessCard .cardShareImageBtn{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}
+}
+@media(max-width:390px){.grid .liftVitanessCard .pic{height:150px!important}.grid .liftVitanessCard .cardQuickBuyBtn{font-size:9px!important}}

@@ -1,0 +1,7 @@
+
+/* Tarjeta: precio limpio, sin etiqueta ni contenedor gris */
+.grid .liftVitanessCard .prices{display:block!important;margin-top:auto!important;}
+.grid .liftVitanessCard .priceBox{background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important;}
+.grid .liftVitanessCard .priceBox small{display:none!important;}
+.grid .liftVitanessCard .priceBox .price{display:block!important;margin:0!important;background:transparent!important;padding:0!important;}
+.grid .liftVitanessCard .priceBox .offerPrices{margin:0!important;}

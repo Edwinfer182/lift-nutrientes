@@ -1,0 +1,15 @@
+
+#liftCalcToggle{display:none;position:fixed;right:18px;bottom:84px;z-index:1100;background:#111;color:#fff;border:1px solid #333;border-radius:999px;padding:12px 17px;box-shadow:0 8px 26px #0003;font:600 13px Poppins,sans-serif;cursor:pointer}
+body.liftAdminUnlocked #liftCalcToggle{display:block}
+#liftCalcPanel{display:none;position:fixed;right:18px;bottom:142px;z-index:1101;width:min(340px,calc(100vw - 30px));background:#fff;border:1px solid #ddd;border-radius:18px;padding:15px;box-shadow:0 18px 55px #0004;font-family:Poppins,sans-serif;color:#111}
+body.liftAdminUnlocked #liftCalcPanel.liftCalcOpen{display:block}
+#liftCalcPanel .lcHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:600;font-size:14px}
+#liftCalcPanel .lcClose{border:0;background:#f2f2f2;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:19px}
+#liftCalcDisplay{width:100%;border:1px solid #ddd;background:#fafafa;border-radius:10px;height:54px;text-align:right;padding:0 12px;font:600 24px Poppins,sans-serif;color:#111}
+#liftCalcPanel .lcKeys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}
+#liftCalcPanel .lcKeys button{height:45px;border:1px solid #e5e5e5;border-radius:10px;background:#f8f8f8;color:#111;font:500 16px Poppins,sans-serif;cursor:pointer}
+#liftCalcPanel .lcKeys button[data-calc="="]{background:#111;color:#fff}
+#liftCalcPanel .lcKeys button[data-calc="C"]{background:#eee}
+#liftCalcCopy{margin-top:10px;width:100%;height:42px;border:0;border-radius:10px;background:#111;color:#fff;font:500 13px Poppins,sans-serif;cursor:pointer}
+#liftCalcFeedback{min-height:18px;font-size:11px;color:#555;margin-top:6px;text-align:center}
+@media(max-width:600px){#liftCalcToggle{right:12px;bottom:75px}#liftCalcPanel{right:10px;bottom:128px}}

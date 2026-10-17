@@ -1,0 +1,4 @@
+
+/* Los controles de disponibilidad son exclusivamente administrativos. */
+body:not(.liftAdminUnlocked) #checkoutModal .liftAvailabilityAdmin{display:none!important;}
+body.liftAdminUnlocked #checkoutModal .liftAvailabilityAdmin{display:grid!important;}

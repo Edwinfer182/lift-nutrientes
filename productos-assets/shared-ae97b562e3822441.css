@@ -1,0 +1,29 @@
+
+.lift-footer{background:#080808;color:#fff;margin-top:44px;border-top:1px solid #202020;font-family:inherit}
+.lift-footer-inner{max-width:1500px;margin:auto;padding:38px 28px 20px}
+.lift-footer-brand{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:24px}
+.lift-footer-name{font-size:22px;font-weight:800;letter-spacing:.04em}
+.lift-footer-brand p{margin:0;color:#aaa;font-size:14px}
+.lift-footer-links{display:flex;gap:8px 22px;flex-wrap:wrap;padding:20px 0;border-top:1px solid #202020;border-bottom:1px solid #202020}
+.lift-footer-links button{appearance:none;border:0;background:none;color:#c9c9c9;font:inherit;font-size:14px;cursor:pointer;padding:7px 0}
+.lift-footer-links button:hover{color:#fff}
+.lift-footer-bottom{display:flex;justify-content:space-between;gap:16px;color:#777;font-size:12px;padding-top:18px}
+.lift-legal-modal{position:fixed;inset:0;z-index:100000;display:none}
+.lift-legal-modal.is-open{display:block}
+.lift-legal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(3px)}
+.lift-legal-panel{position:absolute;right:0;top:0;height:100%;width:min(560px,92vw);background:#fff;color:#151515;padding:38px 34px;overflow:auto;box-shadow:-20px 0 60px rgba(0,0,0,.18)}
+.lift-legal-panel h2{font-size:27px;margin:8px 42px 24px 0}
+.lift-legal-panel h3{font-size:16px;margin:25px 0 8px}
+.lift-legal-panel p,.lift-legal-panel li{font-size:14px;line-height:1.65;color:#555}
+.lift-legal-panel ul{padding-left:20px}
+.lift-legal-close{position:absolute;right:18px;top:16px;width:42px;height:42px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:26px;cursor:pointer}
+@media(max-width:700px){
+ .lift-footer{margin-top:28px}
+ .lift-footer-inner{padding:30px 18px 18px}
+ .lift-footer-brand{display:block}
+ .lift-footer-name{font-size:20px;margin-bottom:8px}
+ .lift-footer-links{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+ .lift-footer-links button{text-align:left;border-bottom:1px solid #181818;padding:13px 0;font-size:13px}
+ .lift-footer-bottom{display:block;line-height:1.8}
+ .lift-legal-panel{width:100%;padding:32px 22px}
+}

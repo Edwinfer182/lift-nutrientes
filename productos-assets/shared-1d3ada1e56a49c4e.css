@@ -1,0 +1,8 @@
+
+.liftCardAdminIcons{display:none;align-items:center;gap:6px;margin-left:2px}
+body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
+.liftCardAdminIcon{width:36px;height:36px;border:1px solid #d6d6d6;border-radius:999px;background:#fff;color:#111;display:grid;place-items:center;padding:0;cursor:pointer;font-size:17px;line-height:1;transition:.15s ease}
+.liftCardAdminIcon:hover{background:#111;color:#fff;border-color:#111;transform:translateY(-1px)}
+.liftCardAdminIcon.duplicate:hover{background:#111;border-color:#111;color:#fff}
+.liftCardAdminIcon.delete:hover{background:#b42318;border-color:#b42318;color:#fff}
+@media(max-width:760px){.liftCardAdminIcon{width:34px;height:34px;font-size:16px}.cardQuickActions{gap:5px!important;flex-wrap:wrap}}

@@ -1,0 +1,64 @@
+
+/* Ajuste final: imagen mayor y bloque comercial más corto */
+.grid .card,.grid .liftVitanessCard{
+  min-height:272px!important;
+}
+.grid .card .pic,.grid .liftVitanessCard .pic{
+  height:162px!important;
+  padding:5px 8px 2px!important;
+}
+.grid .card .pic img,.grid .liftVitanessCard .pic img{
+  max-width:96%!important;
+  max-height:98%!important;
+}
+.grid .card .body,.grid .liftVitanessCard .body{
+  min-height:104px!important;
+  padding:5px 12px 9px!important;
+  gap:2px!important;
+}
+.grid .card .name,.grid .liftVitanessCard .name{
+  min-height:36px!important;
+  max-height:38px!important;
+  margin:0!important;
+}
+.grid .card .productBottom{
+  margin-top:3px!important;
+  padding-top:0!important;
+}
+.grid .liftVitanessCard .prices{
+  margin-top:3px!important;
+  padding-top:0!important;
+}
+.grid .liftVitanessCard .cardQuickActions{
+  margin-top:3px!important;
+}
+.grid .card .price,.grid .liftVitanessCard .priceBox .price{
+  margin-top:0!important;
+}
+
+/* Si la estructura separa precio y acciones, reduce el hueco reservado */
+.grid .liftVitanessCard .body > :empty{display:none!important}
+
+@media(max-width:760px){
+  .grid .card,.grid .liftVitanessCard{min-height:242px!important}
+  .grid .card .pic,.grid .liftVitanessCard .pic{
+    height:132px!important;
+    padding:4px 5px 1px!important;
+  }
+  .grid .card .pic img,.grid .liftVitanessCard .pic img{
+    max-width:97%!important;
+    max-height:99%!important;
+  }
+  .grid .card .body,.grid .liftVitanessCard .body{
+    min-height:104px!important;
+    padding:5px 9px 8px!important;
+  }
+  .grid .card .productBottom,
+  .grid .liftVitanessCard .prices{margin-top:2px!important;padding-top:0!important}
+  .grid .liftVitanessCard .cardQuickActions{margin-top:2px!important}
+}
+@media(max-width:390px){
+  .grid .card,.grid .liftVitanessCard{min-height:232px!important}
+  .grid .card .pic,.grid .liftVitanessCard .pic{height:124px!important}
+  .grid .card .body,.grid .liftVitanessCard .body{min-height:102px!important}
+}

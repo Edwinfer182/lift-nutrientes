@@ -1,0 +1,9 @@
+
+#checkoutModal .liftCouponToggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;background:transparent;padding:0;color:#222;font:inherit;text-align:left;cursor:pointer;margin:0}
+#checkoutModal .liftCouponChevron{font-size:17px;line-height:1;transition:transform .18s ease;color:#777}
+#checkoutModal .liftCouponContent{display:none;padding-top:9px}
+#checkoutModal .couponBox:not(.liftCouponCollapsed) .liftCouponContent{display:block}
+#checkoutModal .couponBox:not(.liftCouponCollapsed) .liftCouponChevron{transform:rotate(180deg)}
+#checkoutModal .couponBox.liftCouponCollapsed{padding-top:10px;padding-bottom:10px}
+/* En público ocultamos solo el botón Quitar; en administrador permanece visible. */
+body:not(.liftAdminUnlocked) #checkoutModal .liftCheckoutItemBtn.remove{display:none!important}

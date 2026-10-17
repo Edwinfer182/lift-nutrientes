@@ -1,0 +1,6 @@
+
+/* El checkout confirma cantidades sin controles +/-; la edición se hace en el carrito. */
+#checkoutModal .liftCheckoutQtyCtl{display:none!important}
+#checkoutModal .liftCheckoutQtyReadOnly{display:inline-flex;align-items:center;gap:5px;color:#414852;font-size:11px;font-weight:500;line-height:1.4}
+#checkoutModal .liftCheckoutQtyReadOnly strong{color:#111827;font-weight:700;font-size:12px}
+#checkoutModal .liftCheckoutItemTools{align-items:center;gap:12px!important}

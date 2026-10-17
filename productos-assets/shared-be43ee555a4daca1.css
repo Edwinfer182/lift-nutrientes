@@ -1,0 +1,17 @@
+
+.liftPayMethods .liftPayMethodRow{display:flex;align-items:center;gap:12px;text-align:left}
+.liftPayMethods .liftPayMethodCopy{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.liftPayMethods .liftPayMethodCopy strong{display:block;font-size:13px;line-height:1.4}
+.liftPayMethods .liftPayMethodCopy small{display:block;font-size:11px;line-height:1.4;color:#777}
+.liftPayMethods .liftPayBoldIcon img{width:32px;height:32px;object-fit:contain;border-radius:50%}
+.liftDirectPayBox{margin-top:12px;padding:16px;border:1px solid #e3e3e3;border-radius:14px;background:#fff;font-family:Poppins,Arial,sans-serif}
+.liftDirectPayTitle{font-size:13px;font-weight:600}
+.liftDirectPayBox p{font-size:11px;line-height:1.6;color:#555;margin:8px 0 15px}
+.liftDirectPayKey{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px;border:1px solid #e8e8e8;border-radius:10px}
+.liftDirectPayKey span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.liftDirectPayKey small{font-size:10px;color:#777}
+.liftDirectPayKey strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.liftDirectPayKey button{border:0;background:#111;color:white;border-radius:8px;padding:10px 13px;cursor:pointer;white-space:nowrap;font:500 11px Poppins,Arial}
+.liftDirectPayWhatsapp{display:flex;align-items:center;justify-content:center;text-align:center;margin-top:12px;min-height:44px;border-radius:10px;background:#111;color:#fff!important;text-decoration:none!important;padding:10px;font-size:11px;font-weight:600}
+.liftDirectPayNotice{display:block;font-size:10px;line-height:1.5;color:#777;margin-top:12px}
+@media(max-width:480px){.liftPayMethods .liftPayMethodCopy strong{font-size:12px}.liftDirectPayBox{padding:12px}}

@@ -1,0 +1,52 @@
+
+/* Mi pedido: misma estética limpia del modal actual, pero con el flujo como protagonista */
+.liftOrderRef{padding:15px 16px!important;border-radius:13px!important;margin-bottom:12px!important}
+.liftOrderRef small{font-size:8px!important;letter-spacing:.08em!important}
+.liftOrderRef b{font-size:24px!important;letter-spacing:0!important}
+
+.liftJourney{margin:14px 0 12px!important;padding:0 2px}
+.liftJourneyLine{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:0!important}
+.liftJourneyStep{min-width:0!important}
+.liftJourneyStep:before{top:14px!important;height:3px!important;background:#e5e5e5!important}
+.liftJourneyStep.done:before,.liftJourneyStep.current:before{background:#16a34a!important}
+.liftJourneyDot{
+ width:29px!important;height:29px!important;
+ border:2px solid #dedede!important;background:#f0f0f0!important;color:#9b9b9b!important;
+ font-size:12px!important;margin-bottom:7px!important
+}
+.liftJourneyStep.done .liftJourneyDot{
+ background:#16a34a!important;border-color:#16a34a!important;color:#fff!important;
+}
+.liftJourneyStep.current .liftJourneyDot{
+ background:#16a34a!important;border:5px solid #d8f3e1!important;color:#fff!important;
+ box-shadow:0 0 0 2px #16a34a!important;
+}
+.liftJourneyLabel{font-size:9px!important;font-weight:500!important;color:#aaa!important;white-space:normal!important}
+.liftJourneyStep.done .liftJourneyLabel,.liftJourneyStep.current .liftJourneyLabel{color:#111!important;font-weight:650!important}
+
+.liftJourneyHelp{
+ margin-top:13px!important;padding:12px 13px!important;border-radius:12px!important;
+ background:#fff!important;border:1px solid #e3e3e3!important
+}
+.liftJourneyHelp b{display:block;font-size:11px!important;color:#111!important}
+.liftJourneyHelp p{font-size:10px!important;color:#666!important;margin-top:4px!important}
+
+.liftNextCard{
+ background:#f3faf5!important;border:1px solid #cfe7d6!important;
+ padding:15px!important;border-radius:14px!important;margin:12px 0!important
+}
+.liftNextEyebrow{font-size:9px!important;color:#168451!important}
+.liftNextTitle{font-size:16px!important;line-height:1.25!important;margin-top:5px!important}
+.liftNextText{font-size:11px!important;line-height:1.55!important;color:#4d5a50!important}
+
+.liftCompactPurchase{padding:12px 14px!important;background:#fff!important}
+.liftCompactPurchaseHead b{font-size:10px!important}
+.liftCompactPurchaseHead strong{font-size:16px!important}
+.liftCompactItems{font-size:10px!important}
+
+@media(max-width:600px){
+ .liftJourney{overflow-x:auto!important;padding:2px 0 5px!important}
+ .liftJourneyLine{min-width:520px!important}
+ .liftJourneyDot{width:30px!important;height:30px!important}
+ .liftJourneyLabel{font-size:9px!important}
+}

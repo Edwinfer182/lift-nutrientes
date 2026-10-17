@@ -1,0 +1,64 @@
+
+/* Checkout responsive basado en la maqueta del usuario: PC 2 columnas, tablet/móvil 1 */
+#checkoutModal .checkoutCard{width:min(97vw,1220px)}
+#checkoutModal .checkoutBody{padding:18px 20px 22px}
+#checkoutModal .liftCustomerCheckoutGrid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(440px,.94fr);gap:22px;align-items:start}
+#checkoutModal .liftCustomerLeft,#checkoutModal .liftCustomerRight{min-width:0}
+#checkoutModal .liftCustomerLeft{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;align-items:start}
+#checkoutModal .liftCustomerLeft>.field{min-width:0}
+#checkoutModal .liftCustomerLeft>.liftFull{grid-column:1/-1}
+#checkoutModal .liftCustomerLeft .field input{width:100%;box-sizing:border-box}
+#checkoutModal .liftCustomerLeft textarea{width:100%;box-sizing:border-box;min-height:88px}
+#checkoutModal .liftCustomerLeft .liftWhatsappField{display:flex}
+#checkoutModal .liftCustomerLeft .liftEmailField{grid-column:1/-1}
+#checkoutModal .liftCustomerLeft .liftNotifyMoved{align-self:end;margin:0}
+#checkoutModal .liftCustomerLeft .liftNotesMoved{grid-column:1/-1;grid-row:auto}
+#checkoutModal .liftCustomerLeft .liftCityMoved{grid-column:1/-1}
+#checkoutModal .liftCustomerLeft .liftAddressMoved{grid-column:1/-1}
+#checkoutModal .liftCustomerLeft .liftRememberMoved{grid-column:1/-1;margin-top:0;border:1px solid #e3e3e3;border-radius:11px;background:#fafafa}
+#checkoutModal .liftCustomerLeft .liftRememberMoved .liftPrefRow{padding:11px 12px}
+#checkoutModal .liftCustomerLeft .liftRememberHello{grid-column:1/-1;padding:0 12px 6px 40px}
+#checkoutModal .liftCustomerLeft .liftForgetData{grid-column:1/-1;margin-left:40px}
+#checkoutModal .liftCustomerRight{display:flex;flex-direction:column;gap:10px}
+#checkoutModal .liftCustomerRight .couponBox{margin:0}
+#checkoutModal .liftCustomerRight .checkoutFlavorNote{margin:0!important;border:0!important;background:transparent!important;padding:0 2px!important;color:#999}
+#checkoutModal .liftCustomerRight .liftCheckoutSummaryCard{margin:0}
+#checkoutModal .liftCustomerRight .liftCheckoutPrefs{margin:0}
+#checkoutModal .liftCustomerRight .liftCheckoutActionArea{margin-top:0}
+#checkoutModal .liftCustomerRight .checkoutSend{height:48px;border-radius:10px}
+#checkoutModal .liftCustomerRight .liftCheckoutTrust{padding-bottom:0}
+#checkoutModal .liftCheckoutSteps,#checkoutModal .liftCheckoutSectionTitle{display:none}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutSummary{border-top:0;padding-top:0}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProduct{grid-template-columns:52px minmax(0,1fr) auto;padding:8px 10px;gap:9px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductImg{width:52px;height:52px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductName{font-size:11px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductBrand{font-size:9px}
+#checkoutModal .liftCustomerCheckoutGrid .checkoutProductPrice{font-size:11px}
+#checkoutModal .liftCustomerCheckoutGrid .liftPrefRow{padding:9px 10px}
+#checkoutModal .liftCustomerCheckoutGrid .liftPrefRow b{font-size:10px}
+#checkoutModal .liftCustomerCheckoutGrid .liftPrefRow small{font-size:8.5px}
+#checkoutModal .liftCustomerCheckoutGrid .field label{font-size:11px}
+#checkoutModal .liftCustomerCheckoutGrid .field input{height:43px}
+/* Herramientas administrativas siguen a ancho completo, fuera del layout del cliente */
+#checkoutModal #liftAdminPriceMode,#checkoutModal #liftRecurringClientBox,#checkoutModal #liftManualProductBox{margin-bottom:12px}
+@media(max-width:1024px){
+  #checkoutModal .checkoutCard{width:min(96vw,760px)}
+  #checkoutModal .liftCustomerCheckoutGrid{grid-template-columns:1fr;gap:14px}
+  #checkoutModal .liftCustomerLeft{grid-template-columns:1fr}
+  #checkoutModal .liftCustomerLeft>*{grid-column:1!important;grid-row:auto!important}
+  #checkoutModal .liftCustomerLeft .liftWhatsappField{display:flex}
+  #checkoutModal .liftCustomerRight{gap:10px}
+  #checkoutModal .liftCustomerRight .couponBox{margin-top:2px}
+}
+@media(max-width:600px){
+  #checkoutModal{padding:0}
+  #checkoutModal .checkoutCard{width:100vw;max-height:100dvh;height:100dvh;border-radius:0}
+  #checkoutModal .checkoutHead{padding:14px 16px}
+  #checkoutModal .checkoutBody{padding:13px 14px 20px}
+  #checkoutModal .liftCustomerCheckoutGrid{gap:12px}
+  #checkoutModal .liftCustomerLeft{gap:9px}
+  #checkoutModal .liftCustomerCheckoutGrid .field input{height:44px}
+  #checkoutModal .liftCustomerCheckoutGrid .checkoutProduct{grid-template-columns:50px minmax(0,1fr) auto}
+  #checkoutModal .liftCustomerCheckoutGrid .checkoutProductImg{width:50px;height:50px}
+  #checkoutModal .liftCustomerRight .checkoutSend{position:sticky;bottom:8px;z-index:3;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+}

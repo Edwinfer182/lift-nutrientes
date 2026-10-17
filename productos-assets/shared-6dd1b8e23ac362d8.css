@@ -1,0 +1,7 @@
+
+.liftMonoQuantity{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 8px;font-size:13px;font-weight:500;color:#222}
+.liftMonoQtyControls{display:flex;align-items:center;overflow:hidden;border:1px solid #dedede;border-radius:12px;background:#fff;height:43px}
+.liftMonoQtyControls button{appearance:none;border:0;background:#f8f8f8;color:#111;width:44px;height:43px;font-size:23px;font-weight:400;cursor:pointer;touch-action:manipulation}
+.liftMonoQtyControls button:active{background:#eaeaea}
+.liftMonoQtyControls output{display:grid;place-items:center;min-width:48px;height:43px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+@media(max-width:760px){.liftMonoQuantity{margin:10px 0 8px}.liftMonoQtyControls button{width:46px}}

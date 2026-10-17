@@ -1,0 +1,30 @@
+
+/* Estado del pedido: verde = actual/completado, gris = futuro */
+.liftJourneyStep.done .liftJourneyDot,
+.liftJourneyStep.current .liftJourneyDot{
+ background:#16a34a!important;
+ border-color:#16a34a!important;
+ color:#fff!important;
+}
+.liftJourneyStep.current .liftJourneyDot{
+ box-shadow:0 0 0 4px #dcfce7!important;
+}
+.liftJourneyStep.done:before,
+.liftJourneyStep.current:before{background:#16a34a!important}
+
+.liftNextCard{
+ background:#f0fdf4!important;
+ border:1px solid #bbf7d0!important;
+ box-shadow:none!important;
+}
+.liftNextEyebrow{color:#15803d!important}
+.liftNextTitle{color:#111!important}
+.liftNextText{color:#4b5563!important}
+.liftNextFlow{
+ margin-top:10px;padding-top:10px;border-top:1px solid #d7efdd;
+ display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center
+}
+.liftNextFlow>div{font-size:9px;line-height:1.35}
+.liftNextFlow small{display:block;color:#7a7a7a;font-size:8px;margin-bottom:2px}
+.liftNextFlow b{font-size:10px;color:#111}
+.liftNextArrow{color:#16a34a;font-size:18px;font-weight:700}

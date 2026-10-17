@@ -1,0 +1,15 @@
+
+#liftTrackModal .liftOrderCard{position:relative;padding-top:42px!important}
+#liftTrackModal .liftTrackX{position:absolute;right:13px;top:10px;z-index:15;width:34px;height:34px;border:1px solid #ddd;border-radius:50%;background:#fff;color:#111;font-size:25px;line-height:1;cursor:pointer;display:grid;place-items:center}
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px 14px!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{display:flex!important;align-items:baseline!important;gap:5px!important;min-width:0!important;line-height:1.25!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{flex:0 0 auto!important;width:auto!important;color:#333!important;font-weight:500!important;font-size:11px!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{min-width:0!important;overflow-wrap:anywhere!important;color:#111!important;font-size:11px!important}
+#liftTrackResult .liftPaymentTop{margin:9px 0 12px}
+#liftTrackResult .liftPaymentTop .liftPayMethodRow{min-height:46px!important;padding:7px 10px!important;gap:9px!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodsLabel{margin:5px 0!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodCopy small{font-size:9px!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodCopy strong{font-size:11px!important}
+#liftTrackResult .liftPaymentTop .liftPayMethodIcon{width:30px!important;height:30px!important}
+/* Barra de avance visible: se conservan los puntos y estados del pedido. */
+@media(max-width:430px){#liftTrackResult .liftReportOrder .liftTrackCustomer{column-gap:9px!important}#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:10px!important}}

@@ -1,0 +1,19 @@
+
+@media(min-width:761px){
+ #liftMonoOff .liftMonoInfo>.liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-column:auto!important;grid-row:auto!important;width:100%!important;margin:13px 0 8px!important;padding:0!important;border-top:0!important;border-bottom:1px solid #eaeaea!important;gap:0!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion details{border-right:0!important;min-width:0!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion summary{padding:8px 4px!important;gap:4px!important;min-height:76px!important;align-items:flex-start!important;flex-wrap:wrap!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion .liftServiceIcon{display:none!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion summary b{font-size:9px!important;overflow-wrap:anywhere}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion summary small{font-size:8px!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion .liftServiceChevron{font-size:12px!important}
+ #liftMonoOff .liftMonoInfo>.liftDeliveryAccordion .liftDeliveryContent{font-size:10px!important;padding:4px 5px 10px!important;overflow-wrap:anywhere}
+}
+@media(max-width:760px){
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:1fr!important;grid-column:1/-1!important;grid-row:auto!important;order:999!important;width:100%!important;margin-top:16px!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion summary{min-height:56px!important;padding:10px!important;flex-wrap:nowrap!important;align-items:center!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion summary b{font-size:11px!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion summary small{font-size:9px!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion .liftServiceIcon{display:grid!important}
+ #liftMonoOff .liftMonoBody>.liftMonoServiceWide.liftDeliveryAccordion .liftDeliveryContent{font-size:11px!important;padding:0 12px 12px 42px!important}
+}

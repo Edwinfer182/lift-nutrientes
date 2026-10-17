@@ -1,0 +1,10 @@
+
+.liftTokenAccess{margin-top:12px;padding:13px;border:1px solid #dedede;border-radius:13px;background:#fafafa}
+.liftTokenAccessHead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.liftTokenAccessHead small{display:block;font-size:9px;letter-spacing:.08em;color:#777;margin-bottom:4px}
+.liftTokenAccessHead b{display:block;font:500 11px/1.45 Poppins,Arial;word-break:break-all;color:#111}
+.liftTokenAccessHead button,.liftTokenLink button{border:1px solid #d5d5d5;background:#fff;color:#111;border-radius:9px;min-height:36px;padding:0 11px;font:500 10px Poppins,Arial;cursor:pointer}
+.liftTokenAccess p{font-size:10px;line-height:1.45;color:#666;margin:9px 0}
+.liftTokenLink{display:flex;gap:7px;flex-wrap:wrap}
+.liftTokenLink button:first-child{background:#111;color:#fff;border-color:#111}
+@media(max-width:560px){.liftTokenAccessHead{align-items:flex-start;flex-direction:column}.liftTokenAccessHead button{width:100%}.liftTokenLink{display:grid;grid-template-columns:1fr}.liftTokenLink button{width:100%}}

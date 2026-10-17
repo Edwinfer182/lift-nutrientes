@@ -1,0 +1,106 @@
+
+/* Categorías: lectura rápida, sin convertir cada fila en otra tarjeta */
+.liftCategorySearchWrap{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:#fff;
+  padding:2px 0 8px;
+}
+.liftCategorySearch{
+  width:100%;
+  height:39px;
+  border:1px solid #dedede;
+  border-radius:11px;
+  padding:0 11px 0 34px;
+  outline:none;
+  background-color:#f7f7f7;
+  font:300 11px Poppins,Arial,sans-serif;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:11px center;
+}
+.liftCategorySearch:focus{background-color:#fff;border-color:#999}
+
+/* Sólo afecta las filas del panel público de categorías */
+.filterPanel .liftCatAdminRow{
+  position:relative;
+  margin:0!important;
+  padding:0!important;
+  border-bottom:1px solid #f1f1f1;
+}
+.filterPanel .liftCatAdminRow > .filterItem{
+  position:relative;
+  width:100%!important;
+  min-height:39px!important;
+  margin:0!important;
+  padding:0 8px 0 10px!important;
+  border:0!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  color:#222!important;
+  text-align:left!important;
+  font-size:12px!important;
+  font-weight:300!important;
+  transition:background .12s ease,color .12s ease!important;
+}
+.filterPanel .liftCatAdminRow > .filterItem:hover{
+  background:#f8f8f8!important;
+}
+.filterPanel .liftCatAdminRow > .filterItem span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.filterPanel .liftCatAdminRow > .filterItem small{
+  flex:0 0 auto;
+  min-width:26px;
+  height:20px;
+  padding:0 6px;
+  border-radius:999px;
+  background:#f2f2f2;
+  color:#888;
+  display:grid;
+  place-items:center;
+  font-size:9px!important;
+  font-weight:400!important;
+}
+/* Selección: fondo suave + barra negra, no bloque negro gigante */
+.filterPanel .liftCatAdminRow > .filterItem.on{
+  background:#f4f4f4!important;
+  color:#111!important;
+  font-weight:500!important;
+  padding-left:14px!important;
+}
+.filterPanel .liftCatAdminRow > .filterItem.on::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:7px;
+  bottom:7px;
+  width:3px;
+  border-radius:4px;
+  background:#111;
+}
+.filterPanel .liftCatAdminRow > .filterItem.on small{
+  background:#111;
+  color:#fff;
+}
+.liftCategoryEmpty{
+  padding:22px 8px;
+  color:#888;
+  text-align:center;
+  font-size:11px;
+}
+@media(max-width:760px){
+  .filterPanel .liftCatAdminRow > .filterItem{
+    min-height:38px!important;
+    font-size:11.5px!important;
+  }
+}

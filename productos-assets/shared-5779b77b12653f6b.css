@@ -1,0 +1,19 @@
+
+.labVisualCard{position:relative}
+.labAdminActions{display:none;position:absolute;right:5px;top:5px;gap:4px;z-index:6}
+body.liftAdminUnlocked .labAdminActions{display:flex}
+.labAdminBtn{width:25px;height:25px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111;display:grid;place-items:center;cursor:pointer;font:600 11px Arial;box-shadow:0 2px 7px rgba(0,0,0,.08)}
+.labAdminBtn:hover{background:#111;color:#fff;border-color:#111}
+.labAdminNew{display:none;width:100%;min-height:38px;border:1px dashed #aaa;border-radius:11px;background:#fff;color:#111;font:600 11px Poppins,Arial;cursor:pointer;margin:0 0 9px}
+body.liftAdminUnlocked .labAdminNew{display:block}
+.labAdminModal{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.52);display:none;place-items:center;padding:18px}
+.labAdminModal.open{display:grid}
+.labAdminCard{width:min(94vw,520px);background:#fff;border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.labAdminCard h3{margin:0 0 14px;font-size:20px}
+.labAdminCard label{display:grid;gap:5px;font-size:11px;color:#555;margin:10px 0}
+.labAdminCard input{height:43px;border:1px solid #d7d7d7;border-radius:10px;padding:0 11px;font:inherit}
+.labAdminPreview{height:100px;border:1px solid #eee;border-radius:12px;display:grid;place-items:center;margin:10px 0;background:#fafafa}
+.labAdminPreview img{max-width:90%;max-height:85%;object-fit:contain}
+.labAdminModalActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.labAdminModalActions button{height:43px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer}
+.labAdminModalActions .primary{background:#111;color:#fff;border-color:#111}

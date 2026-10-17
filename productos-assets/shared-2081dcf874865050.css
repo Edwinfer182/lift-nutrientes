@@ -1,0 +1,9 @@
+
+/* Cantidad compacta a la izquierda del botón Agregar, escritorio y móvil. */
+#liftMonoOff .liftMonoBtns.liftMonoAddRow{display:grid!important;grid-template-columns:112px minmax(0,1fr)!important;gap:9px!important;align-items:stretch!important;width:100%!important}
+#liftMonoOff .liftMonoAddRow .liftMonoQuantity{display:block!important;margin:0!important;min-width:0!important}
+#liftMonoOff .liftMonoAddRow .liftMonoQtyControls{display:grid!important;grid-template-columns:32px 1fr 32px;align-items:center;height:48px!important;width:100%;border-radius:12px!important}
+#liftMonoOff .liftMonoAddRow .liftMonoQtyControls button{width:32px!important;min-width:0!important;height:46px!important;min-height:0!important;padding:0!important;font-size:20px!important;border:0!important;border-radius:0!important;background:#f7f7f7!important;color:#111!important}
+#liftMonoOff .liftMonoAddRow .liftMonoQtyControls output{min-width:0!important;height:auto!important;font-size:13px!important}
+#liftMonoOff .liftMonoAddRow #liftMonoAdd{width:100%!important;min-width:0!important;min-height:48px!important;height:48px!important;margin:0!important;font-size:12px!important}
+@media(max-width:760px){#liftMonoOff .liftMonoBtns.liftMonoAddRow{grid-template-columns:106px minmax(0,1fr)!important;gap:7px!important}#liftMonoOff .liftMonoAddRow .liftMonoQtyControls{grid-template-columns:30px 1fr 30px;height:44px!important}#liftMonoOff .liftMonoAddRow .liftMonoQtyControls button{width:30px!important;height:42px!important}#liftMonoOff .liftMonoAddRow #liftMonoAdd{height:44px!important;min-height:44px!important}}

@@ -1,0 +1,5 @@
+
+.card .offerPrices .price.promoPrice,.card .promoPrice{color:#168451!important;}
+.card .saleBadge{background:#168451!important;color:#fff!important;border-color:#168451!important;}
+.card .flavorNote b{color:#168451!important;}
+.card .oldPrice{color:#858585!important;text-decoration:line-through!important;text-decoration-color:#777!important;opacity:1!important;}

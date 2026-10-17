@@ -1,0 +1,6 @@
+
+.liftMonoBrandCategory .liftDetailFilter{appearance:none;border:0;background:none;padding:0!important;margin:0!important;cursor:pointer;font-family:inherit;text-align:left;line-height:1.4!important}
+.liftMonoBrandCategory .liftDetailFilter:hover{text-decoration:underline;text-underline-offset:3px;color:#111!important}
+.liftDetailSeparator{color:#aaa;font-size:12px}
+#liftGroupVariantPicker .liftVariantPickerHead{justify-content:flex-start}
+#liftGroupVariantPicker .liftVariantPickerHead b{font-size:13px}

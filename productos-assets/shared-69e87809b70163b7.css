@@ -1,0 +1,27 @@
+
+/* LIFT: todas las herramientas principales del administrador viven en un solo grid. */
+body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  align-items:stretch!important;
+}
+body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button{
+  display:flex!important;
+  width:auto!important;
+  min-width:0!important;
+  height:38px!important;
+  min-height:38px!important;
+  margin:0!important;
+  padding:0 8px!important;
+  grid-column:auto!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  white-space:normal!important;
+  line-height:1.15!important;
+}
+@media(max-width:760px){
+ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+ body.liftAdminUnlocked #checkoutModal .liftAdminToolsRow>button:last-child{grid-column:1/-1!important;}
+}

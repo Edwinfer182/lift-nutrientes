@@ -1,0 +1,17 @@
+
+#checkoutModal .checkoutProductList{gap:6px!important}
+#checkoutModal .checkoutProduct{grid-template-columns:46px minmax(0,1fr) auto!important;gap:8px!important;padding:7px 9px!important;border-radius:10px!important;min-height:62px!important;cursor:default}
+#checkoutModal .checkoutProductImg{width:46px!important;height:46px!important;border-radius:7px!important;cursor:pointer}
+#checkoutModal .checkoutProductName{font-size:11px!important;line-height:1.2!important;font-weight:400!important;cursor:pointer}
+#checkoutModal .checkoutProductBrand,#checkoutModal .checkoutProductFlavor{font-size:9px!important;margin-top:2px!important}
+#checkoutModal .checkoutProductQty{display:none!important}
+#checkoutModal .checkoutProductPrice{font-size:11px!important;align-self:start;padding-top:2px}
+.liftCheckoutItemTools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:5px}
+.liftCheckoutQtyCtl{display:inline-flex;align-items:center;border:1px solid #ddd;border-radius:8px;overflow:hidden;height:27px;background:#fff}
+.liftCheckoutQtyCtl button{width:27px;height:27px;border:0;background:#fff;cursor:pointer;font:500 14px Poppins,Arial}
+.liftCheckoutQtyCtl span{min-width:25px;text-align:center;font-size:9px;font-weight:500}
+.liftCheckoutItemBtn{height:27px;border:1px solid #ddd;border-radius:8px;background:#fff;padding:0 8px;font:500 9px Poppins,Arial;cursor:pointer;color:#111}
+.liftCheckoutItemBtn:hover,.liftCheckoutQtyCtl button:hover{background:#f3f3f3}
+.liftCheckoutItemBtn.remove{border-color:#e2caca;color:#8d2222}
+
+@media(max-width:760px){#checkoutModal .checkoutProduct{grid-template-columns:40px minmax(0,1fr) auto!important;padding:6px 7px!important;gap:7px!important}#checkoutModal .checkoutProductImg{width:40px!important;height:40px!important}#checkoutModal .checkoutProductPrice{font-size:10px!important}.liftCheckoutItemBtn{padding:0 6px}}

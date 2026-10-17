@@ -1,0 +1,5 @@
+
+.liftFilterLink{flex:0 0 30px;width:30px;height:30px;border:1px solid #e2e2e2;background:#fff;border-radius:8px;cursor:pointer;display:grid;place-items:center;font-size:14px;color:#333;padding:0}
+.liftFilterLink:hover{background:#111;color:#fff;border-color:#111}
+.liftCatAdminRow{display:flex;align-items:center;gap:5px}.liftCatAdminRow>.filterItem{flex:1}
+.labVisualGrid>.liftFilterRow{display:flex;align-items:center;gap:5px}.labVisualGrid>.liftFilterRow>.filterItem{flex:1}

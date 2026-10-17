@@ -1,0 +1,9 @@
+
+#liftCourierApp .lcAvailability{margin:0;padding:0;border:0;border-radius:0}
+#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 66px 66px;margin:8px 0 0;padding:0 0 8px;border-bottom:1px solid #eee}
+#liftCourierApp .lcAvailabilityIntegrated{display:grid;grid-template-columns:52px minmax(0,1fr) 66px 66px;gap:10px;align-items:center}
+#liftCourierApp .lcAvailabilityIntegrated .lcCompactProductInfo{min-width:0}
+#liftCourierApp .lcAvailabilityIntegrated .lcAvailabilityPick{width:30px;height:30px}
+#liftCourierApp .lcAvailabilitySubmit{margin-top:14px}
+#liftCourierApp .lcCompactPayment.lcPaid{background:#e8f7ec;border:1px solid #c5e9cd}
+@media(max-width:520px){#liftCourierApp .lcAvailabilityIntegrated{grid-template-columns:42px minmax(0,1fr) 48px 48px;gap:5px}#liftCourierApp .lcAvailabilityHead{grid-template-columns:minmax(0,1fr) 48px 48px;gap:5px}#liftCourierApp .lcAvailabilityHead span{font-size:9px}#liftCourierApp .lcAvailabilityIntegrated .lcCompactImg{width:42px;height:42px;flex-basis:42px}#liftCourierApp .lcAvailabilityIntegrated .lcAvailabilityPick{width:28px;height:28px}}

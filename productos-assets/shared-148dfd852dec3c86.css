@@ -1,0 +1,16 @@
+
+/* Ajuste aislado al botón Bold: cada nombre se mantiene pegado a su logo. */
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled){align-items:center;min-height:76px;gap:10px}
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy{min-width:0;flex:1;gap:7px}
+.liftPayMethods .liftBoldLabeled{display:flex!important;align-items:center!important;justify-content:flex-start!important;flex-wrap:wrap!important;column-gap:14px!important;row-gap:8px!important;width:100%;min-width:0;margin:0;padding:0;text-align:left}
+.liftPayMethods .liftBoldPayPair{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;flex:0 0 auto!important;gap:5px!important;white-space:nowrap!important;min-height:22px}
+.liftPayMethods .liftBoldPayLabel{display:inline!important;white-space:nowrap!important;font-size:10px!important;line-height:1.2!important;font-weight:500!important;color:#252525!important}
+.liftPayMethods .liftBoldPayPair img+img{margin-left:3px!important}
+.liftPayMethods .liftBoldPayPair img{display:block!important;width:auto!important;height:18px!important;max-width:48px!important;object-fit:contain!important;flex-shrink:0!important;border-radius:0!important}
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodChevron{margin-left:auto;flex-shrink:0}
+@media(max-width:600px){
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled){padding:12px 9px;gap:7px}
+ .liftPayMethods .liftBoldLabeled{column-gap:11px!important;row-gap:9px!important}
+ .liftPayMethods .liftBoldPayLabel{font-size:9px!important}
+ .liftPayMethods .liftBoldPayPair img{height:17px!important;max-width:43px!important}
+}

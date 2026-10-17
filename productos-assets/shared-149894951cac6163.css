@@ -1,0 +1,21 @@
+
+#liftAdminFullBtn{display:none!important}
+#liftAdminLoginBtn{display:none!important;height:44px;border:1px solid #343434;background:#111;color:#fff;border-radius:13px;padding:0 14px;font:600 12px Poppins,Arial;cursor:pointer;white-space:nowrap}
+body.liftAdminUnlocked #liftAdminFullBtn{display:inline-flex!important;align-items:center;justify-content:center}
+body.liftAdminUnlocked #liftAdminLoginBtn{display:none!important}
+#liftAdminAccessModal{position:fixed;inset:0;z-index:14000;background:rgba(0,0,0,.58);display:none;place-items:center;padding:18px}
+#liftAdminAccessModal.open{display:grid}
+.liftAdminAccessCard{width:min(92vw,390px);background:#fff;border-radius:18px;padding:22px;box-shadow:0 25px 70px rgba(0,0,0,.28)}
+.liftAdminAccessCard h3{margin:0 0 5px;font-size:20px}.liftAdminAccessCard p{margin:0 0 14px;color:#777;font-size:12px;line-height:1.45}
+.liftAdminAccessCard input{width:100%;height:46px;border:1px solid #d5d5d5;border-radius:11px;padding:0 12px;outline:none;font:inherit}.liftAdminAccessCard input:focus{border-color:#111}
+.liftAdminAccessActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.liftAdminAccessActions button{height:42px;border:0;border-radius:10px;cursor:pointer;font-weight:600}.liftAdminAccessEnter{background:#111;color:#fff}.liftAdminAccessCancel{background:#eee;color:#111}
+#liftAdminAccessError{min-height:18px;color:#b42318;font-size:11px;margin-top:7px}
+@media(max-width:760px){#liftAdminLoginBtn{height:40px;padding:0 10px;font-size:0}#liftAdminLoginBtn:after{content:'🔐';font-size:17px}body.liftAdminUnlocked #liftAdminFullBtn{font-size:0!important;width:40px;padding:0!important}body.liftAdminUnlocked #liftAdminFullBtn:after{content:'⚙';font-size:17px}}
+
+#liftProviderBox{display:none;margin-top:10px;padding:11px;border:1px solid #e2e2e2;border-radius:13px;background:#fafafa}
+body.liftAdminUnlocked #liftProviderBox{display:block}
+.liftProviderGreetingWrap{display:grid;gap:5px;margin-bottom:7px}.liftProviderGreetingWrap label{font-size:11px;font-weight:500;color:#333}.liftProviderGreetingWrap input{width:100%;height:40px;border:1px solid #d7d7d7;border-radius:10px;background:#fff;padding:0 11px;font-family:inherit;font-size:12px;outline:none}.liftProviderGreetingWrap input:focus{border-color:#111}.liftProviderMode{font-size:10px;line-height:1.4;color:#666;margin:0 1px 8px}.liftProviderMode.complete{color:#168451;font-weight:500}
+#liftProviderButtons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+#liftProviderButtons .checkoutProviderBtn{width:100%;min-height:44px;border:1px solid #d7d7d7;border-radius:11px;background:#fff;color:#111;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;padding:8px 10px}
+#liftProviderButtons .checkoutProviderBtn:hover{background:#f4f4f4}
+@media(max-width:520px){#liftProviderButtons{grid-template-columns:repeat(2,minmax(0,1fr))}}

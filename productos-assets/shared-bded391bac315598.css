@@ -1,0 +1,19 @@
+
+/* El bloque de pago usa los controles existentes; solo cambia su ubicación/visibilidad. */
+body:not(.liftAdminUnlocked) #liftOrderFold{display:none!important}
+body.liftAdminUnlocked #liftOrderFold{
+  display:block!important;
+  margin:0 0 12px!important;
+  border:1px solid #dedede!important;
+  border-radius:13px!important;
+  padding:12px!important;
+  background:#fafafa!important;
+}
+body.liftAdminUnlocked #liftOrderFold[hidden]{display:block!important}
+body.liftAdminUnlocked #liftOrderFold:before{
+  content:"Forma de pago";display:block;margin:0 0 9px;font-size:12px;font-weight:650;color:#111
+}
+/* Ya no hay segundo guardado ni envío a crédito separado. */
+#liftSaveOrderBtnV2,#liftDirectCreditBtn{display:none!important}
+/* El botón Pedido del desplegable ya no controla este bloque. */
+body.liftAdminUnlocked .liftAdminToolsRow button[data-lift-order-tool-hidden="1"]{display:none!important}

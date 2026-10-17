@@ -1,0 +1,7 @@
+
+#checkoutModal .liftCustomerLeft .liftCityMoved,#checkoutModal .liftCustomerLeft .liftAddressMoved,#checkoutModal .liftCustomerLeft #liftDocumentField,#checkoutModal .liftCustomerLeft .liftNotesMoved{grid-column:1/-1!important;grid-row:auto!important}
+#checkoutModal #liftDocumentField[hidden]{display:none!important}
+#checkoutModal .liftCustomerLeft .cityWrap{position:relative;z-index:5}
+#checkoutModal .liftCustomerLeft .cityResults{top:calc(100% + 4px);max-height:min(200px,32vh);overflow-y:auto;z-index:30}
+#checkoutModal .liftCustomerLeft:has(.cityResults.show){isolation:isolate}
+#checkoutModal .liftCustomerLeft .liftCityMoved:has(.cityResults.show){z-index:20;position:relative}

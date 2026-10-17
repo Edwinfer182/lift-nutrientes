@@ -1,0 +1,9 @@
+
+/* Una sola familia para todos los elementos de la consulta de pedido. */
+#liftTrackResult, #liftTrackResult *, #liftTrackResult *::before, #liftTrackResult *::after,
+#liftTrackModal, #liftTrackModal *, #liftTrackModal *::before, #liftTrackModal *::after {
+  font-family: 'Poppins', Arial, sans-serif !important;
+}
+#liftTrackResult .liftPayMethodCopy{gap:0!important;justify-content:center!important}
+#liftTrackResult .liftPayMethodCopy strong{font-family:inherit!important;font-size:11px!important;font-weight:500!important;line-height:1.4!important}
+#liftTrackResult .liftPayMethodCopy small{display:none!important}

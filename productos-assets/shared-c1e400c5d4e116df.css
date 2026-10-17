@@ -1,0 +1,10 @@
+
+.liftDeliveryProof{margin-top:12px;padding:12px;border:1px solid #dfe7df;border-radius:13px;background:#f8fcf8}
+.liftDeliveryProofHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.liftDeliveryProofHead b{font-size:11px;color:#166534}.liftDeliveryProofHead small{display:block;margin-top:2px;font-size:9px;color:#777}
+.liftDeliveryProofBtn{border:0;border-radius:9px;background:#111;color:#fff;min-height:36px;padding:0 12px;font:600 9px Poppins,Arial;cursor:pointer;white-space:nowrap}
+.liftProofViewer{margin-top:10px;display:none}.liftProofViewer.open{display:block}.liftProofViewer img{display:block;width:100%;max-height:520px;object-fit:contain;border-radius:11px;background:#f2f2f2}
+.liftProofViewerMsg{padding:12px;text-align:center;font-size:10px;color:#777}
+.lcEvidenceSaved{margin-top:12px;padding:11px 12px;border:1px solid #cfe4d3;border-radius:11px;background:#f5fbf6}
+.lcEvidenceSavedHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.lcEvidenceSaved b{font-size:10px;color:#166534}.lcEvidenceSaved small{display:block;font-size:9px;color:#777;margin-top:2px}
+.lcEvidenceView{border:0;border-radius:8px;background:#111;color:#fff;min-height:34px;padding:0 11px;font:600 9px Poppins,Arial;cursor:pointer}

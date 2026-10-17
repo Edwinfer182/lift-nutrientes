@@ -1,0 +1,5 @@
+
+.liftMonoPaymentMethods{margin:0;padding:0;border:0;background:transparent}
+.liftMonoPaymentLogos{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:nowrap;margin:0;padding:0}
+.liftMonoPaymentLogos img{display:block;width:auto;max-width:24%;height:auto;max-height:23px;object-fit:contain}
+@media(max-width:760px){.liftMonoPaymentLogos{gap:5px}.liftMonoPaymentLogos img{max-height:20px}}

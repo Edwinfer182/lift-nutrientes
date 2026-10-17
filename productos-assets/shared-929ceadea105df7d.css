@@ -1,0 +1,20 @@
+
+.liftVariantPicker{margin:10px 0 14px;padding:12px;border:1px solid #e7e7e7;border-radius:14px;background:#fff}
+.liftVariantPickerHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;font-size:12px}
+.liftVariantPickerHead b{font-weight:650;color:#111}.liftVariantPickerHead span{font-size:10px;color:#777}
+.liftVariantChips{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.liftVariantChip{position:relative;min-width:0;border:1px solid #ddd;background:#fff;color:#222;border-radius:12px;padding:6px;font:500 10px Poppins,Arial;cursor:pointer;text-align:center;overflow:hidden}
+.liftVariantChip.active{border:2px solid #111;box-shadow:0 2px 9px rgba(0,0,0,.10)}
+.liftVariantThumb{height:72px;display:grid;place-items:center;background:#fff;border-radius:8px;overflow:hidden}
+.liftVariantThumb img{width:100%;height:100%;object-fit:contain;display:block}
+.liftVariantFlavor{display:block;margin-top:5px;line-height:1.15;min-height:23px}
+.liftVariantOfferBadge{position:absolute;z-index:2;left:4px;top:4px;background:#111;color:#fff;border-radius:999px;padding:3px 5px;font-size:7px;font-weight:700;letter-spacing:.03em}
+.liftVariantPrices{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:8px;line-height:1.1}
+.liftVariantPrices s{color:#999;font-weight:400}.liftVariantPrices b{color:#168451;font-size:9px}
+.liftVariantSelected{font-size:10px;color:#666;margin-top:9px}
+@media(max-width:640px){
+ .liftVariantPicker{padding:10px;margin:8px 0 12px}
+ .liftVariantChips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:7px;padding-bottom:5px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+ .liftVariantChip{flex:0 0 82px;width:82px;padding:5px;scroll-snap-align:start}
+ .liftVariantThumb{height:58px}.liftVariantFlavor{font-size:9px;min-height:21px}
+}

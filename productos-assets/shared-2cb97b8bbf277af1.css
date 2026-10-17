@@ -1,0 +1,12 @@
+
+#liftCourierApp .lcAvailability{margin:14px 0;padding:12px;border:1px solid #e1e1e1;border-radius:12px;background:#fff}
+#liftCourierApp .lcAvailabilityHead{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px;gap:6px;align-items:center;font-size:10px;font-weight:600;margin-bottom:7px}
+#liftCourierApp .lcAvailabilityHead span:not(:first-child){text-align:center}
+#liftCourierApp .lcAvailabilityRow{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px;gap:6px;align-items:center;padding:10px 0;border-top:1px solid #eee}
+#liftCourierApp .lcAvailabilityName{font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#liftCourierApp .lcAvailabilityPick{margin:auto;width:32px;height:32px;border:2px solid #d1d5db;border-radius:50%;background:white;cursor:pointer;display:grid;place-items:center;font-size:17px;font-weight:700;color:transparent}
+#liftCourierApp .lcAvailabilityPick[data-checked="true"][data-value="disponible"]{background:#15803d;border-color:#15803d;color:white}
+#liftCourierApp .lcAvailabilityPick[data-checked="true"][data-value="agotado"]{background:#b91c1c;border-color:#b91c1c;color:white}
+#liftCourierApp .lcAvailabilitySubmit{width:100%;margin-top:12px;min-height:44px;background:#111;border:0;color:#fff;border-radius:10px;font:600 12px Poppins,Arial;cursor:pointer}
+#liftCourierApp .lcAvailabilitySubmit:disabled{opacity:.35;cursor:not-allowed}
+#liftCourierApp .lcAvailabilityHelp{font-size:10px;color:#777;line-height:1.45;margin-top:8px}

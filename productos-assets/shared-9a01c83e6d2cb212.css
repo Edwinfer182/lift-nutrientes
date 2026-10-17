@@ -1,0 +1,7 @@
+
+@media(hover:hover) and (pointer:fine){
+ .liftVitanessCard .pic img[data-lift-card-main]{transition:opacity .28s ease,transform .35s ease}
+ .liftVitanessCard .pic.liftNutritionPreview img[data-lift-card-main]{opacity:0;transform:scale(.96)}
+ .liftVitanessCard .pic .liftNutritionHoverImage{position:absolute;inset:12px;width:calc(100% - 24px)!important;height:calc(100% - 24px)!important;max-width:none!important;max-height:none!important;object-fit:contain!important;opacity:0;transform:scale(1.035);transition:opacity .3s ease,transform .35s ease;pointer-events:none;z-index:1}
+ .liftVitanessCard .pic.liftNutritionPreview .liftNutritionHoverImage{opacity:1;transform:scale(1)}
+}

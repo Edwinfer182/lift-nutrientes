@@ -1,0 +1,8 @@
+
+#liftMoveTypeModal{position:fixed;inset:0;z-index:15050;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;padding:18px}
+#liftMoveTypeModal.open{display:flex}
+.liftMoveTypeBox{width:min(92vw,390px);background:#fff;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.liftMoveTypeBox h3{margin:0 0 5px;font-size:17px}.liftMoveTypeBox p{margin:0 0 14px;color:#777;font-size:11px}
+.liftMoveTypeBtns{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liftMoveTypeBtns button{height:48px;border:1px solid #ddd;border-radius:12px;background:#fff;font:600 12px Poppins;cursor:pointer}.liftMoveTypeBtns button:first-child{background:#111;color:#fff;border-color:#111}
+.liftMoveBrandSelect{width:100%;height:44px;border:1px solid #ddd;border-radius:10px;padding:0 10px;font:inherit;background:#fff;margin:4px 0 12px}
+.liftMoveTypeFoot{display:flex;justify-content:flex-end;gap:8px}.liftMoveTypeFoot button{height:40px;border:1px solid #ddd;border-radius:10px;background:#fff;padding:0 13px;font:600 11px Poppins;cursor:pointer}.liftMoveTypeFoot .primary{background:#111;color:#fff;border-color:#111}

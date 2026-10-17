@@ -1,0 +1,19 @@
+
+/* El resumen de carrito se centra en la compra, sin mensajes auxiliares redundantes */
+#cart .shippingProgress,#cart .flavorConfirmMsg,#cart .flavorConfirmNote,#cartShippingProgress{display:none!important}
+#cartBody .liftCartSuggestions{margin-top:16px!important;padding-top:12px!important;border-top:1px solid #e5e7eb!important;overflow:visible!important}
+#cartBody .liftSuggestionsBar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px}
+#cartBody .liftSuggestionsBar .relatedTitle{font-size:13px!important;font-weight:650!important;color:#171717!important;margin:0!important}
+#cartBody .liftSuggestionsToggle{width:34px;height:34px;min-width:34px;border:1px solid #d9dce2!important;background:#fff!important;color:#171717!important;border-radius:10px!important;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .18s ease,transform .18s ease,border-color .18s ease!important}
+#cartBody .liftSuggestionsToggle:hover{background:#f0f1f3!important;border-color:#b8bdc6!important}
+#cartBody .liftSuggestionsToggle:active{transform:scale(.93)!important;background:#e5e7eb!important}
+#cartBody .liftSuggestionsX{font-size:23px;line-height:1;font-weight:400}
+#cartBody .liftSuggestionsArrow{display:none;font-size:24px;line-height:1;font-weight:600;transform:rotate(180deg)}
+#cartBody .liftSuggestionsPanel{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .35s ease,opacity .3s ease,margin .35s ease;margin-top:8px}
+#cartBody .liftSuggestionsPanel>.relatedGrid{min-height:0;overflow:hidden}
+#cartBody .liftSuggestionsClosed .liftSuggestionsPanel{grid-template-rows:0fr;opacity:0;margin-top:0;pointer-events:none}
+#cartBody .liftSuggestionsClosed .liftSuggestionsX{display:none}
+#cartBody .liftSuggestionsClosed .liftSuggestionsArrow{display:block}
+#cartBody .liftSuggestionsClosed .liftSuggestionsBar .relatedTitle{font-size:12px!important}
+#cartBody .liftSuggestionsClosed{padding-bottom:0!important}
+@media(prefers-reduced-motion:reduce){#cartBody .liftSuggestionsPanel,#cartBody .liftSuggestionsToggle{transition:none!important}}

@@ -1,0 +1,6 @@
+
+#checkoutModal .liftVariantConfirmed{display:none!important}
+#checkoutModal .liftCheckoutQtyCtl{height:28px!important;border-radius:8px!important}
+#checkoutModal .liftCheckoutQtyCtl button{width:29px!important;height:28px!important;font-size:13px!important;font-weight:600!important;line-height:1!important;padding:0!important}
+#checkoutModal .liftCheckoutQtyCtl span{min-width:26px!important;font-size:11px!important}
+#checkoutModal .liftCheckoutItemTools{margin-top:6px!important}

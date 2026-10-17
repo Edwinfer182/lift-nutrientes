@@ -1,0 +1,14 @@
+
+/* Una sola lectura visual para ofertas: normal gris/tachado, promo verde. */
+.oldPrice,.cartOldPrice,.checkoutOldPrice{color:#858585!important;text-decoration:line-through!important;text-decoration-thickness:1.5px!important;text-decoration-color:#777!important;opacity:1!important;font-weight:500!important}
+.promoPrice,.offerPrices .price.promoPrice,.liftVariantPrices b{color:#168451!important}
+.cartOldPrice{display:block;font-size:10px!important;line-height:1.1;margin-bottom:3px}
+#cart .cartprice .promoPrice{color:#168451!important;font-weight:700!important}
+.checkoutOldPrice{font-size:10px!important;line-height:1.15;margin-bottom:3px}
+.checkoutProductPrice .promoPrice{color:#168451!important;font-weight:700!important}
+.searchOldPrice{color:#858585!important;text-decoration:line-through!important;opacity:1!important}
+.searchPrice:has(.searchOldPrice){color:#168451!important}
+.modalOldPrice{color:#858585!important;text-decoration:line-through!important;opacity:1!important;margin-right:8px}
+.modalPrice:has(.modalOldPrice){color:#168451!important}
+.liftFavPrice.promoPrice{color:#168451!important}
+@media(max-width:760px){.oldPrice{font-size:10.5px!important}.cartOldPrice,.checkoutOldPrice{font-size:9px!important}}

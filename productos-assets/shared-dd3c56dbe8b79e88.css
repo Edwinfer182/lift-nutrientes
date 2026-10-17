@@ -1,0 +1,4 @@
+
+.cartline:has(.cartFlavor){background:#fff}
+.cartFlavor{display:block}
+#checkoutItems b{font-weight:700;color:#111}

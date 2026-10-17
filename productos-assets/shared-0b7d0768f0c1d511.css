@@ -1,0 +1,31 @@
+
+#liftTrackResult .liftOrderRedesign{margin:12px 0!important;padding:15px!important;background:#fff!important;border:1px solid #dedede!important}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead{padding-bottom:10px;border-bottom:1px solid #eee}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead b{font-size:12px!important;letter-spacing:.015em}
+#liftTrackResult .liftOrderRedesign .liftCompactPurchaseHead strong{font-size:19px!important;font-weight:700!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProducts{margin-top:11px!important;gap:7px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct{padding:9px!important;grid-template-columns:64px minmax(0,1fr) auto!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:64px!important;height:64px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:12px!important;font-weight:600!important;line-height:1.4}
+#liftTrackResult .liftOrderRedesign .liftTrackProductInfo span,#liftTrackResult .liftOrderRedesign .liftTrackProductInfo small{font-size:10px!important;color:#666!important}
+#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:12px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals>div{font-size:11px!important;padding:5px 1px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand{font-size:15px!important}
+#liftTrackResult .liftOrderRedesign .liftTrackTotals .grand b{font-size:21px!important;font-weight:700!important}
+#liftTrackResult .liftDeliveryDisclosure{margin-top:12px;border-top:1px solid #e9e9e9}
+#liftTrackResult .liftDeliveryDisclosure summary{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0 2px;cursor:pointer;font-size:11px;font-weight:600;list-style:none}
+#liftTrackResult .liftDeliveryDisclosure summary::-webkit-details-marker{display:none}
+#liftTrackResult .liftDeliveryDisclosure summary span{font-size:10px;color:#666;font-weight:400}
+#liftTrackResult .liftDeliveryDisclosure[open] summary span{font-size:0}
+#liftTrackResult .liftDeliveryDisclosure[open] summary span:after{content:'Ocultar detalles ▴';font-size:10px}
+#liftTrackResult .liftNextCard:has(.liftPayMethods){background:#f5fbf6!important;padding:12px!important;margin-top:10px!important}
+#liftTrackResult .liftNextCard:has(.liftPayMethods) .liftNextText{margin-bottom:6px!important}
+#liftTrackResult .liftPayMethods{margin-top:10px!important}
+#liftTrackResult .liftPayMethodsHeading{font-size:14px!important;margin:0 0 8px!important}
+#liftTrackResult .liftPayMethodsGroup{margin:0 0 7px!important}
+#liftTrackResult .liftPayMethodsLabel{display:none!important}
+#liftTrackResult .liftPayMethodRow{min-height:54px!important;padding:8px 11px!important;gap:10px!important;border-radius:10px!important}
+#liftTrackResult .liftPayMethodIcon{width:34px!important;height:34px!important;flex:0 0 34px!important}
+#liftTrackResult .liftPayMethodCopy strong{font-size:12px!important}
+#liftTrackResult .liftPayMethodCopy small{font-size:9px!important;margin-top:2px!important}
+@media(max-width:600px){#liftTrackResult .liftOrderRedesign .liftTrackProduct{grid-template-columns:54px minmax(0,1fr) auto!important}#liftTrackResult .liftOrderRedesign .liftTrackProduct img,#liftTrackResult .liftOrderRedesign .liftTrackNoImg{width:54px!important;height:54px!important}#liftTrackResult .liftOrderRedesign .liftTrackProductInfo b{font-size:11px!important}#liftTrackResult .liftOrderRedesign .liftTrackProductPrice{font-size:11px!important}}

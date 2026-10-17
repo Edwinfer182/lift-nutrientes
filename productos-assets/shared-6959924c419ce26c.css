@@ -1,0 +1,47 @@
+
+.liftBanners{padding:14px 18px 4px;max-width:1240px;margin:0 auto;width:100%}
+.liftBannerViewport{position:relative;overflow:hidden;border-radius:18px;background:#0b0b0b;box-shadow:0 10px 32px rgba(0,0,0,.12);aspect-ratio:1920/700;touch-action:pan-y;isolation:isolate}
+.liftBannerTrack{height:100%;position:relative}
+.liftBannerSlide{position:absolute;inset:0;opacity:0;transform:translateX(3.5%);transition:opacity .72s ease,transform .72s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.liftBannerSlide.active{opacity:1;transform:translateX(0);pointer-events:auto;z-index:2}
+.liftBannerSlide.leaving{opacity:0;transform:translateX(-3.5%);z-index:1}
+.liftBannerSlide picture,.liftBannerSlide img{display:block;width:100%;height:100%}
+.liftBannerSlide img{object-fit:cover;object-position:center;background:#0b0b0b}
+.liftBannerSlide[data-action]{cursor:pointer}
+.liftBannerArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;font-size:25px;line-height:1;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(5px);transition:background .2s ease,transform .2s ease}
+.liftBannerArrow:hover{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(1.05)}
+.liftBannerPrev{left:14px}.liftBannerNext{right:14px}
+.liftBannerDots{display:flex;justify-content:center;gap:7px;padding:10px 4px 2px}
+.liftBannerDot{width:7px;height:7px;border:0;border-radius:50%;padding:0;background:#c9c9c9;cursor:pointer;transition:width .25s ease,background .25s ease,border-radius .25s ease}
+.liftBannerDot.active{width:24px;border-radius:999px;background:#111}
+.liftBannerProgress{position:absolute;left:0;bottom:0;height:3px;width:100%;z-index:6;background:rgba(255,255,255,.18);overflow:hidden}
+.liftBannerProgressBar{height:100%;width:0;background:rgba(255,255,255,.92)}
+.liftBannerProgressBar.running{animation:liftBannerProgress 7s linear forwards}
+@keyframes liftBannerProgress{from{width:0}to{width:100%}}
+@media(max-width:760px){
+ .liftBanners{padding:10px 9px 2px}
+ .liftBannerViewport{aspect-ratio:1080/1350;border-radius:15px;box-shadow:0 7px 22px rgba(0,0,0,.12)}
+ .liftBannerArrow{display:none}
+ .liftBannerDots{padding-top:8px;gap:6px}
+ .liftBannerDot{width:6px;height:6px}.liftBannerDot.active{width:20px}
+ .liftBannerSlide{transform:translateX(5%)}.liftBannerSlide.leaving{transform:translateX(-5%)}
+}
+@media(prefers-reduced-motion:reduce){
+ .liftBannerSlide{transition:none}.liftBannerProgressBar.running{animation:none}
+}
+
+/* LIFT header negro + logo oficial Drive */
+.top{background:#090909!important;border-bottom:1px solid #242424!important;backdrop-filter:blur(14px);box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.bar{min-height:70px}
+.brand{height:64px;min-width:220px;display:flex;align-items:center;padding:0 2px;overflow:hidden}
+.liftHeaderLogo{display:block;width:auto;height:60px;max-width:220px;object-fit:contain;object-position:left center;border-radius:0}
+.search input{background:#181818!important;border-color:#3b3b3b!important;color:#fff!important}
+.search input::placeholder{color:#aaa}
+.search input:focus{background:#202020!important;border-color:#777!important}
+.iconbtn.cartDesktop{background:#111!important;color:#fff!important;border-color:#444!important}
+@media(max-width:700px){
+ .top .bar{padding:6px 10px;gap:7px;min-height:64px}
+ .brand{min-width:0;height:54px;flex:0 0 auto}
+ .liftHeaderLogo{height:50px;max-width:155px}
+ .offersBtn{padding-left:10px;padding-right:10px}
+}

@@ -1,0 +1,47 @@
+
+@media(max-width:760px){
+  /* La barra deja de pegarse al borde físico/redondeado del teléfono */
+  .liftMonoBtns{
+    left:10px!important;
+    right:10px!important;
+    bottom:max(10px, env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    padding:7px!important;
+    border:1px solid rgba(0,0,0,.08)!important;
+    border-radius:16px!important;
+    background:rgba(255,255,255,.96)!important;
+    box-shadow:0 8px 28px rgba(0,0,0,.16)!important;
+    backdrop-filter:blur(14px)!important;
+    -webkit-backdrop-filter:blur(14px)!important;
+    overflow:hidden!important;
+  }
+  .liftMonoBtns button{
+    min-width:0!important;
+    min-height:48px!important;
+    height:48px!important;
+    padding:0 10px!important;
+    border-radius:11px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #liftMonoAdd{font-size:11px!important}
+  #liftMonoBuy{font-size:11px!important}
+  .liftMonoBody{
+    padding-bottom:112px!important;
+  }
+}
+@media(max-width:380px){
+  .liftMonoBtns{
+    left:7px!important;
+    right:7px!important;
+    gap:6px!important;
+    padding:6px!important;
+    grid-template-columns:.95fr 1.2fr!important;
+  }
+  .liftMonoBtns button{
+    padding:0 7px!important;
+    font-size:10.5px!important;
+  }
+  .liftActionIcon{font-size:15px!important}
+}

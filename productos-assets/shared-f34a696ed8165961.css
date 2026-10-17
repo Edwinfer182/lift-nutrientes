@@ -1,0 +1,15 @@
+
+/* Solo para imágenes detectadas con fondo negro incrustado */
+.pic img.blackBgFix,
+.liftMonoImage.blackBgFix,
+.relatedItem img.blackBgFix {
+  background:#fff !important;
+  filter: brightness(1.42) contrast(.72) saturate(.92) !important;
+  opacity:.96;
+  border-radius:10px;
+}
+
+/* Reduce visualmente el rectángulo negro sin tocar las demás imágenes */
+.pic:has(img.blackBgFix){
+  background:#fff !important;
+}

@@ -1,0 +1,33 @@
+
+#liftImageViewer{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.75);font-family:Poppins,Arial,sans-serif;color:#111}
+#liftImageViewer.open{display:flex}
+#liftImageViewer .livDialog{width:min(94vw,850px);height:min(82dvh,700px);min-height:280px;display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 24px 80px #0005}
+#liftImageViewer .livTop{display:flex;align-items:center;gap:8px;min-height:56px;padding:8px 12px;border-bottom:1px solid #eee}
+#liftImageViewer .livTitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500}
+#liftImageViewer .livTools{display:flex;align-items:center;gap:5px}
+#liftImageViewer button{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;padding:0;border:1px solid #ddd;border-radius:10px;background:#fff;color:#111;font-size:21px;line-height:1;cursor:pointer;touch-action:manipulation}
+#liftImageViewer button:hover{background:#f2f2f2}
+#liftImageViewer .livClose{background:#111;color:#fff;border-color:#111;border-radius:50%;font-size:25px}
+#liftImageViewer .livClose:hover{background:#333}
+#liftImageViewer .livPercent{min-width:45px;text-align:center;font-size:11px;font-weight:600}
+#liftImageViewer .livStageWrap{position:relative;flex:1;min-height:0;background:#fff}
+#liftImageViewer .livStage{position:absolute;inset:0;overflow:hidden;display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;overscroll-behavior:contain;cursor:zoom-in}
+#liftImageViewer .livStage.zoomed{cursor:grab}
+#liftImageViewer .livStage.dragging{cursor:grabbing}
+#liftImageViewer .livStage img{display:block;width:auto;height:auto;max-width:calc(100% - 96px);max-height:calc(100% - 20px);object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;transform-origin:center center;transition:none!important;animation:none!important;background:#fff}
+#liftImageViewer .livArrow{position:absolute;top:50%;z-index:2;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:#fffe;box-shadow:0 3px 14px #0002}
+#liftImageViewer .livPrev{left:12px}#liftImageViewer .livNext{right:12px}
+#liftImageViewer .livArrow[hidden]{display:none}
+#liftImageViewer .livFoot{min-height:42px;display:flex;align-items:center;justify-content:center;gap:12px;border-top:1px solid #eee;background:#fafafa;font-size:12px}
+#liftImageViewer .livHint{font-size:10px;color:#777}
+/* Una única definición de la X del detalle, sin apilar más parches. */
+#liftMonoOff #liftMonoClose{position:absolute!important;top:12px!important;right:12px!important;left:auto!important;float:none!important;margin:0!important;z-index:10010!important;display:flex!important;align-items:center!important;justify-content:center!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;border:1px solid #dedede!important;border-radius:50%!important;background:#fff!important;color:#111!important;box-shadow:0 4px 16px #0002!important;font-size:25px!important;line-height:1!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important}
+@media(max-width:600px){#liftImageViewer{padding:10px}#liftImageViewer .livDialog{width:100%;height:min(76dvh,620px);border-radius:14px}#liftImageViewer .livTop{padding:6px 8px;min-height:48px}#liftImageViewer .livTitle{font-size:10px}#liftImageViewer .livTools{gap:3px}#liftImageViewer button{width:32px;height:34px;font-size:19px}#liftImageViewer .livPercent{min-width:36px;font-size:10px}#liftImageViewer .livStage img{max-width:calc(100% - 74px)}#liftImageViewer .livArrow{width:34px;height:38px}#liftImageViewer .livPrev{left:4px}#liftImageViewer .livNext{right:4px}#liftImageViewer .livHint{display:none}#liftMonoOff #liftMonoClose{top:calc(env(safe-area-inset-top,0px) + 10px)!important;right:12px!important}}
+
+/* Contadores de fotografías visibles en escritorio y celular */
+#liftImageViewer .livTopCounter{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:#111;color:#fff;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}
+#liftImageViewer .livCounter{display:inline-flex!important;visibility:visible!important;opacity:1!important;color:#111!important;font-size:13px!important;font-weight:700!important;font-variant-numeric:tabular-nums}
+#liftMonoZoomArea .liftPhotoCount{position:absolute!important;right:10px!important;bottom:10px!important;left:auto!important;top:auto!important;z-index:8!important;display:inline-flex!important;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:rgba(17,17,17,.88)!important;color:#fff!important;font-size:11px!important;font-weight:600!important;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px #0002}
+@media(max-width:600px){#liftImageViewer .livTopCounter{font-size:10px;padding:5px 7px}#liftImageViewer .livCounter{font-size:12px!important}#liftMonoZoomArea .liftPhotoCount{right:7px!important;bottom:7px!important;font-size:10px!important;padding:5px 8px}}
+/* Las dimensiones reales se calculan según la proporción natural de cada fotografía. */
+#liftImageViewer .livStage img{min-width:0!important;min-height:0!important;flex:none!important;}

@@ -1,0 +1,6 @@
+
+.liftPdfInfo{margin:10px 0 14px;padding:12px 14px;border:1px solid rgba(127,127,127,.22);border-radius:14px;background:rgba(127,127,127,.06)}
+.liftPdfDesc{font-size:14px;line-height:1.4;font-weight:700;margin:0 0 8px}
+.liftPdfDetails{display:flex;flex-wrap:wrap;gap:6px}
+.liftPdfChip{font-size:12px;line-height:1.2;padding:6px 9px;border-radius:999px;border:1px solid rgba(127,127,127,.22);background:rgba(127,127,127,.08)}
+.modalPdfInfo{margin:10px 0 14px;padding:10px 12px;border-radius:12px;background:rgba(127,127,127,.07);font-size:13px;line-height:1.4}

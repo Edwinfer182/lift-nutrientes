@@ -1,0 +1,12 @@
+
+/* Opciones de pago: detalle debajo de su propio medio, selección visible y texto legible */
+#liftTrackResult .liftPayMethodsGroup{margin-bottom:6px!important}
+#liftTrackResult .liftPayDetailsInline{width:100%;margin:8px 0 5px}
+#liftTrackResult .liftPayDetailsInline:empty{display:none}
+#liftTrackResult .liftPayDetailsInline .liftDirectPayBox{margin-top:0}
+#liftTrackResult .liftPayMethodRow.is-selected .liftPayMethodRadio{border-color:#168c48!important;background:#fff!important;display:grid;place-items:center}
+#liftTrackResult .liftPayMethodRow.is-selected .liftPayMethodRadio::after{content:"";width:9px;height:9px;background:#16a34a;border-radius:50%;display:block}
+#liftTrackResult .liftPayMethodRow.is-selected{border-color:#16a34a!important}
+#liftTrackResult .liftDirectPayBox p,#liftTrackResult .liftDirectPayNotice{color:#424242!important;font-weight:400!important}
+#liftTrackResult .liftDirectPayKey small{color:#555!important;font-weight:400!important}
+#liftTrackResult .liftDirectPayTitle{color:#171717!important}

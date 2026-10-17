@@ -1,0 +1,3 @@
+
+.liftSaveOrderBtnV2{display:none;width:100%;height:48px;border:0;border-radius:11px;background:#111;color:#fff;font-family:inherit;font-weight:500;cursor:pointer;margin-top:9px}
+.liftAdminUnlocked .liftSaveOrderBtnV2{display:block}.liftSaveOrderBtnV2:disabled{opacity:.55;cursor:wait}.liftSaveOrderBtnV2.saved{background:#168451}.liftSaveOrderStatusV2{display:none;font-size:10px;line-height:1.4;margin:6px 2px 0;color:#666}.liftAdminUnlocked .liftSaveOrderStatusV2.show{display:block}.liftSaveOrderStatusV2.ok{color:#168451}.liftSaveOrderStatusV2.err{color:#b42318}

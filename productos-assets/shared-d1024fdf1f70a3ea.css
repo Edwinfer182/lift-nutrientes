@@ -1,0 +1,45 @@
+
+/* FASE 1: tarjetas y detalle inspirados en la versión final de Vitaness */
+.grid{align-items:start!important}
+.liftVitanessCard{position:relative!important;background:#fff!important;border:1px solid #ddd!important;border-radius:13px!important;overflow:hidden!important;transition:.18s ease!important;box-shadow:none!important}
+.liftVitanessCard:hover{transform:translateY(-2px)!important;box-shadow:0 8px 24px rgba(0,0,0,.08)!important}
+.liftVitanessCard .pic{height:210px!important;padding:14px!important;border-bottom:0!important;position:relative!important;background:#fff!important}
+.liftVitanessCard .pic img{max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+.liftVitanessCard .body{padding:12px!important;gap:6px!important;min-height:148px!important}
+.liftCardSection{font-size:10px;letter-spacing:.07em;color:#888;text-transform:uppercase;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.liftVitanessCard .name{font-size:14px!important;line-height:1.35!important;min-height:56px!important;max-height:58px!important;margin:2px 0 4px!important;font-weight:600!important}
+.liftCardPresentation{font-size:11px;color:#666;line-height:1.35;min-height:14px;margin-top:-1px}
+.liftCardFlavor{font-size:10px;color:#777;line-height:1.3;min-height:13px}
+.liftVitanessCard .prices{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;margin-top:auto}
+.liftVitanessCard .priceBox{background:#f6f6f6;border-radius:9px;padding:8px}
+.liftVitanessCard .priceBox small{display:block;color:#777;font-size:10px;margin-bottom:3px}
+.liftVitanessCard .priceBox .price{font-size:16px!important;font-weight:650!important}
+.liftVitanessCard .priceBox .offerPrices{gap:6px!important}
+.cardQuickBuy{display:flex!important;justify-content:flex-end!important;align-items:center!important;padding:4px 12px 12px!important}
+.cardQuickActions{gap:7px!important}
+.cardQuickBuyBtn,.cardShareImageBtn{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:0!important;margin:0!important;border-radius:10px!important;display:grid!important;place-items:center!important;cursor:pointer!important}
+.cardQuickBuyBtn{border:0!important;background:#111!important;color:#fff!important}
+.cardQuickBuyBtn svg,.cardShareImageBtn svg{width:19px;height:19px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.cardShareImageBtn{border:1px solid #dedede!important;background:#fff!important;color:#111!important;box-shadow:0 2px 8px rgba(0,0,0,.06)!important}
+.cardShareImageBtn:hover{background:#f6f6f6!important;border-color:#bdbdbd!important}
+.liftCardFav{position:absolute;top:10px;right:10px;z-index:7;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 1px 7px rgba(0,0,0,.10);display:grid;place-items:center;cursor:pointer;color:#777}
+.liftCardFav svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}
+.liftCardFav.active{color:#111;background:#f2f2f2}.liftCardFav.active svg{fill:currentColor}
+/* detalle lateral como Vitaness */
+#liftMonoOff{left:auto!important;right:0!important;top:0!important;transform:translateX(105%)!important;width:min(590px,97vw)!important;max-width:97vw!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;opacity:1!important;visibility:visible!important;box-shadow:-20px 0 50px rgba(0,0,0,.15)!important;transition:transform .25s ease!important}
+#liftMonoOff.open{transform:translateX(0)!important}
+
+.liftMonoBody{display:block!important;padding:18px 20px 28px!important;overflow:visible!important}
+.liftMonoImg{height:300px!important;width:100%!important;padding:12px 48px!important;margin-bottom:0!important}
+.liftMonoNav{top:165px!important;width:38px!important;height:38px!important;font-size:22px!important}
+.liftMonoPrev{left:10px!important}.liftMonoNext{right:10px!important}
+.liftMonoTitle{font-size:27px!important;line-height:1.08!important;margin:6px 0 8px!important;padding-right:42px!important}
+.liftMonoBrand{margin-top:10px!important}
+.detailShareBelowImage{display:flex;justify-content:flex-start;align-items:center;padding:8px 0 2px}
+.detailShareImageBtn{position:static!important;margin:0!important;box-shadow:none!important}
+.productShareToast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,12px);z-index:999999;background:#111;color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:.18s ease;box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.productShareToast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:760px){
+ .liftVitanessCard .pic{height:145px!important;padding:10px!important}.liftVitanessCard .body{padding:9px!important;min-height:132px!important}.liftVitanessCard .name{font-size:12px!important;min-height:49px!important}.cardQuickBuy{padding:3px 9px 9px!important}.cardQuickBuyBtn,.cardShareImageBtn{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}.liftCardFav{top:8px;right:8px;width:32px;height:32px}
+ #liftMonoOff{width:100vw!important;max-width:100vw!important}.liftMonoBody{padding:14px 16px 24px!important}.liftMonoImg{height:250px!important;min-height:0!important;padding:10px 42px!important}.liftMonoNav{top:138px!important}.liftMonoTitle{font-size:22px!important}.detailShareBelowImage{padding-top:7px}
+}

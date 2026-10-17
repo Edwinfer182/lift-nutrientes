@@ -1,0 +1,13 @@
+
+#liftDynamicQuickFilters{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+#liftDynamicQuickFilters::-webkit-scrollbar{display:none}
+#liftDynamicQuickFilters .quickFilterBtn{
+  flex:0 0 auto;
+}

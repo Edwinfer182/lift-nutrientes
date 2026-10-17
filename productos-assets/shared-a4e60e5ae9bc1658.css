@@ -1,0 +1,18 @@
+
+.liftPayMethods{margin-top:15px;color:#171717;font-family:Poppins,Arial,sans-serif}
+.liftPayMethodsHeading{font-size:19px;font-weight:600;margin:0 0 15px}
+.liftPayMethodsGroup{margin-top:15px}
+.liftPayMethodsLabel{font-size:12px;font-weight:500;color:#626262;margin-bottom:8px}
+.liftPayMethodRow{width:100%;min-height:78px;display:flex;align-items:center;gap:12px;padding:13px 15px;background:#fff;border:1px solid #dedede;border-radius:12px;text-align:left;color:#161616;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}
+.liftPayMethodRow:hover,.liftPayMethodRow:focus-visible{border-color:#171717;background:#fafafa;outline:none}
+.liftPayMethodRow:disabled{opacity:.6;cursor:wait}
+.liftPayMethodRadio{width:19px;height:19px;border:1.6px solid #888;border-radius:50%;flex:0 0 19px}
+.liftPayMethodIcon{width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;border-radius:50%;background:#f3f3f3}
+.liftPayBankIcon{font-size:24px;font-weight:500;color:#111}
+.liftPayBoldIcon{background:#f8f8f8}
+.liftPayBoldIcon img{width:33px;height:33px;object-fit:contain}
+.liftPayMethodCopy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.liftPayMethodCopy strong{font-size:13px;font-weight:600;line-height:1.4}
+.liftPayMethodCopy small{font-size:10px;font-weight:400;color:#777;line-height:1.4}
+.liftPayMethodChevron{font-size:24px;color:#777;font-weight:300}
+@media(max-width:600px){.liftPayMethodsHeading{font-size:17px}.liftPayMethodRow{min-height:73px;padding:12px 10px;gap:9px}.liftPayMethodCopy strong{font-size:12px}}

@@ -1,0 +1,17 @@
+
+/* Tarjetas planas, dos superficies y acciones sin superponer información */
+.grid .liftVitanessCard,.grid .card.liftVitanessCard{border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;background:#fff!important}
+.grid .liftVitanessCard:hover{box-shadow:0 6px 20px rgba(23,79,180,.07)!important}
+.grid .liftVitanessCard .pic{border:0!important;border-radius:0!important;background:#f5f7fb!important}
+.grid .liftVitanessCard .body{border:0!important;border-radius:0!important;background:#fff!important}
+/* Zona propia debajo del precio: no tapa nombres ni precios */
+.grid .liftVitanessCard .cardQuickActions{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;display:flex!important;flex-shrink:0!important;margin:0!important;padding:5px 9px 10px!important;border-radius:0!important;background:#fff!important;box-shadow:none!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;transition:none!important}
+.grid .liftVitanessCard .cardQuickBuyBtn{background:linear-gradient(110deg,#1476ed 0%,#2563eb 50%,#0b46bd 100%)!important;color:#fff!important;border:0!important;border-radius:8px!important;box-shadow:0 3px 10px rgba(28,97,218,.14)!important;transition:transform .2s ease,filter .2s ease,box-shadow .2s ease!important}
+.grid .liftVitanessCard .cardQuickBuyBtn:hover{filter:brightness(1.08)!important;box-shadow:0 5px 14px rgba(28,97,218,.24)!important}
+@media(hover:hover) and (pointer:fine){
+ .grid .liftVitanessCard .cardQuickActions{opacity:0!important;visibility:hidden!important;transform:translateY(9px)!important;pointer-events:none!important;transition:opacity .22s ease,transform .22s ease,visibility .22s!important}
+ .grid .liftVitanessCard:hover .cardQuickActions,.grid .liftVitanessCard:focus-within .cardQuickActions{opacity:1!important;visibility:visible!important;transform:translateY(0)!important;pointer-events:auto!important}
+}
+@media(hover:none),(pointer:coarse){.grid .liftVitanessCard .cardQuickActions{opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important}}
+@media(max-width:760px){.grid .liftVitanessCard,.grid .liftVitanessCard .pic,.grid .liftVitanessCard .body{border-radius:0!important}}
+@media(prefers-reduced-motion:reduce){.grid .liftVitanessCard .cardQuickActions,.grid .liftVitanessCard .cardQuickBuyBtn{transition:none!important}}

@@ -1,0 +1,7 @@
+
+/* Dos columnas de tres campos, etiquetas y valores en la misma línea. */
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:repeat(3,auto)!important;grid-auto-flow:column!important;gap:5px 14px!important;align-items:start!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{grid-column:auto!important;grid-row:auto!important;display:flex!important;align-items:baseline!important;gap:4px!important;padding:0!important;margin:0!important;min-width:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{flex:0 0 auto!important;white-space:nowrap!important;font-size:11px!important;line-height:1.35!important;font-weight:500!important;color:#222!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{flex:1 1 auto!important;min-width:0!important;overflow-wrap:anywhere!important;font-size:11px!important;line-height:1.35!important;font-weight:400!important;color:#111!important}
+@media(max-width:430px){#liftTrackResult .liftReportOrder .liftTrackCustomer{gap:5px 9px!important}#liftTrackResult .liftReportOrder .liftTrackCustomerField small,#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:10px!important}}

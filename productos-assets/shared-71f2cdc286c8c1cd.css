@@ -1,0 +1,35 @@
+
+/* Checkout: legibilidad y jerarquía sin modificar cálculos ni acciones */
+#checkoutModal .liftCheckoutSummaryCard{background:#fff!important;border:1px solid #dedfe3!important;border-radius:14px!important;padding:14px!important}
+#checkoutModal .checkoutProductList{gap:10px!important}
+#checkoutModal .checkoutProduct{grid-template-columns:58px minmax(0,1fr) auto!important;gap:12px!important;padding:13px!important;min-height:90px!important;background:#fff!important;border:1px solid #e1e3e8!important;border-radius:12px!important;align-items:start!important;box-shadow:0 2px 7px rgba(0,0,0,.035)!important}
+#checkoutModal .checkoutProductImg{width:58px!important;height:58px!important;object-fit:contain!important;background:#f6f7f9!important;border-radius:8px!important}
+#checkoutModal .checkoutProductInfo{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important}
+#checkoutModal .checkoutProductName{font-size:13px!important;line-height:1.4!important;font-weight:600!important;color:#17191d!important;overflow-wrap:anywhere!important}
+#checkoutModal .checkoutProductBrand{font-size:11px!important;line-height:1.4!important;font-weight:450!important;color:#505762!important;margin-top:0!important}
+#checkoutModal .checkoutProductFlavor{font-size:11px!important;line-height:1.45!important;font-weight:500!important;color:#343b45!important;margin-top:2px!important}
+#checkoutModal .checkoutProductFlavor *{font-size:inherit!important}
+#checkoutModal .checkoutProductPrice{font-size:13px!important;font-weight:700!important;color:#111827!important;white-space:nowrap!important;padding-top:0!important}
+
+#checkoutModal .liftCheckoutItemTools{gap:8px!important;margin-top:8px!important}
+#checkoutModal .liftCheckoutQtyCtl{height:34px!important;border-color:#cbd0d7!important}
+#checkoutModal .liftCheckoutQtyCtl button{width:34px!important;height:34px!important;font-size:17px!important;font-weight:600!important;color:#17191d!important}
+#checkoutModal .liftCheckoutQtyCtl span{min-width:30px!important;font-size:12px!important;font-weight:600!important;color:#17191d!important}
+#checkoutModal .liftCheckoutItemBtn{height:34px!important;padding:0 11px!important;font-size:11px!important;font-weight:600!important;border-color:#cbd0d7!important}
+#checkoutModal .liftCheckoutSummaryCard .checkoutLine{padding:10px 3px!important;font-size:14px!important;color:#343b45!important;align-items:center!important}
+#checkoutModal .liftCheckoutSummaryCard .checkoutLine strong{font-size:14px!important;color:#15191f!important;font-weight:650!important}
+#checkoutModal #coShipping{font-size:12px!important;text-align:right!important}
+#checkoutModal .liftCheckoutSummaryCard .checkoutLine.total{border-top:1px solid #d5d9df!important;margin-top:6px!important;padding:16px 3px 7px!important;font-size:20px!important;font-weight:700!important;color:#111!important}
+#checkoutModal #coTotal{font-size:22px!important;font-weight:750!important;color:#111!important}
+#checkoutModal .liftPrefRow b{font-size:12px!important;color:#1f242c!important}
+#checkoutModal .liftPrefRow small{font-size:11px!important;line-height:1.5!important;color:#525b67!important}
+#checkoutModal .liftCheckoutSectionTitle small{color:#505b67!important;font-size:11px!important}
+@media(max-width:760px){
+ #checkoutModal .liftCheckoutSummaryCard{padding:10px!important}
+ #checkoutModal .checkoutProduct{grid-template-columns:50px minmax(0,1fr) auto!important;gap:9px!important;padding:11px 9px!important;min-height:84px!important}
+ #checkoutModal .checkoutProductImg{width:50px!important;height:50px!important}
+ #checkoutModal .checkoutProductName{font-size:12px!important}
+ #checkoutModal .checkoutProductPrice{font-size:12px!important}
+ #checkoutModal .liftCheckoutItemBtn{padding:0 9px!important}
+}
+@media(max-width:390px){#checkoutModal .checkoutProduct{grid-template-columns:44px minmax(0,1fr) auto!important;gap:7px!important}#checkoutModal .checkoutProductImg{width:44px!important;height:44px!important}#checkoutModal .checkoutProductPrice{font-size:11px!important}}

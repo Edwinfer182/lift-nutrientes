@@ -1,0 +1,12 @@
+
+#liftTrackResult .liftDirectPayBox{color:#171717;font-family:Poppins,Arial,sans-serif}
+#liftTrackResult .liftDirectPayBox p{color:#343434!important;font-size:12px;line-height:1.5}
+#liftTrackResult .liftDirectPayKey{margin-top:9px}
+#liftTrackResult .liftDirectPayKey small,#liftTrackResult .liftDirectPayOwner small{color:#4b5563!important;font-size:11px}
+#liftTrackResult .liftDirectPayKey strong,#liftTrackResult .liftDirectPayOwner strong{color:#151515;font-weight:600}
+#liftTrackResult .liftDirectPayOwner{display:flex;flex-direction:column;gap:4px;margin-top:10px;padding:9px 12px}
+#liftTrackResult .liftDirectPayNotice{color:#444!important;font-size:11px;line-height:1.5;margin-top:8px}
+#liftTrackResult .liftDirectPayOwnerInline{display:block;margin-top:5px;color:#333!important;font-size:11px;font-weight:400}
+#liftTrackResult .liftDirectPayWhatsapp{background:#25D366!important;color:#fff!important;gap:9px;font-size:12px}
+#liftTrackResult .liftDirectPayWhatsapp:hover{background:#1da851!important}
+#liftTrackResult .liftDirectPayWhatsapp svg{flex:none}

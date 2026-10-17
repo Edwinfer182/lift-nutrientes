@@ -1,0 +1,11 @@
+
+/* Solo en celular: logos sin textos, distribuidos dentro del botón Bold. */
+@media(max-width:700px){
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy>strong,
+ .liftPayMethods .liftBoldLabeled .liftBoldPayLabel{display:none!important}
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy{flex:1 1 auto!important;min-width:0!important;width:auto!important;overflow:hidden!important;gap:0!important}
+ .liftPayMethods .liftBoldLabeled{display:flex!important;flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important;align-items:center!important;justify-content:space-evenly!important;gap:4px!important;overflow:hidden!important}
+ .liftPayMethods .liftBoldPayPair{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 1 auto!important;min-width:0!important;gap:3px!important}
+ .liftPayMethods .liftBoldPayPair img{width:auto!important;height:clamp(14px,3.6vw,19px)!important;max-width:clamp(21px,8vw,43px)!important;object-fit:contain!important}
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled){gap:4px!important;padding:9px 7px!important}
+}

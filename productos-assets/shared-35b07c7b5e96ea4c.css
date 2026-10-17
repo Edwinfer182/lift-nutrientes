@@ -1,0 +1,12 @@
+
+/* Agregar: negro por defecto, gris al pulsar o activar con teclado. */
+.grid .liftVitanessCard .cardQuickBuyBtn{
+ background:#111!important;color:#fff!important;border:0!important;
+ box-shadow:none!important;
+ transition:background-color .16s ease,transform .16s ease!important;
+ -webkit-tap-highlight-color:transparent;
+}
+.grid .liftVitanessCard .cardQuickBuyBtn:hover{background:#242424!important;filter:none!important;box-shadow:none!important}
+.grid .liftVitanessCard .cardQuickBuyBtn:active{background:#686868!important;transform:scale(.97)!important;filter:none!important}
+.grid .liftVitanessCard .cardQuickBuyBtn:focus-visible{outline:2px solid #777!important;outline-offset:2px!important}
+@media(prefers-reduced-motion:reduce){.grid .liftVitanessCard .cardQuickBuyBtn{transition:none!important}}

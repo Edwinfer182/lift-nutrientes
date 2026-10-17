@@ -1,0 +1,17 @@
+
+/* FIX: un parche lateral viejo forzaba opacity/visibility del detalle aun sin .open. */
+@media (min-width:761px){
+  #liftMonoOff:not(.open){
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transform:translate(-50%,-50%) scale(.96)!important;
+  }
+  #liftMonoOff.open{
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    transform:translate(-50%,-50%) scale(1)!important;
+  }
+
+}

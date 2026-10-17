@@ -1,0 +1,8 @@
+
+#lafProductList .lafBulkRow{grid-template-columns:28px 48px minmax(125px,1fr) minmax(260px,1.5fr) auto!important}
+#lafProductList .liftInlineFields{display:grid;grid-template-columns:90px minmax(100px,1fr) minmax(100px,1fr);gap:6px;min-width:0}
+#lafProductList .liftInlineFields input{height:37px;min-width:0;width:100%;border:1px solid #d8d8d8;border-radius:8px;padding:0 8px;font:400 11px Poppins,sans-serif;color:#222;background:#fff}
+#lafProductList .liftInlineFields input:focus{outline:1px solid #111;border-color:#111}
+#lafProductList .lafActions{white-space:nowrap}
+@media(max-width:900px){#lafProductList .lafBulkRow{grid-template-columns:28px 44px minmax(0,1fr) auto!important}#lafProductList .liftInlineFields{grid-column:3/-1;grid-row:2;grid-template-columns:85px minmax(0,1fr) minmax(0,1fr)}#lafProductList .lafActions{grid-column:4;grid-row:1}}
+@media(max-width:520px){#lafProductList .liftInlineFields{grid-column:2/-1;grid-template-columns:80px minmax(0,1fr);grid-row:2}#lafProductList .liftInlineFields input:last-child{grid-column:2}#lafProductList .lafActions{grid-column:4;grid-row:1}}

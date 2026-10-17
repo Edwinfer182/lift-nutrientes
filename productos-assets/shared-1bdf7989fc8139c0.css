@@ -1,0 +1,7 @@
+
+.lafVariantCreateHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}
+.lafVariantCreateHead b{font-size:12px}.lafVariantCreateHead small{display:block;color:#777;font-size:10px;font-weight:400;margin-top:3px}
+.lafCreateVariantRows{display:grid;gap:8px}.lafCreateVariantNew{display:grid;grid-template-columns:minmax(0,1fr) 30px;gap:7px;align-items:center;border:1px solid #e8e8e8;border-radius:11px;padding:8px;background:#fafafa}
+.lafCreateVariantFields{display:grid;grid-template-columns:.8fr 1.4fr .65fr;gap:7px}.lafCreateVariantFields input{height:38px;border:1px solid #ddd;border-radius:9px;padding:0 9px;width:100%;font:inherit;background:#fff}
+.lafVariantRemove{width:30px;height:30px;border:0;border-radius:50%;background:#eaeaea;font-size:18px;cursor:pointer}
+@media(max-width:700px){.lafVariantCreateHead{flex-direction:column}.lafCreateVariantFields{grid-template-columns:1fr}.lafCreateVariantNew{align-items:start}}

@@ -1,0 +1,15 @@
+
+#liftAbandonModal .liftAbandonCard{width:min(95vw,820px)}
+#liftAbandonModal .liftAbandonStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+#liftAbandonModal .liftAbandonStats>div{border:1px solid #e7e7e7;border-radius:12px;background:#fafafa;padding:14px}
+#liftAbandonModal .liftAbandonStats small{display:block;color:#777;font-size:11px}
+#liftAbandonModal .liftAbandonStats strong{display:block;font-size:23px;color:#111;margin-top:5px}
+#liftAbandonModal .liftAbandonNote{font-size:11px;color:#777;line-height:1.5}
+#liftAbandonModal .liftAbandonEntry{border:1px solid #e7e7e7;border-radius:12px;padding:14px;margin:10px 0;background:#fff}
+#liftAbandonModal .liftAbandonEntryHead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+#liftAbandonModal .liftAbandonEntryHead strong{font-size:17px;color:#111}
+#liftAbandonModal .liftAbandonEntryHead span,#liftAbandonModal .liftAbandonEntry>small{font-size:11px;color:#777}
+#liftAbandonModal .liftAbandonItems{list-style:none;margin:10px 0;padding:0}
+#liftAbandonModal .liftAbandonItems li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f1f1f1;font-size:12px}
+#liftAbandonModal .liftAbandonItems b{white-space:nowrap;font-weight:500;color:#111}
+@media(max-width:520px){#liftAbandonModal .liftAbandonStats strong{font-size:18px}#liftAbandonModal .liftAbandonCard{padding:15px}}

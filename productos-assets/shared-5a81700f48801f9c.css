@@ -1,0 +1,34 @@
+
+#liftDynamicQuickFilters{
+  gap:9px!important;
+}
+#liftDynamicQuickFilters .quickFilterBtn{
+  border:1px solid #dedede!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  color:#222!important;
+  padding:9px 17px!important;
+  min-height:38px!important;
+  font-family:inherit!important;
+  font-size:14px!important;
+  font-weight:500!important;
+  line-height:1!important;
+  box-shadow:none!important;
+  transition:background .18s ease,color .18s ease,border-color .18s ease!important;
+}
+#liftDynamicQuickFilters .quickFilterBtn:hover{
+  border-color:#aaa!important;
+  background:#f6f6f6!important;
+}
+#liftDynamicQuickFilters .quickFilterBtn.active{
+  background:#111!important;
+  color:#fff!important;
+  border-color:#111!important;
+}
+@media(max-width:760px){
+  #liftDynamicQuickFilters .quickFilterBtn{
+    padding:8px 14px!important;
+    min-height:36px!important;
+    font-size:13px!important;
+  }
+}

@@ -1,0 +1,13 @@
+
+@media(max-width:640px){
+  #grid{content-visibility:auto;contain-intrinsic-size:1200px}
+  .card{contain:layout paint style}
+  .card .pic{contain:paint}
+  .mobileLoadMoreSentinel{
+    grid-column:1/-1;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    padding:14px 0 18px;
+  }
+}

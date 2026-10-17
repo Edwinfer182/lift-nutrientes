@@ -1,0 +1,14 @@
+
+#liftPdfAdmin{position:fixed;inset:0;z-index:999999;background:#0009;display:flex;align-items:center;justify-content:center;padding:14px}
+#liftPdfAdmin .liftPdfBox{background:#fff;color:#111;width:min(660px,96vw);max-height:88vh;overflow:auto;border-radius:13px;padding:20px;font-family:Poppins,sans-serif}
+#liftPdfAdmin .liftPdfRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:10px 0;font-size:12px}
+#liftPdfAdmin button{border:1px solid #ddd;border-radius:7px;background:#111;color:#fff;padding:9px 12px;cursor:pointer;font-size:11px}
+#liftPdfAdmin button:disabled{opacity:.35;cursor:not-allowed}
+#liftPdfAdmin .liftPdfSecondary{background:#fff;color:#111}
+#liftPdfAdmin small{color:#777;display:block}
+@media(max-width:500px){#liftPdfAdmin .liftPdfRow{grid-template-columns:1fr 1fr}#liftPdfAdmin .liftPdfRow>div{grid-column:1/-1}}
+#liftPdfAdmin .liftPdfProvider{padding:13px 0;border-bottom:1px solid #ddd}
+#liftPdfAdmin .liftPdfProviderHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px;font-size:13px}
+#liftPdfAdmin .liftPdfDocument{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:7px;align-items:center;padding:7px 0;font-size:11px}
+#liftPdfAdmin .liftPdfDocument span,#liftPdfAdmin .liftPdfDocument small{overflow-wrap:anywhere}
+@media(max-width:600px){#liftPdfAdmin .liftPdfDocument{grid-template-columns:repeat(3,1fr)}#liftPdfAdmin .liftPdfDocument>div{grid-column:1/-1}}

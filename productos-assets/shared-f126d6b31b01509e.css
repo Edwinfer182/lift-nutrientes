@@ -1,0 +1,18 @@
+
+#liftTrackResult .liftReportOrder{padding:13px 15px!important;background:#fff!important;border:1px solid #e3e3e3!important;border-radius:12px!important}
+#liftTrackResult .liftReportTitle{font-family:Poppins,sans-serif;font-size:13px!important;font-weight:500!important;color:#111!important;margin:0 0 9px!important;letter-spacing:0!important}
+#liftTrackResult .liftReportProductsTitle{margin-top:14px!important;padding-top:12px!important;border-top:1px solid #e8e8e8!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomer{display:flex!important;flex-direction:column!important;gap:4px!important;margin:0!important;padding:0!important;background:transparent!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField{display:grid!important;grid-template-columns:90px minmax(0,1fr)!important;align-items:start!important;gap:9px!important;min-height:0!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField small{font-size:11px!important;font-weight:500!important;line-height:1.5!important;color:#444!important;text-transform:none!important}
+#liftTrackResult .liftReportOrder .liftTrackCustomerField span{font-size:11px!important;font-weight:400!important;line-height:1.5!important;color:#111!important;overflow-wrap:anywhere!important}
+#liftTrackResult .liftReportOrder .liftTrackProducts{gap:0!important}
+#liftTrackResult .liftReportOrder .liftTrackProduct{padding:7px 0!important;min-height:48px!important}
+#liftTrackResult .liftReportOrder .liftTrackProduct img{width:42px!important;height:42px!important;object-fit:contain!important}
+#liftTrackResult .liftReportOrder .liftTrackProductInfo b{font-size:11px!important;font-weight:500!important}
+#liftTrackResult .liftReportOrder .liftTrackProductPrice{font-size:11px!important;font-weight:500!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals{margin-top:5px!important;padding-top:7px!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals>div{padding:3px 0!important;font-size:11px!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals .grand{margin-top:5px!important;padding-top:7px!important;font-size:14px!important}
+#liftTrackResult .liftReportOrder .liftTrackTotals .grand b{font-size:17px!important;font-weight:600!important}
+@media(max-width:480px){#liftTrackResult .liftReportOrder .liftTrackCustomerField{grid-template-columns:76px minmax(0,1fr)!important;gap:6px!important}}

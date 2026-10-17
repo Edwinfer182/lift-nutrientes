@@ -1,0 +1,37 @@
+
+/* Ajuste móvil: banner completo, sin franjas grises ni recortes */
+@media(max-width:760px){
+  html,body,.layout,.content{background:#fff!important;}
+  .content{padding-top:0!important;}
+  .liftBanners{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+  .liftBannerViewport{
+    width:100%!important;
+    aspect-ratio:1080/1350!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:#000!important;
+  }
+  .liftBannerSlide picture,
+  .liftBannerSlide img{
+    width:100%!important;
+    height:100%!important;
+  }
+  .liftBannerSlide img{
+    object-fit:contain!important;
+    object-position:center center!important;
+    background:#000!important;
+  }
+  .liftBannerDots{
+    margin:0!important;
+    padding:8px 0 6px!important;
+    background:#fff!important;
+  }
+  .status{background:#fff!important;padding-top:8px!important;}
+  .grid{background:#fff!important;}
+}

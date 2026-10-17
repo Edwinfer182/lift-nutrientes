@@ -1,0 +1,13 @@
+
+@media(max-width:760px){
+  /* Carrito visible a la derecha, con contraste alto. */
+  button.floating{display:grid!important;position:fixed!important;right:16px!important;left:auto!important;bottom:calc(20px + env(safe-area-inset-bottom, 0px))!important;width:60px!important;height:60px!important;padding:0!important;background:#101010!important;color:#fff!important;border:2px solid #fff!important;border-radius:50%!important;box-shadow:0 5px 22px rgba(0,0,0,.35)!important;z-index:15995!important;place-items:center!important}
+  button.floating:before{font-size:26px!important}
+  button.floating .badge{font-size:12px!important;right:-3px!important;top:-6px!important}
+  /* WhatsApp permanece medio oculto por el borde izquierdo. */
+  #liftHelpWhatsApp{left:-25px!important;right:auto!important;bottom:calc(22px + env(safe-area-inset-bottom, 0px))!important;width:52px!important;min-width:52px!important;height:52px!important;padding:0!important;justify-content:flex-end!important;gap:0!important;border-radius:50%!important;overflow:hidden!important;transform:none!important;transition:left .2s ease,box-shadow .2s ease!important}
+  #liftHelpWhatsApp svg{width:23px!important;height:23px!important;margin-right:4px!important;flex-shrink:0!important}
+  #liftHelpWhatsApp .liftHelpHint{display:none!important}
+  #liftHelpWhatsApp:hover,#liftHelpWhatsApp:focus-visible{left:8px!important;transform:none!important}
+  #liftAdminToolsDock{bottom:calc(92px + env(safe-area-inset-bottom, 0px))!important}
+}

@@ -1,0 +1,28 @@
+
+/* Destacar únicamente la acción principal del checkout sin afectar su clic. */
+#checkoutModal .liftCheckoutActionArea .checkoutSend,
+#checkoutModal .liftCustomerRight .checkoutSend{
+  position:relative!important;isolation:isolate;overflow:hidden!important;
+  background:#101010!important;color:#fff!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  box-shadow:0 7px 22px rgba(0,0,0,.23)!important;
+  transition:background .22s ease,box-shadow .22s ease,transform .18s ease!important;
+}
+#checkoutModal .liftCheckoutActionArea .checkoutSend::before,
+#checkoutModal .liftCustomerRight .checkoutSend::before{
+  content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 15%,rgba(255,255,255,.06) 38%,rgba(255,255,255,.42) 50%,rgba(255,255,255,.06) 62%,transparent 85%);
+  transform:translateX(-145%);animation:liftOrderShine 4.2s ease-in-out infinite;
+}
+@keyframes liftOrderShine{0%,15%{transform:translateX(-145%)}43%,100%{transform:translateX(145%)}}
+#checkoutModal .liftCheckoutActionArea .checkoutSend:hover:not(:disabled),
+#checkoutModal .liftCustomerRight .checkoutSend:hover:not(:disabled){
+  background:#292929!important;box-shadow:0 10px 28px rgba(0,0,0,.3)!important;transform:translateY(-1px);
+}
+#checkoutModal .liftCheckoutActionArea .checkoutSend:active:not(:disabled),
+#checkoutModal .liftCustomerRight .checkoutSend:active:not(:disabled){background:#555!important;transform:scale(.985)}
+#checkoutModal .checkoutSend:disabled::before{animation:none!important;opacity:0}
+@media(prefers-reduced-motion:reduce){
+  #checkoutModal .liftCheckoutActionArea .checkoutSend::before,
+  #checkoutModal .liftCustomerRight .checkoutSend::before{animation:none!important}
+}

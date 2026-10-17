@@ -1,0 +1,29 @@
+
+/* Espaciado uniforme: Bold separado de Con tarjeta, sin barra. */
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy{
+  display:flex!important;align-items:center!important;gap:8px!important;
+  overflow:hidden!important;min-width:0!important;width:100%!important;
+}
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy>strong{
+  flex:0 0 auto!important;margin:0!important;white-space:nowrap!important;
+}
+.liftPayMethods .liftBoldLabeled{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  flex:1 1 auto!important;flex-wrap:nowrap!important;
+  gap:clamp(5px,.85vw,11px)!important;width:auto!important;
+  min-width:0!important;max-width:100%!important;margin:0!important;
+}
+.liftPayMethods .liftBoldPayPair{
+  display:inline-flex!important;align-items:center!important;flex:0 1 auto!important;
+  min-width:0!important;gap:3px!important;white-space:nowrap!important;
+}
+.liftPayMethods .liftBoldPayPair img+img{margin-left:1px!important}
+@media(max-width:700px){
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled){padding:7px 5px!important;gap:3px!important}
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy{gap:8px!important}
+ .liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy>strong{font-size:clamp(7px,1.55vw,10px)!important;letter-spacing:-.15px!important}
+ .liftPayMethods .liftBoldLabeled{gap:clamp(4px,.8vw,7px)!important}
+ .liftPayMethods .liftBoldPayLabel{font-size:clamp(6.5px,1.45vw,9px)!important;letter-spacing:-.15px!important}
+ .liftPayMethods .liftBoldPayPair{gap:2px!important}
+ .liftPayMethods .liftBoldPayPair img{height:clamp(10px,2.5vw,15px)!important;max-width:clamp(15px,5vw,32px)!important}
+}

@@ -1,0 +1,4 @@
+
+/* Restaura controles de acceso que una capa antigua ocultaba. */
+.liftTokenLink{display:flex!important;gap:7px;flex-wrap:wrap}
+@media(max-width:560px){.liftTokenLink{display:grid!important;grid-template-columns:1fr}}

@@ -1,0 +1,40 @@
+
+/* Un solo menú administrativo por tarjeta: laboratorio y producto */
+.liftCardAdminMenuWrap,.liftLabAdminMenuWrap{display:none;position:relative;z-index:30}
+body.liftAdminUnlocked .liftCardAdminMenuWrap{display:inline-flex}
+body.liftAdminUnlocked .liftLabAdminMenuWrap{display:flex}
+
+.liftAdminMenuToggle{
+  width:34px;height:34px;border:1px solid #dedede;border-radius:9px;background:#fff;color:#111;
+  display:grid;place-items:center;cursor:pointer;font:700 20px/1 Arial;box-shadow:0 2px 7px rgba(0,0,0,.08)
+}
+.liftAdminMenuToggle:hover,.liftAdminMenuToggle[aria-expanded="true"]{background:#111;color:#fff;border-color:#111}
+
+.liftAdminDropdown{
+  display:none;position:absolute;right:0;bottom:calc(100% + 6px);width:max-content;min-width:205px;
+  padding:6px;background:#fff;border:1px solid #e2e2e2;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.18);z-index:100
+}
+.liftAdminDropdown.open{display:grid}
+.liftAdminDropdown button{
+  width:100%;min-height:36px;border:0;background:#fff;color:#171717;border-radius:8px;padding:7px 10px;
+  text-align:left;white-space:nowrap;font:500 11px Poppins,Arial;cursor:pointer
+}
+.liftAdminDropdown button:hover{background:#f3f3f3}
+.liftAdminDropdown button.danger{color:#b42318}
+.liftAdminDropdown button.danger:hover{background:#fff1f0}
+
+/* Producto: ya no mostramos la antigua hilera de cinco iconos */
+body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminIcons{display:none!important}
+body.liftAdminUnlocked .grid .cardQuickActions{flex-wrap:nowrap!important;align-items:center!important}
+body.liftAdminUnlocked .grid .cardQuickActions>.liftCardAdminMenuWrap{margin-left:auto}
+
+/* Laboratorio: una sola flecha en la esquina */
+.labVisualCard{overflow:visible!important}
+.labAdminActions{right:6px!important;top:6px!important;gap:0!important}
+.labAdminActions>.labAdminBtn{width:29px;height:29px;font-size:18px}
+.labAdminActions .liftAdminDropdown{top:calc(100% + 5px);bottom:auto;right:0;min-width:190px}
+
+@media(max-width:760px){
+  .liftAdminDropdown{min-width:190px}
+  .labAdminActions .liftAdminDropdown{min-width:180px}
+}

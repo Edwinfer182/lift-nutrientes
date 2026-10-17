@@ -1,0 +1,13 @@
+
+/* Menús administrativos fuera de las tarjetas: no invaden ni se recortan. */
+body > .liftAdminDropdown.liftAdminPortal{
+  position:fixed!important;display:grid!important;grid-template-columns:repeat(2,34px)!important;
+  grid-auto-flow:row!important;gap:5px!important;width:max-content!important;
+  min-width:0!important;max-width:none!important;padding:7px!important;
+  top:0;left:0;right:auto!important;bottom:auto!important;
+  z-index:2147483000!important;background:#fff!important;
+  border:1px solid #ddd!important;border-radius:12px!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.22)!important;
+}
+body > .liftAdminPortal button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+@media(max-width:760px){body > .liftAdminDropdown.liftAdminPortal{grid-template-columns:repeat(2,34px)!important}}

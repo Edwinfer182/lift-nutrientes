@@ -1,0 +1,79 @@
+
+/* Acciones de tarjeta: más discretas y con jerarquía clara */
+.grid .card .actions,
+.grid .liftVitanessCard .cardQuickActions{
+  gap:6px!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+}
+
+/* Carrito = acción principal */
+.grid .card .add,
+.grid .card .add.topCart,
+.grid .liftVitanessCard .cardQuickBuyBtn{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  border-radius:10px!important;
+  padding:0!important;
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid #111!important;
+  box-shadow:none!important;
+}
+.grid .card .add svg,
+.grid .card .add.topCart svg,
+.grid .liftVitanessCard .cardQuickBuyBtn svg{
+  width:15px!important;
+  height:15px!important;
+}
+
+/* Compartir = acción secundaria */
+.grid .card .shareBtn,
+.grid .card .cardShareImageBtn,
+.grid .liftVitanessCard .cardShareImageBtn{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  border-radius:10px!important;
+  padding:0!important;
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #dedede!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.035)!important;
+}
+.grid .card .shareBtn svg,
+.grid .card .cardShareImageBtn svg,
+.grid .liftVitanessCard .cardShareImageBtn svg{
+  width:15px!important;
+  height:15px!important;
+}
+
+/* Feedback de agregado */
+.grid .card .add.liftCardAdded,
+.grid .card .add.topCart.liftCardAdded,
+.grid .liftVitanessCard .cardQuickBuyBtn.liftCardAdded{
+  background:#eef8f0!important;
+  color:#17652b!important;
+  border-color:#82b98e!important;
+}
+
+@media(max-width:760px){
+  .grid .card .actions,
+  .grid .liftVitanessCard .cardQuickActions{gap:5px!important}
+
+  .grid .card .add,
+  .grid .card .add.topCart,
+  .grid .liftVitanessCard .cardQuickBuyBtn,
+  .grid .card .shareBtn,
+  .grid .card .cardShareImageBtn,
+  .grid .liftVitanessCard .cardShareImageBtn{
+    width:33px!important;
+    height:33px!important;
+    min-width:33px!important;
+    min-height:33px!important;
+    border-radius:9px!important;
+  }
+}

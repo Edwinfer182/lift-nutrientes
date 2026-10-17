@@ -1,0 +1,87 @@
+
+/* Compactación final de tarjetas: menos vacío, misma alineación */
+.grid .card,.grid .liftVitanessCard{
+  min-height:300px!important;
+}
+.grid .card .pic,.grid .liftVitanessCard .pic{
+  height:170px!important;
+  padding:10px 12px 5px!important;
+}
+.grid .card .pic img,.grid .liftVitanessCard .pic img{
+  max-width:88%!important;
+  max-height:92%!important;
+}
+.grid .card .body,.grid .liftVitanessCard .body{
+  min-height:122px!important;
+  padding:6px 12px 11px!important;
+  gap:3px!important;
+}
+.grid .card .meta,
+.grid .liftVitanessCard .liftCardSection{
+  min-height:14px!important;
+}
+.grid .card .tag,
+.grid .liftVitanessCard .liftCardSection{
+  font-size:9px!important;
+  line-height:1.25!important;
+}
+.grid .card .name,.grid .liftVitanessCard .name{
+  min-height:36px!important;
+  max-height:38px!important;
+  font-size:13px!important;
+  line-height:1.42!important;
+}
+.grid .card .flavorNote,
+.grid .liftVitanessCard .liftCardPresentation,
+.grid .liftVitanessCard .liftCardFlavor{
+  margin-top:0!important;
+}
+.grid .card .productBottom,
+.grid .liftVitanessCard .prices{
+  margin-top:auto!important;
+  padding-top:3px!important;
+}
+.grid .card .price,
+.grid .liftVitanessCard .priceBox .price{
+  font-size:18px!important;
+}
+.grid .liftVitanessCard .cardQuickActions{
+  margin-top:5px!important;
+}
+
+@media(max-width:760px){
+  .grid .card,.grid .liftVitanessCard{
+    min-height:265px!important;
+  }
+  .grid .card .pic,.grid .liftVitanessCard .pic{
+    height:140px!important;
+    padding:8px 7px 3px!important;
+  }
+  .grid .card .pic img,.grid .liftVitanessCard .pic img{
+    max-width:90%!important;
+    max-height:93%!important;
+  }
+  .grid .card .body,.grid .liftVitanessCard .body{
+    min-height:119px!important;
+    padding:6px 9px 9px!important;
+    gap:2px!important;
+  }
+  .grid .card .tag,
+  .grid .liftVitanessCard .liftCardSection{
+    font-size:8px!important;
+  }
+  .grid .card .name,.grid .liftVitanessCard .name{
+    min-height:34px!important;
+    max-height:36px!important;
+    font-size:11.7px!important;
+  }
+  .grid .card .price,
+  .grid .liftVitanessCard .priceBox .price{
+    font-size:15.5px!important;
+  }
+}
+@media(max-width:390px){
+  .grid .card,.grid .liftVitanessCard{min-height:252px!important}
+  .grid .card .pic,.grid .liftVitanessCard .pic{height:130px!important}
+  .grid .card .body,.grid .liftVitanessCard .body{min-height:116px!important}
+}

@@ -1,0 +1,18 @@
+
+.pdfFlavorBlock{margin:14px 0 6px}
+.pdfFlavorHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:14px}
+.pdfFlavorHead b{font-weight:650}
+.pdfFlavorSelected{font-size:12px;color:#666;text-align:right}
+.pdfFlavorStrip{display:flex;flex-wrap:wrap;gap:8px}
+.pdfFlavorChip{
+  appearance:none;border:1px solid #d4d4d4;border-radius:999px;background:#fff;color:#111;
+  padding:9px 13px;font:inherit;font-size:12px;line-height:1;cursor:pointer;
+  transition:border-color .15s ease,background .15s ease,color .15s ease,transform .15s ease;
+}
+.pdfFlavorChip:hover{border-color:#777;transform:translateY(-1px)}
+.pdfFlavorChip.active{background:#111;color:#fff;border-color:#111}
+@media(max-width:640px){
+  .pdfFlavorBlock{margin-top:12px}
+  .pdfFlavorStrip{gap:7px}
+  .pdfFlavorChip{padding:8px 11px;font-size:11px}
+}

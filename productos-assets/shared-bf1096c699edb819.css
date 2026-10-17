@@ -1,0 +1,22 @@
+
+#liftAttentionCheckout{display:none;margin:10px 0 12px;padding:12px;border:1px solid #dedede;border-radius:12px;background:#fafafa}
+#liftAttentionCheckout.open{display:block}
+.liftAttTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+.liftAttTitle b{font-size:12px}.liftAttTitle small{font-size:9px;color:#777}
+.liftAttClientPick{margin:0 0 10px}.liftAttClientPick>label{display:block;margin-bottom:4px;font-size:9px;color:#777}.liftAttClientRow{display:grid;grid-template-columns:1.2fr .8fr;gap:7px}.liftAttClientRow select,.liftAttClientRow input{width:100%;height:40px;border:1px solid #d7d7d7;border-radius:9px;background:#fff;padding:0 10px;font:500 10px Poppins,Arial}.liftAttClientRow select{cursor:pointer}.liftAttClientPick small{display:block;margin-top:4px;font-size:8.5px;color:#888}
+@media(max-width:620px){.liftAttClientRow{grid-template-columns:1fr}}
+.liftAttTabs{display:flex;flex-wrap:wrap;gap:6px;overflow:visible;padding-bottom:9px}
+.liftAttTabs button{flex:0 0 auto;border:1px solid #ddd;background:#fff;border-radius:999px;padding:7px 10px;font:600 9px Poppins,Arial;cursor:pointer;white-space:nowrap}
+.liftAttTabs button.on{background:#111;color:#fff;border-color:#111}
+.liftAttReplies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.liftAttReply{border:1px solid #ddd;background:#fff;border-radius:9px;padding:9px;text-align:left;font:400 9.5px/1.35 Poppins,Arial;cursor:pointer}
+.liftAttReply:hover,.liftAttReply.on{border-color:#111;background:#f3f3f3}
+.liftAttResult{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:10px}
+#liftAttText{min-height:64px;border:1px solid #d7d7d7;border-radius:9px;padding:9px;font:400 10px/1.4 Poppins,Arial;resize:vertical;background:#fff}
+#liftAttCopy{min-width:112px;border:0;border-radius:9px;background:#111;color:#fff;font:600 10px Poppins,Arial;cursor:pointer;padding:0 14px}
+#liftAttCopy.copied{background:#168451}
+@media(max-width:620px){
+ .liftAttReplies{grid-template-columns:1fr}
+ .liftAttResult{grid-template-columns:1fr}
+ #liftAttCopy{min-height:42px}
+}

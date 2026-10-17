@@ -1,0 +1,12 @@
+
+/* Recomendaciones dentro de la columna de la imagen, sin ocupar toda la página. */
+@media(min-width:761px){
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage{display:block!important;width:100%;margin-top:20px!important;min-width:0!important}
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .liftRelatedGrid,
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+}
+@media(max-width:760px){
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage{display:block!important;margin:16px 0 22px!important}
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .liftRelatedGrid,
+ #liftMonoOff .liftMonoVisual .liftRelatedUnderImage .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+}

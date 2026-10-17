@@ -1,0 +1,2 @@
+
+#liftAbandonModal{display:none;position:fixed;inset:0;z-index:18000;background:rgba(0,0,0,.58);padding:20px;place-items:center}#liftAbandonModal.open{display:grid}#liftAbandonModal .liftAbandonCard{background:white;border-radius:16px;padding:22px;width:min(95vw,760px);max-height:90vh;overflow:auto}#liftAbandonModal h2{font-size:21px;margin:0 0 12px}#liftAbandonModal .liftAbandonClose{float:right;background:#111;color:#fff;border:0;border-radius:8px;padding:9px 13px;cursor:pointer}#liftAbandonModal .liftAbandonInfo{font-size:13px;line-height:1.7;color:#555}

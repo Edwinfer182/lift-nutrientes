@@ -1,0 +1,58 @@
+
+/* Checkout público limpio */
+#liftOrderSuccessModal{display:none!important}
+#checkoutModal .checkoutSend svg{display:none!important}
+#checkoutModal .checkoutSend{background:#111!important;color:#fff!important}
+
+/* Seguimiento compacto y orientado a la siguiente acción */
+.liftJourney{margin:12px 0 10px}
+.liftJourneyLine{display:grid;grid-template-columns:repeat(6,1fr);align-items:start}
+.liftJourneyStep{position:relative;text-align:center;min-width:0;cursor:pointer}
+.liftJourneyStep:before{content:"";position:absolute;top:11px;left:-50%;width:100%;height:2px;background:#e5e5e5;z-index:0}
+.liftJourneyStep:first-child:before{display:none}
+.liftJourneyDot{position:relative;z-index:1;width:23px;height:23px;border-radius:50%;margin:0 auto 6px;background:#e7e7e7;border:2px solid #e7e7e7;color:#999;display:grid;place-items:center;font:700 10px Poppins,Arial}
+.liftJourneyStep.done .liftJourneyDot,.liftJourneyStep.current .liftJourneyDot{background:#16a34a;border-color:#16a34a;color:#fff}
+.liftJourneyStep.done:before,.liftJourneyStep.current:before{background:#16a34a}
+.liftJourneyLabel{font:600 8px Poppins,Arial;color:#999;line-height:1.15}
+.liftJourneyStep.done .liftJourneyLabel,.liftJourneyStep.current .liftJourneyLabel{color:#111}
+.liftJourneyHelp{margin:10px 0 0;padding:10px 11px;border:1px solid #e5e5e5;border-radius:11px;background:#fafafa}
+.liftJourneyHelp b{font-size:10px}.liftJourneyHelp p{font-size:9px;line-height:1.45;color:#666;margin:4px 0 0}
+
+.liftNextCard{margin:12px 0;padding:14px;border:1px solid #dce8df;border-radius:14px;background:#f6faf7}
+.liftNextEyebrow{font:700 8px Poppins,Arial;color:#168451;letter-spacing:.09em}
+.liftNextTitle{font:700 15px Poppins,Arial;margin-top:4px}
+.liftNextText{font:400 10px Poppins,Arial;color:#555;line-height:1.5;margin-top:5px}
+
+.liftCompactPurchase{border:1px solid #e5e5e5;border-radius:13px;padding:12px;margin-top:12px}
+.liftCompactPurchaseHead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.liftCompactPurchaseHead b{font-size:11px}.liftCompactPurchaseHead strong{font-size:14px}
+.liftCompactItems{font-size:10px;color:#666;line-height:1.55;margin-top:6px}
+.liftCompactToggle{border:0;background:transparent;padding:7px 0 0;text-decoration:underline;font:600 9px Poppins,Arial;cursor:pointer}
+.liftCompactDetails{display:none;margin-top:12px}.liftCompactDetails.open{display:block}
+
+.liftPayChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.liftPayChoice button,.liftUnavailableActions button{min-height:42px;border:1px solid #ddd;border-radius:10px;background:#fff;font:600 9px Poppins,Arial;cursor:pointer}
+.liftPayChoice .primary{background:#111;color:#fff;border-color:#111}
+.liftProofBox{border:1px solid #ddd;border-radius:12px;padding:11px;margin-top:10px;background:#fff}
+.liftProofBox input{display:block;width:100%;margin:9px 0;font-size:10px}
+.liftProofBox>button{width:100%;min-height:42px;border:0;border-radius:9px;background:#111;color:#fff;font:600 10px Poppins,Arial}
+.liftUnavailableActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+
+.liftTokenLink{display:flex;gap:7px;margin-top:10px}.liftTokenLink button{flex:1;min-height:37px;border:1px solid #ddd;border-radius:9px;background:#fff;font:600 9px Poppins,Arial;cursor:pointer}
+
+/* Administración */
+.liftAvailabilityAdmin{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.liftAvailabilityAdmin button{min-height:42px;border-radius:10px;font:600 10px Poppins,Arial;cursor:pointer}
+.liftAvailYes{border:0;background:#16a34a;color:#fff}.liftAvailNo{border:1px solid #ddd;background:#fff;color:#b42318}
+#liftPaymentsAdminBtn{position:fixed;right:18px;bottom:82px;z-index:11500;border:0;border-radius:999px;background:#111;color:#fff;padding:12px 15px;font:600 10px Poppins,Arial;box-shadow:0 8px 28px rgba(0,0,0,.25);cursor:pointer;display:none}
+body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
+.liftPaymentAdminRow{border:1px solid #e4e4e4;border-radius:12px;padding:12px;margin:8px 0}
+.liftPaymentAdminRow b{font-size:12px}.liftPaymentAdminRow small{display:block;color:#777;margin-top:3px}
+.liftPaymentAdminActions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:9px}
+.liftPaymentAdminActions button{height:36px;border:1px solid #ddd;border-radius:8px;background:#fff;font:600 9px Poppins,Arial;cursor:pointer}
+.liftPaymentAdminActions .approve{background:#16a34a;color:#fff;border-color:#16a34a}
+
+@media(max-width:600px){
+ .liftJourneyLabel{font-size:7px}.liftJourneyDot{width:21px;height:21px}
+ .liftPayChoice,.liftUnavailableActions,.liftAvailabilityAdmin,.liftPaymentAdminActions{grid-template-columns:1fr}
+}

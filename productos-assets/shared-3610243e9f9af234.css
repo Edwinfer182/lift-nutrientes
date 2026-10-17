@@ -1,0 +1,6 @@
+
+.liftMonoBrandCategory{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px!important}
+.liftMonoBrandCategory .liftMonoBrand,.liftMonoBrandCategory .liftMonoCategory{display:inline!important;margin:0!important;padding:0!important;line-height:1.4!important}
+.liftMonoBrandCategory .liftMonoCategory{font-size:11px!important;color:#888!important;text-transform:none!important;letter-spacing:0!important}
+.liftMonoQuickMeta{display:none!important}
+@media(max-width:760px){.liftMonoBrandCategory{gap:8px!important;margin-bottom:6px!important}.liftMonoBrandCategory .liftMonoCategory{font-size:10px!important}}

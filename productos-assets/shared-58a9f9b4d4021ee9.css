@@ -1,0 +1,11 @@
+
+#liftQuickListBtn{display:none!important;width:44px;height:44px;min-width:44px;padding:0!important;border:1px solid #343434;background:#111;color:#fff;border-radius:13px;align-items:center;justify-content:center;font-size:21px;cursor:pointer}
+body.liftAdminUnlocked #liftQuickListBtn{display:flex!important}
+#liftQuickListModal{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.56);display:none;place-items:center;padding:16px}
+#liftQuickListModal.open{display:grid}
+.lqlCard{width:min(94vw,720px);max-height:92vh;background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.lqlHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eee}.lqlHead b{font-size:16px}.lqlClose{width:34px;height:34px;border:0;border-radius:50%;background:#eee;cursor:pointer;font-size:18px}
+.lqlSearch{padding:12px 14px;border-bottom:1px solid #eee}.lqlSearch input{width:100%;height:42px;border:1px solid #d8d8d8;border-radius:11px;padding:0 12px;outline:none}.lqlSearch input:focus{border-color:#111}
+#liftQuickListResults{overflow:auto;padding:8px 12px;display:grid;gap:5px;flex:1}.lqlRow{display:grid;grid-template-columns:34px 42px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid #ececec;border-radius:10px;padding:5px 7px;background:#fff}.lqlRow input{width:16px;height:16px;accent-color:#111}.lqlRow img{width:42px;height:42px;object-fit:contain}.lqlName{font-size:11px;line-height:1.2;font-weight:400}.lqlMeta{font-size:9px;color:#777;margin-top:2px}.lqlPrice{font-size:11px;font-weight:600;white-space:nowrap}.lqlEmpty{padding:25px;text-align:center;color:#777;font-size:12px}
+.lqlFoot{padding:10px 14px;border-top:1px solid #eee;display:grid;grid-template-columns:1fr 1fr;gap:8px}.lqlFoot button{height:42px;border-radius:10px;font:inherit;font-size:12px;cursor:pointer}.lqlCopy{border:1px solid #ddd;background:#fff}.lqlShare{border:0;background:#111;color:#fff}
+@media(max-width:760px){#liftQuickListBtn{order:4!important;height:40px!important;width:40px!important;min-width:40px!important;border-radius:11px!important}.search{order:6!important}.lqlCard{max-height:94vh}.lqlRow{grid-template-columns:28px 38px minmax(0,1fr) auto;padding:5px}.lqlRow img{width:38px;height:38px}.lqlName{font-size:10px}.lqlPrice{font-size:10px}}

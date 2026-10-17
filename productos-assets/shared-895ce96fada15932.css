@@ -1,0 +1,9 @@
+
+/* La cuadrícula antigua forzaba la información de envíos en la fila 3. */
+@media(min-width:761px){
+  #liftMonoOff .liftMonoRelatedWide{grid-row:3!important;grid-column:1/-1!important}
+  #liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion{grid-row:4!important;grid-column:1/-1!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  #liftMonoOff .liftMonoServiceWide.liftDeliveryAccordion{display:grid!important;grid-template-columns:1fr!important}
+}

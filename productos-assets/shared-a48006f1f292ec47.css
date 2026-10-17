@@ -1,0 +1,16 @@
+
+#liftDirectCheckoutBtn{display:none!important}
+body.liftAdminUnlocked #liftDirectCheckoutBtn{display:flex!important}
+.liftCheckoutCatalogSearch{display:none;margin:0 0 14px;padding:12px;border:1px solid #e4e4e4;border-radius:13px;background:#fafafa;position:relative}
+body.liftAdminUnlocked .liftCheckoutCatalogSearch{display:block}
+.liftCheckoutCatalogSearch label{display:block;font-size:11px;font-weight:500;margin-bottom:6px;color:#333}
+.liftCheckoutCatalogSearchRow{display:flex;gap:7px;align-items:center}
+.liftCheckoutCatalogSearch input{width:100%;height:42px;border:1px solid #d7d7d7;border-radius:10px;padding:0 11px;background:#fff;outline:none;font:inherit;font-size:12px}
+.liftCheckoutCatalogResults{display:none;position:absolute;z-index:80;left:12px;right:12px;top:70px;max-height:330px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.16)}
+.liftCheckoutCatalogResults.show{display:block}
+.liftCheckoutCatalogResult{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:9px;align-items:center;padding:8px;border-bottom:1px solid #eee}
+.liftCheckoutCatalogResult:last-child{border-bottom:0}.liftCheckoutCatalogResult img{width:46px;height:46px;object-fit:contain;border-radius:7px;background:#fff}
+.liftCheckoutCatalogResult b{display:block;font-size:11px;line-height:1.25;font-weight:500}.liftCheckoutCatalogResult small{display:block;font-size:9px;color:#777;margin-top:2px}
+.liftCheckoutCatalogAdd{border:0;background:#111;color:#fff;border-radius:8px;min-height:32px;padding:0 10px;font:inherit;font-size:10px;cursor:pointer}
+.liftCheckoutCatalogEmpty{padding:16px;text-align:center;color:#777;font-size:11px}
+@media(max-width:760px){#liftDirectCheckoutBtn{order:4!important;width:40px!important;padding:0!important;justify-content:center!important}#liftDirectCheckoutBtn .txt{display:none!important}.search{order:6!important}.liftCheckoutCatalogResults{max-height:42vh}.liftCheckoutCatalogResult{grid-template-columns:40px minmax(0,1fr) auto}.liftCheckoutCatalogResult img{width:40px;height:40px}}

@@ -1,0 +1,9 @@
+
+/* Bold y todas las opciones en una sola línea, sin saltos. */
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled){min-height:54px!important;align-items:center!important;overflow:hidden!important}
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy{display:flex!important;flex-direction:row!important;align-items:center!important;gap:9px!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:thin!important;white-space:nowrap!important}
+.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy>strong{flex:0 0 auto!important;white-space:nowrap!important;font-size:10px!important}
+.liftPayMethods .liftBoldLabeled{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;width:max-content!important;min-width:max-content!important;margin:0!important}
+.liftPayMethods .liftBoldPayPair{flex:0 0 auto!important;white-space:nowrap!important;gap:4px!important}
+.liftPayMethods .liftBoldPayPair img{height:17px!important;max-width:42px!important}
+@media(max-width:600px){.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled){padding:9px 7px!important;gap:5px!important}.liftPayMethods .liftPayMethodRow:has(.liftBoldLabeled) .liftPayMethodCopy{gap:7px!important}.liftPayMethods .liftBoldLabeled{gap:9px!important}.liftPayMethods .liftBoldPayPair img{height:16px!important;max-width:38px!important}}

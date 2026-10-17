@@ -1,0 +1,32 @@
+
+/* Miniaturas sin cajas: el envase completo se ve y la selección permanece. */
+#liftMonoZoomArea .liftSecondaryRail{
+  width:72px!important;left:10px!important;top:14px!important;bottom:14px!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  gap:13px!important;padding:3px 5px!important;overflow-y:auto!important;overflow-x:hidden!important;
+  background:transparent!important;scrollbar-width:thin;
+}
+#liftMonoZoomArea .liftSecondaryThumb{
+  flex:0 0 65px!important;width:62px!important;height:65px!important;min-height:65px!important;
+  border:0!important;outline:0!important;border-radius:8px!important;
+  padding:2px!important;background:transparent!important;box-shadow:none!important;
+  overflow:visible!important;opacity:.72;transition:opacity .16s ease,transform .16s ease!important;
+}
+#liftMonoZoomArea .liftSecondaryThumb img{
+  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;
+  max-height:100%!important;object-fit:contain!important;object-position:center!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+}
+#liftMonoZoomArea .liftSecondaryThumb:hover,
+#liftMonoZoomArea .liftSecondaryThumb.active{opacity:1!important;transform:scale(1.06)!important;border:0!important;box-shadow:none!important}
+#liftMonoZoomArea .liftSecondaryThumb.active:after{
+  content:"";display:block;width:20px;height:2px;background:#111;border-radius:3px;
+  margin:2px auto 0;
+}
+#liftMonoZoomArea .liftSecondaryThumb:focus-visible{outline:2px solid #111!important;outline-offset:3px!important}
+#liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 76px)!important;margin-left:76px!important;object-fit:contain!important}
+@media(max-width:760px){
+ #liftMonoZoomArea .liftSecondaryRail{width:56px!important;left:5px!important;top:8px!important;bottom:8px!important;gap:9px!important;padding:2px!important}
+ #liftMonoZoomArea .liftSecondaryThumb{flex-basis:52px!important;width:49px!important;height:52px!important;min-height:52px!important}
+ #liftMonoZoomArea.hasSecondaryGallery>img{max-width:calc(100% - 58px)!important;margin-left:58px!important}
+}

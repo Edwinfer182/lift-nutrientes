@@ -1,0 +1,11 @@
+
+.searchThumb[data-lift-product]{cursor:pointer}
+.liftMonoPriceArea .offerPrices{margin-top:10px}
+.liftMonoPriceArea .oldPrice{font-size:14px}
+.liftMonoPriceArea .price{font-size:30px;font-weight:600}
+.liftMonoPriceArea .giftBadge,
+.liftMonoPriceArea .saving,
+.liftMonoPriceArea .flavorNote{margin-top:7px}
+@media(max-width:640px){
+  .liftMonoPriceArea .price{font-size:26px}
+}

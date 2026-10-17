@@ -1,0 +1,6 @@
+
+@media(max-width:760px){
+ #liftMonoOff{touch-action:pan-y!important;}
+ #liftMonoOff.lift-swipe-dragging{transition:none!important;}
+ #liftMonoOff .liftSwipeHandle{height:5px;width:46px;border-radius:20px;background:#aaa;margin:7px auto 0;position:absolute;top:2px;left:50%;transform:translateX(-50%);z-index:10003;pointer-events:none;}
+}

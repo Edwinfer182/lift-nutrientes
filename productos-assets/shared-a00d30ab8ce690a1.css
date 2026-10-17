@@ -1,0 +1,58 @@
+
+/* Marca + categoría: secundaria pero realmente legible */
+.grid .card .meta{
+  min-height:15px!important;
+  margin:0 0 2px!important;
+  display:block!important;
+  overflow:hidden!important;
+}
+.grid .card .tag{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  font-weight:500!important;
+  letter-spacing:.025em!important;
+  color:#7d7d7d!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-transform:uppercase!important;
+}
+
+/* Tarjetas Vitaness / unificadas */
+.grid .liftVitanessCard .liftCardSection{
+  display:block!important;
+  width:100%!important;
+  min-height:15px!important;
+  margin:0 0 2px!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  font-weight:500!important;
+  letter-spacing:.025em!important;
+  color:#7d7d7d!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-transform:uppercase!important;
+}
+
+/* Un poco más de contraste al pasar el mouse, sin convertirlo en protagonista */
+.grid .card:hover .tag,
+.grid .liftVitanessCard:hover .liftCardSection{
+  color:#5f5f5f!important;
+}
+
+@media(max-width:760px){
+  .grid .card .meta,
+  .grid .liftVitanessCard .liftCardSection{
+    min-height:14px!important;
+    margin-bottom:2px!important;
+  }
+  .grid .card .tag,
+  .grid .liftVitanessCard .liftCardSection{
+    font-size:8.2px!important;
+    letter-spacing:.015em!important;
+  }
+}

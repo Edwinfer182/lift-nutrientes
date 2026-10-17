@@ -1,0 +1,14 @@
+
+/* Solo móvil: imagen, variaciones, información de compra y recomendados. PC intacto. */
+@media (max-width:760px){
+  #liftMonoOff .liftMonoBody{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important}
+  #liftMonoOff .liftMonoVisual{display:contents!important}
+  #liftMonoOff .liftMonoImg{order:0!important}
+  #liftMonoOff .detailShareBelowImage{order:1!important}
+  #liftMonoOff .liftMonoVariantsBelow{order:2!important;width:100%!important;margin:4px 0 8px!important}
+  #liftMonoOff .liftMonoInfo{order:3!important;width:100%!important}
+  #liftMonoOff .liftMonoRelatedWide{order:4!important;width:100%!important;margin-top:12px!important}
+  #liftMonoOff .liftMonoServiceWide{order:5!important;width:100%!important}
+  #liftMonoOff .liftMonoRelatedWide .relatedGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+  #liftMonoOff .liftMonoRelatedWide .relatedItem{min-width:0!important}
+}

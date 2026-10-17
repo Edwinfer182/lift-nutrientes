@@ -1,0 +1,13 @@
+
+@media(max-width:760px){
+  /* Mantener el carrito accesible sin cubrir el CTA fijo de producto. */
+  body button.floating{bottom:calc(94px + env(safe-area-inset-bottom, 0px))!important;right:12px!important;width:54px!important;height:54px!important;z-index:15995!important;}
+  /* El botón de compra debe contrastar claramente con el fondo blanco. */
+  #liftMonoAdd{background:#111!important;color:#fff!important;border:2px solid #111!important;font-weight:600!important;box-shadow:0 3px 12px rgba(0,0,0,.18)!important;}
+  #liftMonoAdd:disabled{opacity:.5!important;}
+  /* Media bola de WhatsApp en el lado opuesto, sin invadir el selector de cantidad. */
+  body #liftHelpWhatsApp{left:-26px!important;right:auto!important;bottom:calc(98px + env(safe-area-inset-bottom, 0px))!important;width:52px!important;min-width:52px!important;height:52px!important;padding:0!important;display:flex!important;justify-content:flex-end!important;overflow:hidden!important;border-radius:50%!important;}
+  body #liftHelpWhatsApp .liftHelpHint{display:none!important;}
+  body #liftHelpWhatsApp svg{margin-right:4px!important;}
+  body #liftHelpWhatsApp:hover,body #liftHelpWhatsApp:focus-visible{left:6px!important;}
+}

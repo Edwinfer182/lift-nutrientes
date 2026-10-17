@@ -1,0 +1,5 @@
+
+/* Las acciones de compartir y copiar son herramientas administrativas. */
+#cart .liftCartAdminOnly,#cart .liftCartShareWrap{display:none!important}
+body.liftAdminUnlocked #cart .liftCartAdminOnly,
+body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}

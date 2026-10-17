@@ -1,0 +1,7 @@
+
+header .liftSearchEnhanced{position:relative!important;flex:1 1 auto!important}
+header .liftSearchEnhanced::before{
+ content:"";position:absolute;z-index:4;left:14px;top:50%;width:16px;height:16px;
+ transform:translateY(-50%);pointer-events:none;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat
+}
