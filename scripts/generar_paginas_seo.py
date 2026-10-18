@@ -11,6 +11,8 @@ def slug(s):
  s=unicodedata.normalize("NFKD",str(s or "")).encode("ascii","ignore").decode().lower()
  return re.sub(r"(^-|-$)","",re.sub(r"[^a-z0-9]+","-",s))[:110]
 def esc(v): return html.escape(str(v or ""),quote=True)
+def seo_plain(v):
+ return re.sub(r'\\s+', ' ', html.unescape(re.sub(r'<[^>]*>', ' ', str(v or '')))).strip()
 def fetch():
  rows=[]
  for offset in range(0,100000,500):
@@ -88,12 +90,13 @@ def build(row):
  promotion=active_offer(row)
  try: amount=float(price); valid_price=amount>0
  except (ValueError,TypeError):valid_price=False;amount=0
- title=str(seo_data.get("titulo_seo") or (name+" | Lift Nutrientes"))[:140]
- meta=str(seo_data.get("meta_descripcion") or description or f"Consulta {name} de {brand} en Lift Nutrientes. Presentaciones, precio y disponibilidad en Colombia.")[:160]
+ title=str(seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
+ seo_description=seo_plain(seo_data.get("descripcion_larga_html"))
+ meta=str(seo_data.get("meta_descripcion") or description or seo_description or f"Consulta {name} de {brand} en Supgo. Presentaciones, precio y disponibilidad en Colombia.")[:160]
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(pid)}
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
  if image:product_schema["image"]=[image]
- if description or seo_data.get("meta_descripcion"):product_schema["description"]=description or str(seo_data["meta_descripcion"])
+ if seo_description or description or seo_data.get("meta_descripcion"):product_schema["description"]=(seo_description or description or str(seo_data["meta_descripcion"]))[:5000]
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
  for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
   value=p.get(source)
@@ -134,7 +137,7 @@ def build(row):
 </head><body><header><a href="{BASE}/">LIFT NUTRIENTES</a></header>
 <nav><a href="{BASE}/">Inicio</a><a href="{BASE}/?ofertas=1">Ofertas</a><a href="{BASE}/?categoria={urllib.parse.quote(str(p.get('category') or ''))}">Categoría: {esc(p.get('category') or 'Ver todas')}</a><a href="{BASE}/?marca={urllib.parse.quote(brand)}">Laboratorio: {esc(brand or 'Ver todos')}</a></nav>
 <main><section>{img}</section><section><p>{esc(brand)}</p><h1>{esc(name)}</h1>{price_html}
-<p>{esc(description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p>
+<p>{esc(seo_description or description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p>
 <a class="btn" href="{BASE}/?producto={pid}">Ver opciones y agregar al carrito</a>
 <a class="btn" href="{BASE}/?ofertas=1">Ver ofertas</a></section></main>
 <footer>Lift Nutrientes · <a href="{BASE}/">supgo.co</a></footer></body></html>'''
@@ -158,12 +161,13 @@ def build_direct(row, shared):
  p=row["product"]
  brand=str(p.get("brand") or p.get("marca") or "")
  description=str(p.get("description") or p.get("descripcion") or "").strip()
+ seo_description=seo_plain((row.get("_seo") or {}).get("descripcion_larga_html"))
  image=str((row.get("_seo") or {}).get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
  if image.startswith("//"): image="https:"+image
  elif image.startswith("/"): image=BASE+image
  elif image and not image.startswith(("http://","https://")): image=""
  img=f'<img src="{esc(image)}" alt="{esc(name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
- static_section=f'<main id="liftSEOStatic" style="max-width:1000px;margin:24px auto;padding:20px;font:16px Arial,sans-serif"><p>{esc(brand)}</p><h1>{esc(name)}</h1>{img}<p>{esc(description or "Consulta presentaciones, precios y disponibilidad de este producto en Lift Nutrientes.")}</p><p><a href="{BASE}/?producto={urllib.parse.quote(pid)}">Consultar producto y agregar al carrito</a></p></main>'
+ static_section=f'<main id="liftSEOStatic" style="max-width:1000px;margin:24px auto;padding:20px;font:16px Arial,sans-serif"><p>{esc(brand)}</p><h1>{esc(name)}</h1>{img}<p>{esc(seo_description or description or "Consulta presentaciones, precios y disponibilidad de este producto en Supgo.")}</p><p><a href="{BASE}/?producto={urllib.parse.quote(pid)}">Consultar producto y agregar al carrito</a></p></main>'
  page=page.replace("<body>", "<body>"+static_section,1)
  # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
  page=page.replace("<head>","<head>\n"+head_meta+"\n",1)
