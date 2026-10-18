@@ -12,7 +12,7 @@ def slug(s):
  return re.sub(r"(^-|-$)","",re.sub(r"[^a-z0-9]+","-",s))[:110]
 def esc(v): return html.escape(str(v or ""),quote=True)
 def seo_plain(v):
- return re.sub(r'\\s+', ' ', html.unescape(re.sub(r'<[^>]*>', ' ', str(v or '')))).strip()
+ return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]*>', ' ', str(v or '')))).strip()
 def fetch():
  rows=[]
  for offset in range(0,100000,500):
@@ -96,7 +96,7 @@ def build(row):
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(pid)}
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
  if image:product_schema["image"]=[image]
- if seo_description or description or seo_data.get("meta_descripcion"):product_schema["description"]=(seo_description or description or str(seo_data["meta_descripcion"]))[:5000]
+ product_schema["description"]=(seo_description or description or meta)[:5000]
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
  for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
   value=p.get(source)
