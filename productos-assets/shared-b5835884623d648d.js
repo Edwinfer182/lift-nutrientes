@@ -1,0 +1,44 @@
+
+(function(){
+const $=id=>document.getElementById(id),SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+let current=null, lines=[];
+const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const number=v=>Math.max(0,Math.round(Number(v)||0));
+const sum=()=>lines.reduce((t,x)=>t+number(x.cantidad)*number(x.precio_unitario),0);
+function render(){const box=$('liftEditLines');if(!box)return;box.innerHTML=lines.map((x,i)=>`<div class="liftEditLine"><span style="font-size:11px;overflow-wrap:anywhere">${esc(x.nombre)}${x.marca?' · '+esc(x.marca):''}</span><input aria-label="Cantidad" type="number" min="1" step="1" value="${number(x.cantidad)}" oninput="liftEditOrderLine(${i},'cantidad',this.value)"><input aria-label="Precio unitario" type="number" min="0" step="1" value="${number(x.precio_unitario)}" oninput="liftEditOrderLine(${i},'precio_unitario',this.value)"><button type="button" aria-label="Quitar producto" onclick="liftEditOrderRemove(${i})">×</button></div>`).join(''); totals()}
+function totals(){const subtotal=sum(),envio=number($('liftEditShip')?.value),desc=number($('liftEditDiscount')?.value);if($('liftEditTotal'))$('liftEditTotal').textContent=`Subtotal ${money(subtotal)} · Total ${money(Math.max(0,subtotal+envio-desc))}`}
+window.liftEditOrderLine=(i,k,v)=>{if(lines[i])lines[i][k]=number(v);totals()};
+window.liftEditOrderRemove=i=>{lines.splice(i,1);render()};
+window.liftEditOrderSearch=function(){const q=($('liftEditFind')?.value||'').toLowerCase().trim(),box=$('liftEditResults');if(!box)return;if(q.length<2){box.innerHTML='';return}const ps=typeof PRODUCTS!=='undefined'?PRODUCTS:window.PRODUCTS||[];box.innerHTML=ps.filter(p=>String(p.name||p.nombre||'').toLowerCase().includes(q)).slice(0,12).map(p=>`<button type="button" data-id="${esc(p.id)}">${esc(p.name||p.nombre)} · ${money(p.price||p.precio)}</button>`).join('');box.querySelectorAll('button').forEach(b=>b.onclick=()=>{const p=ps.find(x=>String(x.id)===b.dataset.id);if(!p)return;lines.push({producto_id:p.id,nombre:p.name||p.nombre,marca:p.brand||p.marca||'',cantidad:1,precio_unitario:number(p.price||p.precio)});$('liftEditFind').value='';box.innerHTML='';render()})};
+function init(){if($('liftOrderEditPanel'))return;const host=document.querySelector('#checkoutModal .liftCheckoutActionArea');if(!host)return;const el=document.createElement('div');el.id='liftOrderEditPanel';el.innerHTML='<b id="liftEditHeading">Editar pedido</b><p style="font-size:11px">Cambia productos, cantidades y precios. El número del pedido y los pagos registrados se conservan.</p><div id="liftEditLines"></div><input id="liftEditFind" placeholder="Buscar producto para agregar" oninput="liftEditOrderSearch()"><div id="liftEditResults"></div><div class="liftEditControls"><label>Envío<input id="liftEditShip" type="number" min="0" oninput="liftEditOrderTotals()"></label><label>Descuento<input id="liftEditDiscount" type="number" min="0" oninput="liftEditOrderTotals()"></label></div><div id="liftEditTotal"></div><button type="button" style="margin-top:12px;border:1px solid #ddd;background:white;border-radius:8px;padding:9px;width:100%" onclick="liftCancelExistingOrderEdit()">Cancelar edición</button>';host.parentNode.insertBefore(el,host);}
+window.liftEditOrderTotals=totals;
+window.liftCancelExistingOrderEdit=function(){current=null;lines=[];$('checkoutModal')?.classList.remove('liftEditingOrder');const btn=document.querySelector('#checkoutModal .checkoutSend span');if(btn)btn.textContent='Generar pedido';if(typeof closeCheckout==='function')closeCheckout()};
+window.liftEditOrderCheckout=function(id){init();const ps=window.liftOrdersCurrentRows||[];const p=ps.find(x=>Number(x.id)===Number(id));if(!p){alert('Recarga la lista de pedidos antes de editar.');return}if(!sessionStorage.getItem('liftAdminCloudPasswordV1')){alert('Inicia sesión como administrador.');return}current=p;lines=(p.items||[]).map(x=>({producto_id:x.producto_id||null,nombre:x.nombre||'',marca:x.marca||'',cantidad:number(x.cantidad)||1,precio_unitario:number(x.precio_unitario)}));
+if(typeof openCheckout==='function')openCheckout();$('liftOrdersModal')?.classList.remove('open');$('checkoutModal')?.classList.add('liftEditingOrder');
+for(const [k,v] of Object.entries({coName:p.nombre,coPhone:p.celular,coAddress:p.direccion,coNotes:p.notas,coEmail:p.email_destino||''})){if($(k))$(k).value=v||''}
+if(typeof selectedCity!=='undefined')selectedCity={name:p.ciudad||'',department:''};if($('coCity'))$('coCity').value=p.ciudad||'';
+if($('coDataConsent'))$('coDataConsent').checked=true;
+$('liftEditShip').value=number(p.envio);$('liftEditDiscount').value=number(p.descuento);$('liftEditHeading').textContent='✎ Editando pedido #'+p.id;
+const btn=document.querySelector('#checkoutModal .checkoutSend span');if(btn)btn.textContent='Actualizar pedido #'+p.id;render();};
+async function save(){if(!current)return;const id=current.id;const nombre=$('coName')?.value.trim(),celular=$('coPhone')?.value.trim(),direccion=$('coAddress')?.value.trim(),ciudad=typeof selectedCity!=='undefined'&&selectedCity?.name?selectedCity.name:$('coCity')?.value.trim();if(!nombre||!celular||!direccion||!ciudad)throw Error('Completa nombre, celular, ciudad y dirección.');if(!lines.length)throw Error('El pedido necesita al menos un producto.');if(lines.some(x=>!x.nombre||!Number.isInteger(Number(x.cantidad))||Number(x.cantidad)<1))throw Error('Revisa cantidades y nombres.');const subtotal=sum(),envio=number($('liftEditShip').value),descuento=number($('liftEditDiscount').value),total=Math.max(0,subtotal+envio-descuento);if(descuento>subtotal+envio)throw Error('El descuento supera el importe del pedido.');const payload={pedido_id:id,nombre,celular,ciudad,direccion,notas:$('coNotes')?.value||'',subtotal,envio,descuento,total,items:lines.map(x=>({...x,cantidad:number(x.cantidad),precio_unitario:number(x.precio_unitario),total_linea:number(x.cantidad)*number(x.precio_unitario)}))};const r=await fetch(SB+'/rest/v1/rpc/lift_pedido_editar_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:sessionStorage.getItem('liftAdminCloudPasswordV1'),p_payload:payload})});const j=await r.json().catch(()=>({}));if(!r.ok||!j?.ok)throw Error(j?.message||j?.error||'No se pudo actualizar el pedido en Supabase. Debe estar instalada la función SQL de edición.');window.liftCancelExistingOrderEdit();if(typeof window.liftOpenOrders==='function')window.liftOpenOrders();if(typeof window.liftLoadAllOrders==='function')await window.liftLoadAllOrders();alert('Pedido #'+id+' actualizado en Supabase.');}
+function attach(){init();const original=window.finishCheckout;if(typeof original!=='function')return;window.finishCheckout=async function(){if(!current)return original.apply(this,arguments);const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.disabled)return;try{if(btn)btn.disabled=true;await save()}catch(e){alert(e.message)}finally{if(btn)btn.disabled=false}};
+const prev=window.liftLoadAllOrders;if(typeof prev==='function')window.liftLoadAllOrders=async function(){const r=await prev.apply(this,arguments);try{const pass=sessionStorage.getItem('liftAdminCloudPasswordV1');if(pass){const rr=await fetch(SB+'/rest/v1/rpc/lift_pedidos_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass,p_action:'list',p_payload:{}})});if(rr.ok){const data=await rr.json();if(Array.isArray(data))window.liftOrdersCurrentRows=data}}}catch(e){console.warn('Pedidos editables:',e)}return r};
+}
+
+// Interceptar el clic ANTES del onclick inline y de los demás envoltorios
+// del checkout. Nunca permitir que un pedido en edición cree otro pedido.
+document.addEventListener('click',function(e){
+ const button=e.target.closest?.('#checkoutModal .checkoutSend');
+ if(!button || !current || !$('checkoutModal')?.classList.contains('liftEditingOrder'))return;
+ e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+ if(button.dataset.liftEditingBusy==='1')return;
+ button.dataset.liftEditingBusy='1';button.disabled=true;
+ const span=button.querySelector('span');if(span)span.textContent='Actualizando pedido #'+current.id+'…';
+ save().catch(err=>{alert('No se actualizó el pedido: '+err.message);if(span&&current)span.textContent='Actualizar pedido #'+current.id;})
+ .finally(()=>{button.disabled=false;delete button.dataset.liftEditingBusy});
+},true);
+// En edición se ignora el carrito temporal del cliente: solo se guardan
+// las líneas del pedido que aparecen en el panel de edición.
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
+})();

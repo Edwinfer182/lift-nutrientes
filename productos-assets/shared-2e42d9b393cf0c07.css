@@ -1,0 +1,15 @@
+
+.liftOrderPencil{border:1px solid #111!important;background:#fff!important;color:#111!important;font-weight:600!important}
+#liftOrderEditPanel{display:none;margin:14px 0;padding:14px;border:2px solid #111;border-radius:13px;background:#fafafa}
+#checkoutModal.liftEditingOrder #liftOrderEditPanel{display:block}
+#checkoutModal.liftEditingOrder .checkoutSummary,#checkoutModal.liftEditingOrder .couponBox,#checkoutModal.liftEditingOrder #liftManualProductBox,#checkoutModal.liftEditingOrder #liftSaveOrderBtnV2,#checkoutModal.liftEditingOrder #liftDirectCreditBtn,#checkoutModal.liftEditingOrder #liftProviderBox{display:none!important}
+.liftEditLine{display:grid;grid-template-columns:minmax(0,1fr) 70px 110px 30px;gap:6px;align-items:center;margin:8px 0}
+.liftEditLine input,.liftEditControls input{width:100%;min-width:0;border:1px solid #ccc;border-radius:7px;padding:8px;font:12px Poppins}
+.liftEditLine button{border:0;background:#eee;border-radius:7px;height:34px;cursor:pointer}
+.liftEditControls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.liftEditControls label{font-size:11px;font-weight:500}
+#liftEditFind{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:10px}
+#liftEditResults{max-height:170px;overflow:auto}
+#liftEditResults button{display:block;width:100%;text-align:left;border:1px solid #eee;background:#fff;padding:8px;cursor:pointer;font-size:11px}
+#liftEditTotal{font-size:17px;font-weight:700;margin-top:12px}
+@media(max-width:550px){.liftEditLine{grid-template-columns:minmax(0,1fr) 50px 78px 28px}.liftEditLine input{padding:5px;font-size:11px}}
