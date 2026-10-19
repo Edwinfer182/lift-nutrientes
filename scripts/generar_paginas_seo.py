@@ -122,6 +122,25 @@ def allowed(row):
  if not isinstance(p,dict) or not (p.get("name") or p.get("nombre")):return False
  if row.get("activo") is False or p.get("__deleted") or p.get("__private") or p.get("adminOnly") or p.get("hidden") or p.get("oculto"):return False
  return True
+def seo_availability(row):
+ """Prioriza inventario explícito; si falta, usa el estado activo del catálogo."""
+ p=row.get("product") or {}
+ stock=p.get("stock")
+ if stock is True or (isinstance(stock,(int,float)) and not isinstance(stock,bool) and stock>0):
+  return "https://schema.org/InStock"
+ if stock is False or (isinstance(stock,(int,float)) and not isinstance(stock,bool) and stock<=0):
+  return "https://schema.org/OutOfStock"
+ state=str(p.get("availability") or p.get("status") or p.get("estado") or "").strip().lower()
+ if state in ("instock","in_stock","disponible","available","en stock"):
+  return "https://schema.org/InStock"
+ if state in ("outofstock","out_of_stock","agotado","sin stock","unavailable"):
+  return "https://schema.org/OutOfStock"
+ if row.get("activo") is True:
+  return "https://schema.org/InStock"
+ if row.get("activo") is False:
+  return "https://schema.org/OutOfStock"
+ return None
+
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
@@ -158,15 +177,8 @@ def build(row):
  if promotion:amount=promotion[1]
  if valid_price:
   offer={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"seller":{"@type":"Organization","name":"Lift Nutrientes","url":BASE}}
-  stock=p.get("stock")
-  if stock is True or (isinstance(stock,(int,float)) and not isinstance(stock,bool) and stock>0):
-   offer["availability"]="https://schema.org/InStock"
-  elif stock is False or (isinstance(stock,(int,float)) and not isinstance(stock,bool) and stock==0):
-   offer["availability"]="https://schema.org/OutOfStock"
-  elif str(p.get("availability") or "").lower() in ("instock","in_stock","disponible"):
-   offer["availability"]="https://schema.org/InStock"
-  elif str(p.get("availability") or "").lower() in ("outofstock","out_of_stock","agotado"):
-   offer["availability"]="https://schema.org/OutOfStock"
+  availability=seo_availability(row)
+  if availability:offer["availability"]=availability
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
@@ -406,7 +418,10 @@ def main():
  urls=[]
  for row in valid:
   filename,content=build_direct(row,shared)
-  (OUT/filename).write_text(content,encoding="utf-8")
+  destination=OUT/filename
+  # Protección: nunca reemplazar fichas existentes salvo autorización explícita.
+  if not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
+   destination.write_text(content,encoding="utf-8")
   urls.append(BASE+"/productos/"+filename)
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
