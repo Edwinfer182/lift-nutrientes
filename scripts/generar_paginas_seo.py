@@ -258,7 +258,7 @@ def build_direct(row, shared):
   if value: extra.append("<p><b>"+esc(label)+":</b> "+esc(value)+"</p>")
  static_section=("<main id=\"liftSEOStatic\" style=\"max-width:1100px;margin:24px auto;padding:20px;font:15px/1.7 Arial,sans-serif\">"
   +"<p>"+esc(brand)+"</p><h1>"+esc(name)+"</h1>"+img+"<p><strong>"+esc(price_html)+"</strong></p><p>"+esc(stock)+"</p>"
-  +"".join(extra)+"<section id="liftSEODescription" class="liftSEODescription"><h2>Descripción del producto</h2>"+(seo_html or "<p>"+esc(description)+"</p>")+"</section>"
+  +"".join(extra)+'<section id="liftSEODescription" class="liftSEODescription"><h2>Descripción del producto</h2>'+(seo_html or "<p>"+esc(description)+"</p>")+"</section>"
   +"<p><a href=\""+BASE+"/?producto="+urllib.parse.quote(pid)+"\">Consultar producto y agregar al carrito</a></p></main>")
  page=page.replace("<body>", "<body>"+static_section,1)
  # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
