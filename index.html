@@ -14359,6 +14359,21 @@ async function save(){if(!current)return;const id=current.id;const nombre=$('coN
 function attach(){init();const original=window.finishCheckout;if(typeof original!=='function')return;window.finishCheckout=async function(){if(!current)return original.apply(this,arguments);const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.disabled)return;try{if(btn)btn.disabled=true;await save()}catch(e){alert(e.message)}finally{if(btn)btn.disabled=false}};
 const prev=window.liftLoadAllOrders;if(typeof prev==='function')window.liftLoadAllOrders=async function(){const r=await prev.apply(this,arguments);try{const pass=sessionStorage.getItem('liftAdminCloudPasswordV1');if(pass){const rr=await fetch(SB+'/rest/v1/rpc/lift_pedidos_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass,p_action:'list',p_payload:{}})});if(rr.ok){const data=await rr.json();if(Array.isArray(data))window.liftOrdersCurrentRows=data}}}catch(e){console.warn('Pedidos editables:',e)}return r};
 }
+
+// Interceptar el clic ANTES del onclick inline y de los demás envoltorios
+// del checkout. Nunca permitir que un pedido en edición cree otro pedido.
+document.addEventListener('click',function(e){
+ const button=e.target.closest?.('#checkoutModal .checkoutSend');
+ if(!button || !current || !$('checkoutModal')?.classList.contains('liftEditingOrder'))return;
+ e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+ if(button.dataset.liftEditingBusy==='1')return;
+ button.dataset.liftEditingBusy='1';button.disabled=true;
+ const span=button.querySelector('span');if(span)span.textContent='Actualizando pedido #'+current.id+'…';
+ save().catch(err=>{alert('No se actualizó el pedido: '+err.message);if(span&&current)span.textContent='Actualizar pedido #'+current.id;})
+ .finally(()=>{button.disabled=false;delete button.dataset.liftEditingBusy});
+},true);
+// En edición se ignora el carrito temporal del cliente: solo se guardan
+// las líneas del pedido que aparecen en el panel de edición.
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
 })();
 </script>
