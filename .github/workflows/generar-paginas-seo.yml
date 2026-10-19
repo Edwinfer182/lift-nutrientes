@@ -10,6 +10,10 @@ on:
         description: "Marca a generar (vacío = todas las habilitadas)"
         type: string
         default: ""
+      regenerar_existentes:
+        description: "Sobrescribir fichas existentes con la nueva plantilla (solo ejecución manual)"
+        type: boolean
+        default: false
       solo_creatina_iron:
         description: "Generar solo Creatina Iron (ID 102) para validar"
         type: boolean
@@ -34,6 +38,7 @@ jobs:
       - name: Generar páginas desde Supabase
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
+          SEO_OVERWRITE_EXISTING: ${{ github.event_name == 'workflow_dispatch' && inputs.regenerar_existentes && '1' || '0' }}
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
