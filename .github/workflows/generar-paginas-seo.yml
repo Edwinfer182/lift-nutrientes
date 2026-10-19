@@ -40,6 +40,23 @@ jobs:
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
+      - name: Verificar HTML SEO y Schema del producto
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+          page = Path("productos/100-gold-isolate-standard-5-lb-30188.html")
+          assert page.exists(), "Falta la ficha Gold Isolate 30188"
+          html = page.read_text(encoding="utf-8")
+          assert '<meta name="description"' in html, "Falta metadescripción"
+          assert 'id="liftSEODescription"' in html, "Falta descripción HTML visible"
+          assert '<h2>Características y presentación</h2>' in html, "La descripción larga de Supabase no se actualizó"
+          blocks = re.findall(r'<script type="application/ld\\+json">(.*?)</script>', html, re.S)
+          schemas = [json.loads(block) for block in blocks]
+          assert any(s.get("@type") == "Product" and s.get("offers", {}).get("price") for s in schemas), "Falta Product/Offer JSON-LD"
+          assert any(s.get("@type") == "BreadcrumbList" for s in schemas), "Falta BreadcrumbList JSON-LD"
+          print("SEO verificado: descripción larga, metadescripción, Product/Offer y BreadcrumbList")
+          PY
       - name: Publicar páginas generadas
         run: |
           git config user.name "github-actions[bot]"
