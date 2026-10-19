@@ -41,6 +41,52 @@ def fetch_offers():
  if isinstance(value,str):value=json.loads(value)
  return value if isinstance(value,dict) else {}
 
+def fetch_merchant_settings():
+ """Configuración comercial SEO opcional en lift_catalog_config: seo_merchant_settings."""
+ query=urllib.parse.urlencode({"select":"valor","clave":"eq.seo_merchant_settings","limit":"1"})
+ req=urllib.request.Request(URL+"/rest/v1/lift_catalog_config?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
+ with urllib.request.urlopen(req,timeout=40) as res: rows=json.load(res)
+ value=rows[0].get("valor") if rows else {}
+ if isinstance(value,str):value=json.loads(value)
+ return value if isinstance(value,dict) else {}
+
+def merchant_policy(offer, settings):
+ """No publicar tiempos, tarifas o plazos de devolución sin configuración comprobada."""
+ shipping=settings.get("shipping")
+ if isinstance(shipping,list):
+  details=[]
+  for entry in shipping:
+   if not isinstance(entry,dict):continue
+   country=str(entry.get("country") or "").strip()
+   currency=str(entry.get("currency") or "COP").strip()
+   cost=entry.get("cost")
+   if not country or not currency or cost is None:continue
+   try: cost=float(cost)
+   except (TypeError,ValueError):continue
+   if cost<0:continue
+   delivery={"@type":"OfferShippingDetails","shippingRate":{"@type":"MonetaryAmount","value":cost,"currency":currency},"shippingDestination":{"@type":"DefinedRegion","addressCountry":country}}
+   region=entry.get("region")
+   if region:delivery["shippingDestination"]["addressRegion"]=region
+   handling=entry.get("handling_days")
+   transit=entry.get("transit_days")
+   if isinstance(handling,list) and len(handling)==2 and all(isinstance(n,int) and n>=0 for n in handling):
+    delivery.setdefault("deliveryTime",{"@type":"ShippingDeliveryTime"})["handlingTime"]={"@type":"QuantitativeValue","minValue":handling[0],"maxValue":handling[1],"unitCode":"DAY"}
+   if isinstance(transit,list) and len(transit)==2 and all(isinstance(n,int) and n>=0 for n in transit):
+    delivery.setdefault("deliveryTime",{"@type":"ShippingDeliveryTime"})["transitTime"]={"@type":"QuantitativeValue","minValue":transit[0],"maxValue":transit[1],"unitCode":"DAY"}
+   details.append(delivery)
+  if details:offer["shippingDetails"]=details
+ returns=settings.get("returns")
+ if isinstance(returns,dict) and returns.get("country") and returns.get("category"):
+  valid_categories={"https://schema.org/MerchantReturnFiniteReturnWindow","https://schema.org/MerchantReturnNotPermitted","https://schema.org/MerchantReturnUnlimitedWindow"}
+  if returns["category"] in valid_categories:
+   policy={"@type":"MerchantReturnPolicy","applicableCountry":returns["country"],"returnPolicyCategory":returns["category"]}
+   if returns["category"].endswith("FiniteReturnWindow") and isinstance(returns.get("days"),int) and returns["days"]>=0:
+    policy["merchantReturnDays"]=returns["days"]
+   if returns.get("method") in ("https://schema.org/ReturnByMail","https://schema.org/ReturnInStore","https://schema.org/ReturnAtKiosk"):policy["returnMethod"]=returns["method"]
+   if returns.get("fees") in ("https://schema.org/FreeReturn","https://schema.org/ReturnFeesCustomerResponsibility","https://schema.org/ReturnShippingFees"):policy["returnFees"]=returns["fees"]
+   if returns["category"]!="https://schema.org/MerchantReturnFiniteReturnWindow" or "merchantReturnDays" in policy:
+    offer["hasMerchantReturnPolicy"]=policy
+
 def active_offer(row):
  o=row.get("_offer")
  if not isinstance(o,dict):return None
@@ -93,7 +139,15 @@ def build(row):
  title=str(seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
  seo_description=seo_plain(seo_data.get("descripcion_larga_html"))
  meta=str(seo_data.get("meta_descripcion") or description or seo_description or f"Consulta {name} de {brand} en Supgo. Presentaciones, precio y disponibilidad en Colombia.")[:160]
- product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(pid)}
+ product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(p.get("sku") or pid)}
+ settings=row.get("_merchant_settings") or {}
+ for source,target in (("gtin","gtin"),("gtin8","gtin8"),("color","color"),("material","material"),("size","size")):
+  value=p.get(source)
+  if isinstance(value,(str,int,float)) and str(value).strip():product_schema[target]=str(value).strip()
+ presentation=p.get("presentation") or p.get("presentacion")
+ if presentation and not product_schema.get("size"):product_schema["size"]=str(presentation)
+ if p.get("flavor"):product_schema["additionalProperty"]=[{"@type":"PropertyValue","name":"Sabor","value":str(p["flavor"])}]
+ if settings.get("item_condition")=="https://schema.org/NewCondition":product_schema["itemCondition"]=settings["item_condition"]
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
  if image:product_schema["image"]=[image]
  product_schema["description"]=(seo_description or description or meta)[:5000]
@@ -113,6 +167,7 @@ def build(row):
    offer["availability"]="https://schema.org/InStock"
   elif str(p.get("availability") or "").lower() in ("outofstock","out_of_stock","agotado"):
    offer["availability"]="https://schema.org/OutOfStock"
+  merchant_policy(offer,settings)
   product_schema["offers"]=offer
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
@@ -330,9 +385,11 @@ def main():
  rows=fetch()
  seo_rows=fetch_seo()
  offers=fetch_offers()
+ merchant_settings=fetch_merchant_settings()
  for row in rows:
   row["_seo"]=seo_rows.get(str(row["id"]),{})
   row["_offer"]=offers.get(str(row["id"]))
+  row["_merchant_settings"]=merchant_settings
  allowed_brands=fetch_allowed_brands()
  valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
  brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
