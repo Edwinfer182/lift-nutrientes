@@ -6213,16 +6213,6 @@ window.shareLiftProductImage=async function(id){
 <textarea id="lafSecondaryImages" placeholder="Una URL por línea"></textarea>
 <small style="display:block;margin-top:5px;color:#777;font-size:10px">Pega una URL por línea. Se guardan en Supabase y aparecen como miniaturas a la izquierda de la imagen principal.</small>
 </label>
-<div class="lafField full" id="liftAdminProductMedia" style="border:1px solid #e1e1e1;padding:14px;border-radius:10px">
- <b style="font-size:14px">Vista previa de imágenes y enlace público</b>
- <div id="liftAdminImageGallery" style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0"></div>
- <label class="lafField full">URL pública del producto<input id="liftAdminPublicUrl" readonly placeholder="Abre un producto para ver su URL"></label>
- <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:9px">
- <button type="button" class="lafBtn" id="liftAdminCopyProductUrl">Copiar URL</button>
- <a id="liftAdminOpenProductUrl" class="lafBtn" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:none">Abrir página</a>
- </div>
- <small id="liftAdminProductUrlNote" style="color:#666;margin-top:7px;display:block">La URL debe corresponder a una página individual publicada para utilizarla en Search Console.</small>
-</div>
 <label class="lafField full">Descripción<textarea id="lafDescription"></textarea></label>
 <label class="lafField full lafVariationToggle">¿Tiene variaciones?<select id="lafHasVariants" onchange="lafToggleCreateVariants()"><option value="no">No</option><option value="yes">Sí</option></select></label>
 <div id="lafCreateVariantsBox" class="lafField full" style="display:none">
@@ -6239,7 +6229,42 @@ window.shareLiftProductImage=async function(id){
  <label class="lafField full">Metadescripción<textarea id="liftSeoMeta" class="liftSeoInput" rows="3"></textarea></label>
  <label class="lafField full">Descripción larga HTML<textarea id="liftSeoHtml" class="liftSeoInput" rows="12"></textarea></label>
  <label class="lafField full">URL imagen SEO<input id="liftSeoImage" class="liftSeoInput" type="url"></label>
+ <div class="lafField full" id="liftSeoVisualPanel" style="padding:12px;border:1px solid #e5e5e5;border-radius:10px;background:#fafafa">
+ <b style="font-size:13px">Vista previa de imágenes y enlace público</b>
+ <p style="font-size:11px;color:#777;margin:4px 0 10px">Previsualiza las imágenes del producto sin cambiar las guardadas. La URL pública usa el identificador original del producto.</p>
+ <div id="liftSeoImagePreviews" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+ <label class="lafField full" style="margin-top:12px">URL pública del producto<input id="liftSeoPublicUrl" type="text" readonly placeholder="Selecciona un producto guardado"></label>
+ <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><button class="lafBtn" type="button" id="liftSeoCopyPublicUrl">Copiar URL</button><a class="lafBtn" id="liftSeoOpenPublicUrl" target="_blank" rel="noopener noreferrer" style="text-decoration:none" href="#">Abrir página</a><a class="lafBtn" id="liftSeoGoogleTest" target="_blank" rel="noopener noreferrer" style="text-decoration:none" href="https://search.google.com/test/rich-results">Probar datos enriquecidos</a></div>
+ <small id="liftSeoUrlStatus" style="display:block;margin-top:8px;color:#777"></small>
+ </div>
  </div><div id="liftSeoSignals" aria-live="polite" style="margin:10px 0;font-size:12px;color:#555"></div>
+ <details id="liftYoastPanel" open style="margin-top:15px;border-top:1px solid #ddd;padding-top:12px">
+ <summary style="cursor:pointer;font-weight:650">Análisis SEO y enlaces internos <span id="liftYoastScore" style="font-size:12px;color:#666">Pendiente</span></summary>
+ <p style="font-size:11px;color:#777">Análisis orientativo según tus reglas personalizadas de Yoast. No es una calificación oficial de Yoast.</p>
+ <div class="lafForm">
+ <label class="lafField">Frase clave objetivo<input id="liftYoastFocus" placeholder="Máximo 4 palabras"></label>
+ <label class="lafField">Slug SEO<input id="liftYoastSlug" placeholder="Se calcula desde el nombre del producto"></label>
+ <label class="lafField full">4 frases relacionadas (una por línea)<textarea id="liftYoastLsi" rows="4" placeholder="Una frase por línea"></textarea></label>
+ <label class="lafField">ALT imagen 1<input id="liftYoastAlt1" placeholder="Descripción de la imagen"></label>
+ <label class="lafField">ALT imagen 2<input id="liftYoastAlt2" placeholder="Descripción de la imagen"></label>
+ </div>
+ <p style="font-size:11px;color:#777">Los campos auxiliares de análisis se conservan en este navegador mientras editas. Para el SEO publicado, la fuente guardada sigue siendo título, metadescripción, HTML e imagen de Supabase.</p>
+ <div id="liftYoastChecks" style="display:grid;gap:7px;margin:12px 0;font-size:12px"></div>
+ <div style="border-top:1px solid #e5e5e5;padding-top:12px;margin-top:12px">
+ <b style="font-size:13px">4 enlaces internos sugeridos</b>
+ <p style="font-size:11px;color:#666">Productos relacionados del catálogo con URL SEO habilitada. Marca los que quieras e insértalos en la descripción HTML.</p>
+ <div id="liftYoastLinks" style="display:grid;gap:8px;margin:10px 0"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="lafBtn" type="button" id="liftYoastSuggest">Actualizar sugerencias</button><button class="lafBtn primary" type="button" id="liftYoastInsert">Agregar seleccionados al HTML</button></div>
+ <p id="liftYoastMessage" aria-live="polite" style="font-size:11px;color:#555"></p>
+ </div>
+ </details>
+ <details id="liftSchemaSection" style="margin-top:14px;border-top:1px solid #ddd;padding-top:12px" open>
+ <summary style="font-weight:600;cursor:pointer">Schema de Google · Product (JSON-LD)</summary>
+ <p style="font-size:11px;color:#666">Vista previa de los datos estructurados. El precio y la disponibilidad se calculan desde la ficha del producto. Envíos y devoluciones se leen de la configuración comercial de Supabase. Esta vista no reemplaza el schema publicado por GitHub Actions.</p>
+ <div style="display:flex;flex-wrap:wrap;gap:7px;margin:8px 0"><button class="lafBtn" type="button" id="liftSchemaRefresh">Actualizar vista previa</button><button class="lafBtn" type="button" id="liftSchemaCopy">Copiar JSON-LD</button><a class="lafBtn" href="https://search.google.com/test/rich-results" target="_blank" rel="noopener">Probar en Google</a></div>
+ <div id="liftSchemaSummary" style="font-size:12px;color:#555;margin:8px 0">Selecciona un producto para ver su schema.</div>
+ <pre id="liftSchemaPreview" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:460px;overflow:auto;background:#111;color:#e9e9e9;border-radius:10px;padding:14px;font:12px/1.6 monospace">{}</pre>
+ </details>
  <p style="font-size:11px;color:#777">ID producto: <span id="liftSeoProductId">—</span> · Actualizado: <span id="liftSeoUpdated">—</span></p>
  </details>
 </div>
@@ -10771,7 +10796,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
   else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 };
- function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${p.despacho_tipo==='guia'?`<div class="liftOpsFollow">🚚 ${esc(p.despacho_transportadora||'')} · Guía: ${esc(p.despacho_guia||'')} <button type="button" data-guia="${esc(p.despacho_guia||'')}" onclick="navigator.clipboard.writeText(this.dataset.guia)">Copiar</button></div>`:p.despacho_tipo==='local'?`<div class="liftOpsFollow">🛵 Salió a ruta en la ciudad. Sin hora prometida de entrega.</div>`:''}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><select onchange="liftChooseOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Enlace mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
+ function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${p.despacho_tipo==='guia'?`<div class="liftOpsFollow">🚚 ${esc(p.despacho_transportadora||'')} · Guía: ${esc(p.despacho_guia||'')} <button type="button" data-guia="${esc(p.despacho_guia||'')}" onclick="navigator.clipboard.writeText(this.dataset.guia)">Copiar</button></div>`:p.despacho_tipo==='local'?`<div class="liftOpsFollow">🛵 Salió a ruta en la ciudad. Sin hora prometida de entrega.</div>`:''}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><button type="button" class="liftOrderPencil" title="Editar pedido" aria-label="Editar pedido ${p.id}" onclick="liftEditOrderCheckout(${p.id})">✎ Editar</button><select onchange="liftChooseOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Enlace mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
  window.liftChooseOrderStatus=function(id,estado){
  if(estado!=='en_ruta'){window.liftSetOrderStatus(id,estado);return}
  const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;
@@ -14175,7 +14200,7 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
   const $=id=>document.getElementById(id);
   let requested=0, loadedId=null, loadedRecord=null;
   const setStatus=(message)=>{if($('liftSeoOverall'))$('liftSeoOverall').textContent=message;};
-  const read=()=>({title:$('liftSeoTitle')?.value.trim()||'',meta:$('liftSeoMeta')?.value.trim()||'',html:$('liftSeoHtml')?.value.trim()||'',image:$('liftSeoImage')?.value.trim()||''});
+  const read=()=>({title:$('liftSeoTitle')?.value.trim()||'',meta:$('liftSeoMeta')?.value.trim()||'',html:$('liftSeoHtml')?.value.trim()||'',image:$('liftSeoImage')?.value.trim()||'',...(window.liftYoastReadFields?.()||{})});
   window.liftSeoRead=read;
   window.liftSeoLoad=(data={})=>{
     $('liftSeoTitle').value=data.title||'';
@@ -14201,11 +14226,19 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
     if(!p?.id)throw new Error('Falta el ID del producto para guardar SEO');
     if(String(loadedId)!==String(p.id) && document.getElementById('lafEditId')?.value)throw new Error('El SEO aún no se cargó desde Supabase. Abre de nuevo el producto antes de guardar.');
     if(typeof window.liftCatalogAdminCall!=='function')throw new Error('Inicia sesión administrativa para guardar SEO');
-    const seo=read();
+    const seo={...(p.seo&&typeof p.seo==='object'?p.seo:{}),...read()};
     setStatus('Guardando en Supabase…');
     // El backend de catálogo guarda product.seo; un trigger en Supabase
     // sincroniza los cuatro campos con lift_producto_seo.
     await window.liftCatalogAdminCall({action:'save',product:{...p,seo}});
+    // Verificar los campos Yoast en el JSON real almacenado en lift_productos.
+    const verifyUrl=SB+'/rest/v1/lift_productos?select=product&id=eq.'+encodeURIComponent(p.id)+'&limit=1';
+    const verifyRes=await fetch(verifyUrl,{headers:{apikey:KEY},cache:'no-store'});
+    if(!verifyRes.ok)throw new Error('No se pudo verificar los campos Yoast en Supabase (HTTP '+verifyRes.status+')');
+    const verifyRows=await verifyRes.json();
+    const stored=verifyRows[0]?.product?.seo;
+    if(!stored||['focus','slug','lsi','alt1','alt2'].some(k=>JSON.stringify(stored[k]??'')!==JSON.stringify(seo[k]??'')))throw new Error('Supabase no confirmó todos los campos Yoast. Revisa los permisos o el guardado del catálogo.');
+    p.seo={...seo};
     await window.liftSeoLoadForProduct(p.id);
     if(String(loadedId)!==String(p.id))throw new Error('No se pudo verificar el SEO guardado');
     const expected=[seo.title,seo.meta,seo.html,seo.image];
@@ -14215,39 +14248,187 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
   };
 })();
 </script>
-<script id="lift-admin-product-images-url-v1">
+<script id="lift-schema-admin-preview-v1">
 (function(){
  'use strict';
- const el=id=>document.getElementById(id);
- const cleanUrl=v=>{try{const u=new URL(String(v||''),location.href);return /^https?:$/.test(u.protocol)?u.href:'';}catch{return '';}};
- function image(url,label){const src=cleanUrl(url);if(!src)return;const wrap=document.createElement('div');wrap.style.cssText='width:112px;min-width:90px';const img=document.createElement('img');img.src=src;img.alt=label;img.loading='lazy';img.style.cssText='width:112px;height:112px;max-width:100%;object-fit:contain;border:1px solid #ddd;border-radius:8px;background:white';img.onerror=()=>{wrap.style.display='none'};const cap=document.createElement('small');cap.textContent=label;cap.style.cssText='display:block;color:#666;font-size:10px';wrap.append(img,cap);el('liftAdminImageGallery')?.append(wrap);}
- let ticket=0;
- async function refresh(){
-   const t=++ticket,id=el('lafEditId')?.value;
-   const gallery=el('liftAdminImageGallery'),input=el('liftAdminPublicUrl'),link=el('liftAdminOpenProductUrl'),note=el('liftAdminProductUrlNote');
-   if(!gallery||!input)return;
-   gallery.replaceChildren();input.value='';link.style.display='none';
-   image(el('lafImage')?.value,'Imagen principal');
-   const urls=(el('lafSecondaryImages')?.value||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
-   urls.forEach((u,i)=>image(u,'Imagen secundaria '+(i+1)));
-   if(!id){note.textContent='Guarda primero el producto para obtener su enlace individual.';return;}
-   const p=(window.PRODUCTS||[]).find(x=>String(x.id)===String(id));
-   const path=p&&typeof window.liftStaticProductUrl==='function'?window.liftStaticProductUrl(p):'';
-   if(!path){note.textContent='Este producto no tiene una URL individual habilitada por el generador SEO.';return;}
-   const url=cleanUrl(path);input.value=url;link.href=url;link.style.display='inline-flex';
-   note.textContent='Comprueba que la página abra correctamente antes de enviarla a Google Search Console.';
-   try{const r=await fetch(url,{method:'HEAD',cache:'no-store'});if(t!==ticket)return;if(!r.ok){note.textContent='Atención: la URL está calculada, pero la página no respondió correctamente (HTTP '+r.status+'). No la envíes a Google todavía.';link.style.display='none';}else note.textContent='Página individual accesible (HTTP '+r.status+'). Puedes copiarla para Search Console.';}catch{if(t===ticket)note.textContent='No se pudo verificar si la página está publicada. Comprueba el enlace antes de enviarlo a Google.';}
+ const $=id=>document.getElementById(id);
+ const SB='https://vdxkknftyssjyfbdieqa.supabase.co';
+ const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ let settings=null,settingError='';
+ async function loadSettings(){
+  try{const r=await fetch(SB+'/rest/v1/lift_catalog_config?select=valor&clave=eq.seo_merchant_settings&limit=1',{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const a=await r.json();settings=a[0]?.valor||{};if(typeof settings==='string')settings=JSON.parse(settings);settingError='';}
+  catch(e){settings={};settingError='No se pudo consultar la configuración comercial: '+e.message;}
  }
- const oldEdit=window.lafEdit;
- if(typeof oldEdit==='function')window.lafEdit=function(...args){const r=oldEdit.apply(this,args);refresh();return r;};
- const oldClear=window.lafClearForm;
- if(typeof oldClear==='function')window.lafClearForm=function(...args){const r=oldClear.apply(this,args);refresh();return r;};
- const init=()=>{
-  el('lafImage')?.addEventListener('input',refresh);
-  el('lafSecondaryImages')?.addEventListener('input',refresh);
-  el('liftAdminCopyProductUrl')?.addEventListener('click',async()=>{const u=el('liftAdminPublicUrl')?.value;if(!u){alert('Este producto no tiene URL individual disponible.');return;}try{await navigator.clipboard.writeText(u);}catch{const i=el('liftAdminPublicUrl');i.select();document.execCommand('copy');}el('liftAdminProductUrlNote').textContent='URL copiada. Puedes pegarla en Inspección de URLs de Google Search Console.';});
-  const secondary=el('lafSecondaryImages');if(secondary&&typeof MutationObserver!=='undefined')new MutationObserver(refresh).observe(secondary,{attributes:true,attributeFilter:['disabled']});
- };
+ function product(){const id=$('lafEditId')?.value||$('liftSeoProductId')?.textContent;return (typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)?PRODUCTS:window.PRODUCTS||[]).find(p=>String(p.id)===String(id));}
+ function clean(v){return String(v??'').trim();}
+ function number(v){const n=Number(v);return Number.isFinite(n)&&n>=0?n:null;}
+ function build(){
+  const p=product();if(!p)return null;
+  const id=String(p.id), name=clean(p.name||p.nombre),brand=clean(p.brand||p.marca);
+  const seo=window.liftSeoRead?.()||{};
+  const obj={'@context':'https://schema.org','@type':'Product',name,sku:clean(p.sku||id)};
+  const image=clean(seo.image||p.image||p.imagen);if(image)obj.image=[image];
+  const desc=clean(seo.meta||p.description||p.descripcion);if(desc)obj.description=desc;
+  if(brand)obj.brand={'@type':'Brand',name:brand};
+  const presentation=clean(p.presentation||p.presentacion);if(presentation)obj.size=presentation;
+  const flavor=clean(p.flavor||p.sabor);if(flavor)obj.additionalProperty=[{'@type':'PropertyValue',name:'Sabor',value:flavor}];
+  const price=number(p.price??p.precio);
+  const isOut=Boolean(p.agotado||p.outOfStock||p.disponible===false||p.stock===0||p.stock==='0');
+  if(price!==null){const offer={'@type':'Offer',price,priceCurrency:'COP',availability:'https://schema.org/'+(isOut?'OutOfStock':'InStock'),itemCondition:'https://schema.org/NewCondition'};
+   const sh=settings?.shipping;if(Array.isArray(sh)){const items=[];for(const v of sh){if(!v||!v.country||v.cost===undefined||number(v.cost)===null)continue;const d={'@type':'OfferShippingDetails',shippingRate:{'@type':'MonetaryAmount',value:number(v.cost),currency:v.currency||'COP'},shippingDestination:{'@type':'DefinedRegion',addressCountry:v.country}};if(v.region)d.shippingDestination.addressRegion=v.region;const dt={'@type':'ShippingDeliveryTime'};for(const [src,dst] of [['handling_days','handlingTime'],['transit_days','transitTime']])if(Array.isArray(v[src])&&v[src].length===2&&v[src].every(x=>Number.isInteger(x)&&x>=0))dt[dst]={'@type':'QuantitativeValue',minValue:v[src][0],maxValue:v[src][1],unitCode:'DAY'};if(Object.keys(dt).length>1)d.deliveryTime=dt;items.push(d);}if(items.length)offer.shippingDetails=items;}
+   const ret=settings?.returns;if(ret?.country&&ret?.category){const pol={'@type':'MerchantReturnPolicy',applicableCountry:ret.country,returnPolicyCategory:ret.category};if(ret.category==='https://schema.org/MerchantReturnFiniteReturnWindow'&&Number.isInteger(ret.days)&&ret.days>=0)pol.merchantReturnDays=ret.days;if(ret.method)pol.returnMethod=ret.method;if(ret.fees)pol.returnFees=ret.fees;if(ret.category!=='https://schema.org/MerchantReturnFiniteReturnWindow'||pol.merchantReturnDays!==undefined)offer.hasMerchantReturnPolicy=pol;}
+   obj.offers=offer;
+  }
+  return obj;
+ }
+ function render(){const pre=$('liftSchemaPreview'),sum=$('liftSchemaSummary');if(!pre)return;const obj=build();pre.textContent=obj?JSON.stringify(obj,null,2):'{}';if(sum)sum.textContent=obj?'Vista previa: '+obj.name+' · '+(obj.offers?'precio '+obj.offers.price+' COP':'sin precio')+' · '+(obj.offers?.availability?.split('/').pop()||'sin disponibilidad')+(settingError?' · '+settingError:''):'Selecciona un producto para ver su schema.';}
+ function init(){if(!$('liftSchemaPreview'))return;$('liftSchemaRefresh')?.addEventListener('click',async()=>{await loadSettings();render()});$('liftSchemaCopy')?.addEventListener('click',async()=>{const data=$('liftSchemaPreview')?.textContent;if(data&&data!=='{}'){try{await navigator.clipboard.writeText(data);$('liftSchemaSummary').textContent='JSON-LD copiado';}catch(e){$('liftSchemaSummary').textContent='No se pudo copiar: '+e.message;}}});['liftSeoTitle','liftSeoMeta','liftSeoImage','lafPrice','lafName','lafBrand','lafPresentation'].forEach(id=>$(id)?.addEventListener('input',render));const original=window.liftSeoLoadForProduct;if(typeof original==='function')window.liftSeoLoadForProduct=async function(...args){const r=await original.apply(this,args);render();return r};loadSettings().then(render);}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+<style id="lift-yoast-panel-css">#liftYoastChecks .seoCheck{display:flex;align-items:flex-start;gap:9px;border:1px solid #eee;border-radius:9px;padding:8px 10px;background:#fafafa}#liftYoastLinks label{display:flex;align-items:center;gap:9px;border:1px solid #e7e7e7;padding:10px;border-radius:10px;cursor:pointer;font-size:11px}#liftYoastLinks small{display:block;color:#777;overflow-wrap:anywhere}#liftYoastLinks{width:100%;min-width:0}#liftYoastLinks label{display:grid!important;grid-template-columns:20px minmax(0,1fr)!important;align-items:center!important;gap:12px!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important;padding:11px 12px!important}#liftYoastLinks label>input[type="checkbox"]{appearance:auto!important;display:block!important;position:static!important;width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;max-width:18px!important;max-height:18px!important;margin:0!important;padding:0!important;border-radius:3px!important;transform:none!important;box-shadow:none!important;flex:none!important;justify-self:center!important;align-self:center!important;accent-color:#111!important}#liftYoastLinks label>span{display:block!important;width:100%!important;min-width:0!important;overflow:hidden!important;overflow-wrap:anywhere!important}#liftYoastLinks label strong{display:block!important;font-size:12px!important;line-height:1.45!important;overflow-wrap:anywhere!important;white-space:normal!important}#liftYoastLinks label small{display:block!important;font-size:10px!important;line-height:1.4!important;overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important;color:#777!important}</style>
+<script id="lift-yoast-internal-links-v1">
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id), norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const slug=s=>norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,110);
+ const text=s=>String(s||'').replace(/<[^>]*>/g,' ').replace(/&[a-z]+;/gi,' ').replace(/\s+/g,' ').trim();
+ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ const products=()=>Array.isArray(window.PRODUCTS)?window.PRODUCTS:(typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)?PRODUCTS:[]);
+ const current=()=>products().find(p=>String(p.id)===String($('lafEditId')?.value||$('liftSeoProductId')?.textContent));
+ const storageKey=p=>'lift_seo_analysis_v1_'+p.id;
+ let lastId='',suggested=[];
+ const yoastIds={focus:'liftYoastFocus',slug:'liftYoastSlug',lsi:'liftYoastLsi',alt1:'liftYoastAlt1',alt2:'liftYoastAlt2'};
+ window.liftYoastReadFields=()=>Object.fromEntries(Object.entries(yoastIds).map(([k,id])=>[k,$(id)?.value||'']));
+ async function auxiliaryLoad(p){
+   if(!p)return;
+   const id=String(p.id);
+   const url='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos?select=product&id=eq.'+encodeURIComponent(id)+'&limit=1';
+   const response=await fetch(url,{headers:{apikey:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'},cache:'no-store'});
+   if(!response.ok)throw new Error('No se pudieron leer los campos Yoast de Supabase: HTTP '+response.status);
+   const rows=await response.json();
+   if(String(current()?.id)!==id)return;
+   const seo=rows[0]?.product?.seo||{};
+   for(const [key,field] of Object.entries(yoastIds))$(field).value=typeof seo[key]==='string'?seo[key]:'';
+   if(!seo.slug)$('liftYoastSlug').value=slug(p.name);
+   analyze();
+ }
+ function check(ok,label,detail){return '<div class="seoCheck"><span style="color:'+(ok?'#15803d':'#b45309')+';font-weight:700">'+(ok?'✓':'!')+'</span><span><b>'+esc(label)+'</b>'+(detail?'<br><small style="color:#666">'+esc(detail)+'</small>':'')+'</span></div>';}
+ function analyze(){const p=current();if(!p)return;const focus=norm($('liftYoastFocus').value),lsi=$('liftYoastLsi').value.split('\n').map(x=>x.trim()).filter(Boolean),html=$('liftSeoHtml').value,plain=text(html),n=norm(plain),first=norm(text((html.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)||[])[0]||plain.split(/[.!?]/)[0])),title=$('liftSeoTitle').value,meta=$('liftSeoMeta').value,alts=[$('liftYoastAlt1').value,$('liftYoastAlt2').value],count=focus?n.split(focus).length-1:0,words=plain?plain.split(/\s+/).length:0;let good=0,total=0;const tests=[];function add(ok,a,b){total++;if(ok)good++;tests.push(check(ok,a,b));}
+ add(!!focus&&focus.split(/\s+/).length<=4,'Frase clave objetivo','Máximo 4 palabras');add(!!focus&&count>=6&&count<=8,'Densidad de frase clave',count+' apariciones; objetivo: 6 a 8');add(!!focus&&first.includes(focus),'Frase clave en la introducción','Debe aparecer en el primer párrafo');add(title.length>0&&title.length<=60,'Título SEO',title.length+' / 60 caracteres');add(!!focus&&norm(meta).includes(focus),'Metadescripción','Debe contener la frase clave');add(words>300,'Descripción larga',words+' palabras; objetivo: más de 300');add(lsi.length===4&&lsi.every(x=>norm(plain).includes(norm(x))),'4 frases relacionadas','Cada frase debe aparecer literalmente en el texto');add(lsi.length===4&&lsi.every(x=>x.trim().split(/\s+/).length<=4),'Longitud de frases relacionadas','Máximo 4 palabras cada una');const doc=new DOMParser().parseFromString(html,'text/html'),links=[...doc.querySelectorAll('a[href]')];add(links.some(a=>{try{return new URL(a.href).hostname!=='supgo.co'&&new URL(a.href).hostname!=='www.supgo.co'}catch(e){return false}}),'Enlace saliente','Debe apuntar a una fuente de autoridad');add(links.some(a=>{try{return ['supgo.co','www.supgo.co'].includes(new URL(a.href).hostname)}catch(e){return false}}),'Enlaces internos','Al menos un enlace real de Supgo');add(alts.every(x=>focus&&norm(x).includes(focus)),'2 textos ALT','Cada ALT debe contener la frase clave');add(!!slug($('liftYoastSlug').value||p.name),'Slug','Ruta amigable calculada o escrita');$('liftYoastChecks').innerHTML=tests.join('');$('liftYoastScore').textContent=good+'/'+total+' comprobaciones';$('liftYoastScore').style.color=good===total?'#15803d':'#b45309';}
+ function propose(){const p=current(),target=$('liftYoastLinks');suggested=[];if(!p){target.textContent='Selecciona un producto.';return;}const category=norm(p.category||p.categoria),brand=norm(p.brand||p.marca),tokens=new Set(norm(p.name).split(/\W+/).filter(w=>w.length>3));const used=new Set();suggested=products().filter(x=>String(x.id)!==String(p.id)&&!x.hidden&&!x.oculto&&!x.__private).map(x=>{const url=typeof window.liftStaticProductUrl==='function'?window.liftStaticProductUrl(x):'';if(!url||!url.startsWith('/productos/')||used.has(url))return null;used.add(url);const similar=norm(x.name).split(/\W+/).filter(t=>tokens.has(t)).length;const score=(category&&norm(x.category||x.categoria)===category?12:0)+(brand&&norm(x.brand||x.marca)===brand?7:0)+similar*2;return {name:x.name,url,score};}).filter(Boolean).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'es')).slice(0,4);target.innerHTML='';if(!suggested.length){target.textContent='No se encontraron URLs SEO habilitadas para recomendar. No se inventarán enlaces.';return;}suggested.forEach((x,i)=>{const lab=document.createElement('label'),cb=document.createElement('input'),span=document.createElement('span'),strong=document.createElement('strong'),small=document.createElement('small');cb.type='checkbox';cb.checked=true;cb.dataset.index=i;strong.textContent=x.name;small.textContent=x.url;span.append(strong,small);lab.append(cb,span);target.append(lab);});}
+ function insert(){const area=$('liftSeoHtml');if(!area||!current())return;const selected=[...$('liftYoastLinks').querySelectorAll('input:checked')].map(el=>suggested[Number(el.dataset.index)]).filter(Boolean);if(!selected.length){$('liftYoastMessage').textContent='Selecciona al menos un enlace.';return;}const existing=new DOMParser().parseFromString(area.value,'text/html');const hrefs=new Set([...existing.querySelectorAll('a[href]')].map(a=>{try{return new URL(a.href,location.origin).pathname}catch(e){return a.getAttribute('href')}}));const fresh=selected.filter(x=>!hrefs.has(x.url));if(!fresh.length){$('liftYoastMessage').textContent='Los enlaces elegidos ya están en el HTML.';return;}const block='\n<h2>Productos relacionados</h2>\n<ul>\n'+fresh.map(x=>'  <li><a href="'+esc(x.url)+'">'+esc(x.name)+'</a></li>').join('\n')+'\n</ul>\n';area.value=area.value.trim()+block;area.dispatchEvent(new Event('input',{bubbles:true}));$('liftYoastMessage').textContent=fresh.length+' enlace(s) agregados al HTML. Pulsa Guardar producto para enviarlos a Supabase.';analyze();}
+ function sync(){const p=current(),id=p?String(p.id):'';if(id!==lastId){lastId=id;['liftYoastFocus','liftYoastSlug','liftYoastLsi','liftYoastAlt1','liftYoastAlt2'].forEach(k=>$(k).value='');if(p){auxiliaryLoad(p).catch(e=>{$('liftYoastMessage').textContent=e.message;});}propose();}analyze();}
+ function init(){if(!$('liftYoastPanel'))return;['liftYoastFocus','liftYoastSlug','liftYoastLsi','liftYoastAlt1','liftYoastAlt2'].forEach(id=>$(id).addEventListener('input',()=>{analyze();}));['liftSeoHtml','liftSeoTitle','liftSeoMeta'].forEach(id=>$(id)?.addEventListener('input',analyze));$('liftYoastSuggest').addEventListener('click',propose);$('liftYoastInsert').addEventListener('click',insert);const old=window.liftSeoLoadForProduct;if(typeof old==='function')window.liftSeoLoadForProduct=async function(...args){const r=await old.apply(this,args);sync();return r};const clear=window.liftSeoClear;if(typeof clear==='function')window.liftSeoClear=function(...args){const r=clear.apply(this,args);lastId='';sync();return r};document.addEventListener('click',e=>{if(e.target.closest?.('#laf-create,#liftSeoEditor'))setTimeout(sync,100)});sync();}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style id="lift-edit-order-style">
+.liftOrderPencil{border:1px solid #111!important;background:#fff!important;color:#111!important;font-weight:600!important}
+#liftOrderEditPanel{display:none;margin:14px 0;padding:14px;border:2px solid #111;border-radius:13px;background:#fafafa}
+#checkoutModal.liftEditingOrder #liftOrderEditPanel{display:block}
+#checkoutModal.liftEditingOrder .checkoutSummary,#checkoutModal.liftEditingOrder .couponBox,#checkoutModal.liftEditingOrder #liftManualProductBox,#checkoutModal.liftEditingOrder #liftSaveOrderBtnV2,#checkoutModal.liftEditingOrder #liftDirectCreditBtn,#checkoutModal.liftEditingOrder #liftProviderBox{display:none!important}
+.liftEditLine{display:grid;grid-template-columns:minmax(0,1fr) 70px 110px 30px;gap:6px;align-items:center;margin:8px 0}
+.liftEditLine input,.liftEditControls input{width:100%;min-width:0;border:1px solid #ccc;border-radius:7px;padding:8px;font:12px Poppins}
+.liftEditLine button{border:0;background:#eee;border-radius:7px;height:34px;cursor:pointer}
+.liftEditControls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.liftEditControls label{font-size:11px;font-weight:500}
+#liftEditFind{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:10px}
+#liftEditResults{max-height:170px;overflow:auto}
+#liftEditResults button{display:block;width:100%;text-align:left;border:1px solid #eee;background:#fff;padding:8px;cursor:pointer;font-size:11px}
+#liftEditTotal{font-size:17px;font-weight:700;margin-top:12px}
+@media(max-width:550px){.liftEditLine{grid-template-columns:minmax(0,1fr) 50px 78px 28px}.liftEditLine input{padding:5px;font-size:11px}}
+</style>
+<script id="lift-edit-existing-order-v1">
+(function(){
+const $=id=>document.getElementById(id),SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+let current=null, lines=[];
+const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const number=v=>Math.max(0,Math.round(Number(v)||0));
+const sum=()=>lines.reduce((t,x)=>t+number(x.cantidad)*number(x.precio_unitario),0);
+function render(){const box=$('liftEditLines');if(!box)return;box.innerHTML=lines.map((x,i)=>`<div class="liftEditLine"><span style="font-size:11px;overflow-wrap:anywhere">${esc(x.nombre)}${x.marca?' · '+esc(x.marca):''}</span><input aria-label="Cantidad" type="number" min="1" step="1" value="${number(x.cantidad)}" oninput="liftEditOrderLine(${i},'cantidad',this.value)"><input aria-label="Precio unitario" type="number" min="0" step="1" value="${number(x.precio_unitario)}" oninput="liftEditOrderLine(${i},'precio_unitario',this.value)"><button type="button" aria-label="Quitar producto" onclick="liftEditOrderRemove(${i})">×</button></div>`).join(''); totals()}
+function totals(){const subtotal=sum(),envio=number($('liftEditShip')?.value),desc=number($('liftEditDiscount')?.value);if($('liftEditTotal'))$('liftEditTotal').textContent=`Subtotal ${money(subtotal)} · Total ${money(Math.max(0,subtotal+envio-desc))}`}
+window.liftEditOrderLine=(i,k,v)=>{if(lines[i])lines[i][k]=number(v);totals()};
+window.liftEditOrderRemove=i=>{lines.splice(i,1);render()};
+window.liftEditOrderSearch=function(){const q=($('liftEditFind')?.value||'').toLowerCase().trim(),box=$('liftEditResults');if(!box)return;if(q.length<2){box.innerHTML='';return}const ps=typeof PRODUCTS!=='undefined'?PRODUCTS:window.PRODUCTS||[];box.innerHTML=ps.filter(p=>String(p.name||p.nombre||'').toLowerCase().includes(q)).slice(0,12).map(p=>`<button type="button" data-id="${esc(p.id)}">${esc(p.name||p.nombre)} · ${money(p.price||p.precio)}</button>`).join('');box.querySelectorAll('button').forEach(b=>b.onclick=()=>{const p=ps.find(x=>String(x.id)===b.dataset.id);if(!p)return;lines.push({producto_id:p.id,nombre:p.name||p.nombre,marca:p.brand||p.marca||'',cantidad:1,precio_unitario:number(p.price||p.precio)});$('liftEditFind').value='';box.innerHTML='';render()})};
+function init(){if($('liftOrderEditPanel'))return;const host=document.querySelector('#checkoutModal .liftCheckoutActionArea');if(!host)return;const el=document.createElement('div');el.id='liftOrderEditPanel';el.innerHTML='<b id="liftEditHeading">Editar pedido</b><p style="font-size:11px">Cambia productos, cantidades y precios. El número del pedido y los pagos registrados se conservan.</p><div id="liftEditLines"></div><input id="liftEditFind" placeholder="Buscar producto para agregar" oninput="liftEditOrderSearch()"><div id="liftEditResults"></div><div class="liftEditControls"><label>Envío<input id="liftEditShip" type="number" min="0" oninput="liftEditOrderTotals()"></label><label>Descuento<input id="liftEditDiscount" type="number" min="0" oninput="liftEditOrderTotals()"></label></div><div id="liftEditTotal"></div><button type="button" style="margin-top:12px;border:1px solid #ddd;background:white;border-radius:8px;padding:9px;width:100%" onclick="liftCancelExistingOrderEdit()">Cancelar edición</button>';host.parentNode.insertBefore(el,host);}
+window.liftEditOrderTotals=totals;
+window.liftCancelExistingOrderEdit=function(){current=null;lines=[];$('checkoutModal')?.classList.remove('liftEditingOrder');const btn=document.querySelector('#checkoutModal .checkoutSend span');if(btn)btn.textContent='Generar pedido';if(typeof closeCheckout==='function')closeCheckout()};
+window.liftEditOrderCheckout=function(id){init();const ps=window.liftOrdersCurrentRows||[];const p=ps.find(x=>Number(x.id)===Number(id));if(!p){alert('Recarga la lista de pedidos antes de editar.');return}if(!sessionStorage.getItem('liftAdminCloudPasswordV1')){alert('Inicia sesión como administrador.');return}current=p;lines=(p.items||[]).map(x=>({producto_id:x.producto_id||null,nombre:x.nombre||'',marca:x.marca||'',cantidad:number(x.cantidad)||1,precio_unitario:number(x.precio_unitario)}));
+if(typeof openCheckout==='function')openCheckout();$('liftOrdersModal')?.classList.remove('open');$('checkoutModal')?.classList.add('liftEditingOrder');
+for(const [k,v] of Object.entries({coName:p.nombre,coPhone:p.celular,coAddress:p.direccion,coNotes:p.notas,coEmail:p.email_destino||''})){if($(k))$(k).value=v||''}
+if(typeof selectedCity!=='undefined')selectedCity={name:p.ciudad||'',department:''};if($('coCity'))$('coCity').value=p.ciudad||'';
+if($('coDataConsent'))$('coDataConsent').checked=true;
+$('liftEditShip').value=number(p.envio);$('liftEditDiscount').value=number(p.descuento);$('liftEditHeading').textContent='✎ Editando pedido #'+p.id;
+const btn=document.querySelector('#checkoutModal .checkoutSend span');if(btn)btn.textContent='Actualizar pedido #'+p.id;render();};
+async function save(){if(!current)return;const id=current.id;const nombre=$('coName')?.value.trim(),celular=$('coPhone')?.value.trim(),direccion=$('coAddress')?.value.trim(),ciudad=typeof selectedCity!=='undefined'&&selectedCity?.name?selectedCity.name:$('coCity')?.value.trim();if(!nombre||!celular||!direccion||!ciudad)throw Error('Completa nombre, celular, ciudad y dirección.');if(!lines.length)throw Error('El pedido necesita al menos un producto.');if(lines.some(x=>!x.nombre||!Number.isInteger(Number(x.cantidad))||Number(x.cantidad)<1))throw Error('Revisa cantidades y nombres.');const subtotal=sum(),envio=number($('liftEditShip').value),descuento=number($('liftEditDiscount').value),total=Math.max(0,subtotal+envio-descuento);if(descuento>subtotal+envio)throw Error('El descuento supera el importe del pedido.');const payload={pedido_id:id,nombre,celular,ciudad,direccion,notas:$('coNotes')?.value||'',subtotal,envio,descuento,total,items:lines.map(x=>({...x,cantidad:number(x.cantidad),precio_unitario:number(x.precio_unitario),total_linea:number(x.cantidad)*number(x.precio_unitario)}))};const r=await fetch(SB+'/rest/v1/rpc/lift_pedido_editar_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:sessionStorage.getItem('liftAdminCloudPasswordV1'),p_payload:payload})});const j=await r.json().catch(()=>({}));if(!r.ok||!j?.ok)throw Error(j?.message||j?.error||'No se pudo actualizar el pedido en Supabase. Debe estar instalada la función SQL de edición.');window.liftCancelExistingOrderEdit();if(typeof window.liftOpenOrders==='function')window.liftOpenOrders();if(typeof window.liftLoadAllOrders==='function')await window.liftLoadAllOrders();alert('Pedido #'+id+' actualizado en Supabase.');}
+function attach(){init();const original=window.finishCheckout;if(typeof original!=='function')return;window.finishCheckout=async function(){if(!current)return original.apply(this,arguments);const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.disabled)return;try{if(btn)btn.disabled=true;await save()}catch(e){alert(e.message)}finally{if(btn)btn.disabled=false}};
+const prev=window.liftLoadAllOrders;if(typeof prev==='function')window.liftLoadAllOrders=async function(){const r=await prev.apply(this,arguments);try{const pass=sessionStorage.getItem('liftAdminCloudPasswordV1');if(pass){const rr=await fetch(SB+'/rest/v1/rpc/lift_pedidos_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass,p_action:'list',p_payload:{}})});if(rr.ok){const data=await rr.json();if(Array.isArray(data))window.liftOrdersCurrentRows=data}}}catch(e){console.warn('Pedidos editables:',e)}return r};
+}
+
+// Interceptar el clic ANTES del onclick inline y de los demás envoltorios
+// del checkout. Nunca permitir que un pedido en edición cree otro pedido.
+document.addEventListener('click',function(e){
+ const button=e.target.closest?.('#checkoutModal .checkoutSend');
+ if(!button || !current || !$('checkoutModal')?.classList.contains('liftEditingOrder'))return;
+ e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+ if(button.dataset.liftEditingBusy==='1')return;
+ button.dataset.liftEditingBusy='1';button.disabled=true;
+ const span=button.querySelector('span');if(span)span.textContent='Actualizando pedido #'+current.id+'…';
+ save().catch(err=>{alert('No se actualizó el pedido: '+err.message);if(span&&current)span.textContent='Actualizar pedido #'+current.id;})
+ .finally(()=>{button.disabled=false;delete button.dataset.liftEditingBusy});
+},true);
+// En edición se ignora el carrito temporal del cliente: solo se guardan
+// las líneas del pedido que aparecen en el panel de edición.
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
+})();
+</script>
+
+<script id="lift-seo-image-url-restore-20261019">
+(function(){
+ const $=id=>document.getElementById(id);
+ const esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function current(){
+   const id=String($('lafEditId')?.value||'').trim();
+   const arr=[...(window.products||[]),...(window.liftProducts||[]),...(window.allProducts||[])];
+   return arr.find(p=>String(p?.id)===id)|| (id?{id,name:$('lafName')?.value||'',brand:$('lafBrand')?.value||''}:null);
+ }
+ function urlFor(p){
+   if(!p?.id)return '';
+   let rel='';
+   try{if(typeof window.liftStaticProductUrl==='function')rel=window.liftStaticProductUrl(p)||'';}catch(e){}
+   if(!rel){
+     const slug=String(p.name||$('lafName')?.value||'producto').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+     rel='/productos/'+slug+'-'+encodeURIComponent(String(p.id))+'.html';
+   }
+   try{const u=new URL(rel,'https://supgo.co');return u.origin==='https://supgo.co'&&u.pathname.startsWith('/productos/')?u.href:'';}catch(e){return '';}
+ }
+ function render(){
+   if(!$('liftSeoImagePreviews'))return;
+   const main=($('lafImage')?.value||'').trim();
+   const seo=($('liftSeoImage')?.value||'').trim();
+   const extras=($('lafSecondaryImages')?.value||'').split(/[\n\r]+/).map(x=>x.trim()).filter(Boolean);
+   const images=[['Imagen principal',main],['Imagen SEO',seo],...extras.slice(0,12).map((x,i)=>['Imagen secundaria '+(i+1),x])];
+   $('liftSeoImagePreviews').innerHTML=images.map(([name,src])=>{
+     let safe='';try{const u=new URL(src);if(['https:','http:'].includes(u.protocol))safe=u.href;}catch(e){}
+     return '<div style="width:120px;max-width:46%;font-size:10px;color:#555"><div style="height:110px;background:white;border:1px solid #ddd;border-radius:8px;display:grid;place-items:center;overflow:hidden">'+(safe?'<img loading="lazy" src="'+esc(safe)+'" alt="'+esc(name)+'" style="max-width:100%;max-height:100%;object-fit:contain" onerror="this.style.display=\'none\';this.parentNode.textContent=\'Imagen no disponible\'">':'Sin imagen')+'</div><b>'+esc(name)+'</b></div>';
+   }).join('');
+   const p=current(),url=urlFor(p);
+   $('liftSeoPublicUrl').value=url;
+   $('liftSeoOpenPublicUrl').href=url||'#';
+   $('liftSeoGoogleTest').href=url?'https://search.google.com/test/rich-results?url='+encodeURIComponent(url):'https://search.google.com/test/rich-results';
+   $('liftSeoUrlStatus').textContent=url?'Comprueba que la página esté publicada antes de enviarla a Google.':'Guarda el producto para obtener una URL con su ID.';
+ }
+ function init(){
+   if(!$('liftSeoImagePreviews'))return;
+   ['lafImage','liftSeoImage','lafSecondaryImages','lafEditId','lafName'].forEach(id=>$(id)?.addEventListener('input',render));
+   $('liftSeoCopyPublicUrl')?.addEventListener('click',async()=>{const v=$('liftSeoPublicUrl')?.value;if(!v)return;try{await navigator.clipboard.writeText(v);$('liftSeoUrlStatus').textContent='URL copiada.';}catch(e){$('liftSeoPublicUrl').select();document.execCommand('copy');$('liftSeoUrlStatus').textContent='URL seleccionada para copiar.';}});
+   const form=$('liftSeoEditor');if(form)new MutationObserver(()=>render()).observe($('lafEditId'),{attributes:true,attributeFilter:['value']});
+   let old='';setInterval(()=>{const id=$('lafEditId')?.value||'';if(id!==old){old=id;render();}},700);
+   render();
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
