@@ -1934,6 +1934,12 @@ body.liftAdminUnlocked #cart .liftCartAdminOnly,
 body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 </style>
 <style id="lift-group-price-authority">.liftMonoPriceArea .liftMonoPrice{color:#111!important}.liftMonoPriceArea .offerPrices .liftMonoPrice{color:#168451!important}</style>
+<style id="lift-email-notification-consent-compact">
+#checkoutModal .liftEmailNotifyCompact{padding:7px 11px;gap:8px;border-top:1px solid #ededed;align-items:center}
+#checkoutModal .liftEmailNotifyCompact input{width:15px;height:15px;flex:0 0 15px;margin:0}
+#checkoutModal .liftEmailNotifyCompact span{font-size:10.5px;line-height:1.3;color:#333}
+#checkoutModal .liftEmailNotifyCompact small{font-size:9px;margin-top:1px;color:#888}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2293,6 +2299,12 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
           <input id="coDataConsent" type="checkbox"><span>Autorizo el <button type="button" onclick="liftOpenDataPolicy()">tratamiento de mis datos personales</button>.</span>
         </label>
         <div id="liftDataConsentError" role="alert" style="display:none;color:#b42318;font-size:10px;margin:4px 0">Debes autorizar el tratamiento de tus datos para continuar.</div>
+        <label class="liftPrefRow liftEmailNotifyCompact" for="coEmailNotify">
+          <input id="coEmailNotify" type="checkbox">
+          <span>Quiero recibir actualizaciones de mi pedido por correo.
+            <small>Opcional. Solo avisos del pedido, sin publicidad.</small>
+          </span>
+        </label>
       </div>
 
       <div class="liftCheckoutActionArea">
