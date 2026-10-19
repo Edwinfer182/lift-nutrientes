@@ -188,7 +188,7 @@ def build(row):
  breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
- img=f'<img src="{esc(image)}" alt="{esc(embedded.get('alt1') or name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
+ img=f'<img src="{esc(image)}" alt="{esc(embedded.get("alt1") or name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
  price_html=f'<p class="price">$ {int(amount):,}</p>'.replace(",","\u002e") if valid_price else "<p>Consultar precio</p>"
  if promotion:
   original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
@@ -238,7 +238,7 @@ def build_direct(row, shared):
  if image.startswith("//"): image="https:"+image
  elif image.startswith("/"): image=BASE+image
  elif image and not image.startswith(("http://","https://")): image=""
- img=f'<img src="{esc(image)}" alt="{esc((p.get('seo') or {}).get('alt1') or name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
+ img=f'<img src="{esc(image)}" alt="{esc((p.get("seo") or {}).get("alt1") or name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
  seo_html=str((p.get("seo") or {}).get("html") or (row.get("_seo") or {}).get("descripcion_larga_html") or "").strip()
  seo_html=re.sub(r"(?is)<script[^>]*>.*?</script>","",seo_html)
  seo_html=re.sub(r"(?is)<iframe[^>]*>.*?</iframe>","",seo_html)
@@ -262,6 +262,7 @@ def build_direct(row, shared):
   +"<p><a href=\""+BASE+"/?producto="+urllib.parse.quote(pid)+"\">Consultar producto y agregar al carrito</a></p></main>")
  page=page.replace("<body>", "<body>"+static_section,1)
  # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
+ # Añadir metadatos y JSON-LD en el HEAD antes de los scripts del catálogo.
  page=page.replace("<head>","<head>\n"+head_meta+"\n",1)
  page=page.replace("</body>",'''
 <style id="lift-seo-direct-layout">
