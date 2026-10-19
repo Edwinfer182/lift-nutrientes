@@ -411,14 +411,14 @@ def shared_template():
  def collect_css(m):
   css_parts.append(m.group(2))
   return '<!-- CSS compartido de ficha -->'
- source=re.sub(r'(<style\\b[^>]*>)(.*?)(</style>)',collect_css,source,flags=re.S|re.I)
+ source=re.sub(r'(<style\b[^>]*>)(.*?)(</style>)',collect_css,source,flags=re.S|re.I)
  if css_parts:
-  css="\\n".join(css_parts)
+  css="\n".join(css_parts)
   digest=hashlib.sha256(css.encode("utf-8")).hexdigest()[:16]
   css_name=f"supgo-productos-{digest}.css"
   (assets/css_name).write_text(css,encoding="utf-8")
   css_link='<link rel="stylesheet" href="/productos-assets/'+css_name+'">'
-  source=source.replace("</head>",css_link+"\\n</head>",1)
+  source=source.replace("</head>",css_link+"\n</head>",1)
  # Los scripts se mantienen en su posición para no alterar dependencias ni checkout.
  def externalize_js(m):
   opening,body,closing=m.group(1),m.group(2),m.group(3)
@@ -427,7 +427,7 @@ def shared_template():
   name=f"shared-{digest}.js"
   (assets/name).write_text(body,encoding="utf-8")
   return '<script src="/productos-assets/'+name+'"></script>'
- return re.sub(r'(<script\\b[^>]*>)(.*?)(</script>)',externalize_js,source,flags=re.S|re.I)
+ return re.sub(r'(<script\b[^>]*>)(.*?)(</script>)',externalize_js,source,flags=re.S|re.I)
 
 def main():
  rows=fetch()
