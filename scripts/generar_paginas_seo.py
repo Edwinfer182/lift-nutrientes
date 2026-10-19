@@ -144,10 +144,11 @@ def seo_availability(row):
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
+ embedded=p.get("seo") if isinstance(p.get("seo"),dict) else {}
  canonical=f"{BASE}/productos/{filename}"
  brand=str(p.get("brand") or p.get("marca") or "")
  description=str(p.get("description") or p.get("descripcion") or "").strip()
- image=str(seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
+ image=str(embedded.get("image") or seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
  if image.startswith("//"):image="https:"+image
  elif image.startswith("/"):image=BASE+image
  elif image and not image.startswith(("https://","http://")):image=""
@@ -155,10 +156,10 @@ def build(row):
  promotion=active_offer(row)
  try: amount=float(price); valid_price=amount>0
  except (ValueError,TypeError):valid_price=False;amount=0
- title=str(seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
- seo_description=seo_plain(seo_data.get("descripcion_larga_html"))
- meta=str(seo_data.get("meta_descripcion") or description or seo_description or f"Consulta {name} de {brand} en Supgo. Presentaciones, precio y disponibilidad en Colombia.")[:160]
- product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(p.get("sku") or pid)}
+ title=str(embedded.get("title") or seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
+ seo_description=seo_plain(embedded.get("html") or seo_data.get("descripcion_larga_html"))
+ meta=str(embedded.get("meta") or seo_data.get("meta_descripcion") or description or seo_description or f"Consulta {name} de {brand} en Supgo. Presentaciones, precio y disponibilidad en Colombia.")[:160]
+ product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(embedded.get("sku") or p.get("sku") or pid)}
  settings=row.get("_merchant_settings") or {}
  for source,target in (("gtin","gtin"),("gtin8","gtin8"),("color","color"),("material","material"),("size","size")):
   value=p.get(source)
@@ -168,6 +169,8 @@ def build(row):
  if p.get("flavor"):product_schema["additionalProperty"]=[{"@type":"PropertyValue","name":"Sabor","value":str(p["flavor"])}]
  if settings.get("item_condition")=="https://schema.org/NewCondition":product_schema["itemCondition"]=settings["item_condition"]
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
+ if embedded.get("gtin"):product_schema["gtin"]=str(embedded["gtin"])
+ if embedded.get("manufacturer"):product_schema["manufacturer"]={"@type":"Organization","name":brand,"url":str(embedded["manufacturer"])} if str(embedded["manufacturer"]).startswith(("https://","http://")) else {"@type":"Organization","name":str(embedded["manufacturer"])}
  if image:product_schema["image"]=[image]
  product_schema["description"]=(seo_description or description or meta)[:5000]
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
@@ -185,7 +188,7 @@ def build(row):
  breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
- img=f'<img src="{esc(image)}" alt="{esc(name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
+ img=f'<img src="{esc(image)}" alt="{esc(embedded.get('alt1') or name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
  price_html=f'<p class="price">$ {int(amount):,}</p>'.replace(",","\u002e") if valid_price else "<p>Consultar precio</p>"
  if promotion:
   original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
@@ -230,13 +233,13 @@ def build_direct(row, shared):
  p=row["product"]
  brand=str(p.get("brand") or p.get("marca") or "")
  description=str(p.get("description") or p.get("descripcion") or "").strip()
- seo_description=seo_plain((row.get("_seo") or {}).get("descripcion_larga_html"))
+ seo_description=seo_plain((p.get("seo") or {}).get("html") or (row.get("_seo") or {}).get("descripcion_larga_html"))
  image=str((row.get("_seo") or {}).get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
  if image.startswith("//"): image="https:"+image
  elif image.startswith("/"): image=BASE+image
  elif image and not image.startswith(("http://","https://")): image=""
- img=f'<img src="{esc(image)}" alt="{esc(name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
- seo_html=str((row.get("_seo") or {}).get("descripcion_larga_html") or "").strip()
+ img=f'<img src="{esc(image)}" alt="{esc((p.get('seo') or {}).get('alt1') or name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
+ seo_html=str((p.get("seo") or {}).get("html") or (row.get("_seo") or {}).get("descripcion_larga_html") or "").strip()
  seo_html=re.sub(r"(?is)<script[^>]*>.*?</script>","",seo_html)
  seo_html=re.sub(r"(?is)<iframe[^>]*>.*?</iframe>","",seo_html)
  seo_html=re.sub(r"(?is)<(style|svg|object|embed|form)[^>]*>.*?</\\1>","",seo_html)
