@@ -181,6 +181,8 @@ def build(row):
   if availability:offer["availability"]=availability
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
+ breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":BASE+"/"},{"@type":"ListItem","position":2,"name":name,"item":canonical}]}
+ breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
  img=f'<img src="{esc(image)}" alt="{esc(name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
@@ -199,7 +201,7 @@ def build(row):
 {f'<meta property="og:image" content="{esc(image)}"><meta property="og:image:alt" content="{esc(name)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{esc(image)}">' if image else '<meta name="twitter:card" content="summary">'}
 <meta name="twitter:title" content="{esc(name)}"><meta name="twitter:description" content="{esc(meta)}">
 {f'<meta property="product:price:amount" content="{amount:g}"><meta property="product:price:currency" content="COP">' if valid_price else ''}
-<script type="application/ld+json">{schema}</script>
+<script type="application/ld+json">{schema}</script><script type="application/ld+json">{breadcrumb_json}</script>
 <style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}header{{background:#090909;color:white;padding:20px 5%}}header a{{color:white;text-decoration:none;font-weight:700}}nav{{padding:16px 5%;border-bottom:1px solid #ddd;display:flex;gap:20px;flex-wrap:wrap}}nav a{{color:#222;text-decoration:none}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}.btn{{display:inline-block;background:#111;color:white;padding:14px 20px;text-decoration:none;margin:8px 8px 8px 0}}footer{{padding:35px 5%;border-top:1px solid #ddd}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
 </head><body><header><a href="{BASE}/">LIFT NUTRIENTES</a></header>
 <nav><a href="{BASE}/">Inicio</a><a href="{BASE}/?ofertas=1">Ofertas</a><a href="{BASE}/?categoria={urllib.parse.quote(str(p.get('category') or ''))}">Categoría: {esc(p.get('category') or 'Ver todas')}</a><a href="{BASE}/?marca={urllib.parse.quote(brand)}">Laboratorio: {esc(brand or 'Ver todos')}</a></nav>
@@ -234,7 +236,24 @@ def build_direct(row, shared):
  elif image.startswith("/"): image=BASE+image
  elif image and not image.startswith(("http://","https://")): image=""
  img=f'<img src="{esc(image)}" alt="{esc(name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
- static_section=f'<main id="liftSEOStatic" style="max-width:1000px;margin:24px auto;padding:20px;font:16px Arial,sans-serif"><p>{esc(brand)}</p><h1>{esc(name)}</h1>{img}<p>{esc(seo_description or description or "Consulta presentaciones, precios y disponibilidad de este producto en Supgo.")}</p><p><a href="{BASE}/?producto={urllib.parse.quote(pid)}">Consultar producto y agregar al carrito</a></p></main>'
+ seo_html=str((row.get("_seo") or {}).get("descripcion_larga_html") or "").strip()
+ seo_html=re.sub(r"(?is)<script[^>]*>.*?</script>","",seo_html)
+ seo_html=re.sub(r"(?is)<iframe[^>]*>.*?</iframe>","",seo_html)
+ price=row["product"].get("price",row["product"].get("precio"))
+ try: amount=float(price);valid_price=amount>0
+ except (ValueError,TypeError): amount=0;valid_price=False
+ offer=active_offer(row)
+ if offer: amount=offer[1]
+ price_html=("$ "+format(amount,",.0f").replace(",",".")) if valid_price else "Consultar precio"
+ stock="Disponible" if seo_availability(row)=="https://schema.org/InStock" else "Consultar disponibilidad"
+ extra=[]
+ for label,keys in (("Presentación",("presentation","presentacion")),("Sabor",("flavor","sabor")),("Ingredientes",("ingredients","ingredientes")),("Modo de uso",("usage","modo_uso")),("Características",("features","caracteristicas"))):
+  value=next((row["product"].get(k) for k in keys if row["product"].get(k)),None)
+  if value: extra.append("<p><b>"+esc(label)+":</b> "+esc(value)+"</p>")
+ static_section=("<main id=\"liftSEOStatic\" style=\"max-width:1100px;margin:24px auto;padding:20px;font:15px/1.7 Arial,sans-serif\">"
+  +"<p>"+esc(brand)+"</p><h1>"+esc(name)+"</h1>"+img+"<p><strong>"+esc(price_html)+"</strong></p><p>"+esc(stock)+"</p>"
+  +"".join(extra)+"<section><h2>Descripción del producto</h2>"+(seo_html or "<p>"+esc(description)+"</p>")+"</section>"
+  +"<p><a href=\""+BASE+"/?producto="+urllib.parse.quote(pid)+"\">Consultar producto y agregar al carrito</a></p></main>")
  page=page.replace("<body>", "<body>"+static_section,1)
  # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
  page=page.replace("<head>","<head>\n"+head_meta+"\n",1)
