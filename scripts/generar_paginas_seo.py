@@ -402,21 +402,32 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
  return filename,page
 
 def shared_template():
+ """Una única skin CSS compartida por todas las fichas; scripts originales en su orden."""
  source=(ROOT/"index.html").read_text(encoding="utf-8")
- # Extrae scripts y estilos a archivos compartidos, sin cambiar su orden de ejecución.
  assets=ROOT/"productos-assets";assets.mkdir(exist_ok=True)
  import hashlib
- def externalize(match):
-  tag,body,closing=match.group(1),match.group(2),match.group(3)
-  if not body.strip():return match.group(0)
-  kind="js" if tag.lower().startswith("<script") else "css"
-  if kind=="js" and ("src=" in tag.lower() or "application/ld+json" in tag.lower()):return match.group(0)
+ # Consolidar únicamente estilos inline; conservar intacta la lógica del catálogo.
+ css_parts=[]
+ def collect_css(m):
+  css_parts.append(m.group(2))
+  return '<!-- CSS compartido de ficha -->'
+ source=re.sub(r'(<style\\b[^>]*>)(.*?)(</style>)',collect_css,source,flags=re.S|re.I)
+ if css_parts:
+  css="\\n".join(css_parts)
+  digest=hashlib.sha256(css.encode("utf-8")).hexdigest()[:16]
+  css_name=f"supgo-productos-{digest}.css"
+  (assets/css_name).write_text(css,encoding="utf-8")
+  css_link='<link rel="stylesheet" href="/productos-assets/'+css_name+'">'
+  source=source.replace("</head>",css_link+"\\n</head>",1)
+ # Los scripts se mantienen en su posición para no alterar dependencias ni checkout.
+ def externalize_js(m):
+  opening,body,closing=m.group(1),m.group(2),m.group(3)
+  if not body.strip() or "src=" in opening.lower() or "application/ld+json" in opening.lower():return m.group(0)
   digest=hashlib.sha256(body.encode("utf-8")).hexdigest()[:16]
-  name=f"shared-{digest}.{kind}"
+  name=f"shared-{digest}.js"
   (assets/name).write_text(body,encoding="utf-8")
-  if kind=="css":return '<link rel="stylesheet" href="/productos-assets/'+name+'">'
   return '<script src="/productos-assets/'+name+'"></script>'
- return re.sub(r'(<script\b[^>]*>|<style\b[^>]*>)(.*?)(</script>|</style>)',externalize,source,flags=re.S|re.I)
+ return re.sub(r'(<script\\b[^>]*>)(.*?)(</script>)',externalize_js,source,flags=re.S|re.I)
 
 def main():
  rows=fetch()
