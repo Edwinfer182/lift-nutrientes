@@ -258,7 +258,7 @@ def build_direct(row, shared):
   if value: extra.append("<p><b>"+esc(label)+":</b> "+esc(value)+"</p>")
  static_section=("<main id=\"liftSEOStatic\" style=\"max-width:1100px;margin:24px auto;padding:20px;font:15px/1.7 Arial,sans-serif\">"
   +"<p>"+esc(brand)+"</p><h1>"+esc(name)+"</h1>"+img+"<p><strong>"+esc(price_html)+"</strong></p><p>"+esc(stock)+"</p>"
-  +"".join(extra)+"<section><h2>Descripción del producto</h2>"+(seo_html or "<p>"+esc(description)+"</p>")+"</section>"
+  +"".join(extra)+"<section id="liftSEODescription" class="liftSEODescription"><h2>Descripción del producto</h2>"+(seo_html or "<p>"+esc(description)+"</p>")+"</section>"
   +"<p><a href=\""+BASE+"/?producto="+urllib.parse.quote(pid)+"\">Consultar producto y agregar al carrito</a></p></main>")
  page=page.replace("<body>", "<body>"+static_section,1)
  # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
@@ -345,7 +345,15 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
     if(panel){
      clearInterval(timer);main.appendChild(panel);panel.classList.add('open');
      document.querySelectorAll('#liftMonoBackdrop,.liftMonoOverlay,#liftMonoOverlay').forEach(el=>el.classList.remove('open','show'));
-     document.body.style.overflow='';status.remove();document.getElementById('liftSEOStatic')?.remove();
+     document.body.style.overflow='';status.remove();
+     const staticSEO=document.getElementById('liftSEOStatic');
+     const descriptionSEO=document.getElementById('liftSEODescription');
+     if(descriptionSEO){
+      const detailBody=panel.querySelector('#liftMonoBody')||panel;
+      detailBody.appendChild(descriptionSEO);
+      descriptionSEO.style.cssText='display:block!important;visibility:visible!important;opacity:1!important;max-width:1100px;margin:30px auto;padding:20px;line-height:1.75;overflow-wrap:anywhere';
+     }
+     staticSEO?.remove();
      panel.querySelectorAll('#liftMonoClose,.liftMonoClose,.liftMonoHandle,.liftMonoDragHandle,[aria-label="Cerrar"]').forEach(x=>x.remove());
      document.querySelectorAll('.top .cartDesktop').forEach(x=>{x.style.setProperty('display','flex','important');x.style.setProperty('visibility','visible','important');});
      
