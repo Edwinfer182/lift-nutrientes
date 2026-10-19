@@ -157,6 +157,14 @@ def build(row):
  except (ValueError,TypeError):valid_price=False;amount=0
  title=str(seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
  seo_description=seo_plain(seo_data.get("descripcion_larga_html"))
+ seo_html=str(seo_data.get("descripcion_larga_html") or "").strip()
+ # El editor guarda HTML; retiramos scripts y atributos ejecutables antes de mostrarlo.
+ seo_html=re.sub(r"(?is)<(script|style|iframe|object|embed|form|svg)\\b[^>]*>.*?</\\1\\s*>","",seo_html)
+ seo_html=re.sub(r"(?is)<(script|style|iframe|object|embed|form|svg)\\b[^>]*/?>","",seo_html)
+ seo_html=re.sub(r'(?i)\\s+on[a-z]+\\s*=\\s*(?:"[^"]*"|\\x27[^\\x27]*\\x27|[^\\s>]+)',"",seo_html)
+ seo_html=re.sub(r'(?i)(href|src)\\s*=\\s*(["\\x27])\\s*javascript:[^"\\x27]*\\2',r'\\1="#"',seo_html)
+ seo_html=re.sub(r"(?is)<\\s*/?\\s*(?:html|head|body|title|meta|link)\\b[^>]*>","",seo_html)
+
  meta=str(seo_data.get("meta_descripcion") or description or seo_description or f"Consulta {name} de {brand} en Supgo. Presentaciones, precio y disponibilidad en Colombia.")[:160]
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(p.get("sku") or pid)}
  settings=row.get("_merchant_settings") or {}
@@ -200,181 +208,20 @@ def build(row):
 <meta name="twitter:title" content="{esc(name)}"><meta name="twitter:description" content="{esc(meta)}">
 {f'<meta property="product:price:amount" content="{amount:g}"><meta property="product:price:currency" content="COP">' if valid_price else ''}
 <script type="application/ld+json">{schema}</script>
-<style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}header{{background:#090909;color:white;padding:20px 5%}}header a{{color:white;text-decoration:none;font-weight:700}}nav{{padding:16px 5%;border-bottom:1px solid #ddd;display:flex;gap:20px;flex-wrap:wrap}}nav a{{color:#222;text-decoration:none}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}.btn{{display:inline-block;background:#111;color:white;padding:14px 20px;text-decoration:none;margin:8px 8px 8px 0}}footer{{padding:35px 5%;border-top:1px solid #ddd}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
+<style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}header{{background:#090909;color:white;padding:20px 5%}}header a{{color:white;text-decoration:none;font-weight:700}}nav{{padding:16px 5%;border-bottom:1px solid #ddd;display:flex;gap:20px;flex-wrap:wrap}}nav a{{color:#222;text-decoration:none}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}.btn{{display:inline-block;background:#111;color:white;padding:14px 20px;text-decoration:none;margin:8px 8px 8px 0}}.product-seo-description{{font-size:14px;line-height:1.75;overflow-wrap:anywhere}}.product-seo-description h2{{font-size:22px;margin-top:22px}}.product-seo-description h3{{font-size:18px}}.product-seo-description img{{max-width:100%;height:auto}}.product-availability{{font-size:13px;color:#227347}}.product-details{{font-size:13px;color:#666}}footer{{padding:35px 5%;border-top:1px solid #ddd}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
 </head><body><header><a href="{BASE}/">LIFT NUTRIENTES</a></header>
 <nav><a href="{BASE}/">Inicio</a><a href="{BASE}/?ofertas=1">Ofertas</a><a href="{BASE}/?categoria={urllib.parse.quote(str(p.get('category') or ''))}">Categoría: {esc(p.get('category') or 'Ver todas')}</a><a href="{BASE}/?marca={urllib.parse.quote(brand)}">Laboratorio: {esc(brand or 'Ver todos')}</a></nav>
 <main><section>{img}</section><section><p>{esc(brand)}</p><h1>{esc(name)}</h1>{price_html}
-<p>{esc(seo_description or description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p>
+<div class="product-seo-description">{seo_html if seo_html else '<p>'+esc(description or meta)+'</p>'}</div>
+<p class="product-availability">{esc('Disponibilidad: '+('Disponible' if seo_availability(row)=='https://schema.org/InStock' else 'Consultar disponibilidad'))}</p>
+<p class="product-details">{esc(str(p.get('presentation') or p.get('presentacion') or ''))} {esc(str(p.get('flavor') or ''))}</p>
 <a class="btn" href="{BASE}/?producto={pid}">Ver opciones y agregar al carrito</a>
 <a class="btn" href="{BASE}/?ofertas=1">Ver ofertas</a></section></main>
 <footer>Lift Nutrientes · <a href="{BASE}/">supgo.co</a></footer></body></html>'''
 
 def build_direct(row, shared):
- """Ficha individual real, sin iframe, basada en el index y sus controles."""
- filename, seo=build(row)
- pid=str(row["id"])
- name=str(row["product"].get("name") or row["product"].get("nombre"))
- head_meta=seo.split("<head>",1)[1].split("</head>",1)[0]
- head_meta=re.sub(r"<style>.*?</style>","",head_meta,flags=re.S)
- head_meta=re.sub(r"<script type=\"application/ld\\+json\">",'<script type="application/ld+json">',head_meta)
- # Quitar metadatos sociales genéricos del catálogo para que el bot encuentre
- # una sola imagen, título y URL correspondientes al producto compartido.
- # Remover titulo generico antes de colocar el titulo exclusivo del producto.
- shared=re.sub(r'<title>.*?</title>', '', shared, count=1, flags=re.S|re.I)
- page=re.sub(r"""<meta\b(?=[^>]*(?:property|name)\s*=\s*["'](?:og:[^"']+|twitter:[^"']+|description)["'])[^>]*>""", "", shared, flags=re.I)
- page=re.sub(r"""<link\b(?=[^>]*rel\s*=\s*["']canonical["'])[^>]*>""", "", page, flags=re.I)
- # Evitar que instrucciones de administracion se indexen en fichas publicas.
- page=page.replace('Selecciona primero 2 o más productos en la pestaña <b>Productos</b>. Aquí se crea una sola ficha padre sin borrar los productos originales. Cada fila conserva su ID y puede tener su propia imagen.', 'Administración de variaciones')
- p=row["product"]
- brand=str(p.get("brand") or p.get("marca") or "")
- description=str(p.get("description") or p.get("descripcion") or "").strip()
- seo_description=seo_plain((row.get("_seo") or {}).get("descripcion_larga_html"))
- image=str((row.get("_seo") or {}).get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
- if image.startswith("//"): image="https:"+image
- elif image.startswith("/"): image=BASE+image
- elif image and not image.startswith(("http://","https://")): image=""
- img=f'<img src="{esc(image)}" alt="{esc(name)}" width="360" height="360" style="max-width:100%;object-fit:contain">' if image else ""
- static_section=f'<main id="liftSEOStatic" style="max-width:1000px;margin:24px auto;padding:20px;font:16px Arial,sans-serif"><p>{esc(brand)}</p><h1>{esc(name)}</h1>{img}<p>{esc(seo_description or description or "Consulta presentaciones, precios y disponibilidad de este producto en Supgo.")}</p><p><a href="{BASE}/?producto={urllib.parse.quote(pid)}">Consultar producto y agregar al carrito</a></p></main>'
- page=page.replace("<body>", "<body>"+static_section,1)
- # Los robots de WhatsApp/Facebook leen primero el comienzo del HEAD.
- page=page.replace("<head>","<head>\n"+head_meta+"\n",1)
- page=page.replace("</body>",'''
-<style id="lift-seo-direct-layout">
-body.liftIndividualPage .layout{align-items:start!important;min-height:0!important}
-body.liftIndividualPage .sidebar{display:block!important;position:sticky!important;top:76px!important;align-self:start!important;height:calc(100vh - 90px)!important;max-height:calc(100vh - 90px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
-body.liftIndividualPage .content{min-width:0!important;padding:10px 14px 35px!important}
-body.liftIndividualPage .content > :not(#liftMonoOff):not(#liftIndividualStatus){display:none!important}
-body.liftIndividualPage #liftMonoBackdrop{display:none!important}
-body.liftIndividualPage #liftMonoOff,body.liftIndividualPage #liftMonoOff.open{position:relative!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;box-shadow:none!important;border:0!important;overflow:visible!important;display:block!important}
-body.liftIndividualPage #liftMonoBody{height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}
-body.liftIndividualPage #liftMonoClose,body.liftIndividualPage .liftMonoPageLink{display:none!important}
-body.liftIndividualPage .liftMonoBody{padding:16px!important}
-body.liftIndividualPage{overflow-x:hidden!important;overflow-y:auto!important}
-body.liftIndividualPage .top{position:sticky!important;top:0!important;z-index:1000!important}
-body.liftIndividualPage .layout{position:relative!important;z-index:1!important}
-body.liftIndividualPage .content{position:relative!important;z-index:1!important;overflow:visible!important}
-body.liftIndividualPage #liftMonoOff,body.liftIndividualPage #liftMonoOff.open{z-index:1!important;isolation:isolate!important;pointer-events:auto!important}
-body.liftIndividualPage #liftMonoBody{position:static!important;overscroll-behavior:auto!important}
-body.liftIndividualPage .liftMonoBtns{position:relative!important;bottom:auto!important}
-body.liftIndividualPage .sidebar{z-index:2!important}
-body.liftIndividualPage .sidebar .filterItem,body.liftIndividualPage .sidebar button{pointer-events:auto!important}
-body.liftIndividualPage .searchResults{z-index:1100!important}
-
-/* El carrito es un panel global: debe quedar por encima del encabezado sticky. */
-body.liftIndividualPage .overlay,
-body.liftIndividualPage #overlay,
-body.liftIndividualPage .off.right,
-body.liftIndividualPage .off.left,
-body.liftIndividualPage #cartOff,
-body.liftIndividualPage #cartOverlay,
-body.liftIndividualPage .cartDrawer,
-body.liftIndividualPage .cartBackdrop{z-index:2100!important}
-body.liftIndividualPage .checkoutModal,
-body.liftIndividualPage #checkoutModal{z-index:2200!important}
-
-/* La ficha es una página, no un modal: sin botón de cerrar ni tirador superior. */
-body.liftIndividualPage #liftMonoClose,
-body.liftIndividualPage .liftMonoClose,
-body.liftIndividualPage #liftMonoOff .liftMonoClose,
-body.liftIndividualPage #liftMonoOff [aria-label="Cerrar"],
-body.liftIndividualPage #liftMonoOff .liftMonoHandle,
-body.liftIndividualPage #liftMonoOff .liftMonoDragHandle{display:none!important}
-body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visible!important;opacity:1!important}
-@media(max-width:760px){
- body.liftIndividualPage .top .bar .cartDesktop{display:flex!important;visibility:visible!important;opacity:1!important;order:4!important;min-width:42px!important;min-height:40px!important;padding:0 10px!important}
- body.liftIndividualPage .top .search{order:5!important;flex-basis:100%!important}
- body.liftIndividualPage #liftMonoOff .liftMonoNav{z-index:2!important}
-}
-
-
-@media(max-width:760px){body.liftIndividualPage .layout{display:block!important}body.liftIndividualPage .sidebar{display:none!important}body.liftIndividualPage .content{padding:6px!important}body.liftIndividualPage .liftMonoBody{padding:12px!important}}
-</style>
-<script id="lift-seo-direct-init">
-(function(){
- const ID=__LIFT_ID__;
- function init(){
-  document.body.classList.add('liftIndividualPage');
-  const main=document.querySelector('.content');
-  if(!main)return;
-  const status=document.createElement('p');
-  status.id='liftIndividualStatus';status.textContent='Cargando ficha del producto…';main.prepend(status);
-  let tries=0;
-  const timer=setInterval(function(){
-   const product=(window.PRODUCTS||[]).find(p=>String(p.id)===String(ID));
-   if(product&&typeof window.openLiftProductById==='function'){
-    // Esperar a que Supabase termine de cargar los grupos de sabores.
-    // No abrir prematuramente una ficha aislada si pertenece a un grupo.
-    const group=typeof window.liftGroupByProductId==='function'?window.liftGroupByProductId(ID):null;
-    const groupsReady=typeof window.liftGroupByProductId==='function';
-    if(!groupsReady&&tries<50)return;
-    if(group&&typeof window.liftGroupVariants==='function'){
-     const variants=window.liftGroupVariants(group)||[];
-     const selected=variants.find(v=>String(v.id)===String(ID)||String(v.producto_id)===String(ID)||String(v.productId)===String(ID));
-     if(selected){
-      window.LIFT_SELECTED_GROUP_VARIANT=window.LIFT_SELECTED_GROUP_VARIANT||{};
-      window.LIFT_SELECTED_GROUP_VARIANT[String(group.id)]=String(selected.id);
-     }
-    }
-    window.openLiftProductById(ID);
-    const panel=document.getElementById('liftMonoOff');
-    if(panel){
-     clearInterval(timer);main.appendChild(panel);panel.classList.add('open');
-     document.querySelectorAll('#liftMonoBackdrop,.liftMonoOverlay,#liftMonoOverlay').forEach(el=>el.classList.remove('open','show'));
-     document.body.style.overflow='';status.remove();document.getElementById('liftSEOStatic')?.remove();
-     panel.querySelectorAll('#liftMonoClose,.liftMonoClose,.liftMonoHandle,.liftMonoDragHandle,[aria-label="Cerrar"]').forEach(x=>x.remove());
-     document.querySelectorAll('.top .cartDesktop').forEach(x=>{x.style.setProperty('display','flex','important');x.style.setProperty('visibility','visible','important');});
-     
-    }
-   }
-   if(++tries>120){clearInterval(timer);status.innerHTML='No se pudo cargar la ficha. <a href="https://supgo.co/?producto='+ID+'">Abrir en el catálogo</a>';}
-  },200);
-  function goHome(type,value){
-   const u=new URL('https://supgo.co/');
-   if(type&&value)u.searchParams.set(type,String(value));
-   window.location.assign(u.toString());
-  }
-  function selectedFilter(el){
-   const button=el.closest('[onclick]');
-   const code=button?.getAttribute('onclick')||'';
-   const match=code.match(/(?:setBrand|setCat|selectLaboratoryVisual)\\s*\\(\\s*(['"])(.*?)\\1\\s*\\)/);
-   if(match)return {type:/setCat/.test(code)?'categoria':'marca',value:match[2]};
-   const label=button?.querySelector('span')?.textContent?.trim()||button?.textContent?.trim();
-   if(button?.classList.contains('filterItem')&&label)return {type:button.closest('#catList,#categoriesList')?'categoria':'marca',value:label};
-   return null;
-  }
-  document.addEventListener('click',function(e){
-   const el=e.target.closest('button,a,[role="button"],.brand,.filterItem,.labVisualCard,.labCard,.categoryCard');
-   if(!el)return;
-   const sidebar=el.closest('.sidebar');
-   if(sidebar){
-    if(el.closest('input,.searchInput')||el.matches('input'))return;
-    const selected=selectedFilter(el);
-    if(!selected)return;
-    e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;
-   }
-   if(el.closest('.labVisualCard,.categoryCard')&&!el.closest('.sidebar')){
-    const selected=selectedFilter(el);
-    if(selected){e.preventDefault();e.stopImmediatePropagation();goHome(selected.type,selected.value);return;}
-   }
-   if(el.closest('.top')){
-    const cls=(el.className?.baseVal||el.className||'').toString();
-    const label=(el.textContent||'').trim();
-    const isLogo=!!el.closest('.brand')||/logo/i.test(cls);
-    const isOffers=/offersBtn/i.test(cls)||/ofertas/i.test(label);
-    if(isLogo||isOffers){e.preventDefault();e.stopImmediatePropagation();goHome();return;}
-   }
-  },true);
-  document.addEventListener('keydown',function(e){
-   if(e.key!=='Enter')return;
-   const input=e.target.closest('.top input[type="search"],.top .search input');
-   if(input&&input.value.trim()){e.preventDefault();e.stopImmediatePropagation();goHome();}
-  },true);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script></body>'''.replace('__LIFT_ID__',pid),1)
- if page.lower().count('<title>') != 1: raise RuntimeError('SEO sin titulo unico: '+filename)
- return filename,page
+ """Página SEO autónoma: no incrusta el index, el administrador ni liftSEOStatic."""
+ return build(row)
 
 def shared_template():
  source=(ROOT/"index.html").read_text(encoding="utf-8")
