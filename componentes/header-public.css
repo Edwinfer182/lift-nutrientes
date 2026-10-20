@@ -54,3 +54,6 @@ body.supgo-cart-open{overflow:hidden}
 #supgo-global-header .searchResults a.supgo-search-item:active{background:#f5f5f5}
 #supgo-global-header .supgo-search-photo{width:44px;height:44px;flex:0 0 44px;object-fit:contain;background:#fff;border-radius:5px}
 #supgo-global-header .supgo-search-title{min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+
+/* Evita zoom de enfoque en Safari iOS dentro del header móvil */
+@media(max-width:760px){#supgo-global-header{ -webkit-text-size-adjust:100%;text-size-adjust:100% }#supgo-global-header input,#supgo-global-header input:focus{font-size:16px!important;touch-action:manipulation}}
