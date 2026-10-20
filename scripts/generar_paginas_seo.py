@@ -194,6 +194,11 @@ def build(row):
   original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
   discounted=("$ {:,.0f}".format(promotion[1])).replace(",",".")
   price_html='<p><del style="color:#777;margin-right:12px">'+original+'</del><strong style="color:#168451;font-size:26px">'+discounted+'</strong></p>'
+ variants=row.get("_variants",[])
+ related=row.get("_related",[])
+ variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'">'+esc(v["label"])+'</a>' for v in variants)
+ related_html=''.join('<a class="related-item" href="'+esc(v["url"])+'">'+('<img loading="lazy" src="'+esc(v["image"])+'" alt="'+esc(v["name"])+'">' if v["image"] else '')+'<strong>'+esc(v["name"])+'</strong><small>'+esc(v["brand"])+'</small></a>' for v in related)
+ product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical},ensure_ascii=False).replace("<","\\u003c")
  return filename, f'''<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title><meta name="description" content="{esc(meta)}">
@@ -224,6 +229,7 @@ h1{{font-size:clamp(29px,3.3vw,46px);line-height:1.13;letter-spacing:-.04em;font
 .product-description{{font-size:15px;line-height:1.85;color:#565656;overflow-wrap:anywhere}}
 .product-description p{{margin:0}}
 @media(max-width:760px){{.product-page{{padding:12px 12px 48px}}.product-card{{grid-template-columns:1fr;border-radius:12px}}.product-media{{min-height:0;aspect-ratio:1.1;border-right:0;border-bottom:1px solid var(--line);padding:25px}}.product-media img{{max-height:370px}}.product-info{{padding:28px 24px 36px}}h1{{margin-bottom:20px}}}}
+.option{{display:inline-block;padding:9px 13px;border:1px solid #ddd;border-radius:4px;text-decoration:none;color:#222;margin:5px;font-size:13px}}.option.selected{{background:#111;color:white}}.actions{{display:flex;gap:10px;margin-top:22px;width:100%}}button{{cursor:pointer;font:inherit}}.add{{background:#111;color:#fff;border:0;border-radius:5px;padding:14px 20px;flex:1;font-weight:600}}.fav{{background:white;border:1px solid #ddd;border-radius:5px;padding:10px 16px;font-size:23px}}.related{{margin-top:45px}}.related-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}.related-item{{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid #eee;padding:14px;text-decoration:none;color:#111;border-radius:6px}}.related-item img{{height:160px;width:100%;object-fit:contain}}.related-item strong{{font-size:14px}}.related-item small{{color:#777}}@media(max-width:760px){{.related-grid{{grid-template-columns:repeat(2,1fr)}}.related-item img{{height:115px}}}}
 </style>
 </head><body>
 <main class="product-page">
@@ -231,13 +237,22 @@ h1{{font-size:clamp(29px,3.3vw,46px);line-height:1.13;letter-spacing:-.04em;font
 <section class="product-media">{img}</section>
 <section class="product-info">
 <p class="product-brand">{esc(brand)}</p>
-<h1>{esc(name)}</h1>
-<div class="product-price">{price_html}</div>
+<h1>{esc(name)}</h1><div class="product-price">{price_html}</div>
+{f'<h3>Sabores y presentaciones</h3><div>{variants_html}</div>' if len(variants)>1 else ''}
 <div class="product-rule"></div>
 <div class="product-description"><p>{esc(seo_description or description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p></div>
-</section>
-</article>
+<div class="actions"><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" aria-live="polite"></p>
+</section></article>
+{f'<section class="related"><h2>Productos relacionados</h2><div class="related-grid">{related_html}</div></section>' if related_html else ''}
 </main>
+<script>(function(){{
+const p={product_json};const f=document.getElementById('fav'),note=document.getElementById('notice');
+function read(k){{try{{const a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}}catch(e){{return []}}}}
+function paint(){{f.textContent=read('supgo_seo_favorites').some(x=>x.id===p.id)?'♥':'♡'}}
+f.onclick=()=>{{let a=read('supgo_seo_favorites');a=a.some(x=>x.id===p.id)?a.filter(x=>x.id!==p.id):[...a,p];localStorage.setItem('supgo_seo_favorites',JSON.stringify(a));paint();note.textContent='Favoritos actualizados';}};
+document.getElementById('add').onclick=()=>{{let a=read('supgo_seo_cart'),v=a.find(x=>x.id===p.id);if(v)v.quantity++;else a.push({{...p,quantity:1}});localStorage.setItem('supgo_seo_cart',JSON.stringify(a));note.textContent='Agregado al carrito de esta ficha';}};
+paint();
+}})();</script>
 </body></html>'''
 
 def build_direct(row, shared):
@@ -292,6 +307,17 @@ def main():
   valid=[r for r in valid if str(r["id"])==preview_id]
   if not valid: raise RuntimeError("Producto de prueba no encontrado: "+preview_id)
  if not valid: raise RuntimeError("No hay productos validos para generar")
+ def info(item):
+  p=item["product"];name=str(p.get("name") or p.get("nombre") or "")
+  return {"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name)}
+ entries=[(item,info(item)) for item in valid]
+ for item,d in entries:
+  p=item["product"];name=d["name"].casefold().strip();parent=str(p.get("parent_id") or p.get("producto_padre_id") or p.get("id_padre_sabor") or "")
+  variants=[v for other,v in entries if (parent and str(other["product"].get("parent_id") or other["product"].get("producto_padre_id") or other["product"].get("id_padre_sabor") or "")==parent) or (name and v["name"].casefold().strip()==name)]
+  item["_variants"]=variants[:24]
+  excluded={str(v["id"]) for v in variants}
+  cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
+  item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and ((cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat) or (brand and v["brand"].casefold()==brand))][:4]
  OUT.mkdir(exist_ok=True)
  shared=shared_template()
  urls=[]
