@@ -491,6 +491,11 @@ def main():
   p=item["product"]
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and ((cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat) or (brand and v["brand"].casefold()==brand))][:4]
+ # Índice compartido para buscador y menú del header en las fichas SEO.
+ if not preview_id and not brand_only:
+  catalog=[{"id":str(item["id"]),"name":d["name"],"brand":d["brand"],"category":str(item["product"].get("category") or item["product"].get("categoria") or ""),"image":d["image"],"url":d["url"]} for item,d in entries]
+  (ROOT/"componentes").mkdir(exist_ok=True)
+  (ROOT/"componentes"/"seo-productos.json").write_text(json.dumps(catalog,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
  OUT.mkdir(exist_ok=True)
  shared=None  # Las fichas usan estilos propios y no heredan la skin del index.
  urls=[]
