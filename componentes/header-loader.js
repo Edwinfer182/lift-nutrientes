@@ -1,28 +1,28 @@
-/* SUPGO reusable header loader. One instance per document. */
+/* Carga UN único componente HTML compartido. No genera otro header. */
 (function(){
   'use strict';
-  if(window.__supgoHeaderLoader)return;
-  window.__supgoHeaderLoader=true;
-  function init(){
-    // Index already owns the genuine header and its original handlers.
-    if(document.querySelector('header.top, #supgo-global-header, .seo-site-header'))return;
-    var host=document.createElement('div');
-    host.id='supgo-global-header';
-    document.body.insertBefore(host,document.body.firstChild);
-    var css=document.createElement('link');
-    css.rel='stylesheet';css.href='/componentes/header-public.css';
-    document.head.appendChild(css);
-    fetch('/componentes/header.html',{credentials:'same-origin'})
-      .then(function(response){if(!response.ok)throw Error('Header HTTP '+response.status);return response.text();})
-      .then(function(markup){
-        if(document.querySelector('header.top')){host.remove();return;}
-        host.innerHTML=markup;
-        var script=document.createElement('script');
-        script.src='/componentes/header.js';script.defer=true;
-        document.body.appendChild(script);
-      })
-      .catch(function(error){host.remove();console.error('SUPGO header:',error);});
+  if (window.__supgoSharedHeaderLoaded) return;
+  window.__supgoSharedHeaderLoaded = true;
+  async function mount(){
+    if(document.querySelector('header.top,#supgo-global-header')) return;
+    const container=document.createElement('div');
+    container.id='supgo-global-header';
+    try{
+      const response=await fetch('/componentes/header.html',{credentials:'same-origin'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const markup=await response.text();
+      if(document.querySelector('header.top'))return;
+      const css=document.createElement('link');
+      css.rel='stylesheet';
+      css.href='/componentes/header-public.css';
+      document.head.appendChild(css);
+      container.innerHTML=markup;
+      document.body.insertBefore(container,document.body.firstChild);
+      const script=document.createElement('script');
+      script.src='/componentes/header.js';
+      document.body.appendChild(script);
+    }catch(error){console.error('No se pudo cargar /componentes/header.html',error);}
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
-  else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
+  else mount();
 })();
