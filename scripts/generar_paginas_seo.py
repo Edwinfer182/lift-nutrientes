@@ -338,22 +338,6 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 
 </style>
 </head><body>
-<link rel="stylesheet" href="/componentes/header.css">
-<div id="supgo-global-header"></div>
-<script>
-(function(){{
-  const root=document.getElementById('supgo-global-header');
-  fetch('/componentes/header.html',{{cache:'no-cache'}})
-    .then(response=>{{if(!response.ok)throw Error('No se pudo cargar el header');return response.text();}})
-    .then(html=>{{
-      root.innerHTML=html;
-      const script=document.createElement('script');
-      script.src='/componentes/header.js';
-      document.body.appendChild(script);
-    }})
-    .catch(error=>console.error('SUPGO header:',error));
-}})();
-</script>
 <main class="product-page">
 <article class="product-card">
 <section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}</section>
@@ -481,11 +465,6 @@ def main():
   p=item["product"]
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and ((cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat) or (brand and v["brand"].casefold()==brand))][:4]
- # Índice compartido para buscador y menú del header en las fichas SEO.
- if not preview_id and not brand_only:
-  catalog=[{"id":str(item["id"]),"name":d["name"],"brand":d["brand"],"category":str(item["product"].get("category") or item["product"].get("categoria") or ""),"image":d["image"],"url":d["url"]} for item,d in entries]
-  (ROOT/"componentes").mkdir(exist_ok=True)
-  (ROOT/"componentes"/"seo-productos.json").write_text(json.dumps(catalog,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
  OUT.mkdir(exist_ok=True)
  shared=None  # Las fichas usan estilos propios y no heredan la skin del index.
  urls=[]
