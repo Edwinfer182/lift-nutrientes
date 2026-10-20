@@ -65,10 +65,15 @@ drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button
 // Estilos locales resistentes a las reglas de las fichas SEO y Safari móvil.
 const checkoutFooter=drawer.querySelector('.supgo-cart-bottom');
 const checkoutButton=drawer.querySelector('#supgoGoCheckout');
-checkoutFooter.style.cssText='display:flex!important;flex-direction:column!important;flex-shrink:0!important;position:relative!important;z-index:3!important;background:#fff!important;padding:12px 16px calc(16px + env(safe-area-inset-bottom))!important';
+checkoutFooter.style.cssText='display:flex!important;flex-direction:column!important;flex-shrink:0!important;position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:10!important;background:#fff!important;padding:12px 16px calc(16px + env(safe-area-inset-bottom))!important;box-shadow:0 -5px 20px #00000012!important';
 checkoutButton.style.cssText='display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;width:100%!important;min-height:48px!important;flex-shrink:0!important;padding:12px 16px!important;border:0!important;border-radius:8px!important;background:#111!important;color:#fff!important;font:600 15px Poppins,Arial,sans-serif!important;cursor:pointer!important';
 drawer.querySelector('.supgo-cart-total').style.order='-1';
 document.body.append(backdrop,drawer);
+// La lista nunca puede tapar la zona fija del checkout.
+drawer.style.setProperty('position','fixed','important');
+drawer.style.setProperty('height','100dvh','important');
+drawer.style.setProperty('overflow','hidden','important');
+drawer.querySelector('.supgo-cart-items').style.cssText='overflow-y:auto!important;min-height:0!important;flex:1 1 auto!important;padding-bottom:155px!important';
 const cartList=drawer.querySelector('.supgo-cart-items');
 function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
 function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();const button=drawer.querySelector('#supgoGoCheckout');if(button)button.hidden=false;}
