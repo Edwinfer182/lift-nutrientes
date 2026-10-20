@@ -14716,3 +14716,20 @@ button:active{transform:scale(.98)}
  new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach();
 })();
 </script>
+
+<script id="supgo-checkout-from-product-pages">
+(function(){
+ if(new URLSearchParams(location.search).get('checkout')!=='1')return;
+ let attempts=0;
+ function enter(){
+   attempts++;
+   try{
+     if(typeof startCartCheckout==='function'&&typeof items==='function'&&typeof PRODUCTS!=='undefined'&&PRODUCTS.length){
+       if(items().length){startCartCheckout();const u=new URL(location.href);u.searchParams.delete('checkout');history.replaceState(history.state,'',u.pathname+u.search+u.hash);return;}
+     }
+   }catch(err){console.warn('Checkout desde ficha:',err);}
+   if(attempts<100)setTimeout(enter,200);
+ }
+ if(document.readyState==='complete')enter();else window.addEventListener('load',enter,{once:true});
+})();
+</script>
