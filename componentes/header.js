@@ -56,42 +56,15 @@ a.append(photo,title);results.append(a);
 results.hidden=!results.childElementCount;
 }
 if(search)search.addEventListener('input',suggest);
-const overlay=document.createElement('div');overlay.className='supgo-cart-overlay';overlay.hidden=true;
-const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
-drawer.setAttribute('aria-label','Carrito de SUPGO');drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal estimado</span><strong></strong></div><button type="button" id="supgoGoCheckout">Continuar pedido</button></div>';
-host.append(overlay,drawer);
-function closeCart(){overlay.hidden=true;drawer.hidden=true;document.body.classList.remove('supgo-cart-open');}
-const close=drawer.querySelector('.supgo-cart-top button');close.onclick=closeCart;overlay.onclick=closeCart;
-drawer.querySelector('#supgoGoCheckout').onclick=()=>{if(!Object.keys(getCart()).length)return;location.assign('/checkout.html');};
-function renderCart(){
-const list=drawer.querySelector('.supgo-cart-items'),cart=getCart(),meta=json(STORAGE.meta,{});
-list.replaceChildren();let total=0;
-const entries=Object.entries(cart).filter(([k,v])=>Number(typeof v==='object'?(v.quantity??v.qty):v)>0);
-if(!entries.length){list.textContent='Tu carrito está vacío.';}
-for(const [key,value] of entries){
-const id=key.split('::')[0],p=catalog.find(x=>String(x.id)===id)?.product||{},m=meta[key]||{},qty=Number(typeof value==='object'?(value.quantity??value.qty):value)||1;
-const price=Number(field(m,'price','precio')||field(p,'price','precio')||0);total+=price*qty;
-const row=document.createElement('div');row.className='supgo-cart-row';
-const img=document.createElement('img');img.loading='lazy';img.alt='';const image=field(m,'image','imagen')||field(p,'image','imagen');if(typeof image==='string'&&/^https?:\/\//.test(image))img.src=image;
-const info=document.createElement('div');info.className='supgo-cart-info';const title=document.createElement('b');title.textContent=field(p,'name','nombre')||field(m,'name','nombre')||'Producto '+id;const amount=document.createElement('span');amount.textContent=price?money(price*qty):'Precio por confirmar';info.append(title,amount);
-const controls=document.createElement('div');controls.className='supgo-cart-qty';
-const decrement=document.createElement('button');decrement.type='button';decrement.textContent='−';
-const num=document.createElement('span');num.textContent=qty;
-const increment=document.createElement('button');increment.type='button';increment.textContent='+';
-function change(delta){const updated=getCart(),current=Number(typeof updated[key]==='object'?(updated[key].quantity??updated[key].qty):updated[key])||0,amount=current+delta;if(amount<=0)delete updated[key];else if(typeof updated[key]==='object')updated[key]={...updated[key],quantity:amount};else updated[key]=amount;saveCart(updated);renderCart();}
-decrement.onclick=()=>change(-1);increment.onclick=()=>change(1);
-controls.append(decrement,num,increment);row.append(img,info,controls);list.append(row);
-}
-drawer.querySelector('.supgo-cart-total strong').textContent=money(total);updateCount();
-}
-if(cartButton)cartButton.onclick=()=>{overlay.hidden=false;drawer.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();};
+// Solo el catálogo principal administra el carrito y el checkout.
+if(cartButton)cartButton.onclick=()=>go();
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 orderButton.onclick=()=>go('mi-pedido','1');
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();popup.hidden=true;}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){popup.hidden=true;}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))popup.hidden=true;});
-window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
-window.addEventListener('supgo-cart-change',()=>{updateCount();if(!drawer.hidden)renderCart();});
+window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();}});
+window.addEventListener('supgo-cart-change',()=>{updateCount();});
 updateCount();
 // Integración con las fichas HTML: las acciones de producto alimentan el
 // mismo estado del index (liftCartV2 / liftCartMetaV1 / liftFavoritesV1).
@@ -115,20 +88,11 @@ updateCount();
     const entry=Array.isArray(seo)?seo.find(x=>x&&String(x.id)===String(p.id)):null;
     return entry||p;
   };
-  if(add)add.addEventListener('click',()=>{
+  if(add)add.addEventListener('click',event=>{
     const p=productFromPage();
-    if(!p)return;
-    const key=String(p.id);
-    const updated=getCart();
-    const old=updated[key];
-    const quantity=Number(typeof old==='object'?(old.quantity??old.qty):old)||0;
-    updated[key]=quantity+1;
-    const meta=json(STORAGE.meta,{});
-    meta[key]={...(meta[key]||{}),name:p.name||p.nombre||'',image:p.image||p.imagen||'',price:p.price??p.precio??0};
-    localStorage.setItem(STORAGE.meta,JSON.stringify(meta));
-    saveCart(updated);
-    if(!drawer.hidden)renderCart();
-  });
+    event.preventDefault();event.stopImmediatePropagation();
+    if(p&&p.id!=null)go('producto',String(p.id));else go();
+  },true);
   if(fav){
     const p=pageProduct();
     const saved=json('liftFavoritesV1',[]);
@@ -158,7 +122,7 @@ const res=await fetch(u.href,{headers:{apikey:apiKey}});if(!res.ok)throw Error('
 const rows=await res.json();catalog.push(...rows);if(rows.length<500)break;
 }
 if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);
-if(!drawer.hidden)renderCart();
+
 }
 load().catch(err=>console.warn('SUPGO componentes: no se pudo cargar el catálogo',err));
 })();
