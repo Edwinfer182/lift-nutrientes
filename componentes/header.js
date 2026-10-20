@@ -61,6 +61,13 @@ const backdrop=document.createElement('div');backdrop.className='supgo-cart-over
 const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
 drawer.setAttribute('aria-label','Carrito de compra');
 drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><button type="button" id="supgoGoCheckout">Continuar pedido</button><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div></div>';
+// El pie pertenece al drawer en body, no al nodo del encabezado.
+// Estilos locales resistentes a las reglas de las fichas SEO y Safari móvil.
+const checkoutFooter=drawer.querySelector('.supgo-cart-bottom');
+const checkoutButton=drawer.querySelector('#supgoGoCheckout');
+checkoutFooter.style.cssText='display:flex!important;flex-direction:column!important;flex-shrink:0!important;position:relative!important;z-index:3!important;background:#fff!important;padding:12px 16px calc(16px + env(safe-area-inset-bottom))!important';
+checkoutButton.style.cssText='display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;width:100%!important;min-height:48px!important;flex-shrink:0!important;padding:12px 16px!important;border:0!important;border-radius:8px!important;background:#111!important;color:#fff!important;font:600 15px Poppins,Arial,sans-serif!important;cursor:pointer!important';
+drawer.querySelector('.supgo-cart-total').style.order='-1';
 document.body.append(backdrop,drawer);
 const cartList=drawer.querySelector('.supgo-cart-items');
 function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
