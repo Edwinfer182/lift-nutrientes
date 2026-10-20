@@ -100,9 +100,38 @@ function renderCart(){
  drawer.querySelector('.supgo-cart-total strong').textContent=priced?money(subtotal):'Por confirmar';
  const checkout=drawer.querySelector('#supgoGoCheckout');checkout.disabled=!priced||!cartList.children.length;
 }
+// El checkout original se muestra dentro de la ficha SEO sin cambiar de URL.
+const checkoutShell=document.createElement('div');
+checkoutShell.hidden=true;
+checkoutShell.setAttribute('role','dialog');
+checkoutShell.setAttribute('aria-label','Finalizar pedido');
+checkoutShell.style.cssText='position:fixed;inset:0;z-index:2147483646;background:white;display:flex;flex-direction:column';
+checkoutShell.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #ddd;font-family:Poppins,Arial,sans-serif"><strong>Finalizar pedido</strong><button type="button" id="closeSeoCheckout" style="background:#111;color:#fff;border:0;padding:10px 14px;cursor:pointer">Cerrar ×</button></div><iframe title="Checkout SUPGO" style="border:0;width:100%;flex:1" loading="eager"></iframe>';
+checkoutShell.style.display='none';
+document.body.appendChild(checkoutShell);
+checkoutShell.querySelector('#closeSeoCheckout').onclick=()=>{checkoutShell.hidden=true;checkoutShell.style.display='none';};
+const checkoutFrame=checkoutShell.querySelector('iframe');
+checkoutFrame.addEventListener('load',()=>{
+ let attempts=0;
+ function activate(){
+   attempts++;
+   try{
+     const w=checkoutFrame.contentWindow,d=checkoutFrame.contentDocument;
+     if(!w||!d)return;
+     if(typeof w.openOff==='function')w.openOff('cart');
+     const buttons=Array.from(d.querySelectorAll('button,a,[role="button"]'));
+     const next=buttons.find(b=>/continuar pedido|continuar compra|finalizar pedido|finalizar compra|ir a pagar/i.test((b.textContent||'').trim())&&b.getClientRects().length);
+     if(next){next.click();return;}
+     if(attempts<12)setTimeout(activate,350);
+   }catch(error){console.warn('Checkout SEO:',error);}
+ }
+ activate();
+});
 drawer.querySelector('#supgoGoCheckout').onclick=()=>{
- // Nunca inventar un checkout paralelo: abrir el flujo existente del catálogo.
- if(Object.keys(getCart()).length)go();
+ if(!Object.keys(getCart()).length)return;
+ closeCart();checkoutShell.hidden=false;checkoutShell.style.display='flex';
+ if(!checkoutFrame.getAttribute('src'))checkoutFrame.src='/';
+ else {try{checkoutFrame.contentWindow?.openOff?.('cart');}catch(error){}}
 };
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
