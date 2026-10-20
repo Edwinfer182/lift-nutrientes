@@ -5,9 +5,9 @@
  const navigate=(kind,value='')=>{
   const q=new URLSearchParams();
   if(kind==='ofertas')q.set('ofertas','1');
-  if(kind==='buscar')q.set('q',value);
+  if(kind==='buscar')q.set('buscar',value);
   if(kind==='categoria')q.set('categoria',value);
-  if(kind==='laboratorio')q.set('laboratorio',value);
+  if(kind==='laboratorio')q.set('marca',value);
   go(q.toString());
  };
  window.SupgoHeader={navigate,root:ROOT};
@@ -16,7 +16,7 @@
  window.openOff=which=>{if(which==='filters')go('menu=1');else if(which==='cart')go('carrito=1');};
  window.liftCopyFilterLink=(kind,value)=>{
   const q=new URLSearchParams();
-  q.set(kind==='ofertas'?'ofertas':kind==='categoria'?'categoria':'laboratorio',String(value||'1'));
+  q.set(kind==='ofertas'?'ofertas':kind==='categoria'?'categoria':'marca',String(value||'1'));
   navigator.clipboard?.writeText(ROOT+'?'+q.toString());
  };
  function init(){
@@ -24,6 +24,7 @@
   if(!container)return;
   const input=container.querySelector('#q');
   if(input){
+   input.setAttribute('enterkeyhint','search');
    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();navigate('buscar',input.value.trim());}});
    const form=input.closest('form');
    if(form)form.addEventListener('submit',e=>{e.preventDefault();navigate('buscar',input.value.trim());});
