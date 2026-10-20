@@ -1,33 +1,47 @@
-/* Scoped public header rules. Does not modify SEO product page elements. */
-#supgo-global-header{position:sticky;top:0;z-index:1000;font-family:Poppins,Arial,sans-serif;color:#fff}
+/* Scoped header and cart UI for SEO product pages only. */
+#supgo-global-header{position:sticky;top:0;z-index:1000;font:400 13px/1.4 Poppins,Arial,sans-serif;color:#fff}
 #supgo-global-header *{box-sizing:border-box}
 #supgo-global-header .top{background:#101113;border-bottom:1px solid #2c2c2c}
-#supgo-global-header .bar{display:flex;align-items:center;gap:12px;max-width:1500px;margin:auto;padding:10px 16px;min-height:72px}
-#supgo-global-header .brand{display:flex;align-items:center;flex:0 0 auto}
-#supgo-global-header .liftHeaderLogo{width:54px;height:54px;object-fit:contain}
+#supgo-global-header .bar{display:flex;align-items:center;gap:10px;max-width:1500px;margin:auto;padding:9px 16px;min-height:70px}
+#supgo-global-header .brand{display:flex;align-items:center}
+#supgo-global-header .liftHeaderLogo{height:48px;width:48px;object-fit:contain}
 #supgo-global-header button,#supgo-global-header input{font:inherit}
-#supgo-global-header .offersBtn{background:#16a34a;color:#fff;border:0;border-radius:11px;padding:12px 15px;min-height:44px;cursor:pointer;white-space:nowrap;font-weight:600}
-#supgo-global-header .offersCount{background:#fff;color:#11854b;border-radius:30px;padding:2px 7px;font-size:11px}
-#supgo-global-header .search{display:flex;position:relative;flex:1;min-width:0}
-#supgo-global-header .search input{width:100%;height:46px;background:#1b1c1f;border:1px solid #414348;border-radius:12px;color:#fff;padding:0 15px;outline:0}
-#supgo-global-header .search input::placeholder{color:#98999e}
-#supgo-global-header .iconbtn,#supgo-global-header .myOrder{background:#1b1c1f;color:#fff;border:1px solid #3c3d42;border-radius:11px;padding:0 13px;height:44px;cursor:pointer;white-space:nowrap}
-#supgo-global-header .filterMobile{display:inline-flex;align-items:center;gap:5px}
+#supgo-global-header .offersBtn{background:#16a34a;color:#fff;border:0;border-radius:11px;padding:11px 13px;cursor:pointer}
+#supgo-global-header .offersCount{border-radius:30px;background:#fff;color:#138849;padding:2px 7px}
+#supgo-global-header .search{flex:1;min-width:0;position:relative}
+#supgo-global-header .search input{width:100%;height:45px;border:1px solid #444;border-radius:11px;background:#1b1c1f;padding:0 13px;color:#fff;outline:0}
+#supgo-global-header .search input::placeholder{color:#999}
+#supgo-global-header .iconbtn,#supgo-global-header .myOrder{height:44px;white-space:nowrap;background:#1c1d20;color:#fff;border:1px solid #424348;border-radius:11px;padding:0 12px;cursor:pointer}
+#supgo-global-header .badge{background:#e21e32;color:white;border-radius:50%;padding:1px 6px}
 #supgo-global-header .liftFilterLink{display:none}
-#supgo-global-header .badge{display:inline-block;border-radius:100%;padding:2px 6px;background:#e11b29;color:#fff}
-#supgo-global-header .supgo-menu{position:absolute;z-index:1001;top:100%;left:12px;width:min(400px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:#fff;color:#111;border:1px solid #ddd;box-shadow:0 20px 45px #0003;border-radius:0 0 12px 12px;padding:14px}
 #supgo-global-header [hidden]{display:none!important}
-#supgo-global-header .supgo-tabs{display:flex;gap:8px;margin-bottom:12px}
-#supgo-global-header .supgo-tabs button{flex:1;border:1px solid #ddd;padding:10px;background:#fff;color:#111;border-radius:8px}
-#supgo-global-header .supgo-tabs button.active{background:#111;color:#fff}
-#supgo-global-header .supgo-links{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-#supgo-global-header .supgo-links a,#supgo-global-header .searchResults a{display:block;color:#151515;text-decoration:none;background:#fafafa;border:1px solid #eee;border-radius:8px;padding:9px;font-size:12px}
-#supgo-global-header .searchResults{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:1002;max-height:300px;overflow:auto;background:#fff;padding:8px;border-radius:10px;box-shadow:0 15px 30px #0003}
-@media(max-width:740px){
- #supgo-global-header .bar{gap:7px;flex-wrap:wrap;padding:8px}
- #supgo-global-header .liftHeaderLogo{height:42px;width:42px}
- #supgo-global-header .offersBtn{font-size:12px;padding:8px}
- #supgo-global-header .iconbtn,#supgo-global-header .myOrder{height:40px;padding:0 9px;font-size:12px}
- #supgo-global-header .search{flex:0 0 100%;order:9}
- #supgo-global-header .cartDesktop .txt{display:none}
-}
+#supgo-global-header .supgo-menu{position:absolute;top:100%;left:10px;z-index:1005;width:min(420px,calc(100vw - 20px));max-height:70vh;overflow:auto;background:white;color:#111;padding:13px;border:1px solid #ddd;border-radius:0 0 12px 12px;box-shadow:0 20px 45px #0003}
+#supgo-global-header .supgo-tabs{display:flex;gap:8px;margin-bottom:10px}
+#supgo-global-header .supgo-tabs button{flex:1;padding:9px;border-radius:8px;border:1px solid #ccc;background:#fff}
+#supgo-global-header .supgo-tabs .active{background:#111;color:#fff}
+#supgo-global-header .supgo-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#supgo-global-header .supgo-links a,#supgo-global-header .searchResults a{display:block;padding:9px;color:#111;text-decoration:none;background:#fafafa;border:1px solid #eee;border-radius:8px}
+#supgo-global-header .searchResults{position:absolute;z-index:1006;top:100%;left:0;right:0;max-height:300px;overflow:auto;background:white;box-shadow:0 15px 35px #0003}
+#supgo-global-header .supgo-cart-overlay{position:fixed;inset:0;background:#0007;z-index:1010}
+#supgo-global-header .supgo-cart-drawer{position:fixed;right:0;top:0;height:100dvh;width:min(430px,100vw);z-index:1011;background:#fff;color:#111;box-shadow:-20px 0 60px #0003;display:flex;flex-direction:column}
+#supgo-global-header .supgo-cart-top{display:flex;align-items:center;justify-content:space-between;padding:18px;border-bottom:1px solid #eee;font-size:19px}
+#supgo-global-header .supgo-cart-top button{border:0;background:#f2f2f2;border-radius:50%;width:36px;height:36px;font-size:23px}
+#supgo-global-header .supgo-cart-items{padding:14px;overflow:auto;flex:1}
+#supgo-global-header .supgo-cart-row{display:grid;grid-template-columns:60px 1fr auto auto;align-items:center;gap:10px;border-bottom:1px solid #eee;padding:12px 0}
+#supgo-global-header .supgo-cart-row img{width:60px;height:70px;object-fit:contain}
+#supgo-global-header .supgo-cart-info{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px}
+#supgo-global-header .supgo-cart-info small{color:#666}
+#supgo-global-header .supgo-cart-qty{display:flex;align-items:center;gap:6px}
+#supgo-global-header .supgo-cart-qty button{border:1px solid #ddd;background:#fff;border-radius:6px;padding:5px 7px}
+#supgo-global-header .supgo-cart-remove{border:0;background:none;color:#777;font-size:19px}
+#supgo-global-header .supgo-cart-bottom{border-top:1px solid #ddd;padding:15px}
+#supgo-global-header .supgo-cart-total{display:flex;justify-content:space-between;margin-bottom:13px;font-size:16px}
+#supgo-global-header #supgoGoCheckout{display:block;width:100%;min-height:46px;border:0;border-radius:10px;background:#111;color:#fff}
+#supgo-global-header .supgo-order-dialog{border:0;border-radius:13px;max-width:370px;padding:20px}
+#supgo-global-header .supgo-order-dialog::backdrop{background:#0008}
+#supgo-global-header .supgo-order-dialog form{display:grid;gap:12px}
+#supgo-global-header .supgo-order-dialog input{height:43px;border:1px solid #ddd;border-radius:8px;padding:10px}
+#supgo-global-header .supgo-order-actions{display:flex;justify-content:flex-end;gap:8px}
+#supgo-global-header .supgo-order-actions button{padding:10px;border-radius:8px;border:1px solid #ddd}
+body.supgo-cart-open{overflow:hidden}
+@media(max-width:760px){#supgo-global-header .bar{flex-wrap:wrap;gap:7px;padding:8px}#supgo-global-header .liftHeaderLogo{height:40px;width:40px}#supgo-global-header .offersBtn{padding:8px;font-size:12px}#supgo-global-header .iconbtn,#supgo-global-header .myOrder{padding:0 8px;height:39px;font-size:11px}#supgo-global-header .search{order:9;flex-basis:100%}#supgo-global-header .cartDesktop .txt{display:none}#supgo-global-header .supgo-cart-row{grid-template-columns:52px 1fr auto}#supgo-global-header .supgo-cart-row img{width:52px;height:64px}#supgo-global-header .supgo-cart-remove{grid-column:3}#supgo-global-header .supgo-cart-qty{grid-column:2}}
