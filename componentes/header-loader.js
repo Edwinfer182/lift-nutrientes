@@ -14,14 +14,14 @@
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
     if(document.querySelector('header.top,#supgo-global-header'))return;
-    const response=await fetch(path+'header.html?v=20261020-cart-viewport5',{credentials:'same-origin'});
+    const response=await fetch(path+'header.html?v=20261020-cart-button6',{credentials:'same-origin'});
     if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
     const html=await response.text();
     if(document.querySelector('header.top,#supgo-global-header'))return;
     let styles=document.querySelector('link[data-supgo-header-style]');
     if(!styles){
       styles=document.createElement('link');
-      styles.rel='stylesheet';styles.href=path+'header-public.css?v=20261020-cart-viewport5';
+      styles.rel='stylesheet';styles.href=path+'header-public.css?v=20261020-cart-button6';
       styles.dataset.supgoHeaderStyle='1';document.head.appendChild(styles);
     }
     const host=document.createElement('div');
@@ -29,7 +29,7 @@
     host.innerHTML=html;
     document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261020-cart-viewport5');
+      await loadScript(path+'header.js?v=20261020-cart-button6');
       document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
     }catch(error){host.remove();throw error;}
   }
