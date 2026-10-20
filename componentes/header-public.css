@@ -1,0 +1,33 @@
+/* Scoped public header rules. Does not modify SEO product page elements. */
+#supgo-global-header{position:sticky;top:0;z-index:1000;font-family:Poppins,Arial,sans-serif;color:#fff}
+#supgo-global-header *{box-sizing:border-box}
+#supgo-global-header .top{background:#101113;border-bottom:1px solid #2c2c2c}
+#supgo-global-header .bar{display:flex;align-items:center;gap:12px;max-width:1500px;margin:auto;padding:10px 16px;min-height:72px}
+#supgo-global-header .brand{display:flex;align-items:center;flex:0 0 auto}
+#supgo-global-header .liftHeaderLogo{width:54px;height:54px;object-fit:contain}
+#supgo-global-header button,#supgo-global-header input{font:inherit}
+#supgo-global-header .offersBtn{background:#16a34a;color:#fff;border:0;border-radius:11px;padding:12px 15px;min-height:44px;cursor:pointer;white-space:nowrap;font-weight:600}
+#supgo-global-header .offersCount{background:#fff;color:#11854b;border-radius:30px;padding:2px 7px;font-size:11px}
+#supgo-global-header .search{display:flex;position:relative;flex:1;min-width:0}
+#supgo-global-header .search input{width:100%;height:46px;background:#1b1c1f;border:1px solid #414348;border-radius:12px;color:#fff;padding:0 15px;outline:0}
+#supgo-global-header .search input::placeholder{color:#98999e}
+#supgo-global-header .iconbtn,#supgo-global-header .myOrder{background:#1b1c1f;color:#fff;border:1px solid #3c3d42;border-radius:11px;padding:0 13px;height:44px;cursor:pointer;white-space:nowrap}
+#supgo-global-header .filterMobile{display:inline-flex;align-items:center;gap:5px}
+#supgo-global-header .liftFilterLink{display:none}
+#supgo-global-header .badge{display:inline-block;border-radius:100%;padding:2px 6px;background:#e11b29;color:#fff}
+#supgo-global-header .supgo-menu{position:absolute;z-index:1001;top:100%;left:12px;width:min(400px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:#fff;color:#111;border:1px solid #ddd;box-shadow:0 20px 45px #0003;border-radius:0 0 12px 12px;padding:14px}
+#supgo-global-header [hidden]{display:none!important}
+#supgo-global-header .supgo-tabs{display:flex;gap:8px;margin-bottom:12px}
+#supgo-global-header .supgo-tabs button{flex:1;border:1px solid #ddd;padding:10px;background:#fff;color:#111;border-radius:8px}
+#supgo-global-header .supgo-tabs button.active{background:#111;color:#fff}
+#supgo-global-header .supgo-links{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#supgo-global-header .supgo-links a,#supgo-global-header .searchResults a{display:block;color:#151515;text-decoration:none;background:#fafafa;border:1px solid #eee;border-radius:8px;padding:9px;font-size:12px}
+#supgo-global-header .searchResults{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:1002;max-height:300px;overflow:auto;background:#fff;padding:8px;border-radius:10px;box-shadow:0 15px 30px #0003}
+@media(max-width:740px){
+ #supgo-global-header .bar{gap:7px;flex-wrap:wrap;padding:8px}
+ #supgo-global-header .liftHeaderLogo{height:42px;width:42px}
+ #supgo-global-header .offersBtn{font-size:12px;padding:8px}
+ #supgo-global-header .iconbtn,#supgo-global-header .myOrder{height:40px;padding:0 9px;font-size:12px}
+ #supgo-global-header .search{flex:0 0 100%;order:9}
+ #supgo-global-header .cartDesktop .txt{display:none}
+}
