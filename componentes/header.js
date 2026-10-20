@@ -60,7 +60,7 @@ if(search)search.addEventListener('input',suggest);
 const backdrop=document.createElement('div');backdrop.className='supgo-cart-overlay';backdrop.hidden=true;
 const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
 drawer.setAttribute('aria-label','Carrito de compra');
-drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div><button type="button" id="supgoGoCheckout">Continuar pedido</button></div>';
+drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><button type="button" id="supgoGoCheckout">Continuar pedido</button><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div></div>';
 document.body.append(backdrop,drawer);
 const cartList=drawer.querySelector('.supgo-cart-items');
 function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
