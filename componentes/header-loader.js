@@ -1,28 +1,40 @@
-/* Carga UN único componente HTML compartido. No genera otro header. */
+/* SUPGO: monta el mismo /componentes/header.html en cualquier página que importe este cargador.
+   Nunca copia el HTML al generador ni modifica el index. */
 (function(){
   'use strict';
-  if (window.__supgoSharedHeaderLoaded) return;
-  window.__supgoSharedHeaderLoaded = true;
-  async function mount(){
-    if(document.querySelector('header.top,#supgo-global-header')) return;
-    const container=document.createElement('div');
-    container.id='supgo-global-header';
-    try{
-      const response=await fetch('/componentes/header.html',{credentials:'same-origin'});
-      if(!response.ok)throw new Error('HTTP '+response.status);
-      const markup=await response.text();
-      if(document.querySelector('header.top'))return;
-      const css=document.createElement('link');
-      css.rel='stylesheet';
-      css.href='/componentes/header-public.css';
-      document.head.appendChild(css);
-      container.innerHTML=markup;
-      document.body.insertBefore(container,document.body.firstChild);
-      const script=document.createElement('script');
-      script.src='/componentes/header.js';
+  if(window.__supgoHeaderMountPromise)return;
+  const path='/componentes/';
+  function loadScript(src){
+    return new Promise(function(resolve,reject){
+      var script=document.createElement('script');
+      script.src=src;script.onload=resolve;script.onerror=reject;
       document.body.appendChild(script);
-    }catch(error){console.error('No se pudo cargar /componentes/header.html',error);}
+    });
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
-  else mount();
+  async function mount(){
+    // Un index con header propio nunca debe recibir uno duplicado.
+    if(document.querySelector('header.top,#supgo-global-header'))return;
+    const response=await fetch(path+'header.html',{credentials:'same-origin'});
+    if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
+    const html=await response.text();
+    if(document.querySelector('header.top,#supgo-global-header'))return;
+    let styles=document.querySelector('link[data-supgo-header-style]');
+    if(!styles){
+      styles=document.createElement('link');
+      styles.rel='stylesheet';styles.href=path+'header-public.css';
+      styles.dataset.supgoHeaderStyle='1';document.head.appendChild(styles);
+    }
+    const host=document.createElement('div');
+    host.id='supgo-global-header';
+    host.innerHTML=html;
+    document.body.insertBefore(host,document.body.firstChild);
+    try{
+      await loadScript(path+'header.js');
+      document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
+    }catch(error){host.remove();throw error;}
+  }
+  window.__supgoHeaderMountPromise=new Promise(function(resolve){
+    function start(){mount().catch(function(error){console.error('[SUPGO] No se pudo montar /componentes/header.html',error);}).finally(resolve);}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  });
 })();
