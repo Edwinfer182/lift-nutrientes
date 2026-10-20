@@ -205,11 +205,39 @@ def build(row):
 <meta name="twitter:title" content="{esc(name)}"><meta name="twitter:description" content="{esc(meta)}">
 {f'<meta property="product:price:amount" content="{amount:g}"><meta property="product:price:currency" content="COP">' if valid_price else ''}
 <script type="application/ld+json">{schema}</script><script type="application/ld+json">{breadcrumb_json}</script>
-<style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
+<style>
+:root{{--ink:#151515;--muted:#737373;--line:#eaeaea;--paper:#fff;--canvas:#f8f8f8}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:var(--canvas);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}}
+.product-page{{max-width:1160px;margin:0 auto;padding:clamp(22px,4vw,60px) 22px 80px}}
+.product-card{{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden}}
+.product-media{{min-height:480px;background:#fafafa;display:flex;align-items:center;justify-content:center;padding:clamp(30px,5vw,65px);border-right:1px solid var(--line)}}
+.product-media img{{display:block;width:100%;max-width:440px;max-height:510px;object-fit:contain;mix-blend-mode:multiply}}
+.product-info{{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:clamp(30px,5vw,66px)}}
+.product-brand{{font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#777;margin:0 0 18px}}
+h1{{font-size:clamp(29px,3.3vw,46px);line-height:1.13;letter-spacing:-.04em;font-weight:700;margin:0 0 26px;overflow-wrap:anywhere}}
+.product-price{{font-size:clamp(27px,3vw,38px);font-weight:700;letter-spacing:-.035em;margin:0 0 25px}}
+.product-price .price{{margin:0}}
+.product-price del{{display:block;font-size:16px;font-weight:400;color:#888;letter-spacing:0;margin-bottom:8px}}
+.product-price strong{{color:#151515!important;font-size:clamp(27px,3vw,38px)!important}}
+.product-rule{{height:1px;background:var(--line);width:100%;margin-bottom:23px}}
+.product-description{{font-size:15px;line-height:1.85;color:#565656;overflow-wrap:anywhere}}
+.product-description p{{margin:0}}
+@media(max-width:760px){{.product-page{{padding:12px 12px 48px}}.product-card{{grid-template-columns:1fr;border-radius:12px}}.product-media{{min-height:0;aspect-ratio:1.1;border-right:0;border-bottom:1px solid var(--line);padding:25px}}.product-media img{{max-height:370px}}.product-info{{padding:28px 24px 36px}}h1{{margin-bottom:20px}}}}
+</style>
 </head><body>
-<main><section>{img}</section><section><p>{esc(brand)}</p><h1>{esc(name)}</h1>{price_html}
-<p>{esc(seo_description or description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p>
-</section></main>
+<main class="product-page">
+<article class="product-card">
+<section class="product-media">{img}</section>
+<section class="product-info">
+<p class="product-brand">{esc(brand)}</p>
+<h1>{esc(name)}</h1>
+<div class="product-price">{price_html}</div>
+<div class="product-rule"></div>
+<div class="product-description"><p>{esc(seo_description or description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p></div>
+</section>
+</article>
+</main>
 </body></html>'''
 
 def build_direct(row, shared):
