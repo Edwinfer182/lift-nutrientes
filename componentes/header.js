@@ -130,12 +130,13 @@ checkoutFrame.addEventListener('load',()=>{
  };
  next();
 });
-drawer.querySelector('#supgoGoCheckout').onclick=()=>{
+window.supgoOpenSeoCheckout=()=>{
  if(!Object.values(getCart()).some(v=>Number(typeof v==='object'?(v.quantity??v.qty):v)>0))return;
  closeCart();
  checkoutLayer.hidden=false;checkoutLayer.style.display='flex';checkoutStatus.style.display='block';checkoutStatus.textContent='Cargando checkout…';
  checkoutFrame.src='/';
 };
+drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 orderButton.onclick=()=>go('mi-pedido','1');
