@@ -91,5 +91,6 @@
   loaded=true;if(!menu.hidden)draw('brands');if(!drawer.hidden)renderCart();
  }
  count();loadCatalog().catch(e=>console.warn('SUPGO header catalog',e));
- window.addEventListener('storage',e=>{if(e.key==='liftCartV2'||e.key==='liftCartMetaV1'){count();if(!drawer.hidden)renderCart();}});\n window.addEventListener('supgo-cart-change',()=>{count();if(!drawer.hidden)renderCart();});
+ window.addEventListener('storage',e=>{if(e.key==='liftCartV2'||e.key==='liftCartMetaV1'){count();if(!drawer.hidden)renderCart();}});
+ window.addEventListener('supgo-cart-change',()=>{count();if(!drawer.hidden)renderCart();});
 })();
