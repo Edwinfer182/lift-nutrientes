@@ -13,7 +13,7 @@
   window.SupgoHeader={navigate:navigate,root:ROOT};
   if(document.documentElement.dataset.supgoHome==='1')return;
   window.showOffers=function(){navigate('ofertas');};
-  window.openOff=function(which){if(which==='filters')navigate('');if(which==='cart')navigate('');};
+  window.openOff=function(which){if(which==='filters')go('menu=1');if(which==='cart')go('carrito=1');};
   window.liftCopyFilterLink=function(){navigator.clipboard?.writeText(ROOT+'?ofertas=1');};
   function init(){
     const q=document.querySelector('#supgo-global-header #q');
