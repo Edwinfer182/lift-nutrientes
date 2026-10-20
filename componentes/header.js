@@ -60,7 +60,7 @@ if(search)search.addEventListener('input',suggest);
 const backdrop=document.createElement('div');backdrop.className='supgo-cart-overlay';backdrop.hidden=true;
 const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
 drawer.setAttribute('aria-label','Carrito de compra');
-drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div></div>';
+drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div><button type="button" id="supgoGoCheckout">Continuar pedido</button></div>';
 host.append(backdrop,drawer);
 const cartList=drawer.querySelector('.supgo-cart-items');
 function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
@@ -100,6 +100,42 @@ function renderCart(){
  drawer.querySelector('.supgo-cart-total strong').textContent=priced?money(subtotal):'Por confirmar';
 
 }
+// Checkout en la ficha SEO: misma aplicación principal, sin salir de esta página.
+const checkoutLayer=document.createElement('section');
+checkoutLayer.hidden=true;
+checkoutLayer.setAttribute('aria-label','Finalizar pedido');
+checkoutLayer.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#fff;display:none;flex-direction:column;font-family:Poppins,Arial,sans-serif';
+checkoutLayer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #ddd"><strong>Finalizar pedido</strong><button type="button" data-close-checkout style="border:0;background:#171717;color:#fff;padding:10px 14px;cursor:pointer">Cerrar ×</button></div><div class="supgo-checkout-status" style="padding:12px 16px;font-size:13px">Cargando checkout…</div><iframe title="Checkout de SUPGO" style="border:0;width:100%;flex:1;min-height:0"></iframe>';
+document.body.appendChild(checkoutLayer);
+const checkoutFrame=checkoutLayer.querySelector('iframe'),checkoutStatus=checkoutLayer.querySelector('.supgo-checkout-status');
+checkoutLayer.querySelector('[data-close-checkout]').onclick=()=>{checkoutLayer.hidden=true;checkoutLayer.style.display='none';checkoutFrame.removeAttribute('src');};
+function findCheckout(){
+ const w=checkoutFrame.contentWindow,d=checkoutFrame.contentDocument;
+ if(!w||!d)return false;
+ // Abrir el carrito nativo antes de continuar al formulario.
+ if(typeof w.openOff==='function')try{w.openOff('cart');}catch(_){}
+ const candidates=[...d.querySelectorAll('button,a,[role="button"],input[type="button"]')];
+ const button=candidates.find(el=>/continuar pedido|finalizar pedido|proceder al pago|ir al checkout/i.test((el.textContent||el.value||'').trim()) && el.getClientRects().length);
+ if(button){button.click();return true;}
+ return false;
+}
+checkoutFrame.addEventListener('load',()=>{
+ let attempt=0;
+ const next=()=>{
+  if(checkoutLayer.hidden)return;
+  attempt++;
+  try{if(findCheckout()){checkoutStatus.style.display='none';return;}}catch(e){console.warn('Checkout SEO:',e);}
+  if(attempt<24)setTimeout(next,300);
+  else checkoutStatus.textContent='Abre el carrito dentro del catálogo y pulsa Continuar pedido para completar la compra.';
+ };
+ next();
+});
+drawer.querySelector('#supgoGoCheckout').onclick=()=>{
+ if(!Object.values(getCart()).some(v=>Number(typeof v==='object'?(v.quantity??v.qty):v)>0))return;
+ closeCart();
+ checkoutLayer.hidden=false;checkoutLayer.style.display='flex';checkoutStatus.style.display='block';checkoutStatus.textContent='Cargando checkout…';
+ checkoutFrame.src='/';
+};
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 orderButton.onclick=()=>go('mi-pedido','1');
