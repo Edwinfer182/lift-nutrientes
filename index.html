@@ -14444,6 +14444,38 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<script id="supgo-checkout-from-product-pages-v2">
+(function(){
+  'use strict';
+  const params=new URLSearchParams(location.search);
+  if(params.get('checkout')!=='1')return;
+  let attempts=0;
+  function check(){
+    attempts++;
+    const modal=document.getElementById('checkoutModal');
+    try{
+      if(modal && typeof startCartCheckout==='function' &&
+         typeof items==='function' && typeof PRODUCTS!=='undefined' &&
+         Array.isArray(PRODUCTS) && PRODUCTS.length){
+        const stored=JSON.parse(localStorage.getItem('liftCartV2')||'{}');
+        const hasCart=Object.values(stored).some(q=>Number(typeof q==='object'?(q.quantity??q.qty):q)>0);
+        if(hasCart && items().length){
+          startCartCheckout();
+          if(modal.classList.contains('open')){
+            const url=new URL(location.href);
+            url.searchParams.delete('checkout');
+            history.replaceState(history.state,'',url.pathname+url.search+url.hash);
+            return;
+          }
+        }
+      }
+    }catch(err){console.warn('SUPGO: esperando checkout',err);}
+    if(attempts<300)setTimeout(check,200);
+    else console.warn('SUPGO: no se pudo abrir el checkout; el carrito o los productos no se cargaron.');
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check,{once:true});else check();
+})();
+</script>
 </body>
 </html>
 
@@ -14717,19 +14749,4 @@ button:active{transform:scale(.98)}
 })();
 </script>
 
-<script id="supgo-checkout-from-product-pages">
-(function(){
- if(new URLSearchParams(location.search).get('checkout')!=='1')return;
- let attempts=0;
- function enter(){
-   attempts++;
-   try{
-     if(typeof startCartCheckout==='function'&&typeof items==='function'&&typeof PRODUCTS!=='undefined'&&PRODUCTS.length){
-       if(items().length){startCartCheckout();const u=new URL(location.href);u.searchParams.delete('checkout');history.replaceState(history.state,'',u.pathname+u.search+u.hash);return;}
-     }
-   }catch(err){console.warn('Checkout desde ficha:',err);}
-   if(attempts<100)setTimeout(enter,200);
- }
- if(document.readyState==='complete')enter();else window.addEventListener('load',enter,{once:true});
-})();
-</script>
+
