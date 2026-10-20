@@ -201,7 +201,8 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 <!-- CSS compartido de ficha -->
 <!-- CSS compartido de ficha -->
 <!-- CSS compartido de ficha -->
-<link rel="stylesheet" href="/productos-assets/supgo-productos-61c86a8b5fd4fac4.css">
+<!-- CSS compartido de ficha -->
+<link rel="stylesheet" href="/productos-assets/supgo-productos-a757e30cff760ca7.css">
 </head><body><main id="liftSEOStatic" style="max-width:1100px;margin:24px auto;padding:20px;font:15px/1.7 Arial,sans-serif"><p>Nutricost</p><h1>VITAMIN B6 - 100 MG</h1><img src="https://cdn.shopify.com/s/files/1/0222/4128/0074/files/NTC_VitaminB6_275CC_Front_feb955d3-182b-4835-8b14-57e2b595ec0d.jpg?v=1724084278" alt="VITAMIN B6 - 100 MG" width="360" height="360" style="max-width:100%;object-fit:contain"><p><strong>$ 106.000</strong></p><p>Disponible</p><section id="liftSEODescription" class="liftSEODescription"><h2>Descripción del producto</h2><h2>VITAMIN B6 - 100 MG</h2><p>Encuentra VITAMIN B6 - 100 MG en Supgo. Consulta el precio actualizado, la disponibilidad y las opciones de envío en Colombia.</p><p>Revisa la presentación, ingredientes e instrucciones del fabricante antes de comprar.</p></section><p><a href="https://supgo.co/?producto=14129">Consultar producto y agregar al carrito</a></p></main>
 
 <script src="/productos-assets/shared-eefb04fbaaea5787.js"></script>
@@ -324,6 +325,12 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
           <input id="coDataConsent" type="checkbox"><span>Autorizo el <button type="button" onclick="liftOpenDataPolicy()">tratamiento de mis datos personales</button>.</span>
         </label>
         <div id="liftDataConsentError" role="alert" style="display:none;color:#b42318;font-size:10px;margin:4px 0">Debes autorizar el tratamiento de tus datos para continuar.</div>
+        <label class="liftPrefRow liftEmailNotifyCompact" for="coEmailNotify">
+          <input id="coEmailNotify" type="checkbox" required>
+          <span>Autorizo recibir las actualizaciones de mi pedido por correo.
+            <small>Necesario para avisarte de la preparación, ruta y entrega. Sin publicidad.</small>
+          </span>
+        </label>
       </div>
 
       <div class="liftCheckoutActionArea">
@@ -1096,7 +1103,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 <!-- CSS compartido de ficha -->
 <div id="liftOrderSuccessModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><h2>Pedido generado</h2><div class="liftOrderSub">Guarda este número para consultar el estado de tu compra.</div><div class="liftOrderRef"><small>NÚMERO DE PEDIDO</small><b id="liftPublicOrderRef">LIFT-00000</b></div><div id="liftPublicOrderTotal" style="text-align:center;font-size:14px;font-weight:600"></div><div class="liftPayOptions"><div class="liftPayOption"><b>💳 MEDIOS DE PAGO</b><p><strong>⚡ Llave Bre-B</strong> · <strong>💳 Tarjeta de crédito:</strong> solicita tu link de pago Bold. <strong>El pago con tarjeta tiene un valor adicional correspondiente a la comisión cobrada por la pasarela Bold.</strong> · <strong>🏪 Corresponsal bancario:</strong> confirma primero con nosotros el número de cuenta.</p><p>⚠️ No nos hacemos responsables por pagos enviados a cuentas o números no suministrados oficialmente para tu pedido.</p><p><strong>No manejamos Addi ni Sistecrédito.</strong></p><div class="liftPayData"><div class="liftPayLine"><span>Llave Bre-B · @edwin4518</span><button type="button" onclick="liftCopyPay('@edwin4518')">Copiar</button></div></div></div></div><div class="liftOrderActions"><button class="primary" type="button" onclick="liftOrderWhatsApp()">WhatsApp</button><button class="dark" type="button" onclick="liftOpenTrackFromLast()">Ver mi pedido</button></div><button class="liftOrderClose" type="button" onclick="liftCloseOrderSuccess()">Cerrar</button></div></div>
 <div id="liftTrackModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><button type="button" class="liftTrackX" onclick="liftCloseTrack()" aria-label="Cerrar">×</button><h2>Mi pedido</h2><div class="liftOrderSub">Consulta con el número de pedido y el celular usado en la compra.</div><div class="liftTrackForm"><input id="liftTrackRef" placeholder="Ej: 132"><input id="liftTrackPhone" inputmode="tel" placeholder="Celular"><button class="checkoutSend" style="margin:0" type="button" onclick="liftTrackOrder()">Consultar pedido</button></div><div id="liftTrackResult" class="liftTrackResult"></div></div></div>
-<script src="/productos-assets/shared-b2a30eae611ee86d.js"></script>
+<script src="/productos-assets/shared-c93166b73fa7fefa.js"></script>
 
 <!-- CSS compartido de ficha -->
 <script src="/productos-assets/shared-82da7aba73806db8.js"></script>
@@ -1304,6 +1311,22 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
       const detailBody=panel.querySelector('#liftMonoBody')||panel;
       detailBody.appendChild(descriptionSEO);
       descriptionSEO.style.cssText='display:block!important;visibility:visible!important;opacity:1!important;max-width:1100px;margin:30px auto;padding:20px;line-height:1.75;overflow-wrap:anywhere';
+     }
+     // Boton de enlace de venta para Instagram en fichas individuales.
+     if(!panel.querySelector('#liftInstagramBuyLink')){
+      const linkButton=document.createElement('button');
+      linkButton.id='liftInstagramBuyLink';
+      linkButton.type='button';
+      linkButton.textContent='Copiar enlace para Instagram';
+      linkButton.style.cssText='display:block;width:100%;max-width:440px;margin:16px auto;padding:14px 18px;background:#111;color:white;border:0;border-radius:4px;font-weight:700;cursor:pointer';
+      linkButton.addEventListener('click',async()=>{
+       const url=window.location.origin+window.location.pathname;
+       try{await navigator.clipboard.writeText(url);linkButton.textContent='Enlace copiado';}
+       catch(e){window.prompt('Copia el enlace del producto',url);}
+       setTimeout(()=>{linkButton.textContent='Copiar enlace para Instagram'},2000);
+      });
+      const actions=panel.querySelector('#liftMonoBody')||panel;
+      actions.insertBefore(linkButton,actions.firstChild);
      }
      staticSEO?.remove();
      panel.querySelectorAll('#liftMonoClose,.liftMonoClose,.liftMonoHandle,.liftMonoDragHandle,[aria-label="Cerrar"]').forEach(x=>x.remove());
