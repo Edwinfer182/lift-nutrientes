@@ -29,7 +29,21 @@
     host.innerHTML=html;
     document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261020-cart-button6');
+      await loadScript(path+'header.js?v=20261020-cart-button8');
+      // Refuerzo para fichas que conservan en caché el marcado antiguo.
+      function ensureCheckoutButton(){
+        const drawer=document.querySelector('.supgo-cart-drawer');
+        const footer=drawer?.querySelector('.supgo-cart-bottom');
+        if(!footer||footer.querySelector('#supgoGoCheckout'))return;
+        const button=document.createElement('button');
+        button.type='button';button.id='supgoGoCheckout';button.textContent='Continuar pedido';
+        button.style.cssText='display:block!important;width:100%;min-height:48px;background:#111;color:#fff;border:0;border-radius:8px;font:600 15px Poppins,Arial,sans-serif;margin:0 0 12px';
+        footer.prepend(button);
+        button.onclick=()=>{const cart=document.querySelector('.supgo-cart-drawer');const trigger=cart?.querySelector('#supgoGoCheckout');if(trigger&&trigger!==button)trigger.click();else location.assign('https://supgo.co/');};
+      }
+      ensureCheckoutButton();
+      document.querySelector('.cartDesktop')?.addEventListener('click',()=>queueMicrotask(ensureCheckoutButton));
+
       document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
     }catch(error){host.remove();throw error;}
   }
