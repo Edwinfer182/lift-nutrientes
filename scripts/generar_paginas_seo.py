@@ -372,7 +372,7 @@ const p={product_json};const f=document.getElementById('fav'),note=document.getE
 function read(k){{try{{const a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}}catch(e){{return []}}}}
 function paint(){{f.textContent=read('supgo_seo_favorites').some(x=>x.id===p.id)?'♥':'♡'}}
 f.onclick=()=>{{let a=read('supgo_seo_favorites');a=a.some(x=>x.id===p.id)?a.filter(x=>x.id!==p.id):[...a,p];localStorage.setItem('supgo_seo_favorites',JSON.stringify(a));paint();note.textContent='Favoritos actualizados';}};
-document.getElementById('add').onclick=()=>{{let c={{}};try{{c=JSON.parse(localStorage.getItem('liftCartV2')||localStorage.getItem('liftCartV1')||'{{}}')||{{}};}}catch(e){{c={{}};}}const id=String(p.id);c[id]=(Number(c[id])||0)+1;localStorage.setItem('liftCartV2',JSON.stringify(c));window.dispatchEvent(new Event('supgo-cart-change'));note.textContent='Agregado a tu carrito';}};
+document.getElementById('add').onclick=()=>{{let a=read('supgo_seo_cart'),v=a.find(x=>x.id===p.id);if(v)v.quantity++;else a.push({{...p,quantity:1}});localStorage.setItem('supgo_seo_cart',JSON.stringify(a));note.textContent='Agregado al carrito de esta ficha';}};
 paint();
 }})();</script>
 </body></html>'''
