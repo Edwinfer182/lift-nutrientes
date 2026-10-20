@@ -310,12 +310,32 @@ def main():
  def info(item):
   p=item["product"];name=str(p.get("name") or p.get("nombre") or "")
   return {"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name)}
+ # Agrupar sabores por familia y presentación sin mezclar tamaños diferentes.
+ # Priorizar el identificador padre cuando existe; en su ausencia, eliminar
+ # exclusivamente el sabor declarado en Supabase del final del nombre.
+ def family_key(item):
+  p=item["product"]
+  parent=str(p.get("parent_id") or p.get("producto_padre_id") or p.get("id_padre_sabor") or "").strip()
+  brand=slug(p.get("brand") or p.get("marca") or "")
+  if parent:return ("parent",brand,parent)
+  name=str(p.get("name") or p.get("nombre") or "").strip()
+  flavor=str(p.get("flavor") or p.get("sabor") or "").strip()
+  normalized=slug(name)
+  flavor_slug=slug(flavor)
+  if flavor_slug and normalized.endswith("-"+flavor_slug):
+   normalized=normalized[:-(len(flavor_slug)+1)]
+  # Para nombres abreviados (Cocoa / Cocoa Pebbles), quitar el último
+  # segmento solo cuando coincide con un sabor conocido de esta familia.
+  return ("name",brand,normalized)
  entries=[(item,info(item)) for item in valid]
+ families={}
  for item,d in entries:
-  p=item["product"];name=d["name"].casefold().strip();parent=str(p.get("parent_id") or p.get("producto_padre_id") or p.get("id_padre_sabor") or "")
-  variants=[v for other,v in entries if (parent and str(other["product"].get("parent_id") or other["product"].get("producto_padre_id") or other["product"].get("id_padre_sabor") or "")==parent) or (name and v["name"].casefold().strip()==name)]
+  families.setdefault(family_key(item),[]).append(d)
+ for item,d in entries:
+  variants=families[family_key(item)]
   item["_variants"]=variants[:24]
   excluded={str(v["id"]) for v in variants}
+  p=item["product"]
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and ((cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat) or (brand and v["brand"].casefold()==brand))][:4]
  OUT.mkdir(exist_ok=True)
