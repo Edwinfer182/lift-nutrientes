@@ -142,7 +142,17 @@ const p={"id": "901155", "name": "Basic Whey 2 lb MOCHA JAVA CHIP", "image": "ht
 function read(k){try{const a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
 function paint(){f.textContent=read('supgo_seo_favorites').some(x=>x.id===p.id)?'♥':'♡'}
 f.onclick=()=>{let a=read('supgo_seo_favorites');a=a.some(x=>x.id===p.id)?a.filter(x=>x.id!==p.id):[...a,p];localStorage.setItem('supgo_seo_favorites',JSON.stringify(a));paint();note.textContent='Favoritos actualizados';};
-document.getElementById('add').onclick=()=>{window.location.assign('https://supgo.co/?producto='+encodeURIComponent(p.id));};
+document.getElementById('add').onclick=()=>{
+ const key=String(p.id),cartKey='liftCartV2',metaKey='liftCartMetaV1';
+ let cart={},meta={};
+ try{cart=JSON.parse(localStorage.getItem(cartKey)||'{}')||{};meta=JSON.parse(localStorage.getItem(metaKey)||'{}')||{};}catch(error){}
+ const previous=cart[key],qty=Number(typeof previous==='object'?(previous.quantity??previous.qty):previous)||0;
+ cart[key]=qty+1;meta[key]={name:p.name,image:p.image,price:p.price};
+ localStorage.setItem(cartKey,JSON.stringify(cart));localStorage.setItem(metaKey,JSON.stringify(meta));
+ window.dispatchEvent(new Event('supgo-cart-change'));
+ note.textContent='Agregado al carrito';
+ const button=document.querySelector('#supgo-global-header .cartDesktop');if(button)button.click();
+};
 paint();
 })();</script>
 </body></html>
