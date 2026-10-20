@@ -65,11 +65,13 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
 #notice{font-size:12px;color:#555}
 @media(max-width:900px){.product-card{gap:24px}.product-page{padding:18px 18px 50px}.product-media{min-height:350px}.option{width:96px}.option-photo{width:76px;height:76px}}
 @media(max-width:700px){.product-page{padding:12px 12px 40px}.product-card{grid-template-columns:1fr;gap:22px}.product-media{aspect-ratio:1.15;min-height:0;border-radius:18px;padding:22px}.product-media img{max-height:380px}.product-info{padding:0 3px}.product-info h1{font-size:30px}.variant-panel{padding:12px}.variant-grid{gap:8px}.option{width:calc(33.333% - 6px)}.option-photo{width:100%;height:76px}.related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.related-item img{height:120px}}
+
+.product-gallery{min-width:0}.product-gallery .product-media{width:100%;height:auto}.zoom-image{display:flex;position:relative;align-items:center;justify-content:center;width:100%;height:100%;min-height:inherit;padding:0;background:transparent;border:0;cursor:zoom-in}.zoom-image img{max-width:100%;max-height:510px;object-fit:contain}.zoom-hint{position:absolute;right:8px;bottom:8px;font-size:11px;background:#fff;border:1px solid #eee;border-radius:20px;padding:7px 10px;color:#444}.gallery-thumbs{display:flex;gap:9px;overflow-x:auto;padding:13px 2px 3px}.gallery-thumb{flex:0 0 72px;width:72px;height:72px;border:1px solid #ddd;border-radius:9px;background:#fff;padding:6px;cursor:pointer}.gallery-thumb.active{border:2px solid #111;padding:5px}.gallery-thumb img{width:100%;height:100%;object-fit:contain}.zoom-overlay[hidden]{display:none!important}.zoom-overlay{position:fixed;inset:0;z-index:99999;background:rgba(12,12,14,.94);display:flex;align-items:center;justify-content:center;padding:50px 70px}.zoom-photo{max-width:100%;max-height:calc(100vh - 110px);object-fit:contain;user-select:none}.zoom-close,.zoom-arrow{position:absolute;border:0;background:rgba(255,255,255,.12);color:white;cursor:pointer;border-radius:50%;display:grid;place-items:center}.zoom-close{right:18px;top:16px;width:43px;height:43px;font-size:30px}.zoom-arrow{top:50%;transform:translateY(-50%);width:45px;height:45px;font-size:35px}.zoom-prev{left:15px}.zoom-next{right:15px}.zoom-counter{position:absolute;bottom:17px;color:white;font-size:13px}@media(max-width:700px){.zoom-overlay{padding:60px 42px}.zoom-arrow{width:34px;height:34px;font-size:28px}.zoom-prev{left:4px}.zoom-next{right:4px}.gallery-thumb{flex-basis:62px;width:62px;height:62px}}
 </style>
 </head><body>
 <main class="product-page">
 <article class="product-card">
-<section class="product-media"><img src="https://http2.mlstatic.com/D_NQ_NP_709773-MLA110156883442_042026-O.webp" alt="Elite Whey 5 lb Chocolate" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain"></section>
+<section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto"><img src="https://http2.mlstatic.com/D_NQ_NP_709773-MLA110156883442_042026-O.webp" alt="Elite Whey 5 lb Chocolate" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain"><span class="zoom-hint">⌕ Ampliar</span></button></div></section>
 <section class="product-info">
 <p class="product-brand">Dymatize</p>
 <h1>Elite Whey 5 lb Chocolate</h1><div class="product-price"><p class="price">$ 445.000</p></div>
@@ -80,6 +82,21 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
 </section></article>
 <section class="related"><h2>Productos relacionados</h2><div class="related-grid"><a class="related-item" href="https://supgo.co/productos/lite-3-lb-vainilla-14.html"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1hMlsIOYoCgi_rnFWBK9p41BA-YiwTbvs=w1200" alt="Lite 3 Lb Vainilla"><strong>Lite 3 Lb Vainilla</strong><small>Nutramerican Pharma</small></a><a class="related-item" href="https://supgo.co/productos/megalite-1-7-lb-15.html"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1WeXItcYhs_fntfjZfUp_-3UmZ838FJ98=w1200" alt="Megalite 1.7 Lb"><strong>Megalite 1.7 Lb</strong><small>Nutramerican Pharma</small></a><a class="related-item" href="https://supgo.co/productos/la-wey-2-lb-vainilla-84.html"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1OaE4aB7bEUEV3UJUEoNLKRBsQf6OJX11=w1200" alt="La Wey 2 Lb Vainilla"><strong>La Wey 2 Lb Vainilla</strong><small>ProScience</small></a><a class="related-item" href="https://supgo.co/productos/la-whey-2-lb-chocolate-85.html"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1vz_XLRVbFnTv6xsT-jwdrmEWJXNnTt3k=w1200" alt="La Whey 2 Lb Chocolate"><strong>La Whey 2 Lb Chocolate</strong><small>ProScience</small></a></div></section>
 </main>
+<div id="zoomOverlay" class="zoom-overlay" role="dialog" aria-modal="true" aria-label="Galería del producto" hidden><button type="button" id="zoomClose" class="zoom-close" aria-label="Cerrar galería">×</button><button type="button" id="zoomPrev" class="zoom-arrow zoom-prev" aria-label="Imagen anterior">‹</button><img id="zoomPhoto" class="zoom-photo" alt="Elite Whey 5 lb Chocolate"><button type="button" id="zoomNext" class="zoom-arrow zoom-next" aria-label="Imagen siguiente">›</button><div id="zoomCounter" class="zoom-counter"></div></div>
+<script>(function(){
+const gallery=["https://http2.mlstatic.com/D_NQ_NP_709773-MLA110156883442_042026-O.webp"];
+let current=0;
+const overlay=document.getElementById('zoomOverlay'),zoomPhoto=document.getElementById('zoomPhoto'),mainPhoto=document.querySelector('.zoom-image img'),counter=document.getElementById('zoomCounter');
+function display(i){if(!gallery.length)return;current=(i+gallery.length)%gallery.length;zoomPhoto.src=gallery[current];counter.textContent=(current+1)+' / '+gallery.length;document.querySelectorAll('.gallery-thumb').forEach((b,n)=>b.classList.toggle('active',n===current));if(mainPhoto)mainPhoto.src=gallery[current];}
+document.querySelectorAll('.gallery-thumb').forEach(b=>b.addEventListener('click',()=>display(Number(b.dataset.index))));
+document.getElementById('openZoom').addEventListener('click',()=>{if(!gallery.length)return;display(current);overlay.hidden=false;document.body.style.overflow='hidden';});
+function closeZoom(){overlay.hidden=true;document.body.style.overflow='';}
+document.getElementById('zoomClose').addEventListener('click',closeZoom);
+document.getElementById('zoomPrev').addEventListener('click',()=>display(current-1));
+document.getElementById('zoomNext').addEventListener('click',()=>display(current+1));
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeZoom();});
+document.addEventListener('keydown',e=>{if(overlay.hidden)return;if(e.key==='Escape')closeZoom();if(e.key==='ArrowLeft')display(current-1);if(e.key==='ArrowRight')display(current+1);});
+})();</script>
 <script>(function(){
 const p={"id": "901130", "name": "Elite Whey 5 lb Chocolate", "image": "https://http2.mlstatic.com/D_NQ_NP_709773-MLA110156883442_042026-O.webp", "price": 445000.0, "url": "https://supgo.co/productos/elite-whey-5-lb-chocolate-901130.html"};const f=document.getElementById('fav'),note=document.getElementById('notice');
 function read(k){try{const a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
