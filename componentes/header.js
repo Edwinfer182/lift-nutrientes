@@ -109,11 +109,11 @@ checkoutLayer.innerHTML='<div style="display:flex;align-items:center;justify-con
 document.body.appendChild(checkoutLayer);
 const checkoutFrame=checkoutLayer.querySelector('iframe'),checkoutStatus=checkoutLayer.querySelector('.supgo-checkout-status');
 checkoutLayer.querySelector('[data-close-checkout]').onclick=()=>{checkoutLayer.hidden=true;checkoutLayer.style.display='none';checkoutFrame.removeAttribute('src');};
-function findCheckout(){
+function findCheckout(openNativeCart){
  const w=checkoutFrame.contentWindow,d=checkoutFrame.contentDocument;
  if(!w||!d)return false;
  // Abrir el carrito nativo antes de continuar al formulario.
- if(typeof w.openOff==='function')try{w.openOff('cart');}catch(_){}
+ if(openNativeCart&&typeof w.openOff==='function')try{w.openOff('cart');}catch(_){}
  const candidates=[...d.querySelectorAll('button,a,[role="button"],input[type="button"]')];
  const button=candidates.find(el=>/continuar pedido|finalizar pedido|proceder al pago|ir al checkout/i.test((el.textContent||el.value||'').trim()) && el.getClientRects().length);
  if(button){button.click();return true;}
@@ -124,7 +124,7 @@ checkoutFrame.addEventListener('load',()=>{
  const next=()=>{
   if(checkoutLayer.hidden)return;
   attempt++;
-  try{if(findCheckout()){checkoutStatus.style.display='none';return;}}catch(e){console.warn('Checkout SEO:',e);}
+  try{if(findCheckout(attempt===1)){checkoutStatus.style.display='none';return;}}catch(e){console.warn('Checkout SEO:',e);}
   if(attempt<24)setTimeout(next,300);
   else checkoutStatus.textContent='Abre el carrito dentro del catálogo y pulsa Continuar pedido para completar la compra.';
  };
