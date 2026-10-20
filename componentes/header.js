@@ -42,13 +42,16 @@ if(!search||!results)return;
 const term=search.value.trim().toLocaleLowerCase('es');results.replaceChildren();
 if(term.length<2){results.hidden=true;return;}
 for(const item of catalog.filter(x=>escText(field(x.product,'name','nombre')).toLocaleLowerCase('es').includes(term)).slice(0,7)){
-const a=document.createElement('a');a.className='supgo-search-hit';
+const p=item.product||{},a=document.createElement('a');
+a.className='supgo-search-item';
 const u=new URL(ROOT);u.searchParams.set('producto',item.id);a.href=u.href;
-const image=field(item.product,'image','imagen','image_url','imagen_url');
-if(typeof image==='string'&&/^https?:\/\//i.test(image)){const img=document.createElement('img');img.className='supgo-search-image';img.src=image;img.alt='';img.loading='lazy';a.append(img);}
-else{const placeholder=document.createElement('span');placeholder.className='supgo-search-image supgo-search-noimage';placeholder.textContent='◻';a.append(placeholder);}
-const label=document.createElement('span');label.className='supgo-search-label';label.textContent=field(item.product,'name','nombre');a.append(label);
-results.append(a);
+const picture=field(p,'image','imagen','image_url','imagen_url','foto','url_imagen');
+let src=typeof picture==='string'?picture.trim():'';
+if(!src&&Array.isArray(p.images)&&p.images.length)src=typeof p.images[0]==='string'?p.images[0]:(p.images[0]?.url||'');
+const photo=document.createElement('img');photo.className='supgo-search-photo';photo.alt='';photo.loading='lazy';photo.decoding='async';
+if(/^https?:\/\//i.test(src)){photo.src=src;photo.onerror=()=>{photo.hidden=true;};}else photo.hidden=true;
+const title=document.createElement('span');title.className='supgo-search-title';title.textContent=field(p,'name','nombre');
+a.append(photo,title);results.append(a);
 }
 results.hidden=!results.childElementCount;
 }
