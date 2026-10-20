@@ -56,15 +56,61 @@ a.append(photo,title);results.append(a);
 results.hidden=!results.childElementCount;
 }
 if(search)search.addEventListener('input',suggest);
-// Solo el catálogo principal administra el carrito y el checkout.
-if(cartButton)cartButton.onclick=()=>go();
+// Carrito único compartido entre fichas SEO (misma clave que el catálogo).
+const backdrop=document.createElement('div');backdrop.className='supgo-cart-overlay';backdrop.hidden=true;
+const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
+drawer.setAttribute('aria-label','Carrito de compra');
+drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div><button type="button" id="supgoGoCheckout">Continuar pedido</button></div>';
+host.append(backdrop,drawer);
+const cartList=drawer.querySelector('.supgo-cart-items');
+function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
+function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();}
+drawer.querySelector('.supgo-cart-top button').onclick=closeCart;
+backdrop.onclick=closeCart;
+if(cartButton)cartButton.onclick=openCart;
+function renderCart(){
+ const saved=getCart(),meta=json(STORAGE.meta,{});
+ cartList.replaceChildren();let subtotal=0,priced=true;
+ for(const [key,entry] of Object.entries(saved)){
+   const qty=Number(typeof entry==='object'?(entry.quantity??entry.qty):entry)||0;
+   if(qty<=0)continue;
+   const id=key.split('::')[0],product=catalog.find(x=>String(x.id)===id)?.product||{},fallback=meta[key]||{};
+   const name=field(product,'name','nombre')||field(fallback,'name','nombre')||('Producto '+id);
+   const rawPrice=field(product,'price','precio')||field(fallback,'price','precio');
+   const price=Number(rawPrice);if(!Number.isFinite(price)||price<=0)priced=false;else subtotal+=price*qty;
+   const line=document.createElement('div');line.className='supgo-cart-row';
+   const img=document.createElement('img');img.alt='';img.loading='lazy';
+   const src=field(product,'image','imagen','image_url')||field(fallback,'image','imagen');
+   if(typeof src==='string'&&/^https?:\/\//.test(src))img.src=src;else img.hidden=true;
+   const info=document.createElement('div');info.className='supgo-cart-info';
+   const label=document.createElement('b');label.textContent=name;
+   const each=document.createElement('small');each.textContent=price>0?'Unitario: '+money(price):'Precio por confirmar';
+   const lineTotal=document.createElement('span');lineTotal.textContent=price>0?'Total: '+money(price*qty):'Total por confirmar';
+   info.append(label,each,lineTotal);
+   const actions=document.createElement('div');actions.className='supgo-cart-qty';
+   const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.setAttribute('aria-label','Quitar una unidad');
+   const number=document.createElement('span');number.textContent=String(qty);
+   const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.setAttribute('aria-label','Agregar una unidad');
+   const remove=document.createElement('button');remove.type='button';remove.textContent='Eliminar';remove.setAttribute('aria-label','Eliminar producto');
+   function adjust(value){const updated=getCart();if(value<=0){delete updated[key];const m=json(STORAGE.meta,{});delete m[key];localStorage.setItem(STORAGE.meta,JSON.stringify(m));}else{const old=updated[key];updated[key]=typeof old==='object'?{...old,quantity:value}:value;}saveCart(updated);renderCart();}
+   minus.onclick=()=>adjust(qty-1);plus.onclick=()=>adjust(qty+1);remove.onclick=()=>adjust(0);
+   actions.append(minus,number,plus,remove);line.append(img,info,actions);cartList.append(line);
+ }
+ if(!cartList.children.length)cartList.textContent='Tu carrito está vacío.';
+ drawer.querySelector('.supgo-cart-total strong').textContent=priced?money(subtotal):'Por confirmar';
+ const checkout=drawer.querySelector('#supgoGoCheckout');checkout.disabled=!priced||!cartList.children.length;
+}
+drawer.querySelector('#supgoGoCheckout').onclick=()=>{
+ // Nunca inventar un checkout paralelo: abrir el flujo existente del catálogo.
+ if(Object.keys(getCart()).length)go();
+};
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 orderButton.onclick=()=>go('mi-pedido','1');
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){popup.hidden=true;}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();popup.hidden=true;}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))popup.hidden=true;});
-window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();}});
-window.addEventListener('supgo-cart-change',()=>{updateCount();});
+window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
+window.addEventListener('supgo-cart-change',()=>{updateCount();if(!drawer.hidden)renderCart();});
 updateCount();
 // Integración con las fichas HTML: las acciones de producto alimentan el
 // mismo estado del index (liftCartV2 / liftCartMetaV1 / liftFavoritesV1).
@@ -89,9 +135,13 @@ updateCount();
     return entry||p;
   };
   if(add)add.addEventListener('click',event=>{
-    const p=productFromPage();
+    const p=productFromPage();if(!p||p.id==null)return;
     event.preventDefault();event.stopImmediatePropagation();
-    if(p&&p.id!=null)go('producto',String(p.id));else go();
+    const key=String(p.id),cart=getCart(),old=cart[key];
+    cart[key]=(Number(typeof old==='object'?(old.quantity??old.qty):old)||0)+1;
+    const meta=json(STORAGE.meta,{});
+    meta[key]={...(meta[key]||{}),name:p.name||p.nombre||'',image:p.image||p.imagen||'',price:p.price??p.precio??0};
+    localStorage.setItem(STORAGE.meta,JSON.stringify(meta));saveCart(cart);openCart();
   },true);
   if(fav){
     const p=pageProduct();
