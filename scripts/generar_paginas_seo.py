@@ -319,7 +319,7 @@ def main():
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and ((cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat) or (brand and v["brand"].casefold()==brand))][:4]
  OUT.mkdir(exist_ok=True)
- shared=shared_template()
+ shared=None  # Las fichas usan estilos propios y no heredan la skin del index.
  urls=[]
  for row in valid:
   filename,content=build_direct(row,shared)
@@ -330,5 +330,5 @@ def main():
   urls.append(BASE+"/productos/"+filename)
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
- print("Generadas",len(urls),"fichas completas sin iframe con recursos compartidos.")
+ print("Generadas",len(urls),"fichas SEO independientes sin skin.")
 if __name__=="__main__": main()
