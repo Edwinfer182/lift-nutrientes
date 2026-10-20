@@ -380,8 +380,54 @@ paint();
 </body></html>'''
 
 def build_direct(row, shared):
-  """Ficha SEO estable: no reemplazarla al cargar el catálogo."""
-  return build(row)
+  """Añade un solo header SEO funcional sin duplicar el catálogo."""
+  filename, page = build(row)
+  p = row["product"]
+  brands = row.get("_header_brands", [])
+  categories = row.get("_header_categories", [])
+  def links(items, param):
+   return "".join('<a class="seo-nav-link" href="'+BASE+'/?'+param+'='+urllib.parse.quote(str(v), safe="")+'">'+esc(v)+'</a>' for v in items)
+  nav = ("""<div class="seo-site-header" id="seoSiteHeader">
+    <div class="seo-nav-bar">
+      <a class="seo-nav-logo" href="https://supgo.co/" aria-label="Inicio SUPGO"><img src="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w800" alt="SUPGO" /></a>
+      <a class="seo-nav-offers" href="https://supgo.co/?ofertas=1">🔥 OFERTAS</a>
+      <form class="seo-nav-search" action="https://supgo.co/" method="get" role="search"><input type="search" name="buscar" placeholder="Busca creatina, proteína, marca..." aria-label="Buscar suplementos" required /><button type="submit" aria-label="Buscar">⌕</button></form>
+      <button type="button" class="seo-nav-menu-button" id="seoNavMenuButton" aria-expanded="false" aria-controls="seoNavMenu">☰ Menú</button>
+      <a class="seo-nav-cart" href="https://supgo.co/?cart=1">🛒 <span>Carrito</span></a>
+    </div>
+    <nav id="seoNavMenu" class="seo-nav-menu" hidden aria-label="Menú de SUPGO">
+      <div class="seo-nav-tabs"><button type="button" data-tab="brands" class="active">Laboratorios</button><button type="button" data-tab="categories">Categorías</button></div>
+      <div class="seo-nav-panel" data-panel="brands">""" + links(brands,"marca") + """</div>
+      <div class="seo-nav-panel" data-panel="categories" hidden>""" + links(categories,"categoria") + """</div>
+    </nav>
+  </div>""")
+  styles = """<style id="seo-functional-header">
+   .seo-site-header{position:sticky;top:0;z-index:100;background:#090909;color:#fff;font:400 13px/1.4 Poppins,Arial,sans-serif}
+   .seo-nav-bar{max-width:1500px;min-height:66px;margin:auto;padding:9px 16px;display:flex;align-items:center;gap:12px}
+   .seo-nav-logo{display:flex;align-items:center;flex:0 0 auto}.seo-nav-logo img{display:block;max-width:180px;height:48px;object-fit:contain}
+   .seo-nav-offers{white-space:nowrap;border-radius:10px;background:#16a34a;color:white!important;padding:13px;text-decoration:none;font-weight:600}
+   .seo-nav-search{flex:1;display:flex;align-items:center;border:1px solid #3c3c3c;background:#191919;border-radius:11px;min-width:100px;overflow:hidden}
+   .seo-nav-search input{min-width:0;flex:1;border:0;background:transparent;color:white;outline:none;padding:12px;font:inherit}
+   .seo-nav-search input::placeholder{color:#a8a8a8}.seo-nav-search button{border:0;background:transparent;color:white;font-size:23px;padding:3px 13px;cursor:pointer}
+   .seo-nav-menu-button,.seo-nav-cart{border:1px solid #444;border-radius:10px;background:#141414;color:white!important;padding:12px 15px;cursor:pointer;font:inherit;text-decoration:none;white-space:nowrap}
+   .seo-nav-menu{position:absolute;top:100%;left:max(12px,calc((100vw - 1440px)/2));width:min(440px,calc(100vw - 24px));background:#fff;color:#111;border:1px solid #e6e6e6;box-shadow:0 16px 44px #0003;border-radius:0 0 14px 14px;max-height:min(68vh,660px);overflow:auto;padding:14px}
+   .seo-nav-menu[hidden],.seo-nav-panel[hidden]{display:none!important}.seo-nav-tabs{display:flex;gap:8px;margin-bottom:12px}
+   .seo-nav-tabs button{flex:1;border:1px solid #ddd;background:white;border-radius:8px;padding:10px;cursor:pointer}.seo-nav-tabs .active{background:#111;color:white}
+   .seo-nav-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.seo-nav-link{display:flex;align-items:center;min-height:42px;padding:8px 11px;border:1px solid #e8e8e8;border-radius:8px;text-decoration:none;color:#111;background:#fafafa;font-size:12px}
+   .seo-nav-link:hover{background:#efefef}
+   @media(max-width:700px){.seo-nav-bar{gap:6px;flex-wrap:wrap;padding:8px}.seo-nav-logo img{height:36px;max-width:106px}.seo-nav-offers{padding:9px;font-size:11px}.seo-nav-menu-button,.seo-nav-cart{padding:9px;font-size:11px}.seo-nav-cart span{display:none}.seo-nav-search{order:5;flex-basis:100%}.seo-nav-menu{left:8px;width:calc(100vw - 16px)}}
+  </style>"""
+  script = """<script id="seo-functional-header-script">(function(){
+   var header=document.getElementById('seoSiteHeader'),button=document.getElementById('seoNavMenuButton'),menu=document.getElementById('seoNavMenu');
+   if(!header||!button||!menu)return;
+   button.addEventListener('click',function(){var open=menu.hidden;menu.hidden=!open;button.setAttribute('aria-expanded',String(open));});
+   header.querySelectorAll('[data-tab]').forEach(function(tab){tab.addEventListener('click',function(){var selected=tab.getAttribute('data-tab');header.querySelectorAll('[data-tab]').forEach(function(b){b.classList.toggle('active',b===tab)});header.querySelectorAll('[data-panel]').forEach(function(panel){panel.hidden=panel.getAttribute('data-panel')!==selected;});});});
+   document.addEventListener('click',function(e){if(!header.contains(e.target)){menu.hidden=true;button.setAttribute('aria-expanded','false');}});
+   document.addEventListener('keydown',function(e){if(e.key==='Escape'){menu.hidden=true;button.setAttribute('aria-expanded','false');}});
+  })();</script>"""
+  page = page.replace("</head>", styles+"</head>",1)
+  page = page.replace("<body>", "<body>"+nav+script,1)
+  return filename,page
 
 def shared_template():
  """Una única skin CSS compartida por todas las fichas; scripts originales en su orden."""
@@ -468,6 +514,12 @@ def main():
   p=item["product"]
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and ((cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat) or (brand and v["brand"].casefold()==brand))][:4]
+ # Navegación generada desde los productos públicos admitidos, sin listas manuales.
+ header_brands=sorted({str(x["product"].get("brand") or x["product"].get("marca") or "").strip() for x in valid if str(x["product"].get("brand") or x["product"].get("marca") or "").strip()},key=str.casefold)
+ header_categories=sorted({str(x["product"].get("category") or x["product"].get("categoria") or "").strip() for x in valid if str(x["product"].get("category") or x["product"].get("categoria") or "").strip()},key=str.casefold)
+ for x in valid:
+  x["_header_brands"]=header_brands
+  x["_header_categories"]=header_categories
  OUT.mkdir(exist_ok=True)
  shared=None  # Las fichas usan estilos propios y no heredan la skin del index.
  urls=[]
