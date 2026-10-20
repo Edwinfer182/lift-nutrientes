@@ -60,7 +60,7 @@ if(search)search.addEventListener('input',suggest);
 const backdrop=document.createElement('div');backdrop.className='supgo-cart-overlay';backdrop.hidden=true;
 const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
 drawer.setAttribute('aria-label','Carrito de compra');
-drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div><button type="button" id="supgoGoCheckout">Continuar pedido</button></div>';
+drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button type="button" aria-label="Cerrar carrito">×</button></div><div class="supgo-cart-items"></div><div class="supgo-cart-bottom"><div class="supgo-cart-total"><span>Subtotal</span><strong></strong></div></div>';
 host.append(backdrop,drawer);
 const cartList=drawer.querySelector('.supgo-cart-items');
 function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
@@ -100,39 +100,6 @@ function renderCart(){
  drawer.querySelector('.supgo-cart-total strong').textContent=priced?money(subtotal):'Por confirmar';
  const checkout=drawer.querySelector('#supgoGoCheckout');checkout.disabled=!priced||!cartList.children.length;
 }
-// El checkout original se muestra dentro de la ficha SEO sin cambiar de URL.
-const checkoutShell=document.createElement('div');
-checkoutShell.hidden=true;
-checkoutShell.setAttribute('role','dialog');
-checkoutShell.setAttribute('aria-label','Finalizar pedido');
-checkoutShell.style.cssText='position:fixed;inset:0;z-index:2147483646;background:white;display:flex;flex-direction:column';
-checkoutShell.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #ddd;font-family:Poppins,Arial,sans-serif"><strong>Finalizar pedido</strong><button type="button" id="closeSeoCheckout" style="background:#111;color:#fff;border:0;padding:10px 14px;cursor:pointer">Cerrar ×</button></div><iframe title="Checkout SUPGO" style="border:0;width:100%;flex:1" loading="eager"></iframe>';
-checkoutShell.style.display='none';
-document.body.appendChild(checkoutShell);
-checkoutShell.querySelector('#closeSeoCheckout').onclick=()=>{checkoutShell.hidden=true;checkoutShell.style.display='none';};
-const checkoutFrame=checkoutShell.querySelector('iframe');
-checkoutFrame.addEventListener('load',()=>{
- let attempts=0;
- function activate(){
-   attempts++;
-   try{
-     const w=checkoutFrame.contentWindow,d=checkoutFrame.contentDocument;
-     if(!w||!d)return;
-     if(attempts===1&&typeof w.openOff==='function')w.openOff('cart');
-     const buttons=Array.from(d.querySelectorAll('button,a,[role="button"]'));
-     const next=buttons.find(b=>/continuar pedido|continuar compra|finalizar pedido|finalizar compra|ir a pagar/i.test((b.textContent||'').trim())&&b.getClientRects().length);
-     if(next){next.click();return;}
-     if(attempts<12)setTimeout(activate,350);
-   }catch(error){console.warn('Checkout SEO:',error);}
- }
- activate();
-});
-drawer.querySelector('#supgoGoCheckout').onclick=()=>{
- if(!Object.keys(getCart()).length)return;
- closeCart();checkoutShell.hidden=false;checkoutShell.style.display='flex';
- if(!checkoutFrame.getAttribute('src'))checkoutFrame.src='/';
- else {try{checkoutFrame.contentWindow?.openOff?.('cart');}catch(error){}}
-};
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 orderButton.onclick=()=>go('mi-pedido','1');
