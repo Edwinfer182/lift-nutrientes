@@ -118,7 +118,7 @@ checkoutFrame.addEventListener('load',()=>{
    try{
      const w=checkoutFrame.contentWindow,d=checkoutFrame.contentDocument;
      if(!w||!d)return;
-     if(typeof w.openOff==='function')w.openOff('cart');
+     if(attempts===1&&typeof w.openOff==='function')w.openOff('cart');
      const buttons=Array.from(d.querySelectorAll('button,a,[role="button"]'));
      const next=buttons.find(b=>/continuar pedido|continuar compra|finalizar pedido|finalizar compra|ir a pagar/i.test((b.textContent||'').trim())&&b.getClientRects().length);
      if(next){next.click();return;}
