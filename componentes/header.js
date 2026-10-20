@@ -92,11 +92,20 @@ updateCount();
   const add=document.getElementById('add');
   const fav=document.getElementById('fav');
   if(!add&&!fav)return;
+  const pageProduct=()=>{
+    // Cada ficha incorpora su propio objeto JSON de producto.
+    for(const script of document.querySelectorAll('script:not([src])')){
+      const match=script.textContent.match(/const p=(\{[^;]+\});const f=document\.getElementById\('fav'\)/);
+      if(match){try{return JSON.parse(match[1]);}catch(e){}}
+    }
+    return null;
+  };
   const productFromPage=()=>{
+    const p=pageProduct();
+    if(!p||p.id==null)return null;
     const seo=json('supgo_seo_cart',[]);
-    if(!Array.isArray(seo))return null;
-    const item=seo.find(x=>x&&x.id!=null&&String(x.id)===String(document.querySelector('[data-product-id]')?.dataset.productId||''))||seo[seo.length-1];
-    return item&&item.id!=null?item:null;
+    const entry=Array.isArray(seo)?seo.find(x=>x&&String(x.id)===String(p.id)):null;
+    return entry||p;
   };
   if(add)add.addEventListener('click',()=>{
     const p=productFromPage();
@@ -113,19 +122,22 @@ updateCount();
     if(!drawer.hidden)renderCart();
   });
   if(fav){
+    const p=pageProduct();
     const saved=json('liftFavoritesV1',[]);
-    const seo=json('supgo_seo_favorites',[]);
-    const known=Array.isArray(seo)?seo.find(x=>x&&x.id!=null):null;
-    if(known&&Array.isArray(saved)&&saved.some(id=>String(id)===String(known.id)))fav.textContent='♥';
+    if(p&&Array.isArray(saved)&&saved.some(id=>String(id)===String(p.id))){
+      fav.textContent='♥';
+    }
     fav.addEventListener('click',()=>{
+      const product=pageProduct();
+      if(!product||product.id==null)return;
       const entries=json('supgo_seo_favorites',[]);
-      if(!Array.isArray(entries))return;
-      const current=entries.find(x=>x&&x.id!=null);
-      const id=current?.id;
-      // La ficha controla el marcado visible; trasladar el estado al index.
+      const selected=Array.isArray(entries)&&entries.some(x=>x&&String(x.id)===String(product.id));
       const all=new Set((json('liftFavoritesV1',[])||[]).map(Number).filter(Number.isFinite));
-      if(id!=null&&Number.isFinite(Number(id)))all.add(Number(id));
+      const id=Number(product.id);
+      if(!Number.isFinite(id))return;
+      if(selected)all.add(id);else all.delete(id);
       localStorage.setItem('liftFavoritesV1',JSON.stringify([...all]));
+      fav.textContent=selected?'♥':'♡';
     });
   }
 })();
