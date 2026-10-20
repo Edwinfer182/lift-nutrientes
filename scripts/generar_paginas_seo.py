@@ -325,18 +325,22 @@ def main():
  # exclusivamente el sabor declarado en Supabase del final del nombre.
  def family_key(item):
   p=item["product"]
-  parent=str(p.get("parent_id") or p.get("producto_padre_id") or p.get("id_padre_sabor") or "").strip()
   brand=slug(p.get("brand") or p.get("marca") or "")
+  parent=str(p.get("parent_id") or p.get("producto_padre_id") or p.get("id_padre_sabor") or "").strip()
   if parent:return ("parent",brand,parent)
-  name=str(p.get("name") or p.get("nombre") or "").strip()
-  flavor=str(p.get("flavor") or p.get("sabor") or "").strip()
-  normalized=slug(name)
-  flavor_slug=slug(flavor)
-  if flavor_slug and normalized.endswith("-"+flavor_slug):
-   normalized=normalized[:-(len(flavor_slug)+1)]
-  # Para nombres abreviados (Cocoa / Cocoa Pebbles), quitar el último
-  # segmento solo cuando coincide con un sabor conocido de esta familia.
-  return ("name",brand,normalized)
+  name=slug(p.get("name") or p.get("nombre") or "")
+  flavor=slug(p.get("flavor") or p.get("sabor") or "")
+  if flavor:
+   if name.endswith("-"+flavor):name=name[:-(len(flavor)+1)]
+   else:
+    # Los nombres abreviados pueden contener solo el inicio del sabor.
+    words=flavor.split("-")
+    for count in range(len(words)-1,0,-1):
+     short="-".join(words[:count])
+     if name.endswith("-"+short):
+      name=name[:-(len(short)+1)]
+      break
+  return ("name",brand,name)
  entries=[(item,info(item)) for item in valid]
  families={}
  for item,d in entries:
