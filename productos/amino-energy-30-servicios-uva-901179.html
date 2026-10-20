@@ -129,6 +129,26 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
  #supgo-global-header .search{flex:0 0 100%;order:10}
  #supgo-global-header #q{height:41px;font-size:13px}
 }
+
+/* Navegación funcional del header SEO */
+#supgo-global-header #searchResults{display:block;position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:65;max-height:390px;overflow:auto;background:#fff;border:1px solid #e7e7e7;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.12)}
+#supgo-global-header #searchResults[hidden],#supgo-seo-panel[hidden]{display:none!important}
+#supgo-global-header .seo-search-hit{display:flex;align-items:center;gap:12px;padding:9px 12px;color:#111;text-decoration:none;border-bottom:1px solid #f1f1f1;font-size:13px}
+#supgo-global-header .seo-search-hit:hover{background:#f7f7f7}
+#supgo-global-header .seo-search-hit img{width:42px;height:46px;object-fit:contain}
+#supgo-global-header .seo-search-hit small{display:block;font-size:11px;color:#777;margin-top:3px}
+#supgo-global-header .seo-search-empty{padding:14px;font-size:13px}
+#supgo-seo-panel{position:absolute;top:100%;left:50%;transform:translateX(-50%);width:min(100% - 24px,1100px);max-height:72vh;overflow:auto;z-index:60;padding:24px;background:#fff;border:1px solid #e5e5e5;border-radius:0 0 14px 14px;box-shadow:0 18px 38px rgba(0,0,0,.13)}
+#supgo-seo-panel .seo-panel-close{position:sticky;top:0;float:right;width:32px;height:32px;border:1px solid #eee;border-radius:50%;background:#fff;font-size:23px;z-index:2}
+#supgo-seo-panel .seo-panel-menu{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+#supgo-seo-panel h3{font-size:16px;margin:4px 0 14px}
+#supgo-seo-panel .seo-panel-links{display:flex;flex-wrap:wrap;gap:8px}
+#supgo-seo-panel .seo-panel-links button{background:#fafafa;border:1px solid #e9e9e9;padding:9px 12px;border-radius:7px;font-size:12px;color:#222}
+#supgo-seo-panel .seo-panel-links button:hover{border-color:#111}
+#supgo-seo-panel .seo-cart-item{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #eee;font-size:13px}
+#supgo-seo-panel .seo-cart-item a{color:#111}
+#supgo-seo-panel .seo-cart-note{font-size:12px;color:#777;margin-top:20px}
+@media(max-width:700px){#supgo-seo-panel{padding:15px;width:calc(100% - 16px);max-height:65vh}#supgo-seo-panel .seo-panel-menu{grid-template-columns:1fr;gap:22px}}
 </style>
 </head><body>
 <script src="/componentes/header-render.js"></script>
