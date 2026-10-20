@@ -64,7 +64,7 @@ drawer.innerHTML='<div class="supgo-cart-top"><strong>Tu carrito</strong><button
 host.append(backdrop,drawer);
 const cartList=drawer.querySelector('.supgo-cart-items');
 function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.classList.remove('supgo-cart-open');}
-function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();}
+function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();const button=drawer.querySelector('#supgoGoCheckout');if(button)button.hidden=false;}
 drawer.querySelector('.supgo-cart-top button').onclick=closeCart;
 backdrop.onclick=closeCart;
 if(cartButton){cartButton.removeAttribute('onclick');cartButton.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();openCart();},true);}
