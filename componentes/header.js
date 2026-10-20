@@ -67,7 +67,7 @@ function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.class
 function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();}
 drawer.querySelector('.supgo-cart-top button').onclick=closeCart;
 backdrop.onclick=closeCart;
-if(cartButton){cartButton.removeAttribute('onclick');cartButton.addEventListener('click',openCart);}
+if(cartButton){cartButton.removeAttribute('onclick');cartButton.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();openCart();},true);}
 function renderCart(){
  const saved=getCart(),meta=json(STORAGE.meta,{});
  cartList.replaceChildren();let subtotal=0,priced=true;
