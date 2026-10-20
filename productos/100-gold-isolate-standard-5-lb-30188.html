@@ -119,7 +119,7 @@ document.addEventListener('click',function(event){
   try{cart=JSON.parse(localStorage.getItem('liftCartV2')||'{}')||{};}catch(error){}
   const quantity=Object.values(cart).reduce((total,item)=>total+(Number(typeof item==='object'?(item.quantity??item.qty):item)||0),0);
   if(quantity<=0)return;
-  window.location.assign('https://supgo.co/?checkout=1');
+  window.location.assign('https://supgo.co/checkout.html');
 },true);
 </script>
 <main class="product-page">
