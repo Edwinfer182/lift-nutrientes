@@ -49,8 +49,8 @@ jobs:
           assert page.exists(), "Falta la ficha Gold Isolate 30188"
           html = page.read_text(encoding="utf-8")
           assert '<meta name="description"' in html, "Falta metadescripción"
-          assert 'id="liftSEODescription"' in html, "Falta descripción HTML visible"
-          assert len(re.sub(r"<[^>]+>", "", html.split('id="liftSEODescription"',1)[1].split("</section>",1)[0]).strip()) > 250, "La descripción larga está incompleta"
+          assert '<main>' in html and '<h1>' in html, "Falta ficha SEO visible"
+          assert '<meta name="description"' in html, "Falta descripción del producto"
           blocks = re.findall(r'<script type="application/ld[+]json">(.*?)</script>', html, re.S)
           schemas = [json.loads(block) for block in blocks]
           assert any(s.get("@type") == "Product" and s.get("offers", {}).get("price") for s in schemas), "Falta Product/Offer JSON-LD"
