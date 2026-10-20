@@ -104,8 +104,35 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
  .zoom-overlay{padding:65px 38px}
  .zoom-photo{max-width:100%;max-height:calc(100dvh - 140px)}
 }
+
+/* Header compartido de SUPGO en fichas SEO, aislado de estilos del producto */
+#supgo-global-header{position:relative;z-index:30;background:#fff;border-bottom:1px solid #ededed;width:100%}
+#supgo-global-header .top{width:100%;background:#fff}
+#supgo-global-header .bar{max-width:1320px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;gap:14px;min-height:76px}
+#supgo-global-header .brand{flex:0 0 auto;display:flex;align-items:center;cursor:pointer}
+#supgo-global-header .liftHeaderLogo{width:125px;max-height:52px;object-fit:contain}
+#supgo-global-header button{font-family:inherit;white-space:nowrap;cursor:pointer}
+#supgo-global-header .iconbtn,#supgo-global-header .offersBtn{background:#fff;border:1px solid #e5e5e5;border-radius:9px;padding:11px 12px;font-size:13px;color:#111}
+#supgo-global-header .offersBtn{font-weight:650}
+#supgo-global-header .offersCount,#supgo-global-header .badge{font-size:11px;margin-left:4px}
+#supgo-global-header .liftFilterLink{display:none}
+#supgo-global-header .search{position:relative;flex:1;min-width:0}
+#supgo-global-header #q{width:100%;height:44px;border:1px solid #e4e4e4;border-radius:9px;padding:0 14px;background:#fafafa;font:inherit;font-size:14px;outline:none}
+#supgo-global-header #q:focus{border-color:#888}
+#supgo-global-header .searchResults{display:none}
+@media(max-width:760px){
+ #supgo-global-header .bar{min-height:0;padding:10px 12px;gap:8px;flex-wrap:wrap}
+ #supgo-global-header .brand{flex:1}
+ #supgo-global-header .liftHeaderLogo{width:102px;max-height:42px}
+ #supgo-global-header .iconbtn,#supgo-global-header .offersBtn{font-size:12px;padding:9px 10px}
+ #supgo-global-header .iconbtn .txt{display:none}
+ #supgo-global-header .search{flex:0 0 100%;order:10}
+ #supgo-global-header #q{height:41px;font-size:13px}
+}
 </style>
 </head><body>
+<script src="/componentes/header-render.js"></script>
+<script src="/componentes/header.js" defer></script>
 <main class="product-page">
 <article class="product-card">
 <section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto"><img src="https://suplementos.b-cdn.net/proteinas/Whey-Protein-basic-2lb-tres-leches-600x800.webp" alt="Basic Whey 2 lb TRES LECHES" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain"><span class="zoom-hint">⌕ Ampliar</span></button></div><div class="gallery-thumbs"><button type="button" class="gallery-thumb active" data-index="0" aria-label="Ver imagen 1"><img src="https://suplementos.b-cdn.net/proteinas/Whey-Protein-basic-2lb-tres-leches-600x800.webp" alt="Basic Whey 2 lb TRES LECHES - imagen 1" loading="lazy"></button><button type="button" class="gallery-thumb" data-index="1" aria-label="Ver imagen 2"><img src="https://suplementos.b-cdn.net/tablas%20nutricionales%20600x800/whey-basic-protein-vainilla-tabla-600x800.webp" alt="Basic Whey 2 lb TRES LECHES - imagen 2" loading="lazy"></button></div></section>
