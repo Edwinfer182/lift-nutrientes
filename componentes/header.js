@@ -85,6 +85,50 @@ document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
 window.addEventListener('supgo-cart-change',()=>{updateCount();if(!drawer.hidden)renderCart();});
 updateCount();
+// Integración con las fichas HTML: las acciones de producto alimentan el
+// mismo estado del index (liftCartV2 / liftCartMetaV1 / liftFavoritesV1).
+// No se borra el almacenamiento SEO anterior ni se duplican encabezados.
+(function connectProductPage(){
+  const add=document.getElementById('add');
+  const fav=document.getElementById('fav');
+  if(!add&&!fav)return;
+  const productFromPage=()=>{
+    const seo=json('supgo_seo_cart',[]);
+    if(!Array.isArray(seo))return null;
+    const item=seo.find(x=>x&&x.id!=null&&String(x.id)===String(document.querySelector('[data-product-id]')?.dataset.productId||''))||seo[seo.length-1];
+    return item&&item.id!=null?item:null;
+  };
+  if(add)add.addEventListener('click',()=>{
+    const p=productFromPage();
+    if(!p)return;
+    const key=String(p.id);
+    const updated=getCart();
+    const old=updated[key];
+    const quantity=Number(typeof old==='object'?(old.quantity??old.qty):old)||0;
+    updated[key]=quantity+1;
+    const meta=json(STORAGE.meta,{});
+    meta[key]={...(meta[key]||{}),name:p.name||p.nombre||'',image:p.image||p.imagen||'',price:p.price??p.precio??0};
+    localStorage.setItem(STORAGE.meta,JSON.stringify(meta));
+    saveCart(updated);
+    if(!drawer.hidden)renderCart();
+  });
+  if(fav){
+    const saved=json('liftFavoritesV1',[]);
+    const seo=json('supgo_seo_favorites',[]);
+    const known=Array.isArray(seo)?seo.find(x=>x&&x.id!=null):null;
+    if(known&&Array.isArray(saved)&&saved.some(id=>String(id)===String(known.id)))fav.textContent='♥';
+    fav.addEventListener('click',()=>{
+      const entries=json('supgo_seo_favorites',[]);
+      if(!Array.isArray(entries))return;
+      const current=entries.find(x=>x&&x.id!=null);
+      const id=current?.id;
+      // La ficha controla el marcado visible; trasladar el estado al index.
+      const all=new Set((json('liftFavoritesV1',[])||[]).map(Number).filter(Number.isFinite));
+      if(id!=null&&Number.isFinite(Number(id)))all.add(Number(id));
+      localStorage.setItem('liftFavoritesV1',JSON.stringify([...all]));
+    });
+  }
+})();
 const url='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos';
 const apiKey='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 async function load(){
