@@ -338,6 +338,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 
 </style>
 </head><body>
+<script defer src="/componentes/header-loader.js"></script>
 <main class="product-page">
 <article class="product-card">
 <section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}</section>
