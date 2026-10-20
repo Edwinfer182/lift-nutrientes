@@ -45,3 +45,12 @@
 #supgo-global-header .supgo-order-actions button{padding:10px;border-radius:8px;border:1px solid #ddd}
 body.supgo-cart-open{overflow:hidden}
 @media(max-width:760px){#supgo-global-header .bar{flex-wrap:wrap;gap:7px;padding:8px}#supgo-global-header .liftHeaderLogo{height:40px;width:40px}#supgo-global-header .offersBtn{padding:8px;font-size:12px}#supgo-global-header .iconbtn,#supgo-global-header .myOrder{padding:0 8px;height:39px;font-size:11px}#supgo-global-header .search{order:9;flex-basis:100%}#supgo-global-header .cartDesktop .txt{display:none}#supgo-global-header .supgo-cart-row{grid-template-columns:52px 1fr auto}#supgo-global-header .supgo-cart-row img{width:52px;height:64px}#supgo-global-header .supgo-cart-remove{grid-column:3}#supgo-global-header .supgo-cart-qty{grid-column:2}}
+
+/* Buscador publico de fichas: tipografia y miniaturas, sin zoom iOS */
+#supgo-global-header .search input#q{font-family:Poppins,Arial,sans-serif;font-size:16px!important;font-weight:400}
+#supgo-global-header .searchResults{font-family:Poppins,Arial,sans-serif;padding:5px;max-height:min(55vh,410px);border-radius:0 0 12px 12px}
+#supgo-global-header .searchResults a.supgo-search-item{display:flex;align-items:center;gap:11px;min-height:58px;padding:7px 8px;margin:0;background:#fff;border:0;border-bottom:1px solid #ededed;border-radius:0;font-family:Poppins,Arial,sans-serif;font-size:13px;line-height:1.35;font-weight:400;color:#161616}
+#supgo-global-header .searchResults a.supgo-search-item:last-child{border-bottom:0}
+#supgo-global-header .searchResults a.supgo-search-item:active{background:#f5f5f5}
+#supgo-global-header .supgo-search-photo{width:44px;height:44px;flex:0 0 44px;object-fit:contain;background:#fff;border-radius:5px}
+#supgo-global-header .supgo-search-title{min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
