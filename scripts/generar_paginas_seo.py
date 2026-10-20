@@ -393,6 +393,7 @@ def build_direct(row, shared):
       <a class="seo-nav-offers" href="https://supgo.co/?ofertas=1">🔥 OFERTAS</a>
       <form class="seo-nav-search" action="https://supgo.co/" method="get" role="search"><input type="search" name="buscar" placeholder="Busca creatina, proteína, marca..." aria-label="Buscar suplementos" required /><button type="submit" aria-label="Buscar">⌕</button></form>
       <button type="button" class="seo-nav-menu-button" id="seoNavMenuButton" aria-expanded="false" aria-controls="seoNavMenu">☰ Menú</button>
+      <button class="seo-nav-order" type="button" id="seoNavOrder">📦 Mi pedido</button>
       <a class="seo-nav-cart" href="https://supgo.co/?cart=1">🛒 <span>Carrito</span></a>
     </div>
     <nav id="seoNavMenu" class="seo-nav-menu" hidden aria-label="Menú de SUPGO">
@@ -400,6 +401,7 @@ def build_direct(row, shared):
       <div class="seo-nav-panel" data-panel="brands">""" + links(brands,"marca") + """</div>
       <div class="seo-nav-panel" data-panel="categories" hidden>""" + links(categories,"categoria") + """</div>
     </nav>
+    <dialog id="seoOrderDialog" class="seo-order-dialog"><form id="seoOrderForm"><h3>Consultar mi pedido</h3><p>Ingresa tu número de pedido para consultar su estado en SUPGO.</p><input type="text" id="seoOrderNumber" inputmode="numeric" pattern="[0-9]+" placeholder="Número de pedido" required><div class="seo-order-actions"><button type="button" id="seoOrderCancel">Cancelar</button><button type="submit">Consultar pedido</button></div></form></dialog>
   </div>""")
   styles = """<style id="seo-functional-header">
    .seo-site-header{position:sticky;top:0;z-index:100;background:#090909;color:#fff;font:400 13px/1.4 Poppins,Arial,sans-serif}
@@ -409,17 +411,37 @@ def build_direct(row, shared):
    .seo-nav-search{flex:1;display:flex;align-items:center;border:1px solid #3c3c3c;background:#191919;border-radius:11px;min-width:100px;overflow:hidden}
    .seo-nav-search input{min-width:0;flex:1;border:0;background:transparent;color:white;outline:none;padding:12px;font:inherit}
    .seo-nav-search input::placeholder{color:#a8a8a8}.seo-nav-search button{border:0;background:transparent;color:white;font-size:23px;padding:3px 13px;cursor:pointer}
-   .seo-nav-menu-button,.seo-nav-cart{border:1px solid #444;border-radius:10px;background:#141414;color:white!important;padding:12px 15px;cursor:pointer;font:inherit;text-decoration:none;white-space:nowrap}
+   .seo-nav-menu-button,.seo-nav-cart,.seo-nav-order{border:1px solid #444;border-radius:10px;background:#141414;color:white!important;padding:12px 15px;cursor:pointer;font:inherit;text-decoration:none;white-space:nowrap}
+   .seo-order-dialog{border:1px solid #ddd;border-radius:14px;padding:22px;width:min(92vw,390px);box-shadow:0 25px 70px #0003;color:#111}.seo-order-dialog::backdrop{background:#0009}.seo-order-dialog h3{margin:0 0 8px;font-size:18px}.seo-order-dialog p{font-size:12px;color:#555}.seo-order-dialog input{width:100%;min-height:45px;border:1px solid #ccc;border-radius:8px;padding:10px;margin:12px 0}.seo-order-actions{display:flex;justify-content:flex-end;gap:8px}.seo-order-actions button{border-radius:8px;padding:10px 12px;border:1px solid #ddd;cursor:pointer}.seo-order-actions button[type=submit]{background:#111;color:white}
+   .seo-nav-search{position:relative}.seo-live-results{position:absolute;z-index:110;left:0;right:0;top:100%;background:white;color:#111;border:1px solid #ddd;box-shadow:0 15px 40px #0002;max-height:300px;overflow:auto}.seo-live-results[hidden]{display:none}.seo-live-results a{display:block;padding:11px 12px;text-decoration:none;color:#111;border-bottom:1px solid #eee;font-size:12px}
    .seo-nav-menu{position:absolute;top:100%;left:max(12px,calc((100vw - 1440px)/2));width:min(440px,calc(100vw - 24px));background:#fff;color:#111;border:1px solid #e6e6e6;box-shadow:0 16px 44px #0003;border-radius:0 0 14px 14px;max-height:min(68vh,660px);overflow:auto;padding:14px}
    .seo-nav-menu[hidden],.seo-nav-panel[hidden]{display:none!important}.seo-nav-tabs{display:flex;gap:8px;margin-bottom:12px}
    .seo-nav-tabs button{flex:1;border:1px solid #ddd;background:white;border-radius:8px;padding:10px;cursor:pointer}.seo-nav-tabs .active{background:#111;color:white}
    .seo-nav-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.seo-nav-link{display:flex;align-items:center;min-height:42px;padding:8px 11px;border:1px solid #e8e8e8;border-radius:8px;text-decoration:none;color:#111;background:#fafafa;font-size:12px}
    .seo-nav-link:hover{background:#efefef}
-   @media(max-width:700px){.seo-nav-bar{gap:6px;flex-wrap:wrap;padding:8px}.seo-nav-logo img{height:36px;max-width:106px}.seo-nav-offers{padding:9px;font-size:11px}.seo-nav-menu-button,.seo-nav-cart{padding:9px;font-size:11px}.seo-nav-cart span{display:none}.seo-nav-search{order:5;flex-basis:100%}.seo-nav-menu{left:8px;width:calc(100vw - 16px)}}
+   @media(max-width:700px){.seo-nav-bar{gap:6px;flex-wrap:wrap;padding:8px}.seo-nav-logo img{height:36px;max-width:106px}.seo-nav-offers{padding:9px;font-size:11px}.seo-nav-menu-button,.seo-nav-cart,.seo-nav-order{padding:9px;font-size:11px}.seo-nav-cart span{display:none}.seo-nav-search{order:5;flex-basis:100%;width:100%}.seo-nav-menu{left:8px;width:calc(100vw - 16px)}}
   </style>"""
   script = """<script id="seo-functional-header-script">(function(){
    var header=document.getElementById('seoSiteHeader'),button=document.getElementById('seoNavMenuButton'),menu=document.getElementById('seoNavMenu');
    if(!header||!button||!menu)return;
+   // Una sola cabecera: si existe el header real del catálogo, descartar el SEO.
+   if(document.querySelector('header.top')){header.remove();return;}
+   var orderBtn=document.getElementById('seoNavOrder'),dialog=document.getElementById('seoOrderDialog');
+   if(orderBtn&&dialog){
+    orderBtn.addEventListener('click',function(){dialog.showModal();});
+    document.getElementById('seoOrderCancel').addEventListener('click',function(){dialog.close();});
+    document.getElementById('seoOrderForm').addEventListener('submit',function(e){e.preventDefault();var id=document.getElementById('seoOrderNumber').value.replace(/\D/g,'');if(id)location.href='https://supgo.co/?pedido='+encodeURIComponent(id);});
+   }
+   // Sugerencias en tiempo real: lista pública de Supabase, sin claves privadas.
+   var search=header.querySelector('.seo-nav-search'),input=search&&search.querySelector('input');
+   if(search&&input){
+    var results=document.createElement('div');results.className='seo-live-results';search.appendChild(results);
+    fetch('https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos?select=id,product,activo&activo=eq.true&limit=1000',{headers:{apikey:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'}}).then(function(r){if(!r.ok)throw Error('No disponible');return r.json()}).then(function(rows){
+      var products=rows.map(function(x){return {id:x.id,name:String((x.product||{}).name||(x.product||{}).nombre||''),image:(x.product||{}).image||(x.product||{}).imagen||''}}).filter(function(x){return x.name;});
+      input.addEventListener('input',function(){var term=input.value.trim().toLocaleLowerCase();results.replaceChildren();if(term.length<2){results.hidden=true;return;}products.filter(function(p){return p.name.toLocaleLowerCase().includes(term)}).slice(0,6).forEach(function(p){var a=document.createElement('a');a.href='https://supgo.co/?producto='+encodeURIComponent(p.id);a.textContent=p.name;results.appendChild(a);});results.hidden=!results.children.length;});
+    }).catch(function(){results.hidden=true;});
+    search.addEventListener('submit',function(e){if(!input.value.trim())e.preventDefault();});
+   }
    button.addEventListener('click',function(){var open=menu.hidden;menu.hidden=!open;button.setAttribute('aria-expanded',String(open));});
    header.querySelectorAll('[data-tab]').forEach(function(tab){tab.addEventListener('click',function(){var selected=tab.getAttribute('data-tab');header.querySelectorAll('[data-tab]').forEach(function(b){b.classList.toggle('active',b===tab)});header.querySelectorAll('[data-panel]').forEach(function(panel){panel.hidden=panel.getAttribute('data-panel')!==selected;});});});
    document.addEventListener('click',function(e){if(!header.contains(e.target)){menu.hidden=true;button.setAttribute('aria-expanded','false');}});
