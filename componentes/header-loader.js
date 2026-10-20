@@ -39,7 +39,7 @@
         button.type='button';button.id='supgoGoCheckout';button.textContent='Continuar pedido';
         button.style.cssText='display:block!important;width:100%;min-height:48px;background:#111;color:#fff;border:0;border-radius:8px;font:600 15px Poppins,Arial,sans-serif;margin:0 0 12px';
         footer.prepend(button);
-        button.onclick=()=>{const cart=document.querySelector('.supgo-cart-drawer');const trigger=cart?.querySelector('#supgoGoCheckout');if(trigger&&trigger!==button)trigger.click();else location.assign('https://supgo.co/');};
+        button.onclick=()=>{const cart=document.querySelector('.supgo-cart-drawer');const trigger=cart?.querySelector('#supgoGoCheckout');if(trigger&&trigger!==button)trigger.click();else if(typeof window.supgoOpenSeoCheckout==='function')window.supgoOpenSeoCheckout();};
       }
       ensureCheckoutButton();
       document.querySelector('.cartDesktop')?.addEventListener('click',()=>queueMicrotask(ensureCheckoutButton));
