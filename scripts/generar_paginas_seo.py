@@ -205,14 +205,12 @@ def build(row):
 <meta name="twitter:title" content="{esc(name)}"><meta name="twitter:description" content="{esc(meta)}">
 {f'<meta property="product:price:amount" content="{amount:g}"><meta property="product:price:currency" content="COP">' if valid_price else ''}
 <script type="application/ld+json">{schema}</script><script type="application/ld+json">{breadcrumb_json}</script>
-<style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}header{{background:#090909;color:white;padding:20px 5%}}header a{{color:white;text-decoration:none;font-weight:700}}nav{{padding:16px 5%;border-bottom:1px solid #ddd;display:flex;gap:20px;flex-wrap:wrap}}nav a{{color:#222;text-decoration:none}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}.btn{{display:inline-block;background:#111;color:white;padding:14px 20px;text-decoration:none;margin:8px 8px 8px 0}}footer{{padding:35px 5%;border-top:1px solid #ddd}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
-</head><body><header><a href="{BASE}/">LIFT NUTRIENTES</a></header>
-<nav><a href="{BASE}/">Inicio</a><a href="{BASE}/?ofertas=1">Ofertas</a><a href="{BASE}/?categoria={urllib.parse.quote(str(p.get('category') or ''))}">Categoría: {esc(p.get('category') or 'Ver todas')}</a><a href="{BASE}/?marca={urllib.parse.quote(brand)}">Laboratorio: {esc(brand or 'Ver todos')}</a></nav>
+<style>body{{margin:0;color:#151515;background:#fff;font-family:Poppins,Arial,sans-serif}}main{{max-width:1150px;margin:35px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:35px}}h1{{font-size:30px}}.price{{font-size:26px;font-weight:bold}}@media(max-width:700px){{main{{grid-template-columns:1fr}}}}</style>
+</head><body>
 <main><section>{img}</section><section><p>{esc(brand)}</p><h1>{esc(name)}</h1>{price_html}
 <p>{esc(seo_description or description or "Consulta presentaciones, sabores y disponibilidad de este producto.")}</p>
-<a class="btn" href="{BASE}/?producto={pid}">Ver opciones y agregar al carrito</a>
-<a class="btn" href="{BASE}/?ofertas=1">Ver ofertas</a></section></main>
-<footer>Lift Nutrientes · <a href="{BASE}/">supgo.co</a></footer></body></html>'''
+</section></main>
+</body></html>'''
 
 def build_direct(row, shared):
   """Ficha SEO estable: no reemplazarla al cargar el catálogo."""
