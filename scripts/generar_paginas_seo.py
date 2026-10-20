@@ -380,20 +380,8 @@ paint();
 </body></html>'''
 
 def build_direct(row, shared):
-  """Mantener HTML SEO estático e insertar el header público compartido."""
-  filename, page = build(row)
-  header_path = ROOT / "componentes" / "header.html"
-  if not header_path.is_file():
-   raise RuntimeError("Falta componentes/header.html para páginas SEO")
-  header = header_path.read_text(encoding="utf-8")
-  # El componente original no trae un enlace sobre el logo: volverlo navegable.
-  header = header.replace('<div class="brand">', '<a class="brand" href="https://supgo.co/" aria-label="Inicio SUPGO">', 1).replace('</div><button aria-label="Abrir marcas y categorías"', '</a><button aria-label="Abrir marcas y categorías"', 1)
-  # La hoja compartida se carga antes de los estilos de ficha, evitando perder su diseño.
-  css = '<link rel="stylesheet" href="/componentes/header.css">'
-  page = page.replace('<style>', css + '\n<style>', 1)
-  page = page.replace('<body>', '<body>\n<div id="supgo-global-header">' + header + '</div>', 1)
-  page = page.replace('</body>', '<script defer src="/componentes/header.js"></script>\n</body>', 1)
-  return filename, page
+  """Ficha SEO estable: no reemplazarla al cargar el catálogo."""
+  return build(row)
 
 def shared_template():
  """Una única skin CSS compartida por todas las fichas; scripts originales en su orden."""
