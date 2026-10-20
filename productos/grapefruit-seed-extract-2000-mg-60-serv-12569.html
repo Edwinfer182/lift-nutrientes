@@ -107,22 +107,6 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
 
 </style>
 </head><body>
-<link rel="stylesheet" href="/componentes/header.css">
-<div id="supgo-global-header"></div>
-<script>
-(function(){
-  const root=document.getElementById('supgo-global-header');
-  fetch('/componentes/header.html',{cache:'no-cache'})
-    .then(response=>{if(!response.ok)throw Error('No se pudo cargar el header');return response.text();})
-    .then(html=>{
-      root.innerHTML=html;
-      const script=document.createElement('script');
-      script.src='/componentes/header.js';
-      document.body.appendChild(script);
-    })
-    .catch(error=>console.error('SUPGO header:',error));
-})();
-</script>
 <main class="product-page">
 <article class="product-card">
 <section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto"><img src="https://lh3.googleusercontent.com/d/1yHeFPUmDUX28WrGucO0MdBH_Jf-EgO_x=w1200" alt="Grapefruit Seed Extract 2000 Mg 60 Serv" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain"><span class="zoom-hint">⌕ Ampliar</span></button></div><div class="gallery-thumbs"><button type="button" class="gallery-thumb active" data-index="0" aria-label="Ver imagen 1"><img src="https://lh3.googleusercontent.com/d/1yHeFPUmDUX28WrGucO0MdBH_Jf-EgO_x=w1200" alt="Grapefruit Seed Extract 2000 Mg 60 Serv - imagen 1" loading="lazy"></button><button type="button" class="gallery-thumb" data-index="1" aria-label="Ver imagen 2"><img src="https://vitaminfit.com.co/cdn/shop/files/image_7f2a6258-eef1-498f-8961-dc2c40cf21bd.jpg?v=1686286235&amp;width=2048" alt="Grapefruit Seed Extract 2000 Mg 60 Serv - imagen 2" loading="lazy"></button></div></section>
