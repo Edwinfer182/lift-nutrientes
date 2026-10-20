@@ -1319,22 +1319,6 @@ body.liftIndividualPage .top .cartDesktop{display:flex!important;visibility:visi
       detailBody.appendChild(descriptionSEO);
       descriptionSEO.style.cssText='display:block!important;visibility:visible!important;opacity:1!important;max-width:1100px;margin:30px auto;padding:20px;line-height:1.75;overflow-wrap:anywhere';
      }
-     // Boton de enlace de venta para Instagram en fichas individuales.
-     if(!panel.querySelector('#liftInstagramBuyLink')){
-      const linkButton=document.createElement('button');
-      linkButton.id='liftInstagramBuyLink';
-      linkButton.type='button';
-      linkButton.textContent='Copiar enlace para Instagram';
-      linkButton.style.cssText='display:block;width:100%;max-width:440px;margin:16px auto;padding:14px 18px;background:#111;color:white;border:0;border-radius:4px;font-weight:700;cursor:pointer';
-      linkButton.addEventListener('click',async()=>{
-       const url=window.location.origin+window.location.pathname;
-       try{await navigator.clipboard.writeText(url);linkButton.textContent='Enlace copiado';}
-       catch(e){window.prompt('Copia el enlace del producto',url);}
-       setTimeout(()=>{linkButton.textContent='Copiar enlace para Instagram'},2000);
-      });
-      const actions=panel.querySelector('#liftMonoBody')||panel;
-      actions.insertBefore(linkButton,actions.firstChild);
-     }
      staticSEO?.remove();
      panel.querySelectorAll('#liftMonoClose,.liftMonoClose,.liftMonoHandle,.liftMonoDragHandle,[aria-label="Cerrar"]').forEach(x=>x.remove());
      document.querySelectorAll('.top .cartDesktop').forEach(x=>{x.style.setProperty('display','flex','important');x.style.setProperty('visibility','visible','important');});
