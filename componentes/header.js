@@ -33,7 +33,7 @@ const links=popup.querySelector('.supgo-links');links.replaceChildren();
 for(const v of values){const a=document.createElement('a'),u=new URL(ROOT);u.searchParams.set(key,v);a.href=u.href;a.textContent=v;links.append(a);}
 if(!values.length)links.textContent='No se pudieron cargar los filtros.';
 }
-if(menuButton)menuButton.onclick=()=>{popup.hidden=!popup.hidden;if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);};
+if(menuButton){menuButton.removeAttribute('onclick');menuButton.onclick=()=>{popup.hidden=!popup.hidden;if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);};}
 popup.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{popup.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));draw(b.dataset.tab);});
 if(search){search.setAttribute('enterkeyhint','search');search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const term=search.value.trim();if(term)go('buscar',term);}});}
 if(results){results.hidden=true;}
@@ -67,7 +67,7 @@ function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.class
 function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();}
 drawer.querySelector('.supgo-cart-top button').onclick=closeCart;
 backdrop.onclick=closeCart;
-if(cartButton)cartButton.onclick=openCart;
+if(cartButton){cartButton.removeAttribute('onclick');cartButton.addEventListener('click',openCart);}
 function renderCart(){
  const saved=getCart(),meta=json(STORAGE.meta,{});
  cartList.replaceChildren();let subtotal=0,priced=true;
@@ -98,7 +98,7 @@ function renderCart(){
  }
  if(!cartList.children.length)cartList.textContent='Tu carrito está vacío.';
  drawer.querySelector('.supgo-cart-total strong').textContent=priced?money(subtotal):'Por confirmar';
- const checkout=drawer.querySelector('#supgoGoCheckout');checkout.disabled=!priced||!cartList.children.length;
+
 }
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
