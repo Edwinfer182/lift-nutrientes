@@ -62,7 +62,7 @@ drawer.setAttribute('aria-label','Carrito de SUPGO');drawer.innerHTML='<div clas
 host.append(overlay,drawer);
 function closeCart(){overlay.hidden=true;drawer.hidden=true;document.body.classList.remove('supgo-cart-open');}
 const close=drawer.querySelector('.supgo-cart-top button');close.onclick=closeCart;overlay.onclick=closeCart;
-drawer.querySelector('#supgoGoCheckout').onclick=()=>{if(!Object.keys(getCart()).length)return;go('checkout','1');};
+drawer.querySelector('#supgoGoCheckout').onclick=()=>{if(!Object.keys(getCart()).length)return;location.assign('/checkout.html');};
 function renderCart(){
 const list=drawer.querySelector('.supgo-cart-items'),cart=getCart(),meta=json(STORAGE.meta,{});
 list.replaceChildren();let total=0;
