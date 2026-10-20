@@ -108,6 +108,20 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
 </style>
 </head><body>
 <script defer src="/componentes/header-loader.js"></script>
+<script>
+/* La ficha generada dirige Continuar pedido al checkout real del catálogo. */
+document.addEventListener('click',function(event){
+  const button=event.target.closest('#supgoGoCheckout');
+  if(!button)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  let cart={};
+  try{cart=JSON.parse(localStorage.getItem('liftCartV2')||'{}')||{};}catch(error){}
+  const quantity=Object.values(cart).reduce((total,item)=>total+(Number(typeof item==='object'?(item.quantity??item.qty):item)||0),0);
+  if(quantity<=0)return;
+  window.location.assign('https://supgo.co/?checkout=1');
+},true);
+</script>
 <main class="product-page">
 <article class="product-card">
 <section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto"><img src="https://lh3.googleusercontent.com/d/1cmpQbOV3qG_FQ98tjqjMHK1EaYLgUvc2=w1200" alt="Turbo 60 Tabletas" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain"><span class="zoom-hint">⌕ Ampliar</span></button></div><div class="gallery-thumbs"><button type="button" class="gallery-thumb active" data-index="0" aria-label="Ver imagen 1"><img src="https://lh3.googleusercontent.com/d/1cmpQbOV3qG_FQ98tjqjMHK1EaYLgUvc2=w1200" alt="Turbo 60 Tabletas - imagen 1" loading="lazy"></button><button type="button" class="gallery-thumb" data-index="1" aria-label="Ver imagen 2"><img src="https://http2.mlstatic.com/D_NQ_NP_793843-MCO84662674305_052025-O.webp" alt="Turbo 60 Tabletas - imagen 2" loading="lazy"></button></div></section>
