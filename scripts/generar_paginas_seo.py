@@ -338,7 +338,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 
 </style>
 </head><body>
-<script defer src="/componentes/header-loader.js?v=20261020-cart-button9"></script>
+<script defer src="/componentes/header-loader.js?v=20261020-cart-button10"></script>
 
 <main class="product-page">
 <article class="product-card">
