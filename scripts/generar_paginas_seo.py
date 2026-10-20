@@ -339,20 +339,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 </style>
 </head><body>
 <script defer src="/componentes/header-loader.js"></script>
-<script>
-/* La ficha generada dirige Continuar pedido al checkout real del catálogo. */
-document.addEventListener('click',function(event){{
-  const button=event.target.closest('#supgoGoCheckout');
-  if(!button)return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  let cart={{}};
-  try{{cart=JSON.parse(localStorage.getItem('liftCartV2')||'{{}}')||{{}};}}catch(error){{}}
-  const quantity=Object.values(cart).reduce((total,item)=>total+(Number(typeof item==='object'?(item.quantity??item.qty):item)||0),0);
-  if(quantity<=0)return;
-  window.location.assign('https://supgo.co/checkout.html');
-}},true);
-</script>
+
 <main class="product-page">
 <article class="product-card">
 <section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}</section>
@@ -386,7 +373,7 @@ const p={product_json};const f=document.getElementById('fav'),note=document.getE
 function read(k){{try{{const a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}}catch(e){{return []}}}}
 function paint(){{f.textContent=read('supgo_seo_favorites').some(x=>x.id===p.id)?'♥':'♡'}}
 f.onclick=()=>{{let a=read('supgo_seo_favorites');a=a.some(x=>x.id===p.id)?a.filter(x=>x.id!==p.id):[...a,p];localStorage.setItem('supgo_seo_favorites',JSON.stringify(a));paint();note.textContent='Favoritos actualizados';}};
-document.getElementById('add').onclick=()=>{{let a=read('supgo_seo_cart'),v=a.find(x=>x.id===p.id);if(v)v.quantity++;else a.push({{...p,quantity:1}});localStorage.setItem('supgo_seo_cart',JSON.stringify(a));note.textContent='Agregado al carrito de esta ficha';}};
+document.getElementById('add').onclick=()=>{{window.location.assign('https://supgo.co/?producto='+encodeURIComponent(p.id));}};
 paint();
 }})();</script>
 </body></html>'''
