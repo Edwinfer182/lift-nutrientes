@@ -17,23 +17,16 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import re, html
-          p=Path("index.html")
-          original=p.read_text(encoding="utf-8")
-          # Busca el boton exacto, incluso si lleva iconos o etiquetas interiores.
-          buttons=list(re.finditer(r"(?is)<button\b[^>]*>(?:(?!<button\b|</button>).)*</button>",original))
-          matched=[m for m in buttons if re.search(r"copiar\s+enlace\s+(?:para\s+)?instagram",html.unescape(re.sub(r"<[^>]*>"," ",m.group(0))),re.I)]
-          print("Botones detectados:", len(buttons), "Botones para Instagram:",len(matched))
-          if len(matched)!=1:
-              # Inspecciona coincidencias sin editar un archivo equivocado
-              for m in list(re.finditer("instagram",original,re.I))[:30]:
-                  print("Contexto:", repr(original[max(0,m.start()-230):m.end()+230]))
-              raise SystemExit("No hay coincidencia unica. Index no modificado.")
-          m=matched[0]
-          print("Eliminando:",repr(m.group(0)[:500]))
-          patched=original[:m.start()]+original[m.end():]
-          assert patched.count("Copiar enlace para Instagram") < original.count("Copiar enlace para Instagram")
-          p.write_text(patched,encoding="utf-8")
+          import re
+          for filename in ("index.html","producto-vista.html"):
+              s=Path(filename).read_text(encoding="utf-8")
+              print("ARCHIVO",filename,"longitud",len(s))
+              for pat in ("instagram","copiar enlace","copiar link","enlace"):
+                  hits=list(re.finditer(pat,s,re.I))
+                  print(pat,len(hits))
+                  for m in hits[:18]:
+                      print("CONTEXTO",repr(s[max(0,m.start()-280):m.end()+280]))
+          raise SystemExit("Solo diagnostico, sin cambios")
       - name: Guardar cambio y retirar workflow temporal
         run: |
           git config user.name "github-actions[bot]"
