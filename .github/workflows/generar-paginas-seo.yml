@@ -49,7 +49,7 @@ jobs:
           assert page.exists(), "Falta la ficha Gold Isolate 30188"
           html = page.read_text(encoding="utf-8")
           assert '<meta name="description"' in html, "Falta metadescripción"
-          assert re.search(r'<main(?:\\s|>)', html) and '<h1>' in html, "Falta ficha SEO visible"
+          assert re.search(r'<main(?:\s|>)', html) and '<h1>' in html, "Falta ficha SEO visible"
           assert '<meta name="description"' in html, "Falta descripción del producto"
           blocks = re.findall(r'<script type="application/ld[+]json">(.*?)</script>', html, re.S)
           schemas = [json.loads(block) for block in blocks]
