@@ -38,13 +38,37 @@
       }catch(err){console.warn('Seguimiento posterior al pedido:',err)}
       return result;
     };
+    // Esperar la inicialización completa de la aplicación antes del checkout.
+    function cartQuantity(){
+      try{
+        const cart=JSON.parse(localStorage.getItem('liftCartV2')||'{}');
+        return Object.values(cart).reduce((total,item)=>total+Math.max(0,Number(typeof item==='object'?(item.quantity??item.qty):item)||0),0);
+      }catch(_){return 0}
+    }
+    function openFromNativeCart(){
+      // La misma secuencia que utiliza el catálogo: primero carrito, luego continuar.
+      if(typeof window.openOff==='function'){
+        try{window.openOff('cart');}catch(e){console.warn('Carrito nativo:',e)}
+      }
+      const buttons=[...document.querySelectorAll('button,a,[role="button"]')];
+      const continueButton=buttons.find(el=>/continuar pedido|finalizar pedido/i.test((el.textContent||el.value||'').trim())&&el.getClientRects().length);
+      if(continueButton){
+        continueButton.click();
+        return true;
+      }
+      return false;
+    }
     let tries=0;
     const timer=setInterval(function(){
       const modal=document.getElementById('checkoutModal');
-      if(modal && typeof window.openCheckout==='function'){
+      if(modal && typeof window.openCheckout==='function' && document.readyState==='complete'){
         clearInterval(timer);
         try{
-          window.openCheckout();
+          // Notificar a las funciones que observan el estado del carrito.
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('supgo-cart-change'));
+          // Dar prioridad al flujo nativo; no modificar el carrito del catálogo.
+          if(!openFromNativeCart())window.openCheckout();
           document.body.classList.add('supgo-standalone-checkout');
           // Retirar secuencias literales \\n que aparecen como texto fuera del formulario.
           const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
