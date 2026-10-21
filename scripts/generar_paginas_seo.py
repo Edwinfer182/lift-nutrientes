@@ -169,7 +169,19 @@ body .supgo-menu .supgo-brand-card{background:#fff!important}
 body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 """
 
-def seo_filter_data(rows):
+def fetch_lab_logos():
+ query=urllib.parse.urlencode({"select":"valor","clave":"eq.laboratories_v1","limit":"1"})
+ req=urllib.request.Request(URL+"/rest/v1/lift_catalog_config?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
+ try:
+  with urllib.request.urlopen(req,timeout=40) as res: entries=json.load(res)
+  value=entries[0].get("valor") if entries else {}
+  if isinstance(value,str):value=json.loads(value)
+  return {str(k).casefold():v.get("image","") for k,v in value.items() if isinstance(v,dict) and str(v.get("image","")).startswith(("https://","http://"))} if isinstance(value,dict) else {}
+ except Exception as exc:
+  print("Aviso: logos de laboratorios no disponibles:",exc)
+  return {}
+
+def seo_filter_data(rows,logos=None):
  brands, categories = {}, {}
  total=0
  for item in rows:
@@ -179,7 +191,7 @@ def seo_filter_data(rows):
   for source, value in ((brands,p.get("brand") or p.get("marca")), (categories,p.get("category") or p.get("categoria"))):
    name=str(value or "").strip()
    if name: source[name]=source.get(name,0)+1
- return {"brands":sorted(brands.items(),key=lambda x:x[0].casefold()),"categories":sorted(categories.items(),key=lambda x:x[0].casefold()),"total":total}
+ return {"brands":[[name,count,(logos or {}).get(name.casefold(),"")] for name,count in sorted(brands.items(),key=lambda x:x[0].casefold())],"categories":sorted(categories.items(),key=lambda x:x[0].casefold()),"total":total}
 
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
@@ -458,7 +470,7 @@ def main():
   row["_seo"]=seo_rows.get(str(row["id"]),{})
   row["_offer"]=offers.get(str(row["id"]))
   row["_merchant_settings"]=merchant_settings
- filter_counts=seo_filter_data(rows)
+ filter_counts=seo_filter_data(rows,fetch_lab_logos())
  for row in rows: row["_filter_counts"]=filter_counts
  allowed_brands=fetch_allowed_brands()
  valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
