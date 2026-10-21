@@ -30,8 +30,8 @@ async function loadLabLogos(){
 const page=document.body.dataset.page,root=$('#content'),query=new URLSearchParams(location.search);
 function card(r){
 const el=document.createElement('article');el.className='product';
-const photo=document.createElement('a');photo.className='product-photo';photo.href=link(r);photo.style.cssText='display:flex;align-items:center;justify-content:center;width:100%;height:260px;min-height:260px;max-height:260px;overflow:hidden;flex:0 0 260px;padding:10px;background:#f5f5f5';
-if(image(r)){const img=document.createElement('img');img.src=image(r);img.alt=name(r);img.loading='lazy';img.style.cssText='display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center';photo.append(img)}
+const photo=document.createElement('a');photo.className='product-photo';photo.href=link(r);
+if(image(r)){const img=document.createElement('img');img.src=image(r);img.alt=name(r);img.loading='lazy';photo.append(img)}
 const info=document.createElement('div');info.className='product-details';
 const lab=document.createElement('small');lab.className='brand';lab.textContent=brand(r);
 const title=document.createElement('a');title.className='name';title.href=link(r);title.textContent=name(r);
