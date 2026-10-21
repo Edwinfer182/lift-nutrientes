@@ -1,0 +1,50 @@
+name: Corregir checkout y publicar GitHub Pages
+on:
+  push:
+    paths:
+      - '.github/workflows/corregir-checkout-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: corregir-checkout-pages
+  cancel-in-progress: false
+jobs:
+  corregir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Corregir ruta del pedido y texto literal
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('checkout/index.html')
+          s = p.read_text(encoding='utf-8')
+          original = s
+          s = s.replace("new URL('/mi-pedido/',window.location.origin)", "new URL('/mis-pedidos/',window.location.origin)")
+          s = s.replace("new URL('/mi-pedido/', window.location.origin)", "new URL('/mis-pedidos/', window.location.origin)")
+          s = s.replace("new URL('/mi-pedido/', 'https://supgo.co')", "new URL('/mis-pedidos/', 'https://supgo.co')")
+          s = s.replace("new URL('/mi-pedido/', 'https://supgo.co/')", "new URL('/mis-pedidos/', 'https://supgo.co/')")
+          s = s.replace("'/mi-pedido/?pedido='", "'/mis-pedidos/?pedido='")
+          s = s.replace('"/mi-pedido/?pedido="', '"/mis-pedidos/?pedido="')
+          # Una secuencia literal \\n se imprimía encima del encabezado del checkout.
+          s = s.replace('">\\n<nav class="supgoCheckoutNav"', '"><nav class="supgoCheckoutNav"')
+          s = s.replace("'>\\n<nav class=\"supgoCheckoutNav\"", "'><nav class=\"supgoCheckoutNav\"")
+          if s == original:
+            raise SystemExit('No se encontró ninguna coincidencia; no se modifica el checkout.')
+          p.write_text(s, encoding='utf-8')
+          print('Checkout actualizado; ruta /mis-pedidos/ y encabezado sin secuencia literal.')
+          PY
+      - name: Guardar corrección en main para GitHub Pages
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add checkout/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Checkout: enviar a mis-pedidos y quitar n visible"
+          git pull --rebase origin main
+          git push origin HEAD:main
