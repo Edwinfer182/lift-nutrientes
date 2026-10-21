@@ -27,7 +27,7 @@
       try{
         const url=String(typeof input==='string'?input:input?.url||'');
         const method=String(init?.method||(typeof input==='object'&&input?.method)||'GET').toUpperCase();
-        const isOrderCreation=/\/rest\/v1\/lift_pedidos(?:\?|$)/.test(url);
+        const isOrderCreation=url.includes('/rest/v1/lift_pedidos');
         if(creatingOrder&&!redirecting&&result.ok&&method==='POST'&&isOrderCreation){
           let id=null;
           const body=await result.clone().text();
@@ -52,7 +52,9 @@
       const toRemove=[];let node;
       while((node=walker.nextNode())){
         if(modal?.contains(node))continue;
-        if(/^(?:\s|\\n|\\r|\\t)+$/.test(node.nodeValue)&&/\\[nrt]/.test(node.nodeValue))toRemove.push(node);
+        const value=node.nodeValue||'';
+        const cleaned=value.replaceAll(String.fromCharCode(92),'').replace(/[nrt]/g,'').trim();
+        if(value.includes(String.fromCharCode(92))&&cleaned==='')toRemove.push(node);
       }
       toRemove.forEach(node=>node.remove());
     }
