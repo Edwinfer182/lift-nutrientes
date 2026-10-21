@@ -415,7 +415,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  body .product-page .variant-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}}
  body .product-page .option{{width:100%;max-width:100%;min-width:0;padding:5px 3px;gap:3px;border-radius:9px;margin:0}}
   body .product-page .option.selected{{padding:4px 2px}}
- body .product-page .option-photo{{width:100%;height:47px}}
+ body .product-page .option-photo{{width:100%;height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:2px;background:transparent}}\n  body .product-page .option-photo img{{display:block;width:auto;max-width:100%;height:auto;max-height:100%;object-fit:contain;object-position:center}}
  body .product-page .option-label{{font-size:10px;line-height:1.2}}
   body .product-page .option-offer{{font-size:9px}}
  body .product-page .related-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}}
