@@ -298,7 +298,7 @@ def build(row):
  product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical},ensure_ascii=False).replace("<","\\u003c")
  return filename, f'''<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{esc(title)}</title><meta name="description" content="{esc(meta)}">
+<title>{esc(title)}</title><meta name="description" content="{esc(meta)}">\n<meta name="robots" content="{'index, follow' if row.get('_indexable', True) else 'noindex, follow'}">
 <link rel="canonical" href="{esc(canonical)}"><meta property="og:type" content="product">
 <meta property="og:title" content="{esc(name)}"><meta property="og:description" content="{esc(meta)}">
 <meta property="og:url" content="{esc(canonical)}">
@@ -533,7 +533,9 @@ def main():
  filter_counts=seo_filter_data(rows,fetch_lab_logos())
  for row in rows: row["_filter_counts"]=filter_counts
  allowed_brands=fetch_allowed_brands()
- valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
+ valid=[r for r in rows if allowed(r)]
+ for r in valid:
+  r['_indexable']=str((r['product'].get('brand') or r['product'].get('marca') or 'SIN MARCA')).strip().casefold() in allowed_brands
  brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
  if brand_only:
   if brand_only not in allowed_brands:raise RuntimeError("Marca no habilitada para SEO: "+brand_only)
@@ -609,7 +611,7 @@ def main():
   # Protección: nunca reemplazar fichas existentes salvo autorización explícita.
   if not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
    destination.write_text(content,encoding="utf-8")
-  urls.append(BASE+"/productos/"+filename)
+  if row.get("_indexable",True): urls.append(BASE+"/productos/"+filename)
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas SEO independientes sin skin.")
