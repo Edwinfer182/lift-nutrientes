@@ -51,9 +51,11 @@ jobs:
           except Exception:
               print("::error::Vercel no devolvió un JSON válido")
               sys.exit(1)
+          # Vercel Deploy Hooks may reply with an id and no state field.
+          deployment_id=data.get("id") or data.get("job",{}).get("id")
           state=data.get("state")
-          if state not in ("PENDING","QUEUED","BUILDING","READY"):
-              print(f"::error::Respuesta inesperada de Vercel (estado: {state!r})")
+          if not deployment_id and state not in ("PENDING","QUEUED","BUILDING","READY"):
+              print("::error::Vercel respondió HTTP exitoso, pero no devolvió un identificador de despliegue.")
               sys.exit(1)
-          print("Vercel aceptó el despliegue. Estado:",state)
+          print("Solicitud de despliegue aceptada por Vercel. ID:",deployment_id or "no indicado","Estado:",state or "no indicado")
           PY
