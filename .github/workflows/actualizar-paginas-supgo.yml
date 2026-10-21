@@ -1,0 +1,32 @@
+name: Actualizar GitHub Pages SUPGO
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mi-pedido/**'
+      - 'mis-pedidos/**'
+      - 'carrito/**'
+      - 'paginas/supgo-pages.css'
+      - 'paginas/supgo-pages.js'
+      - '.github/workflows/actualizar-paginas-supgo.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: supgo-pages-refresh
+  cancel-in-progress: false
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Forzar nueva publicación desde rama main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Pages: republicar cambios de carrito y mis pedidos"
+          git pull --rebase origin main
+          git push origin HEAD:main
