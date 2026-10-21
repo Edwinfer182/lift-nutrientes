@@ -22,7 +22,7 @@ async function loadLabLogos(){
   const data=await res.json();let cfg=data[0]?.valor;
   if(typeof cfg==='string'){try{cfg=JSON.parse(cfg)}catch{return}}
   const items=Array.isArray(cfg)?cfg:Array.isArray(cfg?.laboratories)?cfg.laboratories:Array.isArray(cfg?.items)?cfg.items:cfg?.laboratories||cfg?.items||cfg;
-  const valid=v=>typeof v==='string'&&/^https?:\\/\\//i.test(v);
+  const valid=v=>{if(typeof v!=='string')return false;try{return ['http:','https:'].includes(new URL(v).protocol)}catch{return false}};
   const add=(name,obj)=>{if(!name)return;const url=typeof obj==='string'?obj:obj?.logo_url||obj?.logoUrl||obj?.logo||obj?.image_url||obj?.imageUrl||obj?.image||obj?.url;if(valid(url))labLogoMap.set(slug(name),url)};
   if(Array.isArray(items)){for(const x of items)add(x?.name||x?.nombre||x?.brand||x?.marca||x?.laboratorio,x)}
   else if(items&&typeof items==='object'){for(const [k,v]of Object.entries(items))add(v?.name||v?.nombre||k,v)}
