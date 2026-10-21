@@ -446,9 +446,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <section class="product-info">
 <h1>{esc(name)}{title_brand_html}</h1><div class="product-price">{price_html}</div>
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
-<div class="product-rule"></div>
-<details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
-<div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><div class="seo-wa-wrap"><button id="seo-wa-button" type="button" aria-expanded="false" aria-controls="seo-wa-panel">Consultar por WhatsApp</button><div id="seo-wa-panel" hidden><textarea id="seo-wa-message" aria-label="Mensaje para WhatsApp"></textarea><button id="seo-wa-send" type="button">Enviar por WhatsApp</button></div></div>
+<div class="seo-wa-wrap"><button id="seo-wa-button" type="button" aria-expanded="false" aria-controls="seo-wa-panel">Consultar por WhatsApp</button><div id="seo-wa-panel" hidden><textarea id="seo-wa-message" aria-label="Mensaje para WhatsApp"></textarea><button id="seo-wa-send" type="button">Enviar por WhatsApp</button></div></div>
 <style>
 .seo-wa-wrap{{margin:12px 0;width:100%;font-family:Poppins,Arial,sans-serif}}
 #seo-wa-button{{border:1px solid #ddd;background:#fff;color:#222;border-radius:9px;padding:13px;font:600 14px Poppins,Arial,sans-serif;cursor:pointer;width:100%}}
@@ -457,7 +455,9 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 #seo-wa-message{{display:block;box-sizing:border-box;width:100%;min-height:70px;padding:10px;border:1px solid #ddd;border-radius:8px;font:14px Poppins,Arial,sans-serif;background:#fff;color:#222}}
 #seo-wa-send{{margin-top:9px;background:#169c50;color:#fff;border:0;border-radius:8px;padding:12px;width:100%;font:600 14px Poppins,Arial,sans-serif;cursor:pointer}}
 </style>
-<p id="notice" aria-live="polite"></p>
+<div class="product-rule"></div>
+<details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
+<div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" aria-live="polite"></p>
 </section></article>
 {f'<section class="related"><h2>Productos relacionados</h2><div class="related-grid">{related_html}</div></section>' if related_html else ''}
 </main>
