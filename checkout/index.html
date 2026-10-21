@@ -11521,7 +11521,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
       tries++;const now=localStorage.getItem('liftLastPublicOrder')||'';
       if(now&&now!==before){
        clearInterval(timer);const x=stored();
-       try{$('liftOrderSuccessModal')?.classList.remove('open');$('checkoutModal')?.classList.remove('open');if($('liftTrackRef'))$('liftTrackRef').value=String(x.ref||'').replace(/\D/g,'');if($('liftTrackPhone'))$('liftTrackPhone').value=x.phone||'';$('liftTrackModal')?.classList.add('open');$('liftTrackModal')?.setAttribute('aria-hidden','false');await liftTrackOrder()}catch(e){}
+       try{const id=String(x.ref||'').replace(/\D/g,'');if(!id)throw Error('No se recibió el número de pedido');sessionStorage.setItem('supgoCheckoutCreatedOrder',JSON.stringify({id,phone:String(x.phone||'').replace(/\D/g,'')}));location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id))}catch(e){console.error('Abrir mi pedido:',e)}
       }else if(tries>30)clearInterval(timer)
     },50);
     return r
