@@ -16,74 +16,44 @@
   <script>(function(){
     // Navegar al seguimiento únicamente si Supabase confirma la creación.
     let creatingOrder=false;
-    let redirecting=false;
     document.addEventListener('click',function(ev){
       const button=ev.target.closest('button,input[type="submit"]');
       if(button&&/generar pedido/i.test((button.textContent||button.value||'').trim()))creatingOrder=true;
     },true);
-    function finishOrder(id){
-      if(redirecting)return;
-      redirecting=true;creatingOrder=false;
-      const parsed=Number(id);
-      const dest='/mis-pedidos/'+(Number.isSafeInteger(parsed)&&parsed>0?'?pedido='+encodeURIComponent(parsed):'');
-      window.location.replace(dest);
-    }
-    function orderId(data){
-      if(Array.isArray(data))return orderId(data[0]);
-      if(!data||typeof data!=='object')return null;
-      const candidate=data.id_pedido??data.pedido_id??data.order_id??data.id??data.pedido?.id??data.data?.id;
-      return Number(candidate)>0?candidate:null;
-    }
     const originalFetch=window.fetch.bind(window);
     window.fetch=async function(input,init){
       const result=await originalFetch(input,init);
       try{
-        const url=String(typeof input==='string'?input:input?.url||'');
-        const method=String(init?.method||(typeof input==='object'&&input?.method)||'GET').toUpperCase();
-        const isOrderCreation=/\\/rest\\/v1\\/(?:lift_pedidos|rpc\\/[^/?]*(?:pedido|orden|checkout|order)[^/?]*)(?:[?\\/]|$)/i.test(url);
-        if(creatingOrder&&!redirecting&&result.ok&&method==='POST'&&isOrderCreation){
-          let id=null;
-          try{const body=await result.clone().text();if(body)id=orderId(JSON.parse(body));}catch(parseError){console.warn('Respuesta de pedido sin JSON:',parseError)}
-          setTimeout(()=>finishOrder(id),800);
+        const url=String(typeof input==='string'?input:input.url||'');
+        const method=String(init?.method||(typeof input==='object'&&input.method)||'GET').toUpperCase();
+        if(creatingOrder&&result.ok&&method==='POST'&&/\\/rest\\/v1\\/lift_pedidos(?:\\?|$)/.test(url)){
+          const payload=await result.clone().json();
+          const order=Array.isArray(payload)?payload[0]:payload;
+          const id=Number(order?.id);
+          if(Number.isSafeInteger(id)&&id>0){
+            creatingOrder=false;
+            setTimeout(()=>location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id)),650);
+          }
         }
-      }catch(err){console.warn('Redirección posterior al pedido:',err)}
+      }catch(err){console.warn('Seguimiento posterior al pedido:',err)}
       return result;
     };
-    // Ocultar secuencias de escape literales que quedaron impresas debajo del checkout.
-    function removeLiteralEscapes(){
-      const modal=document.getElementById('checkoutModal');
-      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-      const toRemove=[];let node;
-      while((node=walker.nextNode())){
-        if(modal?.contains(node))continue;
-        const value=node.nodeValue||'';
-        const cleaned=value.replaceAll(String.fromCharCode(92),'').replace(/[nrt]/g,'').trim();
-        if(value.includes(String.fromCharCode(92))&&cleaned==='')toRemove.push(node);
-      }
-      toRemove.forEach(node=>node.remove());
-    }
     let tries=0;
     const timer=setInterval(function(){
       const modal=document.getElementById('checkoutModal');
-      if(modal && typeof window.openCheckout==='function' && document.readyState==='complete'){
+      if(modal && typeof window.openCheckout==='function'){
         clearInterval(timer);
         try{
-          // La aplicación y el catálogo deben terminar su carga antes de leer el carrito.
-          window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('supgo-cart-change'));
           window.openCheckout();
           document.body.classList.add('supgo-standalone-checkout');
-          if(!document.getElementById('supgoCheckoutHomeBack')){
-            const back=document.createElement('a');
-            back.id='supgoCheckoutHomeBack';
-            back.href='/home/';
-            back.textContent='← Volver al inicio';
-            back.setAttribute('aria-label','Volver a la página de inicio');
-            back.style.cssText='display:inline-flex;align-items:center;gap:7px;padding:12px 16px;margin:6px 12px 0;color:#111;font:500 13px Poppins,Arial,sans-serif;text-decoration:none;min-height:44px;border-radius:6px;background:#f5f5f5';
-            const content=modal.querySelector('.modal-content, .checkout-content')||modal;
-            content.prepend(back);
+          // Retirar secuencias literales \\n que aparecen como texto fuera del formulario.
+          const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+          const stray=[];let textNode;
+          while((textNode=walker.nextNode())){
+            if(modal.contains(textNode))continue;
+            if(/^(?:\s|\\n|\\r|\\t)+$/.test(textNode.nodeValue)&&/\\[nrt]/.test(textNode.nodeValue))stray.push(textNode);
           }
-          removeLiteralEscapes();
+          stray.forEach(n=>n.remove());
           let node=modal;
           while(node && node!==document.body){for(const child of node.parentElement.children){if(child!==node && child.tagName!=='SCRIPT' && child.tagName!=='STYLE')child.style.setProperty('display','none','important')}node=node.parentElement}
           document.title='Finalizar pedido | SUPGO';
