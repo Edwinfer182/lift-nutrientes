@@ -384,7 +384,7 @@ document.addEventListener('supgo:header-ready',function(){{
  const list=window.__supgoSeoFilters?.brands;
  if(!menu||!Array.isArray(list))return;
  const logos=new Map(list.map(x=>[String(x[0]).trim().toLocaleLowerCase('es'),x[2]]));
- menu.querySelectorAll('.supgo-brand-card').forEach(function(card){{
+ const paintLogos=function(){{menu.querySelectorAll('.supgo-brand-card').forEach(function(card){{
    if(card.querySelector('img'))return;
    const name=card.querySelector('b')?.textContent?.trim().toLocaleLowerCase('es');
    const src=logos.get(name);
@@ -397,7 +397,10 @@ document.addEventListener('supgo:header-ready',function(){{
    logo.onerror=function(){{logo.remove();}};
    logo.src=src;
    card.prepend(logo);
- }});
+ }});}};
+ const links=menu.querySelector('.supgo-links');
+ if(links){{new MutationObserver(paintLogos).observe(links,{{childList:true}});}}
+ paintLogos();
 }});
 </script>
 <script defer src="/componentes/header-loader.js?v=20261020-brandlogos18"></script>
