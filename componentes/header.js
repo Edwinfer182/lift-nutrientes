@@ -15,7 +15,7 @@ function getCart(){const data=json(STORAGE.cart,{});return data&&typeof data==='
 function saveCart(data){localStorage.setItem(STORAGE.cart,JSON.stringify(data));window.dispatchEvent(new Event('supgo-cart-change'));updateCount();}
 const bar=host.querySelector('.bar');
 const menuButton=host.querySelector('.filterMobile'),offerButton=host.querySelector('#offersButton');
-const search=host.querySelector('#q'),results=host.querySelector('#searchResults');
+const search=host.querySelector('#q'),results=host.querySelector('#searchResults'),clearSearch=host.querySelector('#clearSearch');
 const cartButton=host.querySelector('.cartDesktop'),count=host.querySelector('#count');
 if(offerButton)offerButton.onclick=()=>go('ofertas','1');
 const brand=host.querySelector('.brand');if(brand&&!brand.matches('a[href]')){brand.style.cursor='pointer';brand.onclick=()=>go();}
@@ -75,7 +75,9 @@ a.append(photo,title);results.append(a);
 }
 results.hidden=!results.childElementCount;
 }
-if(search)search.addEventListener('input',suggest);
+function updateClearSearch(){if(clearSearch&&search)clearSearch.hidden=!search.value.length;}
+if(search){search.addEventListener('input',()=>{updateClearSearch();suggest();});updateClearSearch();}
+if(clearSearch)clearSearch.addEventListener('click',()=>{search.value='';results?.replaceChildren();if(results)results.hidden=true;updateClearSearch();search.focus();});
 // Carrito único compartido entre fichas SEO (misma clave que el catálogo).
 const backdrop=document.createElement('div');backdrop.className='supgo-cart-overlay';backdrop.hidden=true;
 const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
