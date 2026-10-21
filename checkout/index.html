@@ -22,6 +22,14 @@
         try{
           window.openCheckout();
           document.body.classList.add('supgo-standalone-checkout');
+          // Retirar secuencias literales \\n que aparecen como texto fuera del formulario.
+          const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+          const stray=[];let textNode;
+          while((textNode=walker.nextNode())){
+            if(modal.contains(textNode))continue;
+            if(/^(?:\s|\\n|\\r|\\t)+$/.test(textNode.nodeValue)&&/\\[nrt]/.test(textNode.nodeValue))stray.push(textNode);
+          }
+          stray.forEach(n=>n.remove());
           let node=modal;
           while(node && node!==document.body){for(const child of node.parentElement.children){if(child!==node && child.tagName!=='SCRIPT' && child.tagName!=='STYLE')child.style.setProperty('display','none','important')}node=node.parentElement}
           document.title='Finalizar pedido | SUPGO';
