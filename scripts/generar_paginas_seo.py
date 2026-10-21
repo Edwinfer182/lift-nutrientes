@@ -294,6 +294,7 @@ def build(row):
  related=row.get("_related",[])
  variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'" title="'+esc(v["label"])+'">'+('<span class="option-photo"><img src="'+esc(v["image"])+'" alt="'+esc(v["label"])+'" loading="lazy"></span>' if v["image"] else '<span class="option-photo option-empty">Sin foto</span>')+'<span class="option-label">'+esc(v["label"])+'</span></a>' for v in variants)
  related_html=''.join('<a class="related-item" href="'+esc(v["url"])+'">'+('<img loading="lazy" src="'+esc(v["image"])+'" alt="'+esc(v["name"])+'">' if v["image"] else '')+'<strong>'+esc(v["name"])+'</strong><small>'+esc(v["brand"])+'</small></a>' for v in related)
+ title_brand_html = (' <span class="seo-title-brand">' + esc(brand) + '</span>') if brand else ''
  product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical},ensure_ascii=False).replace("<","\\u003c")
  return filename, f'''<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -453,7 +454,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <article class="product-card">
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div></section>
 <section class="product-info">
-<h1 class="seo-product-title">{esc(name)}{f' <span class="seo-title-brand">{esc(brand)}</span>' if brand else ''}</h1><div class="product-price">{price_html}</div>
+<h1 class="seo-product-title">{esc(name)}{title_brand_html}</h1><div class="product-price">{price_html}</div>
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
 <div class="product-rule"></div>
 <details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
