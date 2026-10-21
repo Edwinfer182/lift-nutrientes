@@ -7,6 +7,9 @@
   if(!response.ok)throw Error('No fue posible abrir el checkout.');
   let html=await response.text();
   if(!html.includes('checkoutModal'))throw Error('No se encontró el checkout original.');
+  // Conservar el carrito antes de cargar de nuevo la aplicación principal.
+  const cartSnapshot=localStorage.getItem('liftCartV2');
+  const metaSnapshot=localStorage.getItem('liftCartMetaV1');
   const bootstrap=`<style id="supgo-standalone-checkout-style">
     body.supgo-standalone-checkout{background:#fff!important}
     body.supgo-standalone-checkout #checkoutModal{visibility:visible!important;opacity:1!important;display:block!important;position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;width:100%!important;height:auto!important;min-height:100dvh!important;max-height:none!important;overflow:visible!important;transform:none!important;background:#fff!important;padding:0!important;margin:0!important;z-index:1!important}
@@ -14,6 +17,24 @@
     body.supgo-standalone-checkout #checkoutModal .modal-backdrop{display:none!important}
   </style>
   <script>(function(){
+    // Sincronizar el carrito que llega desde las fichas SEO.
+    const savedCart=${JSON.stringify(cartSnapshot)};
+    const savedMeta=${JSON.stringify(metaSnapshot)};
+    function countCart(){
+      try{
+        const cart=JSON.parse(localStorage.getItem('liftCartV2')||'{}');
+        return Object.values(cart).reduce((sum,v)=>sum+Math.max(0,Number(typeof v==='object'?(v.quantity??v.qty):v)||0),0);
+      }catch(_){return 0}
+    }
+    if(!countCart()&&savedCart){
+      try{
+        const parsed=JSON.parse(savedCart);
+        if(parsed&&Object.values(parsed).some(v=>Number(typeof v==='object'?(v.quantity??v.qty):v)>0)){
+          localStorage.setItem('liftCartV2',savedCart);
+          if(savedMeta&&!localStorage.getItem('liftCartMetaV1'))localStorage.setItem('liftCartMetaV1',savedMeta);
+        }
+      }catch(_){}
+    }
     // Navegar al seguimiento únicamente si Supabase confirma la creación.
     let creatingOrder=false;
     let redirecting=false;
@@ -72,6 +93,29 @@
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('supgo-cart-change'));
           window.openCheckout();
+          // Si el carrito tiene artículos, el checkout no puede enviarse con total cero.
+          const checkout=document.getElementById('checkoutModal');
+          const warning=document.createElement('p');
+          warning.id='supgoCheckoutCartWarning';
+          warning.style.cssText='display:none;color:#a02323;font:500 13px Poppins,Arial,sans-serif;padding:10px 14px;margin:8px 0;background:#fff1f1;border-radius:7px';
+          warning.textContent='Estamos sincronizando tus productos. Vuelve al carrito si no aparecen.';
+          (checkout.querySelector('.modal-content, .checkout-content')||checkout).append(warning);
+          function verifyCheckoutCart(){
+            const totalText=(checkout.innerText||'');
+            const nonzero=/subtotal[^\\n]*\\$\\s*(?!0(?:\\D|$))[\\d.,]+/i.test(totalText);
+            const hasSaved=countCart()>0;
+            const orderButton=[...checkout.querySelectorAll('button')].find(b=>/generar pedido/i.test(b.textContent||''));
+            if(hasSaved&&!nonzero){
+              warning.style.display='block';
+              if(orderButton){orderButton.disabled=true;orderButton.title='Primero deben cargarse los productos del carrito';}
+            }else{
+              warning.style.display='none';
+              if(orderButton&&orderButton.title==='Primero deben cargarse los productos del carrito'){orderButton.disabled=false;orderButton.removeAttribute('title');}
+            }
+          }
+          setTimeout(verifyCheckoutCart,1200);
+          setTimeout(verifyCheckoutCart,3500);
+          setTimeout(verifyCheckoutCart,6500);
           document.body.classList.add('supgo-standalone-checkout');
           if(!document.getElementById('supgoCheckoutHomeBack')){
             const back=document.createElement('a');
