@@ -369,6 +369,18 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 /* Ficha SEO: ajustes móviles para impedir imágenes gigantes y desbordamientos */
 
 
+/* Galería SEO: miniaturas verticales sobre el borde superior izquierdo. */
+.product-gallery{{position:relative;min-width:0}}
+.product-gallery .gallery-thumbs{{position:absolute;z-index:4;left:10px;top:10px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-height:calc(100% - 20px);overflow-x:hidden;overflow-y:auto;padding:2px;margin:0}}
+.product-gallery .gallery-thumb{{flex:0 0 48px;width:48px;height:48px;padding:4px;border-radius:7px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}}
+.product-gallery .gallery-thumb.active{{padding:3px}}
+@media(max-width:760px){{
+ body .product-page .product-gallery .gallery-thumbs{{position:absolute;left:8px;top:8px;z-index:4;display:flex;flex-direction:column;gap:5px;max-height:calc(100% - 16px);overflow-x:hidden;overflow-y:auto;padding:2px}}
+ body .product-page .product-gallery .gallery-thumb{{flex:0 0 42px;width:42px;height:42px;padding:3px;border-radius:6px}}
+ body .product-page .product-gallery .gallery-thumb.active{{padding:2px}}
+ body .product-page .product-gallery .product-media{{padding-left:58px!important}}
+}}
+
 /* ÚNICO BLOQUE RESPONSIVO DE LA FICHA SEO. */
 @media screen and (max-width:760px){{
  html,body{{max-width:100%;overflow-x:hidden}}
@@ -378,8 +390,8 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  body .product-page .product-card .product-gallery .product-media{{width:100%;min-height:0;height:auto;aspect-ratio:1.26;padding:12px;border:1px solid #eee;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}}
  body .product-page .product-card .product-gallery .zoom-image{{display:flex;width:100%;height:100%;min-height:0;align-items:center;justify-content:center;overflow:hidden}}
  body .product-page .product-card .product-gallery .zoom-image img{{display:block;width:100%;height:100%;max-width:100%;max-height:300px;object-fit:contain;mix-blend-mode:normal}}
- body .product-page .product-card .product-gallery .gallery-thumbs{{display:flex;gap:8px;overflow-x:auto;padding:9px 1px 2px}}
- body .product-page .product-card .product-gallery .gallery-thumb{{flex:0 0 58px;width:58px;height:58px;padding:5px;border-radius:8px}}
+ body .product-page .product-card .product-gallery .gallery-thumbs{{display:flex;flex-direction:column;gap:5px;overflow-x:hidden;overflow-y:auto;padding:2px}}
+ body .product-page .product-card .product-gallery .gallery-thumb{{flex:0 0 42px;width:42px;height:42px;padding:3px;border-radius:6px}}
  body .product-page .product-card .product-info{{width:100%;min-width:0;padding:13px 14px 20px;align-items:stretch}}
  body .product-page .product-card .product-info .product-brand{{font-size:10px;font-weight:500;letter-spacing:.08em;margin:0 0 7px;color:#777}}
  body .product-page .product-card .product-info h1{{font-size:20px;line-height:1.28;letter-spacing:-.01em;font-weight:550;margin:0 0 12px}}
@@ -431,7 +443,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 
 <main class="product-page">
 <article class="product-card">
-<section class="product-gallery"><div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}</section>
+<section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div></section>
 <section class="product-info">
 <p class="product-brand">{esc(brand)}</p>
 <h1>{esc(name)}</h1><div class="product-price">{price_html}</div>
