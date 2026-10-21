@@ -22,7 +22,7 @@ const bar=host.querySelector('.bar');
 const menuButton=host.querySelector('.filterMobile'),offerButton=host.querySelector('#offersButton');
 const search=host.querySelector('#q'),results=host.querySelector('#searchResults'),clearSearch=host.querySelector('#clearSearch');
 const cartButton=host.querySelector('.cartDesktop'),count=host.querySelector('#count');
-const favoriteLink=document.createElement('a');favoriteLink.href='/favoritos/';favoriteLink.className='iconbtn supgo-fav-link';favoriteLink.textContent='♡ Favoritos';favoriteLink.style.cssText='display:inline-flex;align-items:center;text-decoration:none;font-size:12px';
+const favoriteLink=document.createElement('a');favoriteLink.href='/favoritos/';favoriteLink.className='iconbtn supgo-fav-link';favoriteLink.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>';favoriteLink.setAttribute('aria-label','Favoritos');favoriteLink.title='Favoritos';favoriteLink.style.cssText='display:inline-flex;align-items:center;justify-content:center;text-decoration:none;width:44px;height:44px;padding:0';
 if(cartButton)cartButton.before(favoriteLink);else bar?.append(favoriteLink);
 if(offerButton)offerButton.onclick=()=>location.assign('/ofertas/');
 const brand=host.querySelector('.brand');if(brand&&!brand.matches('a[href]')){brand.style.cursor='pointer';brand.onclick=()=>go();}
