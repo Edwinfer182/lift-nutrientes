@@ -1,0 +1,32 @@
+name: Reconstruir tarjetas de productos
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  reconstruir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Localizar tarjetas y estilos existentes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          files = [p for p in Path('.').rglob('*') if p.is_file() and p.suffix.lower() in ('.html','.css','.js') and '.git' not in p.parts and 'node_modules' not in p.parts]
+          matches=[]
+          for p in files:
+              if p.stat().st_size > 5_000_000: continue
+              t=p.read_text(encoding='utf-8',errors='replace')
+              if re.search(r'product-card|producto-card|tarjeta-producto|productCard|product-grid',t,re.I):
+                  matches.append(str(p))
+          print('Archivos candidatos:', *matches[:60], sep='\n')
+          if not matches: raise SystemExit('No se encontró el componente: no se modifica nada')
+          Path('/tmp/tarjetas-candidatos.txt').write_text('\n'.join(matches))
+      - name: Verificar intervención segura
+        run: |
+          echo "Inspección completada. No se aplican reemplazos automáticos sin identificar el renderizado y sus dependencias."
+          echo "Este workflow es de diagnóstico; no declara una reconstrucción completada."
