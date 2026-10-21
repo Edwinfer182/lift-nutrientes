@@ -614,3 +614,5 @@ def main():
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas SEO independientes sin skin.")
 if __name__=="__main__": main()
+
+# SEO SUPGO: regenerar páginas tras actualizar las nueve fichas ISO100 Medellín (2026-10-21).
