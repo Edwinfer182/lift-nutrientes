@@ -169,6 +169,18 @@ body .supgo-menu .supgo-brand-card{background:#fff!important}
 body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 """
 
+def seo_filter_data(rows):
+ brands, categories = {}, {}
+ total=0
+ for item in rows:
+  if item.get("activo") is not True: continue
+  p=item.get("product") or {}
+  total+=1
+  for source, value in ((brands,p.get("brand") or p.get("marca")), (categories,p.get("category") or p.get("categoria"))):
+   name=str(value or "").strip()
+   if name: source[name]=source.get(name,0)+1
+ return {"brands":sorted(brands.items(),key=lambda x:x[0].casefold()),"categories":sorted(categories.items(),key=lambda x:x[0].casefold()),"total":total}
+
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
@@ -352,7 +364,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 </style>
 <style id="seo-header-css">{SEO_HEADER_CSS}\n{SEO_MENU_FIX}</style>
 </head><body>
-<script defer src="/componentes/header-loader.js?v=20261020-seo-menu-fix15"></script>
+<script>window.__supgoSeoFilters={json.dumps(row.get("_filter_counts",{}),ensure_ascii=False).replace("<","\\u003c")};</script>\n<script defer src="/componentes/header-loader.js?v=20261020-seo-menu-data16"></script>
 
 <main class="product-page">
 <article class="product-card">
@@ -445,6 +457,8 @@ def main():
   row["_seo"]=seo_rows.get(str(row["id"]),{})
   row["_offer"]=offers.get(str(row["id"]))
   row["_merchant_settings"]=merchant_settings
+ filter_counts=seo_filter_data(rows)
+ for row in rows: row["_filter_counts"]=filter_counts
  allowed_brands=fetch_allowed_brands()
  valid=[r for r in rows if allowed(r) and str((r["product"].get("brand") or r["product"].get("marca") or "SIN MARCA")).strip().casefold() in allowed_brands]
  brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
