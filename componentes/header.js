@@ -45,7 +45,7 @@ function draw(tab){
  for(const v of values){
   const a=document.createElement('a'),u=new URL(ROOT);u.searchParams.set(key,v);a.href=u.href;
   if(categories){a.className='supgo-category-link';const name=document.createElement('span');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v);a.append(name,qty);}
-  else{a.className='supgo-brand-card';const record=Array.isArray(provided)?provided.find(x=>String(x?.[0])===v):null;const logo=record?.[2];if(typeof logo==='string'&&/^https?:\/\//i.test(logo)){const img=document.createElement('img');img.className='supgo-brand-logo';img.src=logo;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();a.append(img);}const name=document.createElement('b');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v)+' productos';a.append(name,qty);}
+  else{a.className='supgo-brand-card';const record=Array.isArray(provided)?provided.find(x=>String(x?.[0])===v):null;const logo=record?.[2];if(typeof logo==='string'&&(/^(https?:\/\/|\/productos-assets\/logos\/)/i.test(logo))){const img=document.createElement('img');img.className='supgo-brand-logo';img.src=logo;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();a.append(img);}const name=document.createElement('b');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v)+' productos';a.append(name,qty);}
   links.append(a);
  }
  if(!links.childElementCount){const msg=document.createElement('p');msg.textContent=(catalog.length||provided?.length)?'No se encontraron resultados.':'No hay filtros disponibles.';links.append(msg);}
