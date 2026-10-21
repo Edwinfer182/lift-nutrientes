@@ -10,13 +10,20 @@ const STORAGE={cart:'liftCartV2',meta:'liftCartMetaV1'};
 const escText=x=>String(x==null?'':x);
 const money=x=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(x)||0);
 function json(key,otherwise){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):otherwise;}catch{return otherwise;}}
-function go(key,value){const u=new URL(ROOT);if(key)u.searchParams.set(key,value);location.href=u.href;}
+function seoSlug(value){return String(value||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,110);}
+function go(key,value){
+ if(key==='buscar'){location.assign('/buscar/?q='+encodeURIComponent(value||''));return;}
+ if(key==='categoria'||key==='marca'){location.assign('/'+(key==='categoria'?'categorias':'laboratorios')+'/'+seoSlug(value)+'/');return;}
+ const u=new URL(ROOT);if(key)u.searchParams.set(key,value);location.href=u.href;
+}
 function getCart(){const data=json(STORAGE.cart,{});return data&&typeof data==='object'&&!Array.isArray(data)?data:{};}
 function saveCart(data){localStorage.setItem(STORAGE.cart,JSON.stringify(data));window.dispatchEvent(new Event('supgo-cart-change'));updateCount();}
 const bar=host.querySelector('.bar');
 const menuButton=host.querySelector('.filterMobile'),offerButton=host.querySelector('#offersButton');
 const search=host.querySelector('#q'),results=host.querySelector('#searchResults'),clearSearch=host.querySelector('#clearSearch');
 const cartButton=host.querySelector('.cartDesktop'),count=host.querySelector('#count');
+const favoriteLink=document.createElement('a');favoriteLink.href='/favoritos/';favoriteLink.className='iconbtn supgo-fav-link';favoriteLink.textContent='♡ Favoritos';favoriteLink.style.cssText='display:inline-flex;align-items:center;text-decoration:none;font-size:12px';
+if(cartButton)cartButton.before(favoriteLink);else bar?.append(favoriteLink);
 if(offerButton)offerButton.onclick=()=>go('ofertas','1');
 const brand=host.querySelector('.brand');if(brand&&!brand.matches('a[href]')){brand.style.cursor='pointer';brand.onclick=()=>go();}
 host.querySelectorAll('.liftFilterLink').forEach(el=>el.onclick=()=>navigator.clipboard?.writeText(ROOT.href+'?ofertas=1'));
@@ -41,9 +48,9 @@ function draw(tab){
  const term=menuSearch.value.trim().toLocaleLowerCase('es');
  const values=[...counts.keys()].sort((a,b)=>a.localeCompare(b,'es')).filter(v=>v.toLocaleLowerCase('es').includes(term));
  const links=popup.querySelector('.supgo-links');links.replaceChildren();links.classList.toggle('is-brands',!categories);
- if(categories&&!term){const all=document.createElement('a');all.href=ROOT.href;all.className='supgo-category-link';all.innerHTML='<span>Todos</span><small>'+(preset?.total||catalog.length)+'</small>';links.append(all);}
+ if(categories&&!term){const all=document.createElement('a');all.href='/categorias/';all.className='supgo-category-link';all.innerHTML='<span>Todos</span><small>'+(preset?.total||catalog.length)+'</small>';links.append(all);}
  for(const v of values){
-  const a=document.createElement('a'),u=new URL(ROOT);u.searchParams.set(key,v);a.href=u.href;
+  const a=document.createElement('a');a.href='/'+(categories?'categorias':'laboratorios')+'/'+seoSlug(v)+'/';
   if(categories){a.className='supgo-category-link';const name=document.createElement('span');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v);a.append(name,qty);}
   else{a.className='supgo-brand-card';const record=Array.isArray(provided)?provided.find(x=>String(x?.[0])===v):null;const logo=record?.[2];if(typeof logo==='string'&&(/^(https?:\/\/|\/productos-assets\/logos\/)/i.test(logo))){const img=document.createElement('img');img.className='supgo-brand-logo';img.alt='';img.loading='eager';img.decoding='async';img.onerror=()=>{img.remove();};img.src=new URL(logo,ROOT).href;a.append(img);}const name=document.createElement('b');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v)+' productos';a.append(name,qty);}
   links.append(a);
@@ -64,7 +71,7 @@ if(term.length<2){results.hidden=true;return;}
 for(const item of catalog.filter(x=>escText(field(x.product,'name','nombre')).toLocaleLowerCase('es').includes(term)).slice(0,7)){
 const p=item.product||{},a=document.createElement('a');
 a.className='supgo-search-item';
-const u=new URL(ROOT);u.searchParams.set('producto',item.id);a.href=u.href;
+a.href='/productos/'+seoSlug(field(p,'name','nombre'))+'-'+item.id+'.html';
 const picture=field(p,'image','imagen','image_url','imagen_url','foto','url_imagen');
 let src=typeof picture==='string'?picture.trim():'';
 if(!src&&Array.isArray(p.images)&&p.images.length)src=typeof p.images[0]==='string'?p.images[0]:(p.images[0]?.url||'');
@@ -109,7 +116,7 @@ function closeCart(){drawer.hidden=true;backdrop.hidden=true;document.body.class
 function openCart(){drawer.hidden=false;backdrop.hidden=false;document.body.classList.add('supgo-cart-open');renderCart();const button=drawer.querySelector('#supgoGoCheckout');if(button)button.hidden=false;}
 drawer.querySelector('.supgo-cart-top button').onclick=closeCart;
 backdrop.onclick=closeCart;
-if(cartButton){cartButton.removeAttribute('onclick');cartButton.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();openCart();},true);}
+if(cartButton){cartButton.removeAttribute('onclick');cartButton.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();location.assign('/carrito/');},true);}
 function renderCart(){
  const saved=getCart(),meta=json(STORAGE.meta,{});
  cartList.replaceChildren();let subtotal=0,priced=true;
@@ -178,7 +185,7 @@ window.supgoOpenSeoCheckout=()=>{
  checkoutLayer.hidden=false;checkoutLayer.style.display='flex';checkoutStatus.style.display='block';checkoutStatus.textContent='Cargando checkout…';
  checkoutFrame.src='/';
 };
-drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
+drawer.querySelector('#supgoGoCheckout').onclick=()=>location.assign('/checkout/');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
