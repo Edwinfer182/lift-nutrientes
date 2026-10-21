@@ -14481,7 +14481,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    document.body.style.overflow='auto';
    const params=new URLSearchParams(location.search);
    const order=String(params.get('pedido')||'').replace(/[^0-9]/g,'');
-   const phone=String(params.get('celular')||'').replace(/[^0-9]/g,'');
+   let phone=String(params.get('celular')||'').replace(/[^0-9]/g,'');
+   if(order&&!phone){try{const saved=JSON.parse(sessionStorage.getItem('supgoCheckoutCreatedOrder')||'{}');if(String(saved.id)===order)phone=String(saved.phone||'').replace(/[^0-9]/g,'')}catch(e){}}
    const ref=document.getElementById('liftTrackRef'),tel=document.getElementById('liftTrackPhone');
    if(ref&&order)ref.value=order;
    if(tel&&phone)tel.value=phone;
