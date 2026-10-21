@@ -22,19 +22,36 @@ const brand=host.querySelector('.brand');if(brand&&!brand.matches('a[href]')){br
 host.querySelectorAll('.liftFilterLink').forEach(el=>el.onclick=()=>navigator.clipboard?.writeText(ROOT.href+'?ofertas=1'));
 function updateCount(){let total=0;Object.values(getCart()).forEach(v=>{const n=typeof v==='number'?v:Number(v?.quantity??v?.qty??v);if(Number.isFinite(n)&&n>0)total+=n;});if(count)count.textContent=total;return total;}
 const popup=document.createElement('div');popup.className='supgo-menu';popup.hidden=true;
-popup.innerHTML='<div class="supgo-tabs"><button type="button" data-tab="brands" class="active">Laboratorios</button><button type="button" data-tab="categories">Categorías</button></div><div class="supgo-links"></div>';
-host.append(popup);
+popup.setAttribute('role','dialog');popup.setAttribute('aria-modal','true');popup.setAttribute('aria-label','Marcas y categorías');
+popup.innerHTML='<div class="supgo-menu-head"><strong>Marcas / categorías</strong><button type="button" class="supgo-menu-close" aria-label="Cerrar">×</button></div><div class="supgo-menu-inner"><div class="supgo-tabs"><button type="button" data-tab="brands" class="active">Laboratorios</button><button type="button" data-tab="categories">Categorías</button></div><div class="supgo-menu-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar laboratorio..." aria-label="Buscar laboratorio"></div><div class="supgo-links"></div></div>';
+const menuShade=document.createElement('div');menuShade.className='supgo-menu-shade';menuShade.hidden=true;
+document.body.append(menuShade,popup);
+const menuSearch=popup.querySelector('.supgo-menu-search input');
 let catalog=[];
 const field=(p,...names)=>{for(const n of names){if(p&&p[n]!=null&&p[n]!=='')return p[n];}return '';};
+function closeMenu(){popup.hidden=true;menuShade.hidden=true;document.body.classList.remove('supgo-menu-open');}
+function openMenu(){popup.hidden=false;menuShade.hidden=false;document.body.classList.add('supgo-menu-open');draw(popup.querySelector('[data-tab].active').dataset.tab);menuSearch.value='';}
 function draw(tab){
-const key=tab==='categories'?'categoria':'marca',names=tab==='categories'?['category','categoria']:['brand','marca'];
-const values=[...new Set(catalog.map(item=>escText(field(item.product,...names)).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
-const links=popup.querySelector('.supgo-links');links.replaceChildren();
-for(const v of values){const a=document.createElement('a'),u=new URL(ROOT);u.searchParams.set(key,v);a.href=u.href;a.textContent=v;links.append(a);}
-if(!values.length)links.textContent='No se pudieron cargar los filtros.';
+ const categories=tab==='categories',key=categories?'categoria':'marca',names=categories?['category','categoria']:['brand','marca'];
+ const counts=new Map();
+ catalog.forEach(item=>{const v=escText(field(item.product,...names)).trim();if(v)counts.set(v,(counts.get(v)||0)+1);});
+ const term=menuSearch.value.trim().toLocaleLowerCase('es');
+ const values=[...counts.keys()].sort((a,b)=>a.localeCompare(b,'es')).filter(v=>v.toLocaleLowerCase('es').includes(term));
+ const links=popup.querySelector('.supgo-links');links.replaceChildren();links.classList.toggle('is-brands',!categories);
+ if(categories&&!term){const all=document.createElement('a');all.href=ROOT.href;all.className='supgo-category-link';all.innerHTML='<span>Todos</span><small>'+catalog.length+'</small>';links.append(all);}
+ for(const v of values){
+  const a=document.createElement('a'),u=new URL(ROOT);u.searchParams.set(key,v);a.href=u.href;
+  if(categories){a.className='supgo-category-link';const name=document.createElement('span');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v);a.append(name,qty);}
+  else{a.className='supgo-brand-card';const name=document.createElement('b');name.textContent=v;const qty=document.createElement('small');qty.textContent=counts.get(v)+' productos';a.append(name,qty);}
+  links.append(a);
+ }
+ if(!links.childElementCount){const msg=document.createElement('p');msg.textContent=catalog.length?'No se encontraron resultados.':'Cargando filtros…';links.append(msg);}
+ menuSearch.placeholder=categories?'Buscar categoría...':'Buscar laboratorio...';
 }
-if(menuButton){menuButton.removeAttribute('onclick');menuButton.onclick=()=>{popup.hidden=!popup.hidden;if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);};}
-popup.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{popup.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));draw(b.dataset.tab);});
+if(menuButton){menuButton.removeAttribute('onclick');menuButton.onclick=()=>popup.hidden?openMenu():closeMenu();}
+popup.querySelector('.supgo-menu-close').onclick=closeMenu;menuShade.onclick=closeMenu;
+popup.querySelectorAll('[data-tab]').forEach(btn=>btn.onclick=()=>{popup.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===btn));menuSearch.value='';draw(btn.dataset.tab);});
+menuSearch.addEventListener('input',()=>draw(popup.querySelector('[data-tab].active').dataset.tab));
 if(search){search.setAttribute('enterkeyhint','search');search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const term=search.value.trim();if(term)go('buscar',term);}});}
 if(results){results.hidden=true;}
 function suggest(){
@@ -152,8 +169,8 @@ drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 orderButton.onclick=()=>go('mi-pedido','1');
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();popup.hidden=true;}});
-document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))popup.hidden=true;});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
+document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
 window.addEventListener('supgo-cart-change',()=>{updateCount();if(!drawer.hidden)renderCart();});
 updateCount();
