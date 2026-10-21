@@ -75,9 +75,17 @@ a.append(photo,title);results.append(a);
 }
 results.hidden=!results.childElementCount;
 }
-function updateClearSearch(){if(clearSearch&&search)clearSearch.hidden=!search.value.length;}
-if(search){search.addEventListener('input',()=>{updateClearSearch();suggest();});updateClearSearch();}
-if(clearSearch)clearSearch.addEventListener('click',()=>{search.value='';results?.replaceChildren();if(results)results.hidden=true;updateClearSearch();search.focus();});
+// Botón flotante sobre el input, visible incluso si CSS antiguo oculta botones del header.
+const clearButton=clearSearch||(search?document.createElement('button'):null);
+if(clearButton&&search){
+ if(!clearSearch){clearButton.id='clearSearch';clearButton.className='supgo-clear-search';clearButton.type='button';clearButton.setAttribute('aria-label','Borrar búsqueda');clearButton.textContent='×';search.parentElement.append(clearButton);}
+ search.parentElement.style.setProperty('position','relative');
+ clearButton.style.cssText='position:absolute!important;right:12px!important;top:22px!important;transform:translateY(-50%)!important;z-index:1007!important;width:30px!important;height:30px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#393b40!important;color:#fff!important;font:24px/30px Arial,sans-serif!important;text-align:center!important;cursor:pointer!important;pointer-events:auto!important;';
+ const updateClearSearch=()=>{const show=search.value.length>0;clearButton.hidden=!show;clearButton.style.setProperty('display',show?'block':'none','important');};
+ search.addEventListener('input',()=>{updateClearSearch();suggest();});
+ clearButton.addEventListener('click',e=>{e.preventDefault();search.value='';if(results){results.replaceChildren();results.hidden=true;}updateClearSearch();search.focus();});
+ updateClearSearch();
+}
 // Carrito único compartido entre fichas SEO (misma clave que el catálogo).
 const backdrop=document.createElement('div');backdrop.className='supgo-cart-overlay';backdrop.hidden=true;
 const drawer=document.createElement('aside');drawer.className='supgo-cart-drawer';drawer.hidden=true;
