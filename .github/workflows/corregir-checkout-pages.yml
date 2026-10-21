@@ -25,16 +25,14 @@ jobs:
           s = p.read_text(encoding='utf-8')
           original = s
           import re
-          # Unificar la ruta del pedido en todo el checkout.
+          # La redirección real usa una URL absoluta a la portada.
+          s = s.replace("new URL('https://supgo.co/')", "new URL('https://supgo.co/mis-pedidos/')")
+          s = s.replace('new URL("https://supgo.co/")', 'new URL("https://supgo.co/mis-pedidos/")')
           s = s.replace('/mi-pedido/', '/mis-pedidos/')
-          # Eliminar únicamente secuencias literales visibles al inicio del body
-          # o inmediatamente antes de la barra de navegación.
-          s, n1 = re.subn(r'(<body\\b[^>]*>\\s*)\\\\n', r'\\1', s, flags=re.I)
-          s, n2 = re.subn(r'\\\\n(?=\\s*<(?:header|nav)\\b)', '', s, flags=re.I)
-          # Algunos HTML imprimen la secuencia como texto al inicio del documento.
-          s, n3 = re.subn(r'(?<=</head>)\\s*\\\\n', '', s, flags=re.I)
-          print('Eliminadas:', n1, n2, n3)
-          print('Rutas /mi-pedido/ restantes:', s.count('/mi-pedido/'))
+          # Texto literal barra+n fuera de scripts, detectado tras cierres de script.
+          s, fixed = re.subn(r'(</script>\\s*)\\\\n(?=\\s*<(?:style|script|div|header|nav)\\b)', r'\\1', s, flags=re.I)
+          print('Secuencias visibles eliminadas:', fixed)
+          print('Redirección a mis-pedidos:', "new URL('https://supgo.co/mis-pedidos/')" in s)
           if s == original:
             print('Sin cambios nuevos: comprobar texto literal en HTML generado.')
           p.write_text(s, encoding='utf-8')
