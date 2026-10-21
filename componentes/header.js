@@ -179,51 +179,11 @@ window.supgoOpenSeoCheckout=()=>{
  checkoutFrame.src='/';
 };
 drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
-const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
+const orderButton=document.createElement('button');
+orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
-// Abrir el mismo módulo «Mi pedido» del catálogo sin abandonar la ficha SEO.
-const orderLayer=document.createElement('section');
-orderLayer.hidden=true;
-orderLayer.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#fff;display:none;flex-direction:column;font-family:Poppins,Arial,sans-serif';
-orderLayer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee"><strong>Mi pedido</strong><button type="button" data-close-order style="border:0;background:#f2f2f2;border-radius:50%;width:38px;height:38px;font-size:24px">×</button></div><iframe title="Mi pedido SUPGO" style="border:0;width:100%;flex:1;min-height:0"></iframe>';
-document.body.append(orderLayer);
-const orderFrame=orderLayer.querySelector('iframe');
-function closeOrder(){orderLayer.hidden=true;orderLayer.style.display='none';orderFrame.removeAttribute('src');}
-orderLayer.querySelector('[data-close-order]').onclick=closeOrder;
-const orderStatus=document.createElement('p');
-orderStatus.textContent='Abriendo consulta de pedidos…';
-orderStatus.style.cssText='padding:18px;color:#555;font:14px Poppins,Arial,sans-serif';
-orderLayer.insertBefore(orderStatus,orderFrame);
-orderFrame.style.visibility='hidden';
-orderFrame.addEventListener('load',()=>{
- let attempts=0;
- const revealOrder=()=>{
-  if(orderLayer.hidden)return;
-  let d,w;
-  try{d=orderFrame.contentDocument;w=orderFrame.contentWindow;}catch(error){return;}
-  if(!d)return;
-  // Esperar a que el catálogo termine de montar sus componentes.
-  const controls=[...d.querySelectorAll('button,a,[role="button"]')];
-  const match=controls.find(el=>/mi\s+pedido/i.test((el.textContent||el.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim())&&el.getClientRects().length);
-  if(match){
-   match.click();
-   orderStatus.hidden=true;
-   orderFrame.style.visibility='visible';
-   return;
-  }
-  if(++attempts<40){setTimeout(revealOrder,300);return;}
-  orderStatus.textContent='No se pudo abrir el módulo de pedidos. Cierra este panel e inténtalo de nuevo.';
- };
- revealOrder();
-});
-orderButton.addEventListener('click',event=>{
- event.preventDefault();event.stopImmediatePropagation();
- closeCart();closeMenu();
- orderLayer.hidden=false;orderLayer.style.display='flex';
- orderStatus.hidden=false;orderStatus.textContent='Abriendo consulta de pedidos…';
- orderFrame.style.visibility='hidden';
- orderFrame.src='/';
-},true);
+// Desde las fichas SEO, abrir la ruta pública de consulta de pedidos en la página principal.
+orderButton.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();go('mi-pedido','1');},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
