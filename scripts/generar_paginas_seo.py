@@ -381,6 +381,14 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  .product-gallery .product-media{{padding-left:58px!important}}
 }}
 
+/* Título compacto: marca junto al nombre, sin renglón independiente. */
+.product-info h1.seo-product-title{{font-family:Poppins,Arial,sans-serif;font-size:clamp(21px,2.15vw,29px);font-weight:500;line-height:1.33;letter-spacing:-.012em;margin:0 0 13px}}
+.product-info h1.seo-product-title .seo-title-brand{{display:inline;font-size:.58em;font-weight:500;letter-spacing:0;color:#777;white-space:normal;vertical-align:baseline}}
+@media(max-width:760px){{
+ body .product-page .product-info h1.seo-product-title{{font-size:17px!important;line-height:1.35!important;letter-spacing:0!important;font-weight:500!important;margin:0 0 10px!important}}
+ body .product-page .product-info h1.seo-product-title .seo-title-brand{{font-size:11px!important;font-weight:500!important;color:#777}}
+}}
+
 /* ÚNICO BLOQUE RESPONSIVO DE LA FICHA SEO. */
 @media screen and (max-width:760px){{
  html,body{{max-width:100%;overflow-x:hidden}}
@@ -394,7 +402,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  
  body .product-page .product-card .product-info{{width:100%;min-width:0;padding:13px 14px 20px;align-items:stretch}}
  body .product-page .product-card .product-info .product-brand{{font-size:10px;font-weight:500;letter-spacing:.08em;margin:0 0 7px;color:#777}}
- body .product-page .product-card .product-info h1{{font-size:20px;line-height:1.28;letter-spacing:-.01em;font-weight:550;margin:0 0 12px}}
+ body .product-page .product-card .product-info h1.seo-product-title{{font-size:17px;line-height:1.35;letter-spacing:0;font-weight:500;margin:0 0 10px}}
  body .product-page .product-card .product-info .product-price{{font-size:25px;line-height:1.2;margin:0 0 13px}}
  body .product-page .product-card .product-info .product-price strong{{font-size:25px!important;font-weight:650;letter-spacing:-.02em}}
  body .product-page .product-card .product-info .product-price del{{font-size:13px;margin:0 0 5px}}
@@ -445,8 +453,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <article class="product-card">
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div></section>
 <section class="product-info">
-<p class="product-brand">{esc(brand)}</p>
-<h1>{esc(name)}</h1><div class="product-price">{price_html}</div>
+<h1 class="seo-product-title">{esc(name)}{f' <span class="seo-title-brand">{esc(brand)}</span>' if brand else ''}</h1><div class="product-price">{price_html}</div>
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
 <div class="product-rule"></div>
 <details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
