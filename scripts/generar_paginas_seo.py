@@ -407,7 +407,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 </head><body>
 <script>window.__supgoSeoFilters={json.dumps(row.get("_filter_counts",{}),ensure_ascii=False).replace("<","\\u003c")};</script>
 
-<script defer src="/componentes/header-loader.js?v=20261020-brandlogos20"></script>
+<script defer src="/componentes/header-loader.js?v=20261020-brandlogos21"></script>
 
 <main class="product-page">
 <article class="product-card">
