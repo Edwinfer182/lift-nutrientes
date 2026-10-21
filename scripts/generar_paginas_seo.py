@@ -584,8 +584,30 @@ def main():
  families={}
  for item,d in entries:
   families.setdefault(family_key(item),[]).append(d)
+ # Recuperar variaciones cuyo campo sabor no coincide con su nombre.
+ # Se exige igual marca y prefijo completo de familia (incluye presentacion).
  for item,d in entries:
-  variants=families[family_key(item)]
+  key=family_key(item)
+  if key[0]!="name" or len(families[key])!=1:continue
+  name_slug=slug(d["name"])
+  possible=[k for k,v in families.items() if k!=key and k[0]=="name" and k[1]==key[1] and len(v)>=2 and name_slug.startswith(k[2]+"-")]
+  if possible:
+   target=max(possible,key=lambda k:len(k[2]))
+   families[target].append(d)
+   families[key].remove(d)
+ group_by_id={str(v["id"]):group for group in families.values() for v in group}
+ for item,d in entries:
+  variants=group_by_id[str(item["id"])]
+  # Si la ficha dice Brownie pero el sabor almacenado dice Chocolate,
+  # mostrar el sabor real deducido del nombre, sin cambiar Supabase.
+  if len(variants)>1:
+   group_key=next((k for k,v in families.items() if v is variants and k[0]=="name"),None)
+   if group_key:
+    count=len(group_key[2].split("-"))
+    for v in variants:
+     if slug(v["name"]).startswith(group_key[2]+"-"):
+      suffix=" ".join(v["name"].split()[count:]).strip()
+      if suffix:v["label"]=suffix
   item["_variants"]=variants[:24]
   excluded={str(v["id"]) for v in variants}
   p=item["product"]
