@@ -533,9 +533,9 @@ def main():
  filter_counts=seo_filter_data(rows,fetch_lab_logos())
  for row in rows: row["_filter_counts"]=filter_counts
  allowed_brands=fetch_allowed_brands()
- valid=[r for r in rows if allowed(r) and str((r['product'].get('brand') or r['product'].get('marca') or 'SIN MARCA')).strip().casefold() in allowed_brands]
+ valid=[r for r in rows if allowed(r)]
  for r in valid:
-  r['_indexable']=True
+  r['_indexable']=str((r['product'].get('brand') or r['product'].get('marca') or 'SIN MARCA')).strip().casefold() in allowed_brands
  brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
  if brand_only:
   if brand_only not in allowed_brands:raise RuntimeError("Marca no habilitada para SEO: "+brand_only)
