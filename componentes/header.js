@@ -190,7 +190,26 @@ document.body.append(orderLayer);
 const orderFrame=orderLayer.querySelector('iframe');
 function closeOrder(){orderLayer.hidden=true;orderLayer.style.display='none';orderFrame.removeAttribute('src');}
 orderLayer.querySelector('[data-close-order]').onclick=closeOrder;
-orderButton.onclick=()=>{closeCart();closeMenu();orderLayer.hidden=false;orderLayer.style.display='flex';orderFrame.src='/?mi-pedido=1';};
+orderFrame.addEventListener('load',()=>{
+ let tries=0;
+ const openNativeOrder=()=>{
+  if(orderLayer.hidden)return;
+  let doc;
+  try{doc=orderFrame.contentDocument;}catch(e){return;}
+  if(!doc)return;
+  const controls=[...doc.querySelectorAll('button,a,[role="button"]')];
+  const trigger=controls.find(el=>/^(?:📦\\s*)?mi pedido$/i.test((el.textContent||'').trim())&&el.getClientRects().length);
+  if(trigger){trigger.click();return;}
+  if(++tries<30)setTimeout(openNativeOrder,350);
+ };
+ openNativeOrder();
+});
+orderButton.addEventListener('click',event=>{
+ event.preventDefault();event.stopImmediatePropagation();
+ closeCart();closeMenu();
+ orderLayer.hidden=false;orderLayer.style.display='flex';
+ orderFrame.src='/';
+},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
