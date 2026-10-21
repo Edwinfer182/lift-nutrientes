@@ -217,7 +217,7 @@ updateCount();
     const p=productFromPage();if(!p||p.id==null)return;
     event.preventDefault();event.stopImmediatePropagation();
     const key=String(p.id),cart=getCart(),old=cart[key];
-    cart[key]=(Number(typeof old==='object'?(old.quantity??old.qty):old)||0)+1;
+    const selected=Number(document.getElementById('qtyValue')?.textContent?.trim()||1);const amount=Number.isFinite(selected)?Math.max(1,Math.min(99,Math.floor(selected))):1;cart[key]=(Number(typeof old==='object'?(old.quantity??old.qty):old)||0)+amount;
     const meta=json(STORAGE.meta,{});
     meta[key]={...(meta[key]||{}),name:p.name||p.nombre||'',image:p.image||p.imagen||'',price:p.price??p.precio??0};
     localStorage.setItem(STORAGE.meta,JSON.stringify(meta));saveCart(cart);openCart();
