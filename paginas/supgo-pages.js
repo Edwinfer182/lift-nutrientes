@@ -33,6 +33,9 @@ function card(r){
 const el=document.createElement('article');el.className='product';
 const photo=document.createElement('a');photo.className='product-photo';photo.href=link(r);
 if(image(r)){const img=document.createElement('img');img.className='primary-photo';img.src=image(r);img.alt=name(r);img.loading='lazy';photo.append(img);const second=secondaryImage(r);if(second){const alternate=document.createElement('img');alternate.className='secondary-photo';alternate.src=second;alternate.alt='Vista adicional de '+name(r);alternate.loading='lazy';alternate.onerror=()=>alternate.remove();photo.append(alternate)}}
+const mainPhoto=photo.querySelector('.primary-photo'),extraPhoto=photo.querySelector('.secondary-photo');
+const hoverPhoto=active=>{if(!mainPhoto)return;mainPhoto.style.transition='transform .3s ease,opacity .25s ease';mainPhoto.style.transform=active?'scale(1.075)':'scale(1)';mainPhoto.style.opacity=active&&extraPhoto?'0':'1';if(extraPhoto){extraPhoto.style.transition='transform .3s ease,opacity .25s ease';extraPhoto.style.opacity=active?'1':'0';extraPhoto.style.transform=active?'scale(1.075)':'scale(1)'}};
+photo.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')hoverPhoto(true)});photo.addEventListener('pointerleave',()=>hoverPhoto(false));photo.addEventListener('focusin',()=>hoverPhoto(true));photo.addEventListener('focusout',()=>hoverPhoto(false));
 const info=document.createElement('div');info.className='product-details';
 const lab=document.createElement('small');lab.className='brand';lab.textContent=brand(r);
 const title=document.createElement('a');title.className='name';title.href=link(r);title.textContent=name(r);
