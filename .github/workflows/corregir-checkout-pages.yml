@@ -30,9 +30,10 @@ jobs:
           s = s.replace("new URL('/mi-pedido/', 'https://supgo.co/')", "new URL('/mis-pedidos/', 'https://supgo.co/')")
           s = s.replace("'/mi-pedido/?pedido='", "'/mis-pedidos/?pedido='")
           s = s.replace('"/mi-pedido/?pedido="', '"/mis-pedidos/?pedido="')
-          # Una secuencia literal \\n se imprimía encima del encabezado del checkout.
-          s = s.replace('">\\n<nav class="supgoCheckoutNav"', '"><nav class="supgoCheckoutNav"')
-          s = s.replace("'>\\n<nav class=\"supgoCheckoutNav\"", "'><nav class=\"supgoCheckoutNav\"")
+          # Quitar el texto literal \\n que aparece justo antes del encabezado.
+          import re
+          s, fixed = re.subn(r'\\\\n(?=\\s*<nav\\b[^>]*class=["\\\']supgoCheckoutNav)', '', s)
+          print('Secuencias literales eliminadas antes del nav:', fixed)
           if s == original:
             raise SystemExit('No se encontró ninguna coincidencia; no se modifica el checkout.')
           p.write_text(s, encoding='utf-8')
