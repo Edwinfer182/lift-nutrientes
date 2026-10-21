@@ -156,6 +156,8 @@ def seo_availability(row):
   return "https://schema.org/OutOfStock"
  return None
 
+SEO_HEADER_CSS=(ROOT/'componentes'/'header-public.css').read_text(encoding='utf-8')
+
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
@@ -337,8 +339,9 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 }}
 
 </style>
+<style id="seo-header-css">{SEO_HEADER_CSS}</style>
 </head><body>
-<script defer src="/componentes/header-loader.js?v=20261020-filter-layout12"></script>
+<script defer src="/componentes/header-loader.js?v=20261020-seo-header14"></script>
 
 <main class="product-page">
 <article class="product-card">
