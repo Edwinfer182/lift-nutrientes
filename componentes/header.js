@@ -24,7 +24,7 @@ const search=host.querySelector('#q'),results=host.querySelector('#searchResults
 const cartButton=host.querySelector('.cartDesktop'),count=host.querySelector('#count');
 const favoriteLink=document.createElement('a');favoriteLink.href='/favoritos/';favoriteLink.className='iconbtn supgo-fav-link';favoriteLink.textContent='♡ Favoritos';favoriteLink.style.cssText='display:inline-flex;align-items:center;text-decoration:none;font-size:12px';
 if(cartButton)cartButton.before(favoriteLink);else bar?.append(favoriteLink);
-if(offerButton)offerButton.onclick=()=>go('ofertas','1');
+if(offerButton)offerButton.onclick=()=>location.assign('/ofertas/');
 const brand=host.querySelector('.brand');if(brand&&!brand.matches('a[href]')){brand.style.cursor='pointer';brand.onclick=()=>go();}
 host.querySelectorAll('.liftFilterLink').forEach(el=>el.onclick=()=>navigator.clipboard?.writeText(ROOT.href+'?ofertas=1'));
 function updateCount(){let total=0;Object.values(getCart()).forEach(v=>{const n=typeof v==='number'?v:Number(v?.quantity??v?.qty??v);if(Number.isFinite(n)&&n>0)total+=n;});if(count)count.textContent=total;return total;}
