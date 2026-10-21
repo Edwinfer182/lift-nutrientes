@@ -179,11 +179,13 @@ window.supgoOpenSeoCheckout=()=>{
  checkoutFrame.src='/';
 };
 drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
-const orderButton=document.createElement('button');
-orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
+const orderButton=document.createElement('a');
+orderButton.className='myOrder';
+orderButton.href='https://supgo.co/?mi-pedido=1';
+orderButton.textContent='📦 Mi pedido';
+orderButton.setAttribute('aria-label','Mi pedido');
+orderButton.style.cssText='display:inline-flex;align-items:center;justify-content:center;text-decoration:none';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
-// Desde las fichas SEO, abrir la ruta pública de consulta de pedidos en la página principal.
-orderButton.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();go('mi-pedido','1');},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
