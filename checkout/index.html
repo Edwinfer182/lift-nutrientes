@@ -14,6 +14,30 @@
     body.supgo-standalone-checkout #checkoutModal .modal-backdrop{display:none!important}
   </style>
   <script>(function(){
+    // Navegar al seguimiento únicamente si Supabase confirma la creación.
+    let creatingOrder=false;
+    document.addEventListener('click',function(ev){
+      const button=ev.target.closest('button,input[type="submit"]');
+      if(button&&/generar pedido/i.test((button.textContent||button.value||'').trim()))creatingOrder=true;
+    },true);
+    const originalFetch=window.fetch.bind(window);
+    window.fetch=async function(input,init){
+      const result=await originalFetch(input,init);
+      try{
+        const url=String(typeof input==='string'?input:input.url||'');
+        const method=String(init?.method||(typeof input==='object'&&input.method)||'GET').toUpperCase();
+        if(creatingOrder&&result.ok&&method==='POST'&&/\\/rest\\/v1\\/lift_pedidos(?:\\?|$)/.test(url)){
+          const payload=await result.clone().json();
+          const order=Array.isArray(payload)?payload[0]:payload;
+          const id=Number(order?.id);
+          if(Number.isSafeInteger(id)&&id>0){
+            creatingOrder=false;
+            setTimeout(()=>location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id)),650);
+          }
+        }
+      }catch(err){console.warn('Seguimiento posterior al pedido:',err)}
+      return result;
+    };
     let tries=0;
     const timer=setInterval(function(){
       const modal=document.getElementById('checkoutModal');
