@@ -170,16 +170,45 @@ body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 """
 
 def fetch_lab_logos():
+ """Copia los logos públicos a nuestro dominio para evitar bloqueos de hotlink en Safari."""
+ import hashlib
  query=urllib.parse.urlencode({"select":"valor","clave":"eq.laboratories_v1","limit":"1"})
  req=urllib.request.Request(URL+"/rest/v1/lift_catalog_config?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
  try:
   with urllib.request.urlopen(req,timeout=40) as res: entries=json.load(res)
   value=entries[0].get("valor") if entries else {}
   if isinstance(value,str):value=json.loads(value)
-  return {str(k).casefold():v.get("image","") for k,v in value.items() if isinstance(v,dict) and str(v.get("image","")).startswith(("https://","http://"))} if isinstance(value,dict) else {}
+  if not isinstance(value,dict):return {}
  except Exception as exc:
-  print("Aviso: logos de laboratorios no disponibles:",exc)
+  print("Aviso: configuración de laboratorios no disponible:",exc)
   return {}
+ directory=ROOT/"productos-assets"/"logos"
+ directory.mkdir(parents=True,exist_ok=True)
+ result={}
+ for name,settings in value.items():
+  if not isinstance(settings,dict):continue
+  url=str(settings.get("image") or "").strip()
+  if not url.startswith(("https://","http://")):continue
+  key=hashlib.sha256(url.encode("utf-8")).hexdigest()[:18]
+  existing=next((directory/(key+ext) for ext in (".png",".jpg",".webp",".gif",".svg") if (directory/(key+ext)).is_file()),None)
+  if existing:
+   result[str(name).strip().casefold()]="/productos-assets/logos/"+existing.name
+   continue
+  try:
+   request=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 (compatible; SUPGO-SEO/1.0)","Accept":"image/avif,image/webp,image/png,image/jpeg,image/svg+xml,image/*"})
+   with urllib.request.urlopen(request,timeout=12) as response:
+    content_type=response.headers.get("Content-Type","").split(";")[0].lower().strip()
+    data=response.read(1000001)
+   extensions={"image/png":".png","image/jpeg":".jpg","image/webp":".webp","image/gif":".gif","image/svg+xml":".svg"}
+   extension=extensions.get(content_type)
+   if not extension or len(data)>1000000 or len(data)<100:raise ValueError("Imagen inválida o muy grande")
+   target=directory/(key+extension)
+   target.write_bytes(data)
+   result[str(name).strip().casefold()]="/productos-assets/logos/"+target.name
+  except Exception as exc:
+   print("Aviso: no se pudo alojar el logo de",name,":",str(exc)[:100])
+   result[str(name).strip().casefold()]=url
+ return result
 
 def seo_filter_data(rows,logos=None):
  brands, categories = {}, {}
