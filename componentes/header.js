@@ -190,24 +190,38 @@ document.body.append(orderLayer);
 const orderFrame=orderLayer.querySelector('iframe');
 function closeOrder(){orderLayer.hidden=true;orderLayer.style.display='none';orderFrame.removeAttribute('src');}
 orderLayer.querySelector('[data-close-order]').onclick=closeOrder;
+const orderStatus=document.createElement('p');
+orderStatus.textContent='Abriendo consulta de pedidos…';
+orderStatus.style.cssText='padding:18px;color:#555;font:14px Poppins,Arial,sans-serif';
+orderLayer.insertBefore(orderStatus,orderFrame);
+orderFrame.style.visibility='hidden';
 orderFrame.addEventListener('load',()=>{
- let tries=0;
- const openNativeOrder=()=>{
+ let attempts=0;
+ const revealOrder=()=>{
   if(orderLayer.hidden)return;
-  let doc;
-  try{doc=orderFrame.contentDocument;}catch(e){return;}
-  if(!doc)return;
-  const controls=[...doc.querySelectorAll('button,a,[role="button"]')];
-  const trigger=controls.find(el=>/^(?:📦\\s*)?mi pedido$/i.test((el.textContent||'').trim())&&el.getClientRects().length);
-  if(trigger){trigger.click();return;}
-  if(++tries<30)setTimeout(openNativeOrder,350);
+  let d,w;
+  try{d=orderFrame.contentDocument;w=orderFrame.contentWindow;}catch(error){return;}
+  if(!d)return;
+  // Esperar a que el catálogo termine de montar sus componentes.
+  const controls=[...d.querySelectorAll('button,a,[role="button"]')];
+  const match=controls.find(el=>/mi\s+pedido/i.test((el.textContent||el.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim())&&el.getClientRects().length);
+  if(match){
+   match.click();
+   orderStatus.hidden=true;
+   orderFrame.style.visibility='visible';
+   return;
+  }
+  if(++attempts<40){setTimeout(revealOrder,300);return;}
+  orderStatus.textContent='No se pudo abrir el módulo de pedidos. Cierra este panel e inténtalo de nuevo.';
  };
- openNativeOrder();
+ revealOrder();
 });
 orderButton.addEventListener('click',event=>{
  event.preventDefault();event.stopImmediatePropagation();
  closeCart();closeMenu();
  orderLayer.hidden=false;orderLayer.style.display='flex';
+ orderStatus.hidden=false;orderStatus.textContent='Abriendo consulta de pedidos…';
+ orderFrame.style.visibility='hidden';
  orderFrame.src='/';
 },true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
