@@ -485,6 +485,33 @@ let selectedQuantity=1; const qtyValue=document.getElementById('qtyValue');const
 }};
 paint();
 }})();</script>
+<style>
+#supgo-wa-float{{position:fixed;right:22px;bottom:22px;z-index:2147482000;font-family:Poppins,Arial,sans-serif}}
+#supgo-wa-toggle{{width:58px;height:58px;border:0;border-radius:50%;background:#25d366;color:white;box-shadow:0 5px 20px #0003;cursor:pointer;display:grid;place-items:center}}
+#supgo-wa-panel{{display:none;width:min(330px,calc(100vw - 32px));margin-bottom:12px;border-radius:14px;overflow:hidden;background:#eae6df;box-shadow:0 8px 32px #0003}}
+#supgo-wa-panel.open{{display:block}}
+#supgo-wa-head{{background:#075e45;color:white;padding:15px;font-weight:600}}
+#supgo-wa-body{{padding:14px}}
+#supgo-wa-text{{box-sizing:border-box;width:100%;min-height:88px;border:0;border-radius:9px;padding:12px;font:14px/1.5 Poppins,Arial,sans-serif;resize:vertical;color:#222;background:white}}
+#supgo-wa-send{{width:100%;background:#25d366;color:#fff;border:0;border-radius:9px;padding:12px;margin-top:10px;font-weight:600;cursor:pointer}}
+@media(max-width:600px){{#supgo-wa-float{{right:15px;bottom:18px}}}}
+</style>
+<div id="supgo-wa-float">
+ <div id="supgo-wa-panel" role="dialog" aria-label="Consulta por WhatsApp">
+  <div id="supgo-wa-head">SUPGO · Ventas</div>
+  <div id="supgo-wa-body"><textarea id="supgo-wa-text" aria-label="Mensaje"></textarea><button id="supgo-wa-send" type="button">Enviar</button></div>
+ </div>
+ <button id="supgo-wa-toggle" type="button" aria-label="Abrir WhatsApp" aria-expanded="false"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.06 0C5.48 0 .12 5.35.12 11.94c0 2.1.55 4.16 1.6 5.97L0 24l6.25-1.64a11.93 11.93 0 0 0 5.8 1.48h.01c6.59 0 11.94-5.35 11.94-11.94 0-3.19-1.24-6.19-3.48-8.42ZM12.06 21.8a9.84 9.84 0 0 1-5.02-1.37l-.36-.21-3.72.97.99-3.62-.24-.37a9.87 9.87 0 1 1 8.35 4.6Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.23-.65.08-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.87 1.21 3.07c.15.2 2.09 3.2 5.06 4.49.71.31 1.27.49 1.71.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z"/></svg></button>
+</div>
+<script>
+(()=>{{
+ const toggle=document.getElementById('supgo-wa-toggle'),panel=document.getElementById('supgo-wa-panel'),field=document.getElementById('supgo-wa-text');
+ const name=(typeof p!=='undefined'&&p.name)||document.querySelector('h1')?.textContent?.trim()||'este producto';
+ field.value='Hola, estoy interesado en '+name+'. ¿Está disponible?';
+ toggle.addEventListener('click',()=>{{const opened=panel.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));if(opened)field.focus();}});
+ document.getElementById('supgo-wa-send').addEventListener('click',()=>{{window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(field.value+'\n'+location.href),'_blank','noopener,noreferrer');}});
+}})();
+</script>
 </body></html>'''
 
 def build_direct(row, shared):
