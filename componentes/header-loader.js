@@ -30,12 +30,6 @@
     const host=document.createElement('div');
     host.id='supgo-global-header';
     host.innerHTML=html;
-    // En fichas SEO no se muestra «Mi pedido», aunque se inyecte desde código antiguo.
-    function removeOrderLink(){
-      host.querySelectorAll('.myOrder,#liftTrackBtn,a[href*="mi-pedido"]').forEach(el=>el.remove());
-    }
-    removeOrderLink();
-    new MutationObserver(removeOrderLink).observe(host,{childList:true,subtree:true});
     document.body.insertBefore(host,document.body.firstChild);
     try{
       await loadScript(path+'header.js?v=20261020-standalone-routes32');
