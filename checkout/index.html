@@ -16,6 +16,7 @@
   <script>(function(){
     // Navegar al seguimiento únicamente si Supabase confirma la creación.
     let creatingOrder=false;
+    let redirecting=false;
     document.addEventListener('click',function(ev){
       const button=ev.target.closest('button,input[type="submit"]');
       if(button&&/generar pedido/i.test((button.textContent||button.value||'').trim()))creatingOrder=true;
@@ -24,20 +25,37 @@
     window.fetch=async function(input,init){
       const result=await originalFetch(input,init);
       try{
-        const url=String(typeof input==='string'?input:input.url||'');
-        const method=String(init?.method||(typeof input==='object'&&input.method)||'GET').toUpperCase();
-        if(creatingOrder&&result.ok&&method==='POST'&&/\\/rest\\/v1\\/lift_pedidos(?:\\?|$)/.test(url)){
-          const payload=await result.clone().json();
-          const order=Array.isArray(payload)?payload[0]:payload;
-          const id=Number(order?.id);
-          if(Number.isSafeInteger(id)&&id>0){
-            creatingOrder=false;
-            setTimeout(()=>location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id)),650);
+        const url=String(typeof input==='string'?input:input?.url||'');
+        const method=String(init?.method||(typeof input==='object'&&input?.method)||'GET').toUpperCase();
+        const isOrderCreation=/\/rest\/v1\/lift_pedidos(?:\?|$)/.test(url);
+        if(creatingOrder&&!redirecting&&result.ok&&method==='POST'&&isOrderCreation){
+          let id=null;
+          const body=await result.clone().text();
+          if(body){
+            const payload=JSON.parse(body);
+            const order=Array.isArray(payload)?payload[0]:payload;
+            const parsed=Number(order?.id);
+            if(Number.isSafeInteger(parsed)&&parsed>0)id=parsed;
           }
+          redirecting=true;
+          creatingOrder=false;
+          const destination='/mis-pedidos/'+(id?'?pedido='+encodeURIComponent(id):'');
+          setTimeout(()=>location.assign(destination),550);
         }
-      }catch(err){console.warn('Seguimiento posterior al pedido:',err)}
+      }catch(err){console.warn('Redirección posterior al pedido:',err)}
       return result;
     };
+    // Ocultar secuencias de escape literales que quedaron impresas debajo del checkout.
+    function removeLiteralEscapes(){
+      const modal=document.getElementById('checkoutModal');
+      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+      const toRemove=[];let node;
+      while((node=walker.nextNode())){
+        if(modal?.contains(node))continue;
+        if(/^(?:\s|\\n|\\r|\\t)+$/.test(node.nodeValue)&&/\\[nrt]/.test(node.nodeValue))toRemove.push(node);
+      }
+      toRemove.forEach(node=>node.remove());
+    }
     let tries=0;
     const timer=setInterval(function(){
       const modal=document.getElementById('checkoutModal');
@@ -46,14 +64,7 @@
         try{
           window.openCheckout();
           document.body.classList.add('supgo-standalone-checkout');
-          // Retirar secuencias literales \\n que aparecen como texto fuera del formulario.
-          const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-          const stray=[];let textNode;
-          while((textNode=walker.nextNode())){
-            if(modal.contains(textNode))continue;
-            if(/^(?:\s|\\n|\\r|\\t)+$/.test(textNode.nodeValue)&&/\\[nrt]/.test(textNode.nodeValue))stray.push(textNode);
-          }
-          stray.forEach(n=>n.remove());
+          removeLiteralEscapes();
           let node=modal;
           while(node && node!==document.body){for(const child of node.parentElement.children){if(child!==node && child.tagName!=='SCRIPT' && child.tagName!=='STYLE')child.style.setProperty('display','none','important')}node=node.parentElement}
           document.title='Finalizar pedido | SUPGO';
