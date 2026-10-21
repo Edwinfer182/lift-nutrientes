@@ -54,7 +54,7 @@ jobs:
           assert '.product-photo' in css and '.product-details' in css, 'Faltan estilos de tarjetas nuevas'
           assert "photo.className='product-photo'" in js, 'No se esta usando el componente nuevo'
           assert "buy.className='buy'" in js, 'Falta el icono de carrito compacto'
-          assert 'background:#fff;flex:none' in css, 'El fondo de imagen debe ser blanco'
+          assert 'background:#fff!important' in css, 'El fondo de imagen debe ser blanco'
           assert '.secondary-photo' in css and "alternate.className='secondary-photo'" in js, 'Falta segunda imagen hover'
           assert "el.addEventListener('pointerenter'" in js, 'Falta activacion de hover en toda la tarjeta'
           assert 'padding:100% 0 0!important' in css, 'Falta el espacio uniforme de imagen'
