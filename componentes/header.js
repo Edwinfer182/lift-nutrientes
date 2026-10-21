@@ -181,7 +181,16 @@ window.supgoOpenSeoCheckout=()=>{
 drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
 const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='myOrder';orderButton.textContent='📦 Mi pedido';
 if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
-orderButton.onclick=()=>go('mi-pedido','1');
+// Abrir el mismo módulo «Mi pedido» del catálogo sin abandonar la ficha SEO.
+const orderLayer=document.createElement('section');
+orderLayer.hidden=true;
+orderLayer.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#fff;display:none;flex-direction:column;font-family:Poppins,Arial,sans-serif';
+orderLayer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee"><strong>Mi pedido</strong><button type="button" data-close-order style="border:0;background:#f2f2f2;border-radius:50%;width:38px;height:38px;font-size:24px">×</button></div><iframe title="Mi pedido SUPGO" style="border:0;width:100%;flex:1;min-height:0"></iframe>';
+document.body.append(orderLayer);
+const orderFrame=orderLayer.querySelector('iframe');
+function closeOrder(){orderLayer.hidden=true;orderLayer.style.display='none';orderFrame.removeAttribute('src');}
+orderLayer.querySelector('[data-close-order]').onclick=closeOrder;
+orderButton.onclick=()=>{closeCart();closeMenu();orderLayer.hidden=false;orderLayer.style.display='flex';orderFrame.src='/?mi-pedido=1';};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
