@@ -1,1 +1,57 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mis pedidos | SUPGO</title><link rel="stylesheet" href="/paginas/supgo-pages.css"></head><body><header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a><nav class="nav"><a href="/carrito/">Carrito</a><a href="/favoritos/">Favoritos</a><a href="/buscar/">Buscar</a></nav></div></header><main class="site"><h1>Mis pedidos</h1><p class="muted">Consulta el estado con el número de pedido y el celular registrado.</p><p class="notice" id="status">Preparando consulta…</p><div class="iframewrap"><iframe id="catalogModule" title="Mis pedidos" src="/" loading="eager"></iframe></div></main><script>(function(){const iframe=document.getElementById('catalogModule'),status=document.getElementById('status');let timer;iframe.addEventListener('load',()=>{let attempts=0;timer=setInterval(()=>{let w;try{w=iframe.contentWindow;}catch(e){clearInterval(timer);status.textContent='No se pudo cargar el módulo.';return}if(!w)return;const fn=w.liftOpenTrack;if(typeof fn==='function'&&!!iframe.contentDocument?.getElementById('liftTrackModal')){clearInterval(timer);try{fn.call(w);status.hidden=true;iframe.focus()}catch(e){status.textContent='No se pudo abrir el módulo: '+e.message}return}if(++attempts>80){clearInterval(timer);status.textContent='El módulo está tardando. Puedes abrir el catálogo para consultar tu pedido.'}},200)})})();</script></body></html>
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mis pedidos | SUPGO</title><meta name="description" content="Consulta el estado de tu pedido SUPGO con número de pedido y celular.">
+<link rel="stylesheet" href="/paginas/supgo-pages.css">
+<style>
+.track{max-width:580px;margin:35px auto}.track h1{font-size:clamp(24px,5vw,32px);font-weight:650;letter-spacing:-.03em}.track p{color:#666}
+.track form{display:grid;gap:13px;margin-top:25px}.track label{font-size:13px;font-weight:600;display:grid;gap:6px}
+.track input{width:100%;border:1px solid #d7d7d7;border-radius:9px;padding:13px 14px;font:inherit;font-size:16px;outline-offset:2px}
+.track button{border:0;border-radius:9px;background:#111;color:#fff;font:inherit;font-weight:600;padding:14px;cursor:pointer}
+.track button:disabled{opacity:.5;cursor:wait}.track-result{margin-top:22px;border:1px solid #e5e5e5;border-radius:12px;padding:18px}
+.track-result[hidden]{display:none}.track-status{font-size:18px;font-weight:650;margin:5px 0 15px}
+.track-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eee}
+.track-row:last-child{border:0}.track-products{margin-top:15px}.track-products li{margin:8px 0}
+.track-msg{margin-top:14px;color:#666}.track-msg.error{color:#ac2020}
+</style></head><body>
+<header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a><nav class="nav"><a href="/carrito/">Carrito</a><a href="/checkout/">Checkout</a><a href="/buscar/">Buscar</a></nav></div></header>
+<main class="site"><section class="track"><h1>Consulta tu pedido</h1><p>Revisa el estado de tu compra con el número de pedido y el celular que registraste.</p>
+<form id="consulta"><label for="pedido">Número de pedido<input id="pedido" type="text" inputmode="numeric" pattern="[0-9]+" autocomplete="off" required placeholder="Ej. 12345"></label>
+<label for="celular">Número de celular<input id="celular" type="tel" inputmode="tel" autocomplete="tel" required placeholder="Celular registrado"></label>
+<button type="submit" id="consultar">Consultar pedido</button></form><div class="track-msg" id="mensaje" role="status" aria-live="polite"></div>
+<section class="track-result" id="resultado" hidden><div class="track-row"><strong id="numero"></strong><span id="fecha"></span></div>
+<p class="track-status" id="estado"></p><div class="track-row"><span>Disponibilidad</span><strong id="disponibilidad"></strong></div>
+<div class="track-row"><span>Pago</span><strong id="pago"></strong></div><div class="track-row"><span>Envío</span><strong id="envio"></strong></div>
+<div class="track-row"><span>Total del pedido</span><strong id="total"></strong></div>
+<div id="guia" hidden class="track-row"><span>Guía</span><strong id="guiaTexto"></strong></div>
+<div class="track-products"><strong>Productos</strong><ul id="productos"></ul></div></section></section></main>
+<script>
+(()=>{
+const endpoint='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/supgo_consultar_pedido';
+const key='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
+const clean=s=>String(s||'').replace(/_/g,' ').trim();
+$('consulta').addEventListener('submit',async e=>{
+ e.preventDefault();$('resultado').hidden=true;$('mensaje').textContent='Consultando…';$('mensaje').className='track-msg';$('consultar').disabled=true;
+ try{
+  const id=$('pedido').value.trim(),phone=$('celular').value.replace(/\D/g,'');
+  if(!/^\d+$/.test(id)||phone.length<10)throw Error('Revisa el número de pedido y el celular.');
+  const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key},body:JSON.stringify({p_id:Number(id),p_celular:phone})});
+  if(!res.ok)throw Error('No fue posible consultar el pedido. Intenta de nuevo.');
+  const p=await res.json();if(!p){$('mensaje').textContent='No encontramos un pedido que coincida con esos datos.';return}
+  $('numero').textContent='Pedido #'+p.id;
+  $('fecha').textContent=p.fecha?new Date(p.fecha).toLocaleDateString('es-CO'):'';
+  $('estado').textContent=clean(p.estado)||'Pedido recibido';
+  $('disponibilidad').textContent=clean(p.disponibilidad)||'En verificación';
+  $('pago').textContent=clean(p.pago_estado)||'Pendiente';
+  $('envio').textContent=[p.transportadora,p.despacho_tipo].filter(Boolean).join(' · ')||'Pendiente';
+  $('total').textContent=money(p.total);
+  $('guia').hidden=!p.guia;$('guiaTexto').textContent=p.guia||'';
+  const list=$('productos');list.replaceChildren();for(const item of p.productos||[]){let li=document.createElement('li');li.textContent=(item.cantidad||1)+' × '+(item.nombre||'Producto')+' · '+money(item.total);list.appendChild(li)}
+  $('resultado').hidden=false;$('mensaje').textContent='';
+ }catch(err){$('mensaje').textContent=err.message||'Ocurrió un error';$('mensaje').className='track-msg error'}
+ finally{$('consultar').disabled=false}
+});
+const params=new URLSearchParams(location.search);if(params.has('pedido'))$('pedido').value=params.get('pedido').replace(/[^0-9]/g,'');
+})();
+</script></body></html>
