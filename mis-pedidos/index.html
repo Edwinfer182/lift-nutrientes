@@ -1967,6 +1967,16 @@ body.supgo-track-page .supgoTrackNavigation a{color:#111;text-decoration:none}
 .supgoTrackLinks{display:flex;gap:9px}
 .supgoTrackLinks a{font-size:12px;padding:9px 13px;border:1px solid #ddd;border-radius:8px}
 @media(max-width:760px){body.supgo-track-page #liftTrackModal>.liftOrderCard{width:100%!important;padding:16px 12px!important;border-radius:8px!important}body.supgo-track-page .supgoTrackNavigation{margin:12px auto}.supgoTrackLogo{font-size:17px}.supgoTrackLinks a{padding:8px 9px;font-size:11px}}
+
+/* SUPGO: formulario de consulta accesible y sin capas interceptando el tacto */
+body.supgo-track-page #liftTrackModal { isolation:isolate!important; }
+body.supgo-track-page #liftTrackModal>.liftOrderCard {z-index:2!important;pointer-events:auto!important;}
+body.supgo-track-page #liftTrackModal .liftTrackForm,
+body.supgo-track-page #liftTrackModal .liftTrackForm input,
+body.supgo-track-page #liftTrackModal .liftTrackForm button {position:relative!important;z-index:3!important;pointer-events:auto!important;touch-action:manipulation!important;user-select:text!important;-webkit-user-select:text!important;}
+body.supgo-track-page #liftTrackModal .liftTrackForm input {font-size:16px!important;opacity:1!important;-webkit-text-fill-color:#111!important;}
+body.supgo-track-page #liftTrackModal .liftTrackForm button {user-select:none!important;-webkit-user-select:none!important;cursor:pointer!important;}
+body.supgo-track-page #liftTrackModal .supgoTrackNavigation {z-index:2!important;position:relative!important;}
 </style></head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -14494,7 +14504,28 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    let tries=0;const timer=setInterval(function(){if(setup()||++tries>=150)clearInterval(timer)},200);
  }
 })();
-</script></body>
+</script>
+<script id="supgo-track-input-interaction-fix">
+(function(){
+ function init(){
+  if(!document.body.classList.contains('supgo-track-page')) return false;
+  const form=document.querySelector('#liftTrackModal .liftTrackForm');
+  const ref=document.getElementById('liftTrackRef');
+  const phone=document.getElementById('liftTrackPhone');
+  if(!form||!ref||!phone)return false;
+  ref.setAttribute('type','text');ref.setAttribute('inputmode','numeric');ref.setAttribute('autocomplete','off');
+  ref.setAttribute('aria-label','Número de pedido');
+  phone.setAttribute('type','tel');phone.setAttribute('autocomplete','tel');phone.setAttribute('aria-label','Celular del pedido');
+  [ref,phone].forEach(el=>{el.removeAttribute('readonly');el.removeAttribute('disabled');el.style.pointerEvents='auto';});
+  if(!form.dataset.supgoEnterReady){form.dataset.supgoEnterReady='1';form.addEventListener('keydown',e=>{
+   if(e.key==='Enter'){e.preventDefault();if(typeof window.liftTrackOrder==='function')window.liftTrackOrder();}
+  });}
+  return true;
+ }
+ if(!init()){document.addEventListener('DOMContentLoaded',init,{once:true});}
+})();
+</script>
+</body>
 </html>
 
 <!-- LIFT · VISTA CLIENTE PEDIDO TIPO TRACKING · 2026-10-06 -->
