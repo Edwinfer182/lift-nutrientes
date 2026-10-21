@@ -1,0 +1,72 @@
+name: Corregir WhatsApp flotante en fichas
+on:
+  push:
+    paths:
+      - '.github/workflows/corregir-whatsapp-flotante.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  corregir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sustituir botones antiguos en todas las fichas
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          css = """<style>
+          #seo-wa-float{position:fixed;right:14px;bottom:calc(110px + env(safe-area-inset-bottom, 0px));z-index:2147482000;font-family:Poppins,Arial,sans-serif}
+          #seo-wa-toggle{height:54px;width:54px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;background:#25d366;color:#fff;box-shadow:0 4px 14px #0003;cursor:pointer}
+          #seo-wa-panel{position:absolute;right:0;bottom:65px;box-sizing:border-box;width:min(310px,calc(100vw - 28px));background:#fff;border:1px solid #e3e3e3;border-radius:12px;padding:12px;box-shadow:0 8px 22px #0003}
+          #seo-wa-panel[hidden]{display:none!important}
+          #seo-wa-message{display:block;box-sizing:border-box;width:100%;min-height:78px;border:1px solid #ddd;border-radius:8px;padding:10px;font:14px/1.4 Poppins,Arial,sans-serif;background:white;color:#222}
+          #seo-wa-send{width:100%;margin-top:8px;padding:11px;border:0;border-radius:8px;background:#25d366;color:white;font:600 14px Poppins,Arial,sans-serif;cursor:pointer}
+          @media(min-width:768px){#seo-wa-float{bottom:24px;right:24px}}
+          </style>"""
+          widget = """<div id="seo-wa-float">
+          <div id="seo-wa-panel" hidden><textarea id="seo-wa-message" aria-label="Mensaje para WhatsApp"></textarea><button id="seo-wa-send" type="button">Enviar por WhatsApp</button></div>
+          <button id="seo-wa-toggle" type="button" aria-label="Consultar por WhatsApp" aria-expanded="false" aria-controls="seo-wa-panel">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M16 1a15 15 0 0 0-13 22.5L1 31l7.7-2A15 15 0 1 0 16 1Zm0 27a12 12 0 0 1-6.1-1.6l-.5-.3-4.6 1.2L6 22.8l-.3-.5A12 12 0 1 1 16 28Zm6.7-9c-.4-.2-2.1-1-2.5-1.2-.3-.1-.6-.1-.8.2-.3.4-.9 1.1-1.2 1.4-.2.2-.4.3-.7.1-.4-.2-1.6-.6-3-1.8-1.1-1-1.8-2.2-2-2.5-.2-.4 0-.6.2-.8l.5-.6c.2-.2.3-.4.4-.6.1-.2 0-.4 0-.6-.1-.2-.8-1.9-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.7.1-1 .5-.3.4-1.3 1.3-1.3 3.1s1.4 3.5 1.6 3.8c.2.2 2.5 3.9 6.1 5.4.9.4 1.6.6 2.1.7.9.3 1.7.2 2.3.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.6.2-1.7-.1-.2-.3-.3-.7-.5Z"/></svg></button></div>"""
+          js = """<script>
+          (function(){
+          const button=document.getElementById('seo-wa-toggle'),panel=document.getElementById('seo-wa-panel'),field=document.getElementById('seo-wa-message'),send=document.getElementById('seo-wa-send');
+          if(!button||!panel||!field||!send)return;
+          const name=document.querySelector('.product-info h1')?.childNodes[0]?.textContent?.trim()||document.querySelector('h1')?.textContent?.trim()||'este producto';
+          field.value='Hola, estoy interesado en '+name+'. ¿Está disponible?';
+          button.onclick=function(){panel.hidden=!panel.hidden;button.setAttribute('aria-expanded',String(!panel.hidden));};
+          send.onclick=function(){location.href='https://api.whatsapp.com/send?text='+encodeURIComponent(field.value+'\\n'+location.href);};
+          })();
+          </script>"""
+          changed=0
+          for file in Path('productos').glob('*.html'):
+              html=file.read_text(encoding='utf-8',errors='replace')
+              if 'class="product-info"' not in html or '<body' not in html:
+                  continue
+              old=html
+              # Eliminar el bloque rectangular antiguo, incluidos sus estilos.
+              html=re.sub(r'<div class="seo-wa-wrap"[^>]*>.*?</div>\s*</div>', '', html, count=1, flags=re.S)
+              html=re.sub(r'<style>\s*\.seo-wa-wrap\{.*?</style>', '', html, count=1, flags=re.S)
+              # Eliminar el script antiguo dedicado a seo-wa-button, si existe.
+              html=re.sub(r'<script>\s*\(\(\)=>\{\{?\s*const button=document\.getElementById\(\x27seo-wa-button\x27\).*?</script>', '', html, count=1, flags=re.S)
+              if 'id="seo-wa-float"' not in html:
+                  html=html.replace('</body>',css+widget+js+'</body>',1)
+              if html!=old:
+                  file.write_text(html,encoding='utf-8')
+                  changed+=1
+          print('Fichas modificadas:', changed)
+          if not any('id="seo-wa-float"' in p.read_text(encoding='utf-8',errors='replace') for p in Path('productos').glob('*.html')):
+              raise SystemExit('No se encontró ninguna ficha corregida')
+          PY
+      - name: Publicar HTML corregidos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add productos/
+          if ! git diff --cached --quiet; then
+            git commit -m "Fichas: sustituir WhatsApp rectangular por flotante circular"
+            git pull --rebase -X theirs origin main
+            git push origin main
+          fi
