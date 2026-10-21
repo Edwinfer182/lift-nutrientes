@@ -331,8 +331,7 @@ paint();
  const name=(typeof p!=='undefined'&&p.name)||document.querySelector('h1')?.textContent?.trim()||'este producto';
  field.value='Hola, estoy interesado en '+name+'. ¿Está disponible?';
  toggle.addEventListener('click',()=>{const opened=panel.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));if(opened)field.focus();});
- document.getElementById('supgo-wa-send').addEventListener('click',()=>{window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(field.value+'
-'+location.href),'_blank','noopener,noreferrer');});
+ document.getElementById('supgo-wa-send').addEventListener('click',()=>{window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(field.value+'\n'+location.href),'_blank','noopener,noreferrer');});
 })();
 </script>
 </body></html>
