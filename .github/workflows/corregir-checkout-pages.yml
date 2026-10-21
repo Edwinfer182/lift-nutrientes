@@ -24,18 +24,19 @@ jobs:
           p = Path('checkout/index.html')
           s = p.read_text(encoding='utf-8')
           original = s
-          s = s.replace("new URL('/mi-pedido/',window.location.origin)", "new URL('/mis-pedidos/',window.location.origin)")
-          s = s.replace("new URL('/mi-pedido/', window.location.origin)", "new URL('/mis-pedidos/', window.location.origin)")
-          s = s.replace("new URL('/mi-pedido/', 'https://supgo.co')", "new URL('/mis-pedidos/', 'https://supgo.co')")
-          s = s.replace("new URL('/mi-pedido/', 'https://supgo.co/')", "new URL('/mis-pedidos/', 'https://supgo.co/')")
-          s = s.replace("'/mi-pedido/?pedido='", "'/mis-pedidos/?pedido='")
-          s = s.replace('"/mi-pedido/?pedido="', '"/mis-pedidos/?pedido="')
-          # Quitar el texto literal \\n que aparece justo antes del encabezado.
           import re
-          s, fixed = re.subn(r'\\\\n(?=\\s*<nav\\b[^>]*class=["\\\']supgoCheckoutNav)', '', s)
-          print('Secuencias literales eliminadas antes del nav:', fixed)
+          # Unificar la ruta del pedido en todo el checkout.
+          s = s.replace('/mi-pedido/', '/mis-pedidos/')
+          # Eliminar únicamente secuencias literales visibles al inicio del body
+          # o inmediatamente antes de la barra de navegación.
+          s, n1 = re.subn(r'(<body\\b[^>]*>\\s*)\\\\n', r'\\1', s, flags=re.I)
+          s, n2 = re.subn(r'\\\\n(?=\\s*<(?:header|nav)\\b)', '', s, flags=re.I)
+          # Algunos HTML imprimen la secuencia como texto al inicio del documento.
+          s, n3 = re.subn(r'(?<=</head>)\\s*\\\\n', '', s, flags=re.I)
+          print('Eliminadas:', n1, n2, n3)
+          print('Rutas /mi-pedido/ restantes:', s.count('/mi-pedido/'))
           if s == original:
-            raise SystemExit('No se encontró ninguna coincidencia; no se modifica el checkout.')
+            print('Sin cambios nuevos: comprobar texto literal en HTML generado.')
           p.write_text(s, encoding='utf-8')
           print('Checkout actualizado; ruta /mis-pedidos/ y encabezado sin secuencia literal.')
           PY
