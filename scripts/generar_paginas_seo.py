@@ -434,20 +434,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <style id="seo-header-css">{SEO_HEADER_CSS}\n{SEO_MENU_FIX}</style>
 
 
-<style id="supgo-seo-no-order-button">
-.myOrder,#liftTrackBtn,a[href*="mi-pedido"],[data-open-track]{{display:none!important}}
-</style>
-<script id="supgo-seo-remove-my-order">
-(function(){{
- function removeOrder(){{
-  document.querySelectorAll('.myOrder,#liftTrackBtn,a[href*="mi-pedido"]').forEach(function(el){{el.remove();}});
- }}
- document.addEventListener('DOMContentLoaded',function(){{
-  removeOrder();
-  new MutationObserver(removeOrder).observe(document.body,{{childList:true,subtree:true}});
- }},{{once:true}});
-}})();
-</script>
+
 </head><body>
 <script>window.__supgoSeoFilters={json.dumps(row.get("_filter_counts",{}),ensure_ascii=False).replace("<","\\u003c")};</script>
 
