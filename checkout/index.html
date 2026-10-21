@@ -73,6 +73,16 @@
           window.dispatchEvent(new Event('supgo-cart-change'));
           window.openCheckout();
           document.body.classList.add('supgo-standalone-checkout');
+          if(!document.getElementById('supgoCheckoutHomeBack')){
+            const back=document.createElement('a');
+            back.id='supgoCheckoutHomeBack';
+            back.href='/home/';
+            back.textContent='← Volver al inicio';
+            back.setAttribute('aria-label','Volver a la página de inicio');
+            back.style.cssText='display:inline-flex;align-items:center;gap:7px;padding:12px 16px;margin:6px 12px 0;color:#111;font:500 13px Poppins,Arial,sans-serif;text-decoration:none;min-height:44px;border-radius:6px;background:#f5f5f5';
+            const content=modal.querySelector('.modal-content, .checkout-content')||modal;
+            content.prepend(back);
+          }
           removeLiteralEscapes();
           let node=modal;
           while(node && node!==document.body){for(const child of node.parentElement.children){if(child!==node && child.tagName!=='SCRIPT' && child.tagName!=='STYLE')child.style.setProperty('display','none','important')}node=node.parentElement}
