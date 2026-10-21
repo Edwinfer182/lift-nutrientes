@@ -1,55 +1,55 @@
-<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finalizar pedido | SUPGO</title><meta name="description" content="Finaliza tu pedido de suplementos SUPGO."><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
-*{box-sizing:border-box}body{margin:0;font-family:Poppins,Arial,sans-serif;background:#f8f8f8;color:#151515}a{color:inherit;text-decoration:none}.top{background:white;border-bottom:1px solid #eaeaea}.top-in{max-width:1080px;margin:auto;padding:17px 20px;display:flex;align-items:center;gap:16px;justify-content:space-between}.logo{font-weight:700;font-size:20px;letter-spacing:-.04em}.back{font-size:13px;color:#555}main{max-width:1080px;margin:30px auto 70px;padding:0 20px}h1{font-size:clamp(25px,4vw,35px);letter-spacing:-.05em;margin:0 0 8px}p.sub{font-size:13px;color:#777;margin:0 0 25px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:22px;align-items:start}.panel{background:white;border:1px solid #e8e8e8;border-radius:10px;padding:23px}.steps{display:flex;gap:7px;padding:11px;background:#f5f5f5;border-radius:8px;margin-bottom:20px;font-size:11px;color:#999}.steps span{flex:1;text-align:center}.steps .active{color:#111;font-weight:700}.section-title{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;margin:16px 0}.section-title i{display:grid;place-items:center;border-radius:50%;background:#111;color:#fff;width:25px;height:25px;font-style:normal;font-size:11px}.consent{font-size:11px;line-height:1.5;display:flex;align-items:flex-start;gap:9px;margin:12px 0;font-weight:400}.consent input{width:17px;height:17px;flex:0 0 17px;margin:1px 0}.breakdown{display:flex;justify-content:space-between;gap:15px;padding:8px 0;font-size:13px}.coupon{margin:15px 0}.coupon summary{cursor:pointer;font-size:12px;font-weight:600}.coupon p{font-size:11px;color:#777}.coupon input{margin-top:10px}.detail{font-size:11px;color:#777;margin-top:5px}h2{font-size:17px;letter-spacing:-.02em;margin:0 0 19px}.fields{display:grid;gap:13px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:13px}label{display:grid;gap:6px;font-size:12px;font-weight:600}input,textarea{border:1px solid #ddd;border-radius:6px;background:white;color:#151515;padding:12px;font:inherit;font-size:16px;min-width:0;width:100%}textarea{resize:vertical;min-height:75px}.items{display:grid;gap:0}.item{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:11px;align-items:center;padding:13px 0;border-bottom:1px solid #eee}.item img{width:54px;height:62px;object-fit:contain}.item b{font-size:12px;display:block;line-height:1.5}.muted{font-size:11px;color:#777}.qty{font-size:12px;margin-top:3px}.money{font-size:12px;white-space:nowrap;font-weight:600}.total{display:flex;justify-content:space-between;font-size:15px;font-weight:700;margin-top:20px}.note{color:#777;font-size:11px;line-height:1.65;margin:14px 0}.submit{font:600 14px Poppins,Arial,sans-serif;color:#fff;background:#121212;width:100%;border:0;border-radius:7px;padding:15px;cursor:pointer}.submit:disabled{opacity:.5;cursor:wait}.error{color:#a22222;font-size:12px;margin-top:12px}.empty{background:#fff;padding:26px;border-radius:10px}.small{font-size:12px;color:#777}.loading{font-size:13px;color:#777}.success{font-size:14px;color:#21754b}.invisible{display:none}@media(max-width:760px){main{margin-top:20px;padding:0 12px}.layout{grid-template-columns:1fr}.panel{padding:17px}.twocol{grid-template-columns:1fr}.top-in{padding:15px 12px}.layout>.panel:nth-child(2){order:-1}}
-</style></head><body><header class="top"><div class="top-in"><a href="/home/" class="back">← Volver al inicio</a><a href="/home/" class="logo">SUPGO</a><a href="/carrito/" class="back">Mi carrito</a></div></header>
-<main><h1>Finalizar pedido</h1><p class="sub">Revisa tus productos y completa los datos de entrega.</p><div class="layout">
-<section class="panel"><div class="steps"><span>✓ Carrito</span><span class="active">2 Datos</span><span>3 Confirmación</span></div><form id="order"><div class="fields"><div class="section-title"><i>1</i> Datos de contacto</div><label>Nombre completo<input name="nombre" required minlength="3" autocomplete="name"></label><label>Celular<input name="celular" required inputmode="tel" pattern="[0-9]{10,13}" autocomplete="tel"></label><label>Correo electrónico<input name="email" type="email" required autocomplete="email" placeholder="tu@correo.com"></label><div class="section-title"><i>2</i> Datos de entrega</div><label>Ciudad / municipio<input name="ciudad" required autocomplete="address-level2" placeholder="Ciudad o municipio"></label><label>Dirección<input name="direccion" required minlength="5" autocomplete="street-address"></label><label>Indicaciones (opcional)<textarea name="notas" maxlength="1000" placeholder="Barrio, apartamento, referencias de entrega..."></textarea></label><details class="coupon"><summary>¿Tienes un cupón o código?</summary><p>Los descuentos se verifican con SUPGO antes de confirmar el pago. Indícalo en las observaciones para revisarlo.</p></details><div class="section-title"><i>3</i> Confirma tu pedido</div><label class="consent"><input name="datos" type="checkbox" required><span>Autorizo el tratamiento de mis datos personales para gestionar este pedido.</span></label><label class="consent"><input name="avisos" type="checkbox" required><span>Autorizo recibir actualizaciones sobre preparación, ruta y entrega por correo. Sin publicidad.</span></label><p class="note">Verificaremos disponibilidad y valor del envío antes de habilitar el pago. No pagues hasta recibir confirmación.</p><button id="send" class="submit" type="submit" disabled>Generar pedido</button><div id="message" aria-live="polite" class="error"></div></div></form></section>
-<section class="panel"><h2>Resumen de tu pedido</h2><div id="items" class="items"><p class="loading">Cargando productos...</p></div><div class="breakdown"><span>Subtotal</span><strong id="subtotal">$0</strong></div><div class="breakdown"><span>Envío</span><strong id="shipping">Por confirmar</strong></div><div class="total"><span>Total provisional</span><span id="grandtotal">$0</span></div><p class="note">El envío se confirma por separado. El total final puede variar.</p></section>
-</div></main>
-<script>
-(()=>{'use strict';
-const api='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/';
-const key='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
-const headers={'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json'};
-const $=id=>document.getElementById(id);const money=x=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(x);
-const store=k=>{try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return {}}};
-const cart=store('liftCartV2'),meta=store('liftCartMetaV1');
-let lines=[],ready=false,submitting=false;
-const entries=Object.entries(cart).map(([k,v])=>({id:Number(k.split('::')[0]),cantidad:Number(typeof v==='object'?(v.quantity??v.qty):v),key:k})).filter(x=>Number.isSafeInteger(x.id)&&x.id>0&&Number.isInteger(x.cantidad)&&x.cantidad>0);
-function message(t){$('message').textContent=t}
-async function boot(){
-if(!entries.length){$('items').innerHTML='<p class="small">Tu carrito está vacío. <a href="/carrito/"><u>Volver al carrito</u></a></p>';return;}
-try{
-const ids=[...new Set(entries.map(x=>x.id))];
-const query=new URLSearchParams({select:'id,product,precio,nombre,marca,activo',id:'in.('+ids.join(',')+')'});
-const res=await fetch(api+'lift_productos?'+query,{headers});
-if(!res.ok)throw Error('No se pudieron cargar los productos.');
-const products=await res.json();
-lines=entries.map(e=>{
-const p=products.find(x=>Number(x.id)===e.id);
-if(!p||p.activo===false)throw Error('Un producto de tu carrito ya no está disponible: '+e.id);
-const details=p.product||{};
-const price=Number(details.price??p.precio??0);
-if(!Number.isFinite(price)||price<=0)throw Error('Hay productos sin precio confirmado.');
-return {id:e.id,cantidad:e.cantidad,nombre:String(details.name||p.nombre||meta[e.key]?.name||'Producto'),marca:String(details.brand||p.marca||''),imagen:String(details.image||meta[e.key]?.image||''),precio:price};
-});
-$('items').replaceChildren();let subtotal=0;
-for(const p of lines){subtotal+=p.precio*p.cantidad;const row=document.createElement('div');row.className='item';const img=document.createElement('img');img.alt='';if(/^https?:\/\//.test(p.imagen))img.src=p.imagen;else img.style.visibility='hidden';const info=document.createElement('div');const title=document.createElement('b');title.textContent=p.nombre;const brand=document.createElement('div');brand.className='muted';brand.textContent=p.marca;const qty=document.createElement('div');qty.className='qty';qty.textContent='Cantidad: '+p.cantidad;info.append(title,brand,qty);const cost=document.createElement('span');cost.className='money';cost.textContent=money(p.precio*p.cantidad);row.append(img,info,cost);$('items').append(row)}
-$('subtotal').textContent=money(subtotal);$('grandtotal').textContent=money(subtotal);ready=true;$('send').disabled=false;
-}catch(error){$('items').textContent=error.message;message('Revisa el carrito para continuar.')}
-}
-$('order').addEventListener('submit',async e=>{
-e.preventDefault();if(!ready||submitting)return;submitting=true;$('send').disabled=true;message('');
-const d=new FormData(e.currentTarget);const data=Object.fromEntries(d.entries());
-try{
-const body={p_nombre:data.nombre.trim(),p_celular:data.celular.replace(/\D/g,''),p_ciudad:data.ciudad.trim(),p_direccion:data.direccion.trim(),p_notas:(data.notas.trim()+' | Email: '+data.email.trim()+' | Actualizaciones correo autorizadas: '+(data.avisos?'Sí':'No')).trim(),p_items:lines.map(({id,cantidad})=>({id,cantidad}))};
-const res=await fetch(api+'rpc/supgo_checkout_seo_crear',{method:'POST',headers,body:JSON.stringify(body)});
-if(!res.ok){let reason='No se pudo registrar el pedido';try{const d=await res.json();reason=d.message||reason}catch(_){}throw Error(reason);}
-const id=Number(await res.json());if(!Number.isSafeInteger(id)||id<=0)throw Error('Pedido creado, pero no se recibió su número. Contacta a soporte antes de intentarlo de nuevo.');
-localStorage.removeItem('liftCartV2');localStorage.removeItem('liftCartMetaV1');
-location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id));
-}catch(error){message(error.message||'No fue posible guardar el pedido');submitting=false;$('send').disabled=false;}
-});
-boot();
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finalizar compra | SUPGO</title><style>body{margin:0;font-family:Poppins,Arial,sans-serif;background:#fff}.waiting{text-align:center;margin:14vh auto;padding:24px;max-width:560px;color:#333}.waiting p{font-size:13px;color:#888}</style></head><body><div id="loading" class="waiting"><h2>Finalizar compra</h2><p>Preparando el checkout de SUPGO…</p></div><script>
+(async()=>{
+ const loading=document.getElementById('loading');
+ try{
+   // El formulario, sus funciones y sus estilos proceden del mismo catálogo SUPGO.
+   // No se crea otro sistema de pedidos ni se modifica la página principal.
+   const response=await fetch('/?supgo_checkout_ref=original',{cache:'no-store'});
+   if(!response.ok)throw Error('No se pudo cargar el checkout original.');
+   let page=await response.text();
+   if(!page.includes('id="checkoutModal"')||!page.includes('function openCheckout'))throw Error('No se encontró el checkout original.');
+   const injection=`<style id="supgo-checkout-page">
+     body.supgo-checkout-page{background:#fff!important;overflow:auto!important}
+     body.supgo-checkout-page #checkoutModal{display:grid!important;position:relative!important;inset:auto!important;z-index:1!important;background:#fff!important;padding:0!important;min-height:100vh!important;place-items:start center!important}
+     body.supgo-checkout-page #checkoutModal .checkoutCard{position:relative!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border-radius:0!important;width:min(100%,760px)!important;margin:auto!important}
+     body.supgo-checkout-page #checkoutModal .checkoutHead{position:relative!important}
+     body.supgo-checkout-page #checkoutModal .checkoutHead .close{display:none!important}
+     body.supgo-checkout-page #checkoutModal .checkoutBody{padding-bottom:60px!important}
+     @media(max-width:760px){body.supgo-checkout-page #checkoutModal .checkoutBody{padding:15px 12px 45px!important}}
+   </style>
+   <script>(function(){
+     const oldCart=JSON.parse(localStorage.getItem('liftCartV2')||'{}');
+     const hasItems=Object.values(oldCart).some(q=>Number(typeof q==='object'?(q.quantity??q.qty):q)>0);
+     let attempts=0, initialized=false;
+     const timer=setInterval(function(){
+       if(initialized)return;
+       if(typeof window.items!=='function'||typeof window.startCartCheckout!=='function'||typeof window.renderCheckoutSummary!=='function')return;
+       const lines=window.items();
+       // Esperar a que Supabase cargue los productos; no abrir con un carrito vacío
+       // mientras el catálogo todavía se está inicializando.
+       if(hasItems&&!lines.length&&++attempts<160)return;
+       initialized=true;clearInterval(timer);
+       try{
+         window.startCartCheckout();
+         if(!document.getElementById('checkoutModal').classList.contains('open'))window.openCheckout();
+         document.body.classList.add('supgo-checkout-page');
+         document.body.style.overflow='auto';
+         let el=document.getElementById('checkoutModal');
+         while(el&&el!==document.body){
+           for(const sibling of el.parentElement.children){
+             if(sibling!==el&&sibling.tagName!=='SCRIPT'&&sibling.tagName!=='STYLE')sibling.style.setProperty('display','none','important');
+           }
+           el=el.parentElement;
+         }
+         window.renderCheckoutSummary();
+         document.title='Finalizar compra | SUPGO';
+       }catch(err){console.error('Checkout original:',err);}
+     },200);
+     setTimeout(function(){if(!initialized){clearInterval(timer);console.error('SUPGO: tiempo de espera agotado al sincronizar los productos');}},38000);
+   })();<\/script>`;
+   page=page.replace(/<head(\s[^>]*)?>/i,m=>m+'<base href="/">');
+   page=page.replace(/<\/body>/i,injection+'</body>');
+   document.open();document.write(page);document.close();
+ }catch(error){loading.innerHTML='<h2>No se pudo abrir el checkout</h2><p></p><a href="/carrito/">Volver al carrito</a>';loading.querySelector('p').textContent=error.message;}
 })();
 </script></body></html>
