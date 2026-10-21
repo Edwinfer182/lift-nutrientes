@@ -2,8 +2,7 @@ name: Publicar SUPGO en Vercel
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -17,18 +16,44 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Comprobar configuración
+      - name: Comprobar Deploy Hook
         env:
           DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        shell: bash
         run: |
-          if [ -z "$DEPLOY_HOOK" ]; then
-            echo "::error::Falta el secreto VERCEL_DEPLOY_HOOK en Settings > Secrets and variables > Actions."
+          if [[ -z "$DEPLOY_HOOK" ]]; then
+            echo "::error title=Falta configuración::El secreto VERCEL_DEPLOY_HOOK no está disponible. Debe estar en Settings > Secrets and variables > Actions > Repository secrets."
             exit 1
           fi
-      - name: Solicitar despliegue de main
+          if [[ ! "$DEPLOY_HOOK" =~ ^https://api\.vercel\.com/v1/integrations/deploy/ ]]; then
+            echo "::error title=URL de hook incorrecta::VERCEL_DEPLOY_HOOK debe contener la URL completa del Deploy Hook de Vercel (https://api.vercel.com/v1/integrations/deploy/...)."
+            exit 1
+          fi
+          echo "Deploy Hook configurado correctamente; URL privada oculta."
+
+      - name: Solicitar despliegue en Vercel
         env:
           DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        shell: bash
         run: |
           set -euo pipefail
-          response=$(curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 40 -X POST "$DEPLOY_HOOK")
-          echo "$response" | python3 -c 'import sys,json; x=json.load(sys.stdin); assert x.get("state") in ("PENDING","QUEUED","BUILDING","READY"), f"Respuesta inesperada: {x}"; print("Vercel aceptó el despliegue:",x.get("state"))'
+          response_file=$(mktemp)
+          status=$(curl --silent --show-error --location --retry 2 --retry-delay 2 --max-time 45 --output "$response_file" --write-out '%{http_code}' --request POST "$DEPLOY_HOOK")
+          echo "Código HTTP de Vercel: $status"
+          if [[ "$status" != "200" && "$status" != "201" && "$status" != "202" ]]; then
+            echo "::error title=Vercel rechazó la solicitud::HTTP $status. Comprueba que el Deploy Hook siga activo y asociado a main."
+            exit 1
+          fi
+          python3 - "$response_file" <<'PY'
+          import json,sys
+          try:
+              with open(sys.argv[1]) as f: data=json.load(f)
+          except Exception:
+              print("::error::Vercel no devolvió un JSON válido")
+              sys.exit(1)
+          state=data.get("state")
+          if state not in ("PENDING","QUEUED","BUILDING","READY"):
+              print(f"::error::Respuesta inesperada de Vercel (estado: {state!r})")
+              sys.exit(1)
+          print("Vercel aceptó el despliegue. Estado:",state)
+          PY
