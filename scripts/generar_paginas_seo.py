@@ -377,7 +377,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <style id="seo-header-css">{SEO_HEADER_CSS}\n{SEO_MENU_FIX}</style>
 </head><body>
 <script>window.__supgoSeoFilters={json.dumps(row.get("_filter_counts",{}),ensure_ascii=False).replace("<","\\u003c")};</script>
-<script defer src="/componentes/header-loader.js?v=20261020-seo-menu-data16"></script>
+<script defer src="/componentes/header-loader.js?v=20261020-brandlogos17"></script>
 
 <main class="product-page">
 <article class="product-card">
