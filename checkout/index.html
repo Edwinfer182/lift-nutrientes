@@ -61,9 +61,12 @@
     let tries=0;
     const timer=setInterval(function(){
       const modal=document.getElementById('checkoutModal');
-      if(modal && typeof window.openCheckout==='function'){
+      if(modal && typeof window.openCheckout==='function' && document.readyState==='complete'){
         clearInterval(timer);
         try{
+          // La aplicación y el catálogo deben terminar su carga antes de leer el carrito.
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('supgo-cart-change'));
           window.openCheckout();
           document.body.classList.add('supgo-standalone-checkout');
           removeLiteralEscapes();
