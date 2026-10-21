@@ -35,6 +35,16 @@ body[data-page="laboratorios"] .links{grid-template-columns:repeat(4,minmax(0,1f
 body[data-page="laboratorios"] .labLogoCard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:150px;padding:15px 10px}
 body[data-page="laboratorios"] .labLogo{display:block;width:100%;height:72px;max-width:170px;object-fit:contain}
 body[data-page="laboratorios"] .labLogoCard small{margin-top:0}
+
+/* Interaccion de laboratorios: tarjeta elevada y boton que aparece al pasar el cursor */
+body[data-page="laboratorios"] .labLogoCard{position:relative;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+body[data-page="laboratorios"] .labLogoCard::after{content:"Ver productos →";position:absolute;left:50%;bottom:11px;transform:translate(-50%,8px);opacity:0;pointer-events:none;background:#181818;color:#fff;border-radius:5px;padding:7px 12px;font:500 11px/1.3 Poppins,Arial,sans-serif;white-space:nowrap;transition:opacity .22s ease,transform .22s ease}
+@media(hover:hover){body[data-page="laboratorios"] .labLogoCard:hover{transform:translateY(-4px);box-shadow:0 9px 24px rgba(0,0,0,.1);border-color:#d4d4d4}body[data-page="laboratorios"] .labLogoCard:hover::after{opacity:1;transform:translate(-50%,0)}body[data-page="laboratorios"] .labLogoCard:hover .labLogo{transform:scale(1.055)}}
+body[data-page="laboratorios"] .labLogoCard:focus-visible{outline:2px solid #222;outline-offset:3px}
+body[data-page="laboratorios"] .labLogoCard:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+body[data-page="laboratorios"] .labLogo{transition:transform .25s ease}
+@media(prefers-reduced-motion:reduce){body[data-page="laboratorios"] .labLogoCard,body[data-page="laboratorios"] .labLogoCard::after,body[data-page="laboratorios"] .labLogo{transition:none!important}}
+
 @media(max-width:700px){
 .topinner{align-items:flex-start;flex-direction:column;gap:7px;padding:10px 14px}
 .nav{margin:0;gap:12px;font-size:11px}
