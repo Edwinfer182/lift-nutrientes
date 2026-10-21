@@ -14476,6 +14476,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check,{once:true});else check();
 })();
 </script>
+<!-- supgo-mi-pedido-deeplink-v1 -->
+<script>
+(function(){
+  const query=new URLSearchParams(window.location.search);
+  if(query.get('mi-pedido')!=='1')return;
+  let attempts=0;
+  function openConsultation(){
+    if(typeof window.liftOpenTrack==='function' && document.getElementById('liftTrackModal')){
+      window.liftOpenTrack();
+      return;
+    }
+    if(++attempts<40)window.setTimeout(openConsultation,250);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openConsultation,{once:true});
+  else openConsultation();
+})();
+</script>
 </body>
 </html>
 
