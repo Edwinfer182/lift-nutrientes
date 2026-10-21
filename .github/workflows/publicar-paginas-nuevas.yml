@@ -45,6 +45,17 @@ jobs:
           print('Rutas actualizadas:',count)
           assert count>0, 'No se encontraron paginas para actualizar'
           PY
+      - name: Validar tarjetas nuevas antes de publicar
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          css=Path('paginas/supgo-pages.css').read_text(encoding='utf-8')
+          js=Path('paginas/supgo-pages.js').read_text(encoding='utf-8')
+          assert '.product-photo' in css and '.product-details' in css, 'Faltan estilos de tarjetas nuevas'
+          assert "photo.className='product-photo'" in js, 'No se esta usando el componente nuevo'
+          assert "buy.className='buy'" in js, 'Falta el icono de carrito compacto'
+          print('Tarjetas nuevas validadas')
+          PY
       - name: Comprobar sintaxis JavaScript
         run: node --check paginas/supgo-pages.js
       - name: Guardar paginas generadas en main para publicacion
