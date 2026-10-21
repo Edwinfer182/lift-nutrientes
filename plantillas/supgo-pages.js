@@ -5,6 +5,7 @@ const state={rows:[],offers:{}};async function loadOffers(){const u=new URL(conf
 const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
 const slug=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const product=r=>r?.product||{},name=r=>String(pval(product(r),'name','nombre')||'Producto'),brand=r=>String(pval(product(r),'brand','marca')||''),category=r=>String(pval(product(r),'category','categoria')||''),price=r=>Number(pval(product(r),'price','precio')||0),image=r=>{let v=pval(product(r),'image','imagen','image_url','imagen_url','foto','url_imagen');if(!v&&Array.isArray(product(r).images))v=product(r).images[0];if(v&&typeof v==='object')v=v.url;return typeof v==='string'&&/^https?:\/\//.test(v)?v:''};
+const secondaryImage=r=>{const p=product(r),first=image(r);const urls=[];const add=v=>{if(typeof v==='string'){const t=v.trim();if(t.startsWith('[')||t.startsWith('{')){try{add(JSON.parse(t));return}catch{}}if(/^https?:\/\//i.test(t))urls.push(t)}else if(Array.isArray(v))v.forEach(add);else if(v&&typeof v==='object'){const u=v.url||v.src||v.image_url||v.imagen_url||v.image||v.imagen;if(u)add(u)}};['images','imagenes','gallery','galeria','image_urls','imagenes_adicionales','secondary_image','image2','imagen2','image_2','imagen_2','foto2','foto_2','tabla_nutricional'].forEach(k=>add(p[k]));return urls.find(u=>u!==first)||''};
 const link=r=>'/productos/'+slug(name(r))+'-'+r.id+'.html';
 function cart(){const v=get('liftCartV2',{});return v&&typeof v==='object'&&!Array.isArray(v)?v:{}}
 function qty(v){return Number(typeof v==='object'?(v.quantity??v.qty):v)||0}
@@ -31,7 +32,7 @@ const page=document.body.dataset.page,root=$('#content'),query=new URLSearchPara
 function card(r){
 const el=document.createElement('article');el.className='product';
 const photo=document.createElement('a');photo.className='product-photo';photo.href=link(r);
-if(image(r)){const img=document.createElement('img');img.src=image(r);img.alt=name(r);img.loading='lazy';photo.append(img)}
+if(image(r)){const img=document.createElement('img');img.className='primary-photo';img.src=image(r);img.alt=name(r);img.loading='lazy';photo.append(img);const second=secondaryImage(r);if(second){const alternate=document.createElement('img');alternate.className='secondary-photo';alternate.src=second;alternate.alt='Vista adicional de '+name(r);alternate.loading='lazy';alternate.onerror=()=>alternate.remove();photo.append(alternate)}}
 const info=document.createElement('div');info.className='product-details';
 const lab=document.createElement('small');lab.className='brand';lab.textContent=brand(r);
 const title=document.createElement('a');title.className='name';title.href=link(r);title.textContent=name(r);
