@@ -40,30 +40,6 @@ jobs:
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
-      - name: Garantizar WhatsApp en fichas HTML existentes
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          updated=0
-          for page in Path("productos").glob("*.html"):
-              html=page.read_text(encoding="utf-8",errors="replace")
-              if 'class="product-info"' not in html or 'id="seo-wa-button"' in html:
-                  continue
-              marker='<div class="product-rule"></div>'
-              if marker not in html:
-                  continue
-              block='''<div class="seo-wa-wrap" style="margin:14px 0">
-              <button id="seo-wa-button" type="button" aria-expanded="false" style="width:100%;padding:13px;border:1px solid #ddd;border-radius:9px;background:white;color:#222;font:600 14px Poppins,Arial,sans-serif">Consultar por WhatsApp</button>
-              <div id="seo-wa-panel" hidden style="padding:12px;border:1px solid #ddd;border-radius:9px;margin-top:8px">
-              <textarea id="seo-wa-message" style="box-sizing:border-box;width:100%;min-height:75px;padding:12px;border:1px solid #ddd;border-radius:8px;font:14px Poppins,Arial,sans-serif"></textarea>
-              <button id="seo-wa-send" type="button" style="width:100%;padding:12px;margin-top:8px;border:0;border-radius:8px;background:#169c50;color:white;font:600 14px Poppins,Arial,sans-serif">Enviar por WhatsApp</button></div></div>
-              <script>(function(){const b=document.getElementById('seo-wa-button'),p=document.getElementById('seo-wa-panel'),t=document.getElementById('seo-wa-message'),s=document.getElementById('seo-wa-send');if(!b||!p||!t||!s)return;const n=document.querySelector('.product-info h1')?.childNodes[0]?.textContent?.trim()||'este producto';t.value='Hola, estoy interesado en '+n+'. ¿Está disponible?';b.onclick=()=>{p.hidden=!p.hidden;b.setAttribute('aria-expanded',String(!p.hidden))};s.onclick=()=>{location.href='https://api.whatsapp.com/send?text='+encodeURIComponent(t.value+'\\n'+location.href)}})();</script>'''
-              html=html.replace(marker,block+marker,1)
-              page.write_text(html,encoding="utf-8")
-              updated+=1
-          print("Fichas HTML reparadas:",updated)
-          PY
       - name: Verificar HTML SEO y Schema del producto
         run: |
           python - <<'PY'
@@ -87,10 +63,10 @@ jobs:
           from pathlib import Path
           page = Path("productos/100-gold-isolate-standard-5-lb-30188.html")
           html = page.read_text(encoding="utf-8")
-          assert 'id="seo-wa-button"' in html, "Falta botón WhatsApp"
-          assert 'id="seo-wa-panel"' in html, "Falta panel WhatsApp"
+          assert 'id="seo-wa-toggle"' in html, "Falta botón flotante WhatsApp"
+          assert 'id="seo-wa-float"' in html, "Falta contenedor flotante"
           assert 'id="seo-wa-send"' in html, "Falta botón de envío"
-          assert 'supgo-wa-float' not in html, "Persiste botón flotante antiguo"
+          assert 'class="seo-wa-wrap"' not in html, "Persiste botón grande antiguo"
           print("WhatsApp integrado en HTML SEO")
           PY
       - name: Publicar páginas generadas
