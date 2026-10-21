@@ -64,7 +64,7 @@ jobs:
           git add productos/ productos-assets/ sitemap-productos.xml
           if ! git diff --cached --quiet; then
             git commit -m "SEO: actualizar fichas individuales desde Supabase"
-            git pull --rebase origin main
+            git pull --rebase -X theirs origin main
             git push
           fi
 
