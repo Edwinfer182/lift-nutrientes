@@ -292,7 +292,7 @@ def build(row):
  gallery_json=json.dumps(gallery,ensure_ascii=False).replace("<","\\u003c")
  variants=row.get("_variants",[])
  related=row.get("_related",[])
- variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'" title="'+esc(v["label"])+'">'+('<span class="option-photo"><img src="'+esc(v["image"])+'" alt="'+esc(v["label"])+'" loading="lazy"></span>' if v["image"] else '<span class="option-photo option-empty">Sin foto</span>')+'<span class="option-label">'+esc(v["label"])+'</span></a>' for v in variants)
+ variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'" title="'+esc(v["label"])+'">'+('<span class="option-photo"><img src="'+esc(v["image"])+'" alt="'+esc(v["label"])+'" loading="lazy"></span>' if v["image"] else '<span class="option-photo option-empty">Sin foto</span>')+'<span class="option-label">'+esc(v["label"])+'</span>'+('<span class="option-offer">Oferta</span>' if v.get('on_offer') else '')+'</a>' for v in variants)
  related_html=''.join('<a class="related-item" href="'+esc(v["url"])+'">'+('<img loading="lazy" src="'+esc(v["image"])+'" alt="'+esc(v["name"])+'">' if v["image"] else '')+'<strong>'+esc(v["name"])+'</strong><small>'+esc(v["brand"])+'</small></a>' for v in related)
  title_brand_html = (' <span class="seo-title-brand">' + esc(brand) + '</span>') if brand else ''
  product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical},ensure_ascii=False).replace("<","\\u003c")
@@ -348,6 +348,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 .option.selected{{background:white;color:#111;border:2px solid #111;box-shadow:0 2px 5px rgba(0,0,0,.07);padding:9px 7px}}
 .option-photo{{width:90px;height:90px;background:transparent}}
 .option-label{{font-size:12px;line-height:1.25}}
+.option-offer{{font-size:10px;color:#a31515;font-weight:650;line-height:1.1}}
 .product-rule{{display:none}}
 .seo-description{{border-top:1px solid #eee;border-bottom:1px solid #eee;margin:0 0 16px}}
 .seo-description summary{{padding:18px 5px;font-size:14px}}
@@ -410,11 +411,13 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  body .product-page .product-card .product-info .product-rule{{margin-bottom:12px}}
  body .product-page .product-card .product-info .seo-description{{margin:3px 0 14px}}
  body .product-page .product-card .product-info .seo-description summary{{font-size:13px;padding:12px 0;font-weight:600}}
- body .product-page .variant-panel{{margin:0 0 14px;padding:12px;border-radius:10px}}
- body .product-page .variant-grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}}
- body .product-page .option{{width:100%;max-width:100%;min-width:0;padding:7px 5px}}
- body .product-page .option-photo{{width:100%;height:66px}}
- body .product-page .option-label{{font-size:11px}}
+ body .product-page .variant-panel{{margin:0 0 14px;padding:10px;border-radius:10px}}
+ body .product-page .variant-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}}
+ body .product-page .option{{width:100%;max-width:100%;min-width:0;padding:5px 3px;gap:3px;border-radius:9px;margin:0}}
+  body .product-page .option.selected{{padding:4px 2px}}
+ body .product-page .option-photo{{width:100%;height:47px}}
+ body .product-page .option-label{{font-size:10px;line-height:1.2}}
+  body .product-page .option-offer{{font-size:9px}}
  body .product-page .related-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}}
  body .product-page .related-item img{{height:120px}}
  body .product-page .product-info .actions{{position:fixed!important;left:0;right:0;bottom:0;z-index:950;display:flex;align-items:center;gap:10px;width:100%;margin:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e8e8e8;box-shadow:0 -5px 18px rgba(0,0,0,.07)}}
@@ -555,7 +558,7 @@ def main():
  if not valid: raise RuntimeError("No hay productos validos para generar")
  def info(item):
   p=item["product"];name=str(p.get("name") or p.get("nombre") or "")
-  return {"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name)}
+  return {"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name),"on_offer":active_offer(item) is not None}
  # Agrupar sabores por familia y presentación sin mezclar tamaños diferentes.
  # Priorizar el identificador padre cuando existe; en su ausencia, eliminar
  # exclusivamente el sabor declarado en Supabase del final del nombre.
