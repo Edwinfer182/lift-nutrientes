@@ -179,13 +179,6 @@ window.supgoOpenSeoCheckout=()=>{
  checkoutFrame.src='/';
 };
 drawer.querySelector('#supgoGoCheckout').onclick=window.supgoOpenSeoCheckout;
-const orderButton=document.createElement('a');
-orderButton.className='myOrder';
-orderButton.href='https://supgo.co/?mi-pedido=1';
-orderButton.textContent='📦 Mi pedido';
-orderButton.setAttribute('aria-label','Mi pedido');
-orderButton.style.cssText='display:inline-flex;align-items:center;justify-content:center;text-decoration:none';
-if(cartButton)cartButton.before(orderButton);else bar?.append(orderButton);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeMenu();}});
 document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?.contains(e.target))closeMenu();});
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
