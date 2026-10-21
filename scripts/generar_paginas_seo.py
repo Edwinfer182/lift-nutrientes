@@ -377,33 +377,8 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <style id="seo-header-css">{SEO_HEADER_CSS}\n{SEO_MENU_FIX}</style>
 </head><body>
 <script>window.__supgoSeoFilters={json.dumps(row.get("_filter_counts",{}),ensure_ascii=False).replace("<","\\u003c")};</script>
-<script>
-/* Logos de laboratorios integrados al HTML SEO, sin modificar el index. */
-document.addEventListener('supgo:header-ready',function(){{
- const menu=document.querySelector('body > .supgo-menu');
- const list=window.__supgoSeoFilters?.brands;
- if(!menu||!Array.isArray(list))return;
- const logos=new Map(list.map(x=>[String(x[0]).trim().toLocaleLowerCase('es'),x[2]]));
- const paintLogos=function(){{menu.querySelectorAll('.supgo-brand-card').forEach(function(card){{
-   if(card.querySelector('img'))return;
-   const name=card.querySelector('b')?.textContent?.trim().toLocaleLowerCase('es');
-   const src=logos.get(name);
-   if(typeof src!=='string'||!/^https?:\\/\\//i.test(src))return;
-   const logo=document.createElement('img');
-   logo.className='supgo-brand-logo';
-   logo.alt='';
-   logo.loading='lazy';
-   logo.referrerPolicy='no-referrer';
-   logo.onerror=function(){{logo.remove();}};
-   logo.src=src;
-   card.prepend(logo);
- }});}};
- const links=menu.querySelector('.supgo-links');
- if(links){{new MutationObserver(paintLogos).observe(links,{{childList:true}});}}
- paintLogos();
-}});
-</script>
-<script defer src="/componentes/header-loader.js?v=20261020-brandlogos18"></script>
+
+<script defer src="/componentes/header-loader.js?v=20261020-brandlogos19"></script>
 
 <main class="product-page">
 <article class="product-card">
