@@ -1,1 +1,44 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finalizar pedido | SUPGO</title><link rel="stylesheet" href="/paginas/supgo-pages.css"></head><body><header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a><nav class="nav"><a href="/carrito/">Carrito</a><a href="/favoritos/">Favoritos</a><a href="/buscar/">Buscar</a></nav></div></header><main class="site"><h1>Finalizar pedido</h1><p class="muted">Completa tu pedido con el checkout original de SUPGO.</p><p class="notice" id="status">Preparando checkout…</p><div class="iframewrap"><iframe id="catalogModule" title="Finalizar pedido" src="/" loading="eager"></iframe></div></main><script>(function(){const iframe=document.getElementById('catalogModule'),status=document.getElementById('status');let timer;iframe.addEventListener('load',()=>{let attempts=0;timer=setInterval(()=>{let w;try{w=iframe.contentWindow;}catch(e){clearInterval(timer);status.textContent='No se pudo cargar el módulo.';return}if(!w)return;const fn=w.openCheckout;if(typeof fn==='function'&&!!iframe.contentDocument?.getElementById('checkoutModal')){clearInterval(timer);try{fn.call(w);status.hidden=true;iframe.focus()}catch(e){status.textContent='No se pudo abrir el módulo: '+e.message}return}if(++attempts>80){clearInterval(timer);status.textContent='El módulo está tardando. Puedes abrir el catálogo para finalizar tu pedido.'}},200)})})();</script></body></html>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finalizar pedido | SUPGO</title><style>body{font-family:Poppins,Arial,sans-serif;margin:0;background:#fff;color:#111}.loading{max-width:640px;margin:12vh auto;text-align:center;padding:24px}.loading a{color:inherit}</style></head><body><main class="loading" id="checkoutLoading"><h1>Finalizar pedido</h1><p>Cargando el formulario seguro…</p></main>
+<script>
+(async function(){
+ const loading=document.getElementById('checkoutLoading');
+ try{
+  const response=await fetch('/?supgo_checkout_page=1',{cache:'no-store'});
+  if(!response.ok)throw Error('No fue posible abrir el checkout.');
+  let html=await response.text();
+  if(!html.includes('checkoutModal'))throw Error('No se encontró el checkout original.');
+  const bootstrap=`<style id="supgo-standalone-checkout-style">
+    body.supgo-standalone-checkout{background:#fff!important}
+    body.supgo-standalone-checkout #checkoutModal{visibility:visible!important;opacity:1!important;display:block!important;position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;width:100%!important;height:auto!important;min-height:100dvh!important;max-height:none!important;overflow:visible!important;transform:none!important;background:#fff!important;padding:0!important;margin:0!important;z-index:1!important}
+    body.supgo-standalone-checkout #checkoutModal .modal-content,body.supgo-standalone-checkout #checkoutModal .checkout-content{position:relative!important;transform:none!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;width:100%!important;max-width:800px!important;max-height:none!important;height:auto!important;overflow:visible!important;margin:0 auto!important;box-shadow:none!important;border:0!important;border-radius:0!important}
+    body.supgo-standalone-checkout #checkoutModal .modal-backdrop{display:none!important}
+  </style>
+  <script>(function(){
+    let tries=0;
+    const timer=setInterval(function(){
+      const modal=document.getElementById('checkoutModal');
+      if(modal && typeof window.openCheckout==='function'){
+        clearInterval(timer);
+        try{
+          window.openCheckout();
+          document.body.classList.add('supgo-standalone-checkout');
+          let node=modal;
+          while(node && node!==document.body){for(const child of node.parentElement.children){if(child!==node && child.tagName!=='SCRIPT' && child.tagName!=='STYLE')child.style.setProperty('display','none','important')}node=node.parentElement}
+          document.title='Finalizar pedido | SUPGO';
+        }catch(error){console.error('Checkout SUPGO:',error)}
+      }else if(++tries>=120){clearInterval(timer);console.error('No se inicializó el checkout SUPGO')}
+    },150);
+  })();<\/script>`;
+  html=html.replace(/<head(\s[^>]*)?>/i, match=>match+'<base href="/">');
+  if(!/<\/body>/i.test(html))throw Error('La página de origen está incompleta.');
+  html=html.replace(/<\/body>/i,bootstrap+'</body>');
+  document.open();document.write(html);document.close();
+ }catch(error){
+  loading.replaceChildren();
+  const title=document.createElement('h1');title.textContent='No se pudo cargar el checkout';
+  const msg=document.createElement('p');msg.textContent=error.message;
+  const link=document.createElement('a');link.href='/carrito/';link.textContent='Volver al carrito';
+  loading.append(title,msg,link);
+ }
+})();
+</script></body></html>
