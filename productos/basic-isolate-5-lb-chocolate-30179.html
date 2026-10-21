@@ -307,6 +307,15 @@ let selectedQuantity=1; const qtyValue=document.getElementById('qtyValue');const
  const previous=cart[key],qty=Number(typeof previous==='object'?(previous.quantity??previous.qty):previous)||0;
  cart[key]=qty+selectedQuantity;meta[key]={name:p.name,image:p.image,price:p.price};
  localStorage.setItem(cartKey,JSON.stringify(cart));localStorage.setItem(metaKey,JSON.stringify(meta));
+ // Traspaso persistente desde la ficha SEO hacia el checkout independiente.
+ // Usar las mismas claves evita crear un segundo carrito incompatible.
+ const checkoutItems=Object.entries(cart).filter(([id,value])=>Number(typeof value==='object'?(value.quantity??value.qty):value)>0).map(([id,value])=>({
+   id:id.split('::')[0],key:id,
+   cantidad:Number(typeof value==='object'?(value.quantity??value.qty):value)||0,
+   nombre:(meta[id]||{}).name||'',precio:Number((meta[id]||{}).price)||0,
+   imagen:(meta[id]||{}).image||''
+ }));
+ localStorage.setItem('supgoCheckoutCartV1',JSON.stringify(checkoutItems));
  window.dispatchEvent(new Event('supgo-cart-change'));
  note.textContent=selectedQuantity+' unidad(es) agregada(s) al carrito';selectedQuantity=1;showQuantity();
  const button=document.querySelector('#supgo-global-header .cartDesktop');if(button)button.click();
