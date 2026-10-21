@@ -1948,6 +1948,21 @@ body.supgo-checkout-ready #checkoutModal .checkoutHead{position:relative!importa
 body.supgo-checkout-ready #checkoutModal .checkoutBody{padding-bottom:60px!important}
 body.supgo-checkout-ready #checkoutModal .checkoutHead .close{display:none!important}
 @media(max-width:760px){body.supgo-checkout-ready #checkoutModal .checkoutBody{padding:15px 12px 45px!important}}
+</style><style id="supgo-checkout-desktop-nav-v1">
+body.supgo-checkout-ready #checkoutModal{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:0!important}
+body.supgo-checkout-ready #checkoutModal>.supgoCheckoutNav{width:min(calc(100% - 40px),1120px);margin:24px auto 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:Poppins,Arial,sans-serif}
+.supgoCheckoutNav .supgoCheckoutNavBrand{font-size:20px;font-weight:650;letter-spacing:-.03em;text-decoration:none;color:#111}
+.supgoCheckoutNav .supgoCheckoutNavLinks{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.supgoCheckoutNavLinks a{text-decoration:none;color:#171717;border:1px solid #e1e1e1;border-radius:9px;padding:10px 15px;background:#fff;font-size:12px;font-weight:500;white-space:nowrap}
+.supgoCheckoutNavLinks a:hover{background:#f5f5f5;border-color:#bdbdbd}
+body.supgo-checkout-ready #checkoutModal>.checkoutCard{width:min(calc(100% - 40px),1120px)!important;max-width:1120px!important;margin:0 auto 48px!important}
+@media(min-width:901px){
+body.supgo-checkout-ready #checkoutModal .checkoutBody{padding:26px 34px 40px!important}
+body.supgo-checkout-ready #checkoutModal .checkoutGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;column-gap:26px!important;row-gap:15px!important}
+body.supgo-checkout-ready #checkoutModal .checkoutHead{padding:20px 34px!important}
+body.supgo-checkout-ready #checkoutModal .field input{min-width:0}
+}
+@media(max-width:760px){body.supgo-checkout-ready #checkoutModal>.supgoCheckoutNav{width:calc(100% - 24px);margin:12px auto 8px}.supgoCheckoutNav .supgoCheckoutNavBrand{font-size:16px}.supgoCheckoutNavLinks a{font-size:11px;padding:8px 10px}body.supgo-checkout-ready #checkoutModal>.checkoutCard{width:100%!important;margin:0 auto 20px!important}}
 </style></head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -2237,7 +2252,7 @@ body.supgo-checkout-ready #checkoutModal .checkoutHead .close{display:none!impor
 <aside id="cart" class="off right"><div class="offhead"><h2>Tu carrito</h2><button class="close" onclick="closeOff()">×</button></div><div id="cartBody" class="offbody"></div><div class="cartfoot"><div class="totalrow"><span>Subtotal</span><span id="subtotal">$0</span></div><button id="cartBuyBtn" class="cartBuy" onclick="startCartCheckout()">Continuar pedido</button><button class="secondary liftCartAdminOnly" onclick="copyOrder()">Copiar pedido</button></div></aside>
 <div id="productModal" class="modal" onclick="if(event.target===this)closeModal()"><div class="modalCard"><button class="modalClose" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
 
-<div id="checkoutModal" class="checkoutModal" onclick="if(event.target===this)closeCheckout()">
+<div id="checkoutModal" class="checkoutModal" onclick="if(event.target===this)closeCheckout()">\n<nav class="supgoCheckoutNav" aria-label="Navegación del checkout"><a class="supgoCheckoutNavBrand" href="/">SUPGO</a><div class="supgoCheckoutNavLinks"><a href="/">Inicio</a><a href="/carrito/">← Carrito</a></div></nav>
   <div class="checkoutCard">
     <div class="checkoutHead"><h2>Finalizar compra</h2><button class="close" onclick="closeCheckout()">×</button></div>
     <div class="checkoutBody">
