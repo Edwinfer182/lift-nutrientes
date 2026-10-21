@@ -157,6 +157,17 @@ def seo_availability(row):
  return None
 
 SEO_HEADER_CSS=(ROOT/'componentes'/'header-public.css').read_text(encoding='utf-8')
+# El menú se crea dentro de body, mientras el antiguo CSS apunta al header.
+# Aislar el panel del layout SEO y forzar la capa blanca por encima de la ficha.
+SEO_MENU_FIX = """
+body .supgo-menu:not([hidden]){position:fixed!important;top:0!important;left:0!important;right:auto!important;bottom:0!important;width:min(92vw,460px)!important;height:100dvh!important;max-height:100dvh!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background:#fff!important;background-image:none!important;z-index:2147483646!important;padding:0!important;border:0!important;border-radius:0!important;box-sizing:border-box!important}
+body .supgo-menu:not([hidden]) .supgo-menu-inner{flex:1!important;min-height:0!important;overflow-y:auto!important;background:#fff!important}
+body .supgo-menu:not([hidden]) .supgo-menu-head{flex:none!important;background:#fff!important}
+body .supgo-menu-shade:not([hidden]){position:fixed!important;inset:0!important;display:block!important;background:rgba(0,0,0,.65)!important;z-index:2147483645!important}
+body .supgo-menu .supgo-links.is-brands{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body .supgo-menu .supgo-brand-card{background:#fff!important}
+body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
+"""
 
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
@@ -339,9 +350,9 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 }}
 
 </style>
-<style id="seo-header-css">{SEO_HEADER_CSS}</style>
+<style id="seo-header-css">{SEO_HEADER_CSS}\n{SEO_MENU_FIX}</style>
 </head><body>
-<script defer src="/componentes/header-loader.js?v=20261020-seo-header14"></script>
+<script defer src="/componentes/header-loader.js?v=20261020-seo-menu-fix15"></script>
 
 <main class="product-page">
 <article class="product-card">
