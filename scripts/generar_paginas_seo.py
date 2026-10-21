@@ -408,7 +408,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 #supgo-global-header .myOrder,
 #supgo-global-header #liftTrackBtn,
 #supgo-global-header a[href*="mi-pedido"],
-#supgo-global-header [data-open-track]{display:none!important}
+#supgo-global-header [data-open-track]{{display:none!important}}
 </style>
 </head><body>
 <script>window.__supgoSeoFilters={json.dumps(row.get("_filter_counts",{}),ensure_ascii=False).replace("<","\\u003c")};</script>
