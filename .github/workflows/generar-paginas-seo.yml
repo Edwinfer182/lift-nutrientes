@@ -57,6 +57,18 @@ jobs:
           assert any(s.get("@type") == "BreadcrumbList" for s in schemas), "Falta BreadcrumbList JSON-LD"
           print("SEO verificado: descripción larga, metadescripción, Product/Offer y BreadcrumbList")
           PY
+      - name: Verificar botón WhatsApp en fichas generadas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          page = Path("productos/100-gold-isolate-standard-5-lb-30188.html")
+          html = page.read_text(encoding="utf-8")
+          assert 'id="seo-wa-button"' in html, "Falta botón WhatsApp"
+          assert 'id="seo-wa-panel"' in html, "Falta panel WhatsApp"
+          assert 'id="seo-wa-send"' in html, "Falta botón de envío"
+          assert 'supgo-wa-float' not in html, "Persiste botón flotante antiguo"
+          print("WhatsApp integrado en HTML SEO")
+          PY
       - name: Publicar páginas generadas
         run: |
           git config user.name "github-actions[bot]"
