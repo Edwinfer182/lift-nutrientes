@@ -109,11 +109,11 @@
   modal.querySelector('[data-close]').onclick=close;
   modal.addEventListener('click',e=>{if(e.target===modal)close()});
   modal.querySelector('.pedido-submit').onclick=async()=>{
-   const ref=modal.querySelector('#supgoPedidoNumero').value.trim(),celular=modal.querySelector('#supgoPedidoCelular').value.trim(),out=modal.querySelector('#supgoPedidoResultado');
-   if(!ref||!celular){out.textContent='Escribe número de pedido y celular.';return}
+   const ref=modal.querySelector('#supgoPedidoNumero').value.trim(),celular=modal.querySelector('#supgoPedidoCelular').value.trim(),out=modal.querySelector('#supgoPedidoResultado');const token=modal.dataset.token||'';
+   if(!ref||(!celular&&!token)){out.textContent='Escribe número de pedido y celular.';return}
    out.textContent='Consultando…';
    try{
-    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',apikey:key},body:JSON.stringify({action:'public-track-order',referencia:ref,celular})});
+    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',apikey:key},body:JSON.stringify({action:'public-track-order',referencia:ref,celular,token})});
     const data=await res.json();if(!res.ok||!data.pedido)throw Error(data.error||'No se encontró el pedido.');
     const p=data.pedido;const labels=['Recibido','Preparando','En ruta','Entregado'];const states=['nuevo','programado','en_ruta','entregado'];const ix=Math.max(0,states.indexOf(p.estado));
     const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
@@ -121,7 +121,7 @@
    }catch(e){out.textContent=e.message||'Error consultando el pedido'}
   };
  }
- window.supgoOpenPedidoCompartido=(orderData)=>{if(typeof window.liftOpenTrack==='function'&&document.getElementById('liftTrackModal')){window.liftOpenTrack();return}init();const m=document.getElementById('supgoPedidoCompartido');try{const last=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}');m.querySelector('#supgoPedidoNumero').value=orderData?.ref||orderData?.referencia||last.ref||'';m.querySelector('#supgoPedidoCelular').value=orderData?.phone||orderData?.celular||last.phone||''}catch(e){}m.classList.add('open');document.body.style.overflow='hidden';if(m.querySelector('#supgoPedidoNumero').value&&m.querySelector('#supgoPedidoCelular').value)m.querySelector('.pedido-submit').click()};
+ window.supgoOpenPedidoCompartido=(orderData)=>{if(typeof window.liftOpenTrack==='function'&&document.getElementById('liftTrackModal')){window.liftOpenTrack();const last=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}');const ref=document.getElementById('liftTrackRef'),phone=document.getElementById('liftTrackPhone');if(ref)ref.value=orderData?.ref||orderData?.referencia||last.ref||'';if(phone)phone.value=orderData?.phone||orderData?.celular||last.phone||'';if(ref?.value&&(phone?.value||orderData?.token||last.token)&&typeof window.liftTrackOrder==='function')Promise.resolve(window.liftTrackOrder(orderData?.token||last.token||undefined)).catch(console.error);return}init();const m=document.getElementById('supgoPedidoCompartido');try{const last=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}');m.querySelector('#supgoPedidoNumero').value=orderData?.ref||orderData?.referencia||last.ref||'';m.querySelector('#supgoPedidoCelular').value=orderData?.phone||orderData?.celular||last.phone||'';m.dataset.token=orderData?.token||last.token||''}catch(e){}m.classList.add('open');document.body.style.overflow='hidden';if(m.querySelector('#supgoPedidoNumero').value&&(m.querySelector('#supgoPedidoCelular').value||m.dataset.token))m.querySelector('.pedido-submit').click()};
 })();
 
 /* Permite al checkout abrir el seguimiento en la misma URL tras crear el pedido. */
