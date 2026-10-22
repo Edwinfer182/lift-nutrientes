@@ -91,11 +91,12 @@ def template(kind, title, url_slug, count, image_url=''):
         url = escape(image_url, quote=True)
         social += f'\n<meta property="og:image" content="{url}"><meta name="twitter:image" content="{url}">'
     data = json.dumps({"@context": "https://schema.org", "@type": "CollectionPage", "name": title, "url": canonical, "description": description}, ensure_ascii=False)
+    safe_json = data.replace("<", "\\u003c")
     return f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{heading} | SUPGO</title><meta name="description" content="{escape(description, quote=True)}">
 <link rel="canonical" href="{canonical}">\n{social}
-<script type="application/ld+json">{data.replace('<', '\\u003c')}</script>
+<script type="application/ld+json">{safe_json}</script>
 <link rel="stylesheet" href="/paginas/supgo-pages.css"></head>
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
