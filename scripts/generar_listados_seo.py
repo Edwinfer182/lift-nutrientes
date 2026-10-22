@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Genera páginas individuales SEO de categorías y laboratorios de SUPGO."""
+# Actualización de metadatos sociales: volver a generar los listados mediante GitHub Actions.
 import json
 import os
 import pathlib
