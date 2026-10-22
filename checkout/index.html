@@ -11345,7 +11345,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
      return new Map((Array.isArray(data)?data:[]).map(p=>[String(p.id),String(p.imagen||p.product?.image||p.product?.imagen||'').trim()]));
    }catch(e){return new Map()}
  }
- function orderUrl(id,token){const u=new URL('https://supgo.co/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
+ function orderUrl(id,token){const u=new URL('https://supgo.co/mis-pedidos/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
  function phoneUrl(phone,text){let n=String(phone||'').replace(/\D/g,'');if(!n)return '';if(n.length===10)n='57'+n;return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
 
  const STEPS=[
@@ -11522,7 +11522,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
       tries++;const now=localStorage.getItem('liftLastPublicOrder')||'';
       if(now&&now!==before){
        clearInterval(timer);const x=stored();
-       try{const id=String(x.ref||'').replace(/\D/g,'');if(!id)throw Error('No se recibió el número de pedido');sessionStorage.setItem('supgoCheckoutCreatedOrder',JSON.stringify({id,phone:String(x.phone||'').replace(/\D/g,'')}));location.assign('/?pedido='+encodeURIComponent(id))}catch(e){console.error('Abrir mi pedido:',e)}
+       try{const id=String(x.ref||'').replace(/\D/g,'');if(!id)throw Error('No se recibió el número de pedido');sessionStorage.setItem('supgoCheckoutCreatedOrder',JSON.stringify({id,phone:String(x.phone||'').replace(/\D/g,'')}));location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id))}catch(e){console.error('Abrir mi pedido:',e)}
       }else if(tries>30)clearInterval(timer)
     },50);
     return r
@@ -12803,7 +12803,7 @@ const orderId=String(r.pedido_id||r.referencia||'').trim();
 if(!orderId)throw new Error('Supabase no devolvió el número de pedido. Comprueba el pedido antes de intentar generarlo de nuevo.');
 const savedOrder={ref:r.referencia||orderId,pedido_id:r.pedido_id||orderId,phone:d.celular,token:r.token||''};
 try{localStorage.setItem('liftLastPublicOrder',JSON.stringify(savedOrder));sessionStorage.setItem('liftLastPublicOrder',JSON.stringify(savedOrder))}catch(e){console.warn('No se pudo guardar la sesión local del pedido',e)}
-const destination=new URL('https://supgo.co/');
+const destination=new URL('https://supgo.co/mis-pedidos/');
 destination.searchParams.set('pedido',orderId);
 if(r.token)destination.searchParams.set('token',String(r.token));
 window.location.assign(destination.toString()); }catch(e){alert('No se pudo generar el pedido: '+e.message)}finally{if(btn){btn.dataset.busy='0';btn.disabled=false;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generar pedido')}}};
