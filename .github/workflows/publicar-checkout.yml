@@ -1,0 +1,53 @@
+name: Publicar checkout independiente SUPGO
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'checkout/**'
+      - '.github/workflows/publicar-checkout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-supgo
+  cancel-in-progress: false
+
+jobs:
+  publicar-checkout:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar version actual de main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Validar checkout independiente
+        shell: bash
+        run: |
+          test -s checkout/index.html || { echo "::error::No existe checkout/index.html"; exit 1; }
+          grep -Eiq '<html|<!doctype html' checkout/index.html || { echo "::error::Checkout no contiene HTML valido"; exit 1; }
+          test -s index.html || { echo "::error::Falta el index principal"; exit 1; }
+          echo "Checkout independiente y pagina principal presentes."
+      - name: Preparar sitio completo para Pages
+        shell: bash
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='/.git/' --exclude='/.github/' --exclude='/_site/' --exclude='/node_modules/' --exclude='/__pycache__/' ./ _site/
+          test -s _site/checkout/index.html
+          test -s _site/index.html
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Subir sitio a GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
