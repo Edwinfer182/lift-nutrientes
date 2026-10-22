@@ -14824,6 +14824,15 @@ button:active{transform:scale(.98)}
   if(typeof window.liftOpenTrack==='function'&&document.getElementById('liftTrackModal')){
    clearInterval(timer);
    window.liftOpenTrack();
+   // Consultar automáticamente el último pedido guardado tras llegar del checkout.
+   let last={};try{last=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}')||{}}catch(e){}
+   const ref=document.getElementById('liftTrackRef');
+   const phone=document.getElementById('liftTrackPhone');
+   if(ref&&last.ref)ref.value=last.ref;
+   if(phone&&last.phone)phone.value=last.phone;
+   if(ref?.value&&(phone?.value||last.token)&&typeof window.liftTrackOrder==='function'){
+    Promise.resolve(window.liftTrackOrder(last.token||undefined)).catch(e=>console.warn('Consulta automática de pedido:',e));
+   }
    history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])mi-pedido=1(&?)/,function(_,a,b){return a==='?'&&b?'?':a==='?'?'':b?'&':''}).replace(/[?&]$/,'')+location.hash);
   }else if(++attempts>=100)clearInterval(timer);
  },100);
