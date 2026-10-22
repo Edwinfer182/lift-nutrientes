@@ -1,0 +1,23 @@
+name: Inspeccionar lista pedidos index
+on:
+  push:
+    paths: ['.github/workflows/inspeccionar-pedidos-index.yml']
+  workflow_dispatch:
+jobs:
+  inspeccion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Identificar render y eliminación existente sin mostrar datos
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          patterns=['lift_pedidos','renderPedidos','listaPedidos','pedidos-list','pedidosList','mis pedidos','Mis pedidos','deleteOrder','eliminarPedido','btnEliminarPedido','supabase.from']
+          for word in patterns:
+            print('\\nBUSQUEDA',word)
+            for m in list(re.finditer(re.escape(word),s,re.I))[:8]:
+              start=max(0,m.start()-210);end=min(len(s),m.end()+340)
+              print('OFFSET',m.start(),re.sub(r'(?i)(apikey|authorization|token|secret)[^\\n]{0,200}','[REDACTADO]',s[start:end])[:600].replace('\\n',' '))
+          PY
