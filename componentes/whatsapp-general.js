@@ -39,6 +39,24 @@
       <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 2.7A13.2 13.2 0 0 0 4.7 22.8L3 29l6.4-1.7A13.3 13.3 0 1 0 16 2.7Zm0 24.1a10.8 10.8 0 0 1-5.5-1.5l-.4-.2-3.8 1 1-3.7-.2-.4a10.9 10.9 0 1 1 8.9 4.8Zm6-8.2c-.3-.1-1.9-.9-2.2-1s-.5-.1-.7.2-.8 1-1 1.2-.4.2-.7.1a8.9 8.9 0 0 1-4.4-3.9c-.3-.5.3-.5.9-1.7a.6.6 0 0 0 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.5s-1.2 1.2-1.2 2.9 1.2 3.4 1.3 3.7a12.2 12.2 0 0 0 4.7 4.5 4.5 0 0 0 2.7.9c1.1 0 2.5-.5 2.9-1.7.4-1.1.4-2.1.3-2.3s-.3-.2-.6-.3Z"/></svg>
     </button>`;
     document.body.appendChild(wrap);
+    // Retira únicamente controles flotantes heredados; nunca el carrito del encabezado.
+    const removeLegacyFloaters = () => {
+      const candidates = document.querySelectorAll(
+        'a[href*="wa.me"],a[href*="whatsapp.com/send"],[id*="whatsapp" i],[class*="whatsapp" i],[id*="floating-cart" i],[class*="floating-cart" i],[id*="cart-float" i],[class*="cart-float" i]'
+      );
+      for (const node of candidates) {
+        if (node.closest('#supgo-wa-general,header,.topbar,#supgo-global-header')) continue;
+        if (!node.isConnected || node.contains(wrap)) continue;
+        const style = window.getComputedStyle(node);
+        if (style.position !== 'fixed') continue;
+        const rect = node.getBoundingClientRect();
+        if (rect.width > 125 || rect.height > 125 || rect.bottom < window.innerHeight * 0.5) continue;
+        node.style.setProperty('display','none','important');
+      }
+    };
+    removeLegacyFloaters();
+    window.addEventListener('load',removeLegacyFloaters,{once:true});
+
     const toggle = wrap.querySelector('.wa-toggle');
     const panel = wrap.querySelector('.wa-panel');
     const field = wrap.querySelector('textarea');
