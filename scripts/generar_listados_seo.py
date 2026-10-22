@@ -71,7 +71,7 @@ def main():
         groups = {}
         for row in rows:
             name = read(row, *keys)
-            if name:
+            if name and not (kind == "laboratorio" and slug(name) == "venom-pharma"):
                 groups.setdefault(name, 0)
                 groups[name] += 1
         for name, count in groups.items():
