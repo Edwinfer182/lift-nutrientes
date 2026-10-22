@@ -1,0 +1,56 @@
+name: Publicar index principal SUPGO
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'componentes/**'
+      - 'paginas/**'
+      - 'carrito/**'
+      - 'favoritos/**'
+      - 'ofertas/**'
+      - '.github/workflows/publicar-index-principal.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-supgo
+  cancel-in-progress: false
+
+jobs:
+  validar-y-publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+      - name: Comprobar index principal antes de publicar
+        shell: bash
+        run: |
+          test -s index.html || { echo "::error::index.html está vacío: publicación bloqueada para proteger la web."; exit 1; }
+          grep -Eiq '<html|<!doctype html' index.html || { echo "::error::index.html no contiene HTML válido."; exit 1; }
+          test -d componentes || echo "::warning::No existe la carpeta componentes."
+          test -d paginas || echo "::warning::No existe la carpeta paginas."
+          echo "Index principal validado."
+      - name: Preparar sitio estático sin archivos internos
+        shell: bash
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='/.git/' --exclude='/.github/' --exclude='/_site/' --exclude='/node_modules/' --exclude='/__pycache__/' ./ _site/
+          test -s _site/index.html
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Subir sitio a GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
