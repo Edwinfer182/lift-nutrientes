@@ -324,7 +324,7 @@ paint();
  const name=document.querySelector('.product-info h1')?.childNodes[0]?.textContent?.trim()||'este producto';
  field.value='Hola, estoy interesado en '+name+'. ¿Está disponible?';
  button.addEventListener('click',()=>{panel.hidden=!panel.hidden;button.setAttribute('aria-expanded',String(!panel.hidden));});
- send.addEventListener('click',()=>{location.href='https://api.whatsapp.com/send?text='+encodeURIComponent(field.value+'\n'+location.href);});
+ send.addEventListener('click',()=>{location.href='https://api.whatsapp.com/send?phone=573137380766&text='+encodeURIComponent(field.value+'\n'+location.href);});
 })();
 </script>
 </body></html>
