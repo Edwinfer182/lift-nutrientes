@@ -31,6 +31,12 @@ const params=new URLSearchParams(location.search);const id=params.get('id')||par
 form.addEventListener('submit',async e=>{e.preventDefault();const id=document.getElementById('pedido').value.trim(),phone=document.getElementById('celular').value.replace(/\D/g,'');if(!/^\d+$/.test(id)||phone.length<10){message('Revisa el número de pedido y el celular.');return}
 button.disabled=true;button.textContent='Consultando…';message('Buscando tu pedido…');
 try{const res=await fetch(endpoint,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({p_id:Number(id),p_celular:phone})});if(!res.ok)throw Error('No fue posible consultar el pedido');const data=await res.json();if(!data||!data.id){message('No encontramos un pedido con esos datos. Comprueba el número y el celular utilizado en la compra.');return}
+// Tras validar el pedido, abrir la misma vista completa que utiliza el enlace con token.
+try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:String(data.id),phone,token:''}))}catch(_){}
+const target=new URL('/',location.origin);
+target.searchParams.set('pedido',String(data.id));
+location.assign(target.toString());
+return;
 output.replaceChildren();const card=document.createElement('article');card.className='order';const title=document.createElement('h2');title.textContent='Pedido #'+data.id;card.append(title);
 field(card,'Fecha',data.fecha?new Date(data.fecha).toLocaleDateString('es-CO'):'');
 const state=String(data.estado||'Recibido');
