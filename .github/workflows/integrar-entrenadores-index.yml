@@ -77,11 +77,12 @@ jobs:
             }
             function mount(){
               const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order')||document.querySelector('[class*=liftOrdersTabs]');
-              if(!pass()||document.getElementById('lift-trainer-admin-open'))return;
-              const target=anchor||document.querySelector('#lift-trainer-admin-open-anchor')||document.querySelector('button[onclick*=pedido]')?.parentElement||document.querySelector('main')||document.body;
+              if(document.getElementById('lift-trainer-admin-open'))return;
+              const target=anchor||document.querySelector('#lift-trainer-admin-open-anchor')||document.querySelector('main')||document.body;
               const btn=document.createElement('button');btn.id='lift-trainer-admin-open';btn.type='button';btn.textContent='🏋 Entrenadores';
-              if(anchor)anchor.insertAdjacentElement('afterend',btn);else target.prepend(btn);
-              btn.onclick=()=>{modal.classList.add('lift-open');load()};
+              if(anchor)anchor.insertAdjacentElement('afterend',btn);else document.body.append(btn);
+              btn.style.cssText='position:fixed;right:18px;bottom:90px;z-index:2147483500;background:#111;color:#fff;border-radius:999px;padding:12px 18px;box-shadow:0 4px 18px #0005';
+              btn.onclick=()=>{if(!pass()){alert('Inicia sesión como administrador para gestionar entrenadores.');return;}modal.classList.add('lift-open');load()};
             }
             document.getElementById('lift-trainer-admin-close').onclick=()=>modal.classList.remove('lift-open');
             modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('lift-open')});
