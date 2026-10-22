@@ -43,6 +43,14 @@ jobs:
           rsync -a --exclude='/.git/' --exclude='/.github/' --exclude='/_site/' --exclude='/node_modules/' --exclude='/__pycache__/' ./ _site/
           test -s _site/checkout/index.html
           test -s _site/index.html
+      - name: Verificar que Mis pedidos actualizado entre al artefacto
+        shell: bash
+        run: |
+          test -s _site/mis-pedidos/index.html || { echo "::error::Falta Mis pedidos en la publicacion"; exit 1; }
+          grep -Fq 'class="backdrop"' _site/mis-pedidos/index.html || { echo "::error::Se intenta publicar la version antigua de Mis pedidos"; exit 1; }
+          grep -Fq "public-track-order" _site/mis-pedidos/index.html || { echo "::error::Falta seguimiento por token"; exit 1; }
+          grep -Fq "/mis-pedidos/" _site/checkout/index.html || { echo "::error::Checkout no dirige a Mis pedidos"; exit 1; }
+          echo "OK: modal nuevo y checkout incluidos en artefacto de Pages."
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Subir sitio a GitHub Pages
