@@ -1,0 +1,49 @@
+name: Publicar Mis pedidos reconstruido
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mis-pedidos/**'
+      - '.github/workflows/publicar-mis-pedidos.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages-supgo
+  cancel-in-progress: false
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar main actual
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Verificar pagina reconstruida
+        shell: bash
+        run: |
+          test -s mis-pedidos/index.html
+          grep -Fq 'mis-pedidos-reconstruido-20261022-v2' mis-pedidos/index.html
+          grep -Fq 'public-track-order' mis-pedidos/index.html
+          grep -Fq 'supgo_consultar_pedido' mis-pedidos/index.html
+          grep -Fq '/mis-pedidos/' checkout/index.html
+          echo 'Nueva pagina Mis pedidos verificada'
+      - name: Preparar sitio completo
+        shell: bash
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='/.git/' --exclude='/.github/' --exclude='/_site/' --exclude='/node_modules/' ./ _site/
+          cmp mis-pedidos/index.html _site/mis-pedidos/index.html
+          test -s _site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
