@@ -40,25 +40,17 @@ jobs:
           rsync -a --exclude='/.git/' --exclude='/.github/' --exclude='/_site/' --exclude='/node_modules/' --exclude='/__pycache__/' ./ _site/
           test -s _site/checkout/index.html
           test -s _site/index.html
-      - name: Verificar offcanvas de Mi pedido en artefacto
+      - name: Verificar redireccion a seguimiento nativo
         shell: bash
         run: |
-          grep -Fq "supgo:pedido-generado" _site/checkout/index.html || { echo "::error::Checkout no abre seguimiento local"; exit 1; }
-          grep -Fq 'header-loader.js?v=20261022-offcanvas-only5' _site/checkout/index.html || { echo "::error::Checkout no importa offcanvas"; exit 1; }
-          grep -Fq "Mi pedido" _site/componentes/header.html || { echo "::error::Falta Mi pedido en header compartido"; exit 1; }
-          grep -Fq "header-loader.js" _site/carrito/index.html || { echo "::error::Carrito no carga header compartido"; exit 1; }
-          echo "OK: modal nuevo y checkout incluidos en artefacto de Pages."
-      - name: Validar cargador y boton Mi pedido antes del deploy
+          grep -Fq 'https://supgo.co/?mi-pedido=1' _site/checkout/index.html || { echo "::error::Checkout no redirige al index tras generar pedido"; exit 1; }
+          grep -Fq 'supgoOpenPedidoCompartido' _site/componentes/header.js || { echo "::error::Falta enlace a consulta principal"; exit 1; }
+          grep -Fq 'mi-pedido' _site/index.html || { echo "::error::Index no reconoce la ruta de consulta"; exit 1; }
+          echo "OK: checkout e index comparten ruta nativa de Mi pedido."
+      - name: Validar enlaces del header y carrito
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          h=Path('_site/componentes/header.html').read_text()
-          l=Path('_site/componentes/header-loader.js').read_text()
-          c=Path('_site/carrito/index.html').read_text()
-          assert 'class="iconbtn myOrder"' in h, 'No existe boton Mi pedido en header'
-          assert 'supgoOpenPedidoCompartido' in l, 'No existe offcanvas compartido'
-          assert 'data-supgo-order-access' in c, 'Falta boton Mi pedido en carrito'
-          print('VALIDADO: boton, offcanvas y cargador del carrito')
-          PY
-
+          test -s _site/componentes/header-loader.js
+          grep -Fq 'myOrder' _site/componentes/header.html
+          grep -Fq 'header-loader.js' _site/carrito/index.html
+          echo "OK: enlaces de Mi pedido disponibles."
