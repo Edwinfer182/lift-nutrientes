@@ -55,3 +55,35 @@
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
   });
 })();
+
+/* Mi pedido: consulta en la misma página, sin navegación. */
+(function(){
+ if(window.supgoOpenPedidoCompartido)return;
+ const endpoint='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes';
+ const key='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&quot;'}[c]));
+ function init(){
+  if(document.getElementById('supgoPedidoCompartido'))return;
+  const style=document.createElement('style');
+  style.textContent='#supgoPedidoCompartido{position:fixed;inset:0;z-index:999999;display:none;align-items:center;justify-content:center;background:#0009;padding:12px;font-family:Poppins,Arial,sans-serif}#supgoPedidoCompartido.open{display:flex}#supgoPedidoCompartido .pedido-card{background:#fff;color:#151515;border-radius:15px;width:min(100%,640px);max-height:94vh;overflow:auto;padding:22px;box-shadow:0 16px 60px #0004}#supgoPedidoCompartido .pedido-top{display:flex;align-items:center;justify-content:space-between}#supgoPedidoCompartido .pedido-top button{background:#eee;border:0;border-radius:50%;width:34px;height:34px;font-size:23px;cursor:pointer}#supgoPedidoCompartido input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #ddd;border-radius:8px;margin:6px 0;font:inherit;font-size:14px}#supgoPedidoCompartido .pedido-submit{background:#111;color:#fff;border:0;border-radius:8px;width:100%;padding:13px;cursor:pointer;margin:8px 0;font:inherit}#supgoPedidoCompartido .pedido-line{padding:12px 0;border-bottom:1px solid #eee}#supgoPedidoCompartido .pedido-steps{display:flex;flex-wrap:wrap;gap:5px;margin:14px 0}#supgoPedidoCompartido .pedido-steps span{padding:7px;border-radius:6px;background:#eee;font-size:11px}#supgoPedidoCompartido .pedido-steps span.on{background:#111;color:#fff}';
+  document.head.append(style);
+  const modal=document.createElement('div');modal.id='supgoPedidoCompartido';modal.innerHTML='<div class="pedido-card" role="dialog" aria-modal="true" aria-label="Mi pedido"><div class="pedido-top"><h2>Mi pedido</h2><button type="button" data-close aria-label="Cerrar">×</button></div><p>Consulta con el número de pedido y el celular usado en la compra.</p><input id="supgoPedidoNumero" placeholder="Número de pedido"><input id="supgoPedidoCelular" placeholder="Celular" inputmode="tel"><button type="button" class="pedido-submit">Consultar pedido</button><div id="supgoPedidoResultado" aria-live="polite"></div></div>';
+  document.body.append(modal);
+  const close=()=>{modal.classList.remove('open');document.body.style.removeProperty('overflow')};
+  modal.querySelector('[data-close]').onclick=close;
+  modal.addEventListener('click',e=>{if(e.target===modal)close()});
+  modal.querySelector('.pedido-submit').onclick=async()=>{
+   const ref=modal.querySelector('#supgoPedidoNumero').value.trim(),celular=modal.querySelector('#supgoPedidoCelular').value.trim(),out=modal.querySelector('#supgoPedidoResultado');
+   if(!ref||!celular){out.textContent='Escribe número de pedido y celular.';return}
+   out.textContent='Consultando…';
+   try{
+    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',apikey:key},body:JSON.stringify({action:'public-track-order',referencia:ref,celular})});
+    const data=await res.json();if(!res.ok||!data.pedido)throw Error(data.error||'No se encontró el pedido.');
+    const p=data.pedido;const labels=['Recibido','Preparando','En ruta','Entregado'];const states=['nuevo','programado','en_ruta','entregado'];const ix=Math.max(0,states.indexOf(p.estado));
+    const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
+    out.innerHTML='<div class="pedido-line"><b>PEDIDO '+escapeHtml(p.referencia||ref)+'</b><p>'+escapeHtml(p.nombre||'')+'</p><small>'+escapeHtml(p.direccion||p.ciudad||'')+'</small></div><div class="pedido-steps">'+labels.map((s,i)=>'<span class="'+(i<=ix?'on':'')+'">'+s+'</span>').join('')+'</div>'+(p.items||[]).map(i=>'<div class="pedido-line"><b>'+escapeHtml(i.nombre||'Producto')+'</b><div>Cantidad: '+Number(i.cantidad||1)+'</div><small>'+money(i.total_linea||Number(i.precio_unitario||0)*Number(i.cantidad||1))+'</small></div>').join('')+'<div class="pedido-line"><b>Total: '+money(p.total)+'</b></div>';
+   }catch(e){out.textContent=e.message||'Error consultando el pedido'}
+  };
+ }
+ window.supgoOpenPedidoCompartido=()=>{if(typeof window.liftOpenTrack==='function'&&document.getElementById('liftTrackModal')){window.liftOpenTrack();return}init();const m=document.getElementById('supgoPedidoCompartido');try{const last=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}');m.querySelector('#supgoPedidoNumero').value=last.ref||'';m.querySelector('#supgoPedidoCelular').value=last.phone||''}catch(e){}m.classList.add('open');document.body.style.overflow='hidden'};
+})();
