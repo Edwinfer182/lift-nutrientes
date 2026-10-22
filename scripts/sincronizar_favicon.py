@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin
 import re
 ROOT=Path(__file__).resolve().parent.parent
+BASE='https://supgo.co/'
 class IconParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -20,11 +21,23 @@ class IconParser(HTMLParser):
 def run():
     parser=IconParser()
     index=(ROOT/'index.html').read_text(encoding='utf-8',errors='replace')
-    parser.feed(index[:index.lower().find('</head>')+7] if '</head>' in index.lower() else index[:30000])
+    parser.feed(index[:index.lower().find('</head>')+7] if '</head>' in index.lower() else index[:150000])
     # Reutilizar exactamente la referencia del index. Fallar si no hay icono claro.
     unique=list(dict.fromkeys(parser.icons))
     if not unique:
-        raise SystemExit('El index no declara link rel=icon. No se modificó ninguna página. Revisar icono del index.')
+        # El index original puede gestionar favicon como SVG/base64 o declararlo en JS.
+        # Identificar href real sin asumir una ruta que podría devolver 404.
+        candidates=re.findall(r"""(?:favicon|shortcut.icon|apple-touch-icon)[^\\n]{0,350}?(?:href|src)\\s*[:=]\\s*['\\"]([^'\\"]+)""",index[:150000],re.I)
+        candidates += re.findall(r"""(?:href|src)\\s*=\\s*['\\"]([^'\\"]+(?:favicon|apple-touch-icon)[^'\\"]*)""",index[:150000],re.I)
+        for candidate in candidates:
+            candidate=candidate.strip()
+            if not candidate or candidate.startswith(('javascript:', '#')):continue
+            candidate=urljoin(BASE,candidate)
+            if candidate.startswith(('http://','https://','data:image/')):
+                unique.append('<link rel="icon" href="'+candidate.replace('"','&quot;')+'">')
+                break
+    if not unique:
+        raise SystemExit('No se pudo localizar la fuente de favicon del index. No se modificarán páginas a ciegas.')
     tags='\n'.join(unique)
     changed=0
     for folder in ('productos','categorias','laboratorios','ofertas','checkout','mi-pedido','mis-pedidos','favoritos','buscar','carrito'):
@@ -39,4 +52,5 @@ def run():
             if newer!=content:path.write_text(newer,encoding='utf-8');changed+=1
     print('Iconos originales:',unique)
     print('Páginas sincronizadas:',changed)
+    assert changed >= 1 or any('LIFT-FAVICON-SYNC' in x.read_text(encoding='utf-8',errors='replace') for folder in ('ofertas','productos') for x in (ROOT/folder).glob('*.html')), 'Sin paginas actualizadas ni previamente sincronizadas'
 if __name__=='__main__':run()
