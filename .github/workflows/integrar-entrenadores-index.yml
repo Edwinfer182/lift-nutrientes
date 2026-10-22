@@ -21,9 +21,9 @@ jobs:
           s=p.read_text(encoding='utf-8')
           assert '</body>' in s.lower() and len(s)>10000, 'Index principal vacío o inválido'
           marker='LIFT-TRAINERS-ADMIN-V1'
+          # Reemplazar integración anterior para corregir la ubicación del botón.
           if marker in s:
-              print('Panel ya integrado')
-              raise SystemExit(0)
+              print('Integración anterior detectada; actualizar ubicación')
           snippet=r"""
           <!-- LIFT-TRAINERS-ADMIN-V1 -->
           <style>
@@ -76,10 +76,11 @@ jobs:
               }catch(e){list.textContent=e.message}
             }
             function mount(){
-              const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order');
-              if(!anchor||!pass()||document.getElementById('lift-trainer-admin-open'))return;
+              const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order')||document.querySelector('[class*=liftOrdersTabs]');
+              if(!pass()||document.getElementById('lift-trainer-admin-open'))return;
+              const target=anchor||document.querySelector('#lift-trainer-admin-open-anchor')||document.querySelector('button[onclick*=pedido]')?.parentElement||document.querySelector('main')||document.body;
               const btn=document.createElement('button');btn.id='lift-trainer-admin-open';btn.type='button';btn.textContent='🏋 Entrenadores';
-              anchor.insertAdjacentElement('afterend',btn);
+              if(anchor)anchor.insertAdjacentElement('afterend',btn);else target.prepend(btn);
               btn.onclick=()=>{modal.classList.add('lift-open');load()};
             }
             document.getElementById('lift-trainer-admin-close').onclick=()=>modal.classList.remove('lift-open');
@@ -94,6 +95,10 @@ jobs:
           })();
           </script>
           """
+          if marker in s:
+              start=s.index('          <!-- '+marker+' -->')
+              end=s.index('          </script>',start)+len('          </script>')
+              s=s[:start]+s[end:]
           s=s.replace('</body>',snippet+'\n</body>',1)
           p.write_text(s,encoding='utf-8')
           assert s.count(marker)==1
