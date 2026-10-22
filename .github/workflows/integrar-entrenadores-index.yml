@@ -1,0 +1,111 @@
+name: Integrar entrenadores al index
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/integrar-entrenadores-index.yml']
+permissions:
+  contents: write
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Insertar panel administrativo de entrenadores
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          assert '</body>' in s.lower() and len(s)>10000, 'Index principal vacío o inválido'
+          marker='LIFT-TRAINERS-ADMIN-V1'
+          if marker in s:
+              print('Panel ya integrado')
+              raise SystemExit(0)
+          snippet=r"""
+          <!-- LIFT-TRAINERS-ADMIN-V1 -->
+          <style>
+          #lift-trainer-admin-open{margin:8px;padding:10px 16px;background:#111;color:#fff;border:0;border-radius:9px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer}
+          #lift-trainer-admin-modal{position:fixed;inset:0;background:#0009;z-index:2147483600;display:none;align-items:center;justify-content:center;padding:16px}
+          #lift-trainer-admin-modal.lift-open{display:flex}
+          #lift-trainer-admin-box{background:#fff;color:#111;border-radius:16px;padding:22px;width:min(650px,100%);max-height:90vh;overflow:auto;font:14px Poppins,Arial,sans-serif}
+          #lift-trainer-admin-box input{display:block;width:100%;padding:11px;border:1px solid #ccc;border-radius:8px;margin:6px 0 12px;box-sizing:border-box}
+          #lift-trainer-admin-box button{padding:9px 13px;border-radius:8px;border:1px solid #ddd;cursor:pointer;margin:4px}
+          #lift-trainer-admin-box .lift-primary{background:#111;color:white}
+          #lift-trainer-admin-list>div{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px;border-bottom:1px solid #eee}
+          </style>
+          <div id="lift-trainer-admin-modal" role="dialog" aria-modal="true" aria-label="Administrar entrenadores">
+            <section id="lift-trainer-admin-box">
+              <div style="display:flex;justify-content:space-between;align-items:center"><h2>Entrenadores</h2><button type="button" id="lift-trainer-admin-close">Cerrar ✕</button></div>
+              <p>Crear entrenadores, asignar claves y administrar accesos.</p>
+              <form id="lift-trainer-admin-form">
+                <label>Nombre<input id="lift-trainer-name" required autocomplete="off"></label>
+                <label>Celular<input id="lift-trainer-phone" required inputmode="numeric" maxlength="15"></label>
+                <label>Clave nueva (mínimo 8 caracteres)<input id="lift-trainer-pass" type="password" minlength="8" required autocomplete="new-password"></label>
+                <button class="lift-primary" type="submit">Guardar entrenador / cambiar clave</button>
+              </form>
+              <p id="lift-trainer-admin-message" role="status"></p>
+              <h3>Entrenadores registrados</h3><div id="lift-trainer-admin-list"></div>
+              <p><a href="/entrenadores/" target="_blank" rel="noopener">Abrir portal de entrenadores ↗</a></p>
+            </section>
+          </div>
+          <script>
+          (function(){
+            const key='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+            const url='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/lift_entrenadores_admin';
+            const modal=document.getElementById('lift-trainer-admin-modal');
+            const list=document.getElementById('lift-trainer-admin-list');
+            const msg=document.getElementById('lift-trainer-admin-message');
+            function pass(){return sessionStorage.getItem('liftAdminCloudPasswordV1')||''}
+            async function call(action,data={}){
+              if(!pass())throw Error('Debes iniciar sesión como administrador');
+              const res=await fetch(url,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass(),p_action:action,p_data:data})});
+              const out=await res.json();if(!res.ok||!out.ok)throw Error(out.message||out.error||'No se pudo completar la operación');return out;
+            }
+            async function load(){
+              list.textContent='Cargando...';
+              try{const out=await call('list');list.replaceChildren();(out.entrenadores||[]).forEach(t=>{
+                const row=document.createElement('div'),name=document.createElement('span'),btn=document.createElement('button');
+                name.textContent=t.nombre+' · '+t.celular+' · '+(t.activo?'Activo':'Inactivo');
+                btn.textContent=t.activo?'Desactivar':'Activar';btn.type='button';
+                btn.onclick=async()=>{if(!confirm((t.activo?'¿Desactivar':'¿Activar')+' a '+t.nombre+'?'))return;try{await call('toggle',{id:t.id,activo:!t.activo});await load()}catch(e){msg.textContent=e.message}};
+                row.append(name,btn);list.append(row);
+              });if(!out.entrenadores?.length)list.textContent='Sin entrenadores registrados';
+              }catch(e){list.textContent=e.message}
+            }
+            function mount(){
+              const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order');
+              if(!anchor||!pass()||document.getElementById('lift-trainer-admin-open'))return;
+              const btn=document.createElement('button');btn.id='lift-trainer-admin-open';btn.type='button';btn.textContent='🏋 Entrenadores';
+              anchor.insertAdjacentElement('afterend',btn);
+              btn.onclick=()=>{modal.classList.add('lift-open');load()};
+            }
+            document.getElementById('lift-trainer-admin-close').onclick=()=>modal.classList.remove('lift-open');
+            modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('lift-open')});
+            document.getElementById('lift-trainer-admin-form').onsubmit=async e=>{
+              e.preventDefault();msg.textContent='Guardando...';
+              try{await call('save',{nombre:document.getElementById('lift-trainer-name').value,celular:document.getElementById('lift-trainer-phone').value,clave:document.getElementById('lift-trainer-pass').value});msg.textContent='Entrenador guardado';document.getElementById('lift-trainer-pass').value='';await load()}
+              catch(err){msg.textContent=err.message}
+            };
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+            new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});
+          })();
+          </script>
+          """
+          s=s.replace('</body>',snippet+'\n</body>',1)
+          p.write_text(s,encoding='utf-8')
+          assert s.count(marker)==1
+          PY
+      - name: Confirmar y publicar
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Admin: agregar gestión de entrenadores al index"
+            git pull --rebase -X theirs origin main
+            git push origin HEAD:main
+          fi
