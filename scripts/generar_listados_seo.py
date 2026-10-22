@@ -88,7 +88,7 @@ def template(kind, title, url_slug, count, image_url=''):
 <meta name="twitter:description" content="{safe_description}">"""
     if image_url:
         url = escape(image_url, quote=True)
-        social += f'\\n<meta property="og:image" content="{url}"><meta name="twitter:image" content="{url}">'
+        social += f'\n<meta property="og:image" content="{url}"><meta name="twitter:image" content="{url}">'
     data = json.dumps({"@context": "https://schema.org", "@type": "CollectionPage", "name": title, "url": canonical, "description": description}, ensure_ascii=False)
     return f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
