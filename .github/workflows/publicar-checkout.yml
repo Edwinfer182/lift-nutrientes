@@ -55,6 +55,19 @@ jobs:
           grep -Fq "Mi pedido" _site/componentes/header.html || { echo "::error::Falta Mi pedido en header compartido"; exit 1; }
           grep -Fq "header-loader.js" _site/carrito/index.html || { echo "::error::Carrito no carga header compartido"; exit 1; }
           echo "OK: modal nuevo y checkout incluidos en artefacto de Pages."
+      - name: Validar cargador y boton Mi pedido antes del deploy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('_site/componentes/header.html').read_text()
+          l=Path('_site/componentes/header-loader.js').read_text()
+          c=Path('_site/carrito/index.html').read_text()
+          assert 'class="iconbtn myOrder"' in h, 'No existe boton Mi pedido en header'
+          assert 'supgoOpenPedidoCompartido' in l, 'No existe offcanvas compartido'
+          assert 'mi-pedido-visible2' in c, 'Carrito usa cargador antiguo'
+          print('VALIDADO: boton, offcanvas y cargador del carrito')
+          PY
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Subir sitio a GitHub Pages
