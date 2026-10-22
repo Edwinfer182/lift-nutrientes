@@ -8,17 +8,13 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: github-pages-supgo
-  cancel-in-progress: false
+  group: supgo-legacy-validation
+  cancel-in-progress: true
 jobs:
   publicar:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Descargar main actual
         uses: actions/checkout@v4
@@ -38,10 +34,4 @@ jobs:
           cmp mis-pedidos/index.html _site/mis-pedidos/index.html
           test -s _site/index.html
           grep -Fq 'public-track-order' _site/mis-pedidos/index.html
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-      - name: Publicar en GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+
