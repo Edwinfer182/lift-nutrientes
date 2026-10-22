@@ -24,13 +24,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-      - name: Verificar pagina reconstruida
+      - name: Verificar consulta pública
         shell: bash
         run: |
           test -s mis-pedidos/index.html
           grep -Fq 'id="lookup"' mis-pedidos/index.html
-          grep -Fq 'lift_pedidos' mis-pedidos/index.html
-          grep -Fq '/mis-pedidos/' checkout/index.html
+          grep -Fq 'public-track-order' mis-pedidos/index.html
           echo 'Consulta independiente verificada'
       - name: Preparar sitio completo
         shell: bash
