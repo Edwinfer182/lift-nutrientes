@@ -134,6 +134,17 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
  .zoom-photo{max-width:100%;max-height:calc(100dvh - 140px)}
 }
 
+/* iOS Safari: evitar que los contenedores de la ficha reserven altura vacía
+   al desplazar las tarjetas relacionadas y la barra de compra fija. */
+@media screen and (max-width:760px){
+ html{height:auto;min-height:0;overflow-x:clip;overflow-y:auto}
+ body{height:auto!important;min-height:0!important;display:flow-root}
+ body > main.product-page{height:auto!important;min-height:0!important;max-height:none!important;display:flow-root;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+ body > main.product-page .product-card,
+ body > main.product-page .related{height:auto!important;min-height:0!important;max-height:none!important}
+ body > main.product-page .related:last-child{margin-bottom:0!important;padding-bottom:0!important}
+}
+
 </style>
 <style id="seo-header-css">/* Scoped header and cart UI for SEO product pages only. */
 #supgo-global-header{position:sticky;top:0;z-index:1000;font:400 13px/1.4 Poppins,Arial,sans-serif;color:#fff}
