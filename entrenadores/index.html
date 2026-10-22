@@ -6,7 +6,7 @@
 #trainer-cart{position:sticky;bottom:0;z-index:5;background:white;border:1px solid #ddd;border-radius:15px;padding:16px;margin-top:22px;box-shadow:0 3px 24px #0002}
 #trainer-cart h2{margin:0 0 10px;font-size:19px}#trainer-cart-lines{max-height:210px;overflow:auto}#trainer-cart-lines div{padding:7px 0;border-bottom:1px solid #eee}
 .trainer-totals{display:grid;grid-template-columns:1fr auto;gap:6px;margin:12px 0}#trainer-send{width:100%;background:#168b50;font-weight:700}#trainer-send:disabled{opacity:.45}
-</style></head><body><header><strong>LIFT NUTRIENTES</strong><span>Portal de entrenadores</span></header><main><section id="login" class="login"><h1>Acceso entrenadores</h1><p>Ingresa con tu celular y la clave asignada por Lift Nutrientes.</p><form id="form"><label for="phone">Número de celular</label><input id="phone" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="300 123 4567"><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" required placeholder="Tu clave"><button id="enter" type="submit">Ingresar</button><div id="error" class="error" role="alert"></div></form></section><section id="catalog" class="hidden"><div class="toolbar"><div><h1>Precios para entrenadores</h1><p id="welcome"></p></div><button id="logout">Salir</button></div><div class="toolbar"><input id="search" type="search" placeholder="Buscar producto, marca o sabor..."><span id="count"></span></div><div id="grid" class="grid"></div></section><section id="trainer-cart" class="hidden"><h2>Mi carrito</h2><div id="trainer-cart-lines"></div><div class="trainer-totals"><span>Subtotal</span><strong id="trainer-subtotal">$0</strong><span>Envío fijo</span><strong>$11.000</strong><span>Total</span><strong id="trainer-total">$0</strong></div><button type="button" id="trainer-send" disabled>Enviar pedido por WhatsApp</button><p class="muted">Se abrirá WhatsApp para que confirmes el envío del mensaje.</p></section></main><script>
+.trainer-two-carts{display:grid;grid-template-columns:1fr 1fr;gap:16px}.trainer-quote input{max-width:125px;padding:7px}.trainer-quote-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #eee}.trainer-copy{margin-top:8px;width:100%;background:#f0f0f0;color:#111;border:1px solid #ddd}.trainer-suggested{margin-top:5px;color:#168b50;font-weight:700}@media(max-width:750px){.trainer-two-carts{grid-template-columns:1fr}}</style></head><body><header><strong>LIFT NUTRIENTES</strong><span>Portal de entrenadores</span></header><main><section id="login" class="login"><h1>Acceso entrenadores</h1><p>Ingresa con tu celular y la clave asignada por Lift Nutrientes.</p><form id="form"><label for="phone">Número de celular</label><input id="phone" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="300 123 4567"><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" required placeholder="Tu clave"><button id="enter" type="submit">Ingresar</button><div id="error" class="error" role="alert"></div></form></section><section id="catalog" class="hidden"><div class="toolbar"><div><h1>Precios para entrenadores</h1><p id="welcome"></p></div><button id="logout">Salir</button></div><div class="toolbar"><input id="search" type="search" placeholder="Buscar producto, marca o sabor..."><span id="count"></span></div><div id="grid" class="grid"></div></section><div class="trainer-two-carts"><section id="trainer-cart" class="hidden"><h2>Mi carrito</h2><div id="trainer-cart-lines"></div><div class="trainer-totals"><span>Subtotal</span><strong id="trainer-subtotal">$0</strong><span>Envío fijo</span><strong>$11.000</strong><span>Total</span><strong id="trainer-total">$0</strong></div><button type="button" id="trainer-send" disabled>Enviar pedido por WhatsApp</button><p class="muted">Se abrirá WhatsApp para que confirmes el envío del mensaje.</p></section><section id="trainer-quote" class="hidden trainer-quote"><h2>Cotización para cliente</h2><div id="trainer-quote-lines"></div><div class="trainer-quote-row"><span>Envío al cliente</span><input id="trainer-quote-shipping" type="number" min="0" step="1000" value="11000"></div><div class="trainer-totals"><span>Subtotal</span><strong id="trainer-quote-subtotal">$0</strong><span>Total</span><strong id="trainer-quote-total">$0</strong></div><button id="trainer-quote-send" type="button" disabled>Enviar cotización por WhatsApp</button><p class="muted">Puedes modificar los precios de venta y el envío antes de compartir.</p></section></div></main><script>
 const API='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/lift_catalogo_entrenador';
 const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 let products=[];
@@ -17,18 +17,34 @@ $('search').addEventListener('input',render);$('logout').addEventListener('click
 </script><script id="trainer-cart-script">
 (()=>{
 'use strict';
-const shipping=11000, phone='573137380766', cart=new Map();
-const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
+const phone='573137380766',shipping=11000,cart=new Map(),prices=new Map();
 const el=id=>document.getElementById(id);
-function keyOf(p,i){return String(p.id??p.product_id??i);}
-function refreshCart(){
- const entries=[...cart.values()],subtotal=entries.reduce((a,x)=>a+x.qty*Number(x.product.price||0),0);
- el('trainer-subtotal').textContent=money(subtotal);
- el('trainer-total').textContent=money(subtotal+(entries.length?shipping:0));
- el('trainer-send').disabled=!entries.length;
- const lines=el('trainer-cart-lines');lines.replaceChildren();
- if(!entries.length){lines.textContent='Agrega productos para preparar tu pedido.';return;}
- for(const x of entries){const d=document.createElement('div');d.textContent=x.qty+' × '+(x.product.name||'Producto')+' · '+money(x.qty*Number(x.product.price||0));lines.append(d);}
+const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
+const productKey=(p,i)=>String(p.id??p.product_id??i);
+const flavorOf=p=>String(p.flavor||'').trim();
+const displayName=p=>(p.name||'Producto')+(flavorOf(p)?' · '+flavorOf(p):'');
+const retail=p=>Number(p.suggestedPrice)||Number(p.price)||0;
+function update(){
+ const items=[...cart.values()],subtotal=items.reduce((n,x)=>n+x.qty*Number(x.p.price||0),0);
+ el('trainer-subtotal').textContent=money(subtotal);el('trainer-total').textContent=money(subtotal+(items.length?shipping:0));
+ el('trainer-send').disabled=!items.length;el('trainer-quote-send').disabled=!items.length;
+ const order=el('trainer-cart-lines');order.replaceChildren();
+ const quote=el('trainer-quote-lines');quote.replaceChildren();
+ if(!items.length){order.textContent='Carrito vacío';quote.textContent='Selecciona productos para cotizar.';}
+ items.forEach(({p,qty,id})=>{
+  const d=document.createElement('div');d.textContent=qty+' × '+displayName(p)+' · '+money(qty*Number(p.price||0));order.append(d);
+  const row=document.createElement('div');row.className='trainer-quote-row';
+  const name=document.createElement('span');name.textContent=qty+' × '+displayName(p);
+  const input=document.createElement('input');input.type='number';input.min='0';input.step='1000';input.setAttribute('aria-label','Precio de venta de '+displayName(p));input.value=prices.has(id)?prices.get(id):retail(p);
+  input.oninput=()=>{prices.set(id,Math.max(0,Number(input.value)||0));updateTotals();};
+  row.append(name,input);quote.append(row);
+ });
+ updateTotals();
+}
+function updateTotals(){
+ const items=[...cart.values()],subtotal=items.reduce((n,x)=>n+x.qty*(prices.has(x.id)?prices.get(x.id):retail(x.p)),0);
+ el('trainer-quote-subtotal').textContent=money(subtotal);
+ el('trainer-quote-total').textContent=money(subtotal+(items.length?Math.max(0,Number(el('trainer-quote-shipping').value)||0):0));
 }
 const originalRender=render;
 render=function(){
@@ -38,30 +54,42 @@ render=function(){
  const cards=el('grid').querySelectorAll('.product');
  filtered.forEach(({p,i},position)=>{
   const card=cards[position];if(!card)return;
-  const id=keyOf(p,i),control=document.createElement('div');control.className='trainer-qty';
+  const id=productKey(p,i);
+  const suggested=document.createElement('div');suggested.className='trainer-suggested';suggested.textContent='Precio sugerido al cliente: '+money(retail(p));card.append(suggested);
+  const control=document.createElement('div');control.className='trainer-qty';
   const minus=document.createElement('button'),count=document.createElement('output'),plus=document.createElement('button');
   minus.type='button';plus.type='button';minus.textContent='−';plus.textContent='+';
   count.textContent=cart.get(id)?.qty||0;
-  const change=delta=>{
-   const next=Math.max(0,Math.min(99,(cart.get(id)?.qty||0)+delta));
-   if(next)cart.set(id,{product:p,qty:next});else cart.delete(id);
-   count.textContent=next;refreshCart();
+  const change=delta=>{const next=Math.max(0,Math.min(99,(cart.get(id)?.qty||0)+delta));if(next)cart.set(id,{p,qty:next,id});else cart.delete(id);count.textContent=next;update();};
+  minus.onclick=()=>change(-1);plus.onclick=()=>change(1);control.append(minus,count,plus);card.append(control);
+  const copy=document.createElement('button');copy.type='button';copy.className='trainer-copy';copy.textContent='Copiar ficha para cliente';
+  copy.onclick=async()=>{
+   const content=[p.name,p.brand,flavorOf(p)?'Sabor: '+flavorOf(p):'',p.description?String(p.description).replace(/<[^>]*>/g,' ').slice(0,900):'', 'Precio sugerido: '+money(retail(p)),p.image||''].filter(Boolean).join('\n');
+   try{await navigator.clipboard.writeText(content);copy.textContent='Ficha copiada';setTimeout(()=>copy.textContent='Copiar ficha para cliente',1600);}catch{window.prompt('Copia la ficha:',content);}
   };
-  minus.onclick=()=>change(-1);plus.onclick=()=>change(1);
-  control.append(minus,count,plus);card.append(control);
+  card.append(copy);
  });
- refreshCart();
+ update();
 };
-el('form').addEventListener('submit',()=>{cart.clear();refreshCart();});
-el('logout').addEventListener('click',()=>{cart.clear();el('trainer-cart').classList.add('hidden');refreshCart();});
-new MutationObserver(()=>{const visible=!el('catalog').classList.contains('hidden');el('trainer-cart').classList.toggle('hidden',!visible);}).observe(el('catalog'),{attributes:true,attributeFilter:['class']});
+el('trainer-quote-shipping').addEventListener('input',updateTotals);
+el('form').addEventListener('submit',()=>{cart.clear();prices.clear();update();});
+el('logout').addEventListener('click',()=>{cart.clear();prices.clear();el('trainer-cart').classList.add('hidden');el('trainer-quote').classList.add('hidden');update();});
+new MutationObserver(()=>{const visible=!el('catalog').classList.contains('hidden');el('trainer-cart').classList.toggle('hidden',!visible);el('trainer-quote').classList.toggle('hidden',!visible);}).observe(el('catalog'),{attributes:true,attributeFilter:['class']});
 el('trainer-send').addEventListener('click',()=>{
  if(!cart.size)return;
- const items=[...cart.values()],subtotal=items.reduce((a,x)=>a+x.qty*Number(x.product.price||0),0);
- const lines=items.map(x=>x.qty+' x '+(x.product.name||'Producto')+(x.product.flavor?' - '+x.product.flavor:'')+' | '+money(Number(x.product.price||0))+' c/u | '+money(x.qty*Number(x.product.price||0)));
+ const items=[...cart.values()],subtotal=items.reduce((n,x)=>n+x.qty*Number(x.p.price||0),0);
+ const lines=items.map(x=>x.qty+' x '+displayName(x.p)+' | '+money(x.p.price)+' c/u | '+money(x.qty*Number(x.p.price||0)));
  const msg=['Hola, soy entrenador de Lift Nutrientes y quiero solicitar este pedido:','',...lines,'','Subtotal: '+money(subtotal),'Envío: '+money(shipping),'TOTAL: '+money(subtotal+shipping),'','Por favor confirmar disponibilidad.'].join('\n');
  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank','noopener,noreferrer');
 });
-refreshCart();
+el('trainer-quote-send').addEventListener('click',()=>{
+ if(!cart.size)return;
+ const items=[...cart.values()],subtotal=items.reduce((n,x)=>n+x.qty*(prices.has(x.id)?prices.get(x.id):retail(x.p)),0);
+ const ship=Math.max(0,Number(el('trainer-quote-shipping').value)||0);
+ const lines=items.map(x=>{const price=prices.has(x.id)?prices.get(x.id):retail(x.p);return x.qty+' x '+displayName(x.p)+' | '+money(price)+' c/u | '+money(price*x.qty);});
+ const msg=['Hola, te comparto tu cotización:','',...lines,'','Subtotal: '+money(subtotal),'Envío: '+money(ship),'TOTAL: '+money(subtotal+ship),'','Precios sujetos a disponibilidad.'].join('\n');
+ window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener,noreferrer');
+});
+update();
 })();
 </script></body></html>
