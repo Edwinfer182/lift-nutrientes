@@ -11522,7 +11522,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
       tries++;const now=localStorage.getItem('liftLastPublicOrder')||'';
       if(now&&now!==before){
        clearInterval(timer);const x=stored();
-       try{const id=String(x.ref||'').replace(/\D/g,'');if(!id)throw Error('No se recibió el número de pedido');sessionStorage.setItem('supgoCheckoutCreatedOrder',JSON.stringify({id,phone:String(x.phone||'').replace(/\D/g,'')}));location.assign('/mis-pedidos/?pedido='+encodeURIComponent(id))}catch(e){console.error('Abrir mi pedido:',e)}
+       try{const id=String(x.ref||'').replace(/\D/g,'');if(!id)throw Error('No se recibió el número de pedido');sessionStorage.setItem('supgoCheckoutCreatedOrder',JSON.stringify({id,phone:String(x.phone||'').replace(/\D/g,'')}));if(typeof window.liftOpenTrack==='function'){window.liftOpenTrack();const ref=document.getElementById('liftTrackRef');if(ref)ref.value=x.ref||id;const phone=document.getElementById('liftTrackPhone');if(phone)phone.value=x.phone||'';if(typeof window.liftTrackOrder==='function')Promise.resolve(window.liftTrackOrder(x.token||undefined)).catch(console.error)}}catch(e){console.error('Abrir mi pedido:',e)}
       }else if(tries>30)clearInterval(timer)
     },50);
     return r
