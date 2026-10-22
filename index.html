@@ -14617,6 +14617,60 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+<!-- LIFT-WA-OFFCANVAS-V1 -->
+<style>
+body.lift-offcanvas-active #lift-wa-index,
+body.lift-offcanvas-active #seo-wa-float,
+body.lift-offcanvas-active .lift-wa-floating,
+body.lift-offcanvas-active a[href*="wa.me"][style*="fixed"],
+body.lift-offcanvas-active a[href*="whatsapp"][style*="fixed"]{display:none!important;pointer-events:none!important}
+</style>
+<script>
+(function(){
+  const overlays=['[role="dialog"]','.offcanvas','.off-canvas','.drawer','.product-modal','.cart-drawer','.favorites-drawer','.modal','.sheet'];
+  function shown(el){
+    if(!el||el.closest('#lift-wa-index'))return false;
+    const s=getComputedStyle(el),r=el.getBoundingClientRect();
+    if(s.display==='none'||s.visibility==='hidden'||s.opacity==='0'||el.hidden||el.getAttribute('aria-hidden')==='true')return false;
+    return r.width>Math.min(220,innerWidth*.45)&&r.height>Math.min(220,innerHeight*.28);
+  }
+  function sync(){
+    const open=overlays.some(sel=>[...document.querySelectorAll(sel)].some(el=>shown(el)));
+    document.body.classList.toggle('lift-offcanvas-active',open);
+    // También ocultar los accesos flotantes antiguos sin alterar los de producto.
+    [...document.querySelectorAll('a,button')].forEach(el=>{
+      if(el.closest('#lift-wa-index')||el.closest('#seo-wa-float'))return;
+      const label=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.className||'')).toLowerCase();
+      const href=(el.getAttribute('href')||'').toLowerCase();
+      if(!/whatsapp|wa.me|wa-float|floating-wa/.test(label+' '+href))return;
+      const c=getComputedStyle(el),p=el.parentElement?getComputedStyle(el.parentElement):null;
+      if(c.position!=='fixed'&&p?.position!=='fixed')return;
+      if(open){
+        if(!el.hasAttribute('data-lift-wa-display'))el.setAttribute('data-lift-wa-display',el.style.display||'');
+        el.style.setProperty('display','none','important');
+      }else if(el.hasAttribute('data-lift-wa-display')){
+        const old=el.getAttribute('data-lift-wa-display');
+        el.style.removeProperty('display');
+        if(old)el.style.display=old;
+        el.removeAttribute('data-lift-wa-display');
+      }
+    });
+  }
+  let queued=false;
+  function schedule(){
+    if(queued)return;queued=true;
+    requestAnimationFrame(()=>{queued=false;sync()});
+  }
+  const observer=new MutationObserver(schedule);
+  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden','open']});
+  document.addEventListener('click',()=>setTimeout(sync,0),true);
+  document.addEventListener('keydown',schedule,true);
+  window.addEventListener('pageshow',schedule);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
+})();
+</script>
+
 </body>
 </html>
 
