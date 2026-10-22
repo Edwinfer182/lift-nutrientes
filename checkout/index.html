@@ -2230,7 +2230,7 @@ body.supgo-checkout-ready #checkoutModal .field input{min-width:0}
   spellcheck="false"
   data-lpignore="true"
   data-1p-ignore="true"
-  onfocus="if(/@/.test(this.value))this.value='';"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn myOrder" type="button" onclick="liftOpenTrack()" aria-label="Mi pedido" title="Consultar mi pedido">▤ <span class="txt">Mi pedido</span></button><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
+  onfocus="if(/@/.test(this.value))this.value='';"><div id="searchResults" class="searchResults"></div></div><button class="iconbtn myOrder" type="button" onclick="window.supgoOpenPedidoCompartido?window.supgoOpenPedidoCompartido():liftOpenTrack()" aria-label="Mi pedido" title="Consultar mi pedido">▤ <span class="txt">Mi pedido</span></button><button class="iconbtn cartDesktop" onclick="openOff('cart')">🛒 <span class="txt">Carrito</span> <span id="count" class="badge">0</span></button></div></header>
 <div class="layout">
 <aside class="sidebar"><div id="desktopFilters"></div></aside>
 <section class="content">
@@ -14546,7 +14546,7 @@ document.addEventListener('DOMContentLoaded',function(){
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
-</body>
+<script defer src="/componentes/header-loader.js?v=20261022-offcanvas-only5"></script></body>
 </html>
 
 <!-- LIFT · VISTA CLIENTE PEDIDO TIPO TRACKING · 2026-10-06 -->
