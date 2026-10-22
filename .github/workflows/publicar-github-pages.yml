@@ -8,8 +8,8 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: github-pages
-  cancel-in-progress: false
+  group: supgo-pages-production
+  cancel-in-progress: true
 jobs:
   deploy:
     environment:
@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Obtener sitio
         uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Configurar Pages
         uses: actions/configure-pages@v5
       - name: Preparar sitio estático
