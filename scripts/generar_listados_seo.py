@@ -108,7 +108,8 @@ def template(kind, title, url_slug, count, image_url=''):
 
 
 def main():
-    rows = load()\n    logos = load_logos()
+    rows = load()
+    logos = load_logos()
     total = 0
     for kind, plural, keys in [
         ("categoria", "categorias", ("category", "categoria")),
