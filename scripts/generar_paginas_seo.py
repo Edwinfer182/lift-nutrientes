@@ -263,6 +263,9 @@ def build(row):
   offer={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"seller":{"@type":"Organization","name":"Lift Nutrientes","url":BASE}}
   availability=seo_availability(row)
   if availability:offer["availability"]=availability
+  if promotion:
+   original_price=promotion[0]
+   offer["priceSpecification"]={"@type":"UnitPriceSpecification","price":int(original_price) if original_price.is_integer() else original_price,"priceCurrency":"COP","priceType":"https://schema.org/StrikethroughPrice"}
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
  breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":BASE+"/"},{"@type":"ListItem","position":2,"name":name,"item":canonical}]}
