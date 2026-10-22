@@ -71,8 +71,8 @@ jobs:
                 offer.id='lift-header-offers';
                 offer.href='/ofertas/';
                 offer.innerHTML='🔥 Ofertas';
-                const existing=[...document.querySelectorAll('a,button')].find(el=>el!==offer && /ofertas/i.test(el.textContent||'')&& /\\d+/.test(el.textContent||'') && el.getBoundingClientRect().width>0);
-                const num=existing?.textContent?.match(/(\\d+)/);
+                const existing=[...document.querySelectorAll('a,button')].find(el=>el!==offer && /ofertas/i.test(el.textContent||'')&& /\d+/.test(el.textContent||'') && el.getBoundingClientRect().width>0);
+                const num=existing?.textContent?.match(/(\d+)/);
                 if(num){const b=document.createElement('b');b.textContent=num[1];offer.appendChild(b)}
                 main.insertAdjacentElement('afterend',offer);
                 offer.addEventListener('click',function(){});
@@ -81,7 +81,7 @@ jobs:
               const offer=document.getElementById('lift-header-offers');
               for(const el of document.querySelectorAll('a,button')){
                 if(el===offer||offer?.contains(el))continue;
-                if(!/🔥\\s*ofertas/i.test(el.textContent||''))continue;
+                if(!/🔥\s*ofertas/i.test(el.textContent||''))continue;
                 const rect=el.getBoundingClientRect();
                 if(rect.width<80||rect.width>270)continue;
                 const pos=getComputedStyle(el).position;
