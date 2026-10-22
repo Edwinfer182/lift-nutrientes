@@ -113,11 +113,13 @@ def active_offer(row):
    if datetime.now(timezone.utc)>expiry:return None
   except ValueError:pass
  try:
-  base=float(row["product"].get("price") or row["product"].get("precio") or 0)
+  catalog_price=float(row["product"].get("price") or row["product"].get("precio") or 0)
   sale=float(o.get("price"))
-  if sale<=0 or base<=sale:return None
+  configured_original=o.get("originalPrice")
+  original=float(configured_original) if configured_original not in (None,"") else catalog_price
+  if sale<=0 or original<=sale:return None
  except (TypeError,ValueError):return None
- return base,sale
+ return original,sale
 
 def fetch_allowed_brands():
  """La selección de marcas se administra en Supabase."""
