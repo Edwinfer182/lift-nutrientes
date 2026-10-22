@@ -14,7 +14,7 @@
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
     if(document.querySelector('header.top,#supgo-global-header'))return;
-    const response=await fetch(path+'header.html?v=20261020-standalone-routes32',{credentials:'same-origin'});
+    const response=await fetch(path+'header.html?v=20261022-mi-pedido-visible2',{credentials:'same-origin'});
     if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
     const html=await response.text();
     if(document.querySelector('header.top,#supgo-global-header'))return;
@@ -24,7 +24,7 @@
       styles.rel='stylesheet';styles.dataset.supgoHeaderStyle='1';document.head.appendChild(styles);
     }
     // Reemplazar también la URL de un link previamente insertado en caché.
-    const cssUrl=path+'header-public.css?v=20261020-standalone-routes32';
+    const cssUrl=path+'header-public.css?v=20261022-mi-pedido-visible2';
     if(styles.getAttribute('href')!==cssUrl)styles.href=cssUrl;
     await new Promise(resolve=>{if(styles.sheet){resolve();return;}styles.addEventListener('load',resolve,{once:true});styles.addEventListener('error',resolve,{once:true});});
     const host=document.createElement('div');
@@ -32,7 +32,7 @@
     host.innerHTML=html;
     document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261021-ofertas-carrito');
+      await loadScript(path+'header.js?v=20261022-mi-pedido-visible2');
       // Refuerzo para fichas que conservan en caché el marcado antiguo.
       function ensureCheckoutButton(){
         const drawer=document.querySelector('.supgo-cart-drawer');
@@ -43,6 +43,24 @@
         button.style.cssText='display:block!important;width:100%;min-height:48px;background:#111;color:#fff;border:0;border-radius:8px;font:600 15px Poppins,Arial,sans-serif;margin:0 0 12px';
         footer.prepend(button);
         button.onclick=()=>{const cart=document.querySelector('.supgo-cart-drawer');const trigger=cart?.querySelector('#supgoGoCheckout');if(trigger&&trigger!==button)trigger.click();else if(typeof window.supgoOpenSeoCheckout==='function')window.supgoOpenSeoCheckout();};
+      }
+      // Garantiza el acceso visible en cada página que carga el header compartido.
+      const headerBar=host.querySelector('.bar');
+      const cart=headerBar?.querySelector('.cartDesktop');
+      let order=headerBar?.querySelector('.myOrder');
+      if(headerBar && !order){
+        order=document.createElement('button');
+        order.type='button';order.className='iconbtn myOrder';
+        order.innerHTML='▤ <span class="txt">Mi pedido</span>';
+        order.setAttribute('aria-label','Mi pedido');
+        (cart||null) ? cart.before(order) : headerBar.append(order);
+      }
+      if(order){
+        order.hidden=false;
+        order.style.setProperty('display','inline-flex','important');
+        order.style.setProperty('align-items','center','important');
+        order.style.setProperty('flex-shrink','0','important');
+        order.onclick=()=>window.supgoOpenPedidoCompartido?.();
       }
       ensureCheckoutButton();
       document.querySelector('.cartDesktop')?.addEventListener('click',()=>queueMicrotask(ensureCheckoutButton));
