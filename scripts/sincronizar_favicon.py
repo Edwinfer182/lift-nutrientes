@@ -40,10 +40,12 @@ def run():
         raise SystemExit('No se pudo localizar la fuente de favicon del index. No se modificarán páginas a ciegas.')
     tags='\n'.join(unique)
     changed=0
+    files=[ROOT/'index.html']
     for folder in ('productos','categorias','laboratorios','ofertas','checkout','mi-pedido','mis-pedidos','favoritos','buscar','carrito'):
         directory=ROOT/folder
         if not directory.exists():continue
-        for path in directory.rglob('*.html'):
+        files.extend(directory.rglob('*.html'))
+    for path in files:
             content=path.read_text(encoding='utf-8',errors='replace')
             if '</head>' not in content.lower():continue
             newer=re.sub(r"<link\b[^>]*\brel=['\"](?:shortcut\s+)?(?:icon|apple-touch-icon|mask-icon)['\"][^>]*>", '',content,flags=re.I)
