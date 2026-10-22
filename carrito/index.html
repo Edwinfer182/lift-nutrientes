@@ -3,7 +3,7 @@
  function showOrderButton(){
    const bar=document.querySelector('#supgo-global-header .bar,header.top .bar');
    if(!bar)return;
-   let button=bar.querySelector('[data-supgo-order-access]');
+   let button=bar.querySelector('[data-supgo-order-access],.myOrder');
    if(!button){
      button=document.createElement('button');
      button.type='button';
