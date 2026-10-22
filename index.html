@@ -14605,6 +14605,79 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+<!-- LIFT-HEADER-MOVIL-20261022 -->
+<style>
+@media(max-width:767px){
+  #lift-header-offers{display:inline-flex!important;align-items:center;gap:5px;background:#159b55;color:white;border:0;border-radius:13px;padding:9px 10px;font:700 12px Poppins,Arial,sans-serif;text-decoration:none;white-space:nowrap;flex-shrink:0}
+  #lift-header-offers b{display:inline-flex;justify-content:center;align-items:center;background:white;color:#159b55;border-radius:50%;min-width:20px;height:20px;padding:0 4px;font-size:11px}
+}
+@media(min-width:768px){#lift-header-offers{display:none!important}}
+</style>
+<script>
+(function(){
+  function update(){
+    if(innerWidth>767)return;
+    const body=document.body;
+    if(!body)return;
+    const candidates=[...document.querySelectorAll('button,a')].filter(x=>{
+      if(x.closest('#lift-wa-index')||x.closest('#lift-header-offers'))return false;
+      const label=((x.innerText||'')+' '+(x.getAttribute('aria-label')||'')).toLowerCase();
+      return /mi pedido|mis pedidos/.test(label);
+    });
+    const main=candidates.find(x=>/mi pedido|mis pedidos/i.test(x.innerText||''));
+    if(!main)return;
+    let row=main.parentElement;
+    for(let i=0;i<4&&row;i++,row=row.parentElement){
+      const rect=row.getBoundingClientRect();
+      if(rect.width>innerWidth*.65 && rect.height<140)break;
+    }
+    if(!row)return;
+    const siblings=[...row.querySelectorAll('button,a')];
+    // Ocultar sólo un botón duplicado de aspecto cajita, manteniendo el DOM y sus eventos.
+    for(const el of siblings){
+      if(el===main||el.contains(main)||main.contains(el)||el.id==='lift-header-offers')continue;
+      const t=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).toLowerCase();
+      const icon=el.innerText?.trim()==='📦'||/pedido|package|box/i.test(t);
+      if(icon && !/mi pedido/i.test(el.innerText||'')){
+        const rect=el.getBoundingClientRect();
+        if(rect.width>=30&&rect.width<=85&&rect.height>=30&&rect.height<=85){
+          el.style.setProperty('display','none','important');
+          break;
+        }
+      }
+    }
+    if(!document.getElementById('lift-header-offers')){
+      const offer=document.createElement('a');
+      offer.id='lift-header-offers';
+      offer.href='/ofertas/';
+      offer.innerHTML='🔥 Ofertas';
+      const existing=[...document.querySelectorAll('a,button')].find(el=>el!==offer && /ofertas/i.test(el.textContent||'')&& /\\d+/.test(el.textContent||'') && el.getBoundingClientRect().width>0);
+      const num=existing?.textContent?.match(/(\\d+)/);
+      if(num){const b=document.createElement('b');b.textContent=num[1];offer.appendChild(b)}
+      main.insertAdjacentElement('afterend',offer);
+      offer.addEventListener('click',function(){});
+    }
+    // Ocultar solo el acceso flotante antiguo a ofertas, no las ofertas de productos.
+    const offer=document.getElementById('lift-header-offers');
+    for(const el of document.querySelectorAll('a,button')){
+      if(el===offer||offer?.contains(el))continue;
+      if(!/🔥\\s*ofertas/i.test(el.textContent||''))continue;
+      const rect=el.getBoundingClientRect();
+      if(rect.width<80||rect.width>270)continue;
+      const pos=getComputedStyle(el).position;
+      const parent=getComputedStyle(el.parentElement||el).position;
+      if(pos==='fixed'||pos==='sticky'||parent==='fixed'||parent==='sticky'){
+        el.style.setProperty('display','none','important');
+      }
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);
+  else update();
+  window.addEventListener('load',update,{once:true});
+})();
+</script>
+
 </body>
 </html>
 
