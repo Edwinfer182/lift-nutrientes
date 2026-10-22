@@ -2299,6 +2299,7 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
           <input id="coDataConsent" type="checkbox"><span>Autorizo el <button type="button" onclick="liftOpenDataPolicy()">tratamiento de mis datos personales</button>.</span>
         </label>
         <div id="liftDataConsentError" role="alert" style="display:none;color:#b42318;font-size:10px;margin:4px 0">Debes autorizar el tratamiento de tus datos para continuar.</div>
+        <label class="liftRememberRow" for="coRememberDetails" style="display:flex;align-items:center;gap:7px;margin:8px 0 2px;font-size:11px;color:#555;cursor:pointer;font-weight:400"><input id="coRememberDetails" type="checkbox" style="width:14px;height:14px;accent-color:#111;flex:none;margin:0"><span>Guardar mis datos en este dispositivo</span></label>
         <label class="liftPrefRow liftEmailNotifyCompact" for="coEmailNotify">
           <input id="coEmailNotify" type="checkbox">
           <span>Autorizo recibir las actualizaciones de mi pedido por correo.
@@ -12774,7 +12775,7 @@ window.liftVariantMoney=function(value){
  async function pub(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo completar la operación');return j}
  function injectTrack(){const bar=document.querySelector('.top .bar');if(!bar||$('liftTrackBtn'))return;const b=document.createElement('button');b.id='liftTrackBtn';b.className='liftTrackBtn';b.type='button';b.textContent='📦 Mi pedido';b.onclick=window.liftOpenTrack;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
  function payload(){const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'',email=$('coEmail')?.value.trim().toLowerCase()||'',email_notificaciones=Boolean($('coEmailNotify')?.checked),tratamiento_datos=Boolean($('coDataConsent')?.checked),marketing_autorizado=Boolean($('coMarketingConsent')?.checked),tratamiento_datos_fecha=new Date().toISOString(),tratamiento_datos_version='LIFT-DATOS-2026-10-06-v1';if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)throw new Error('Completa nombre, celular, dirección y selecciona una ciudad.');if(!tratamiento_datos)throw new Error('Para generar el pedido debes autorizar el tratamiento de tus datos personales.');if(email_notificaciones&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){const campo=$('coEmail');if(campo){campo.setCustomValidity('Ingresa un correo válido para recibir notificaciones.');campo.style.borderColor='#dc2626';campo.scrollIntoView({behavior:'smooth',block:'center'});campo.focus();campo.reportValidity();}throw new Error('Ingresa un correo electrónico válido para recibir notificaciones.');}if(window.liftRequiresDocument?.()&&!$('coDocument')?.value.trim())throw new Error('Ingresa la cédula o documento para el envío nacional.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip)||0,descuento=checkoutCouponDiscount(its),noDiscount=adminTrainerMode()||trainerCouponActive(),total=Math.max(0,effective-(noDiscount?0:descuento))+Number(envio||0);return {action:'public-save-order',request_key:'public-'+Date.now()+'-'+Math.random().toString(36).slice(2),nombre,celular,direccion,ciudad:selectedCity.name,departamento:selectedCity.department||'',notas:(window.liftRequiresDocument?.()? [notas, 'Documento: '+$('coDocument').value.trim()].filter(Boolean).join(' | '):notas),email,email_notificaciones,tratamiento_datos,tratamiento_datos_fecha,tratamiento_datos_version,marketing_autorizado,subtotal,envio,descuento:noDiscount?0:descuento,total,items:its.map(({p,q})=>{const unit=checkoutUnitPrice(p);return{producto_id:p.id||null,nombre:String(p.name||'Producto')+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||p.marca||'',cantidad:q,precio_unitario:unit,total_linea:unit*q}})} }
- window.finishCheckout=async function(){const consent=$('coDataConsent'),consentErr=$('liftDataConsentError'),consentRow=$('liftDataConsentRow');if(consent&&!consent.checked){if(consentErr)consentErr.style.display='block';if(consentRow){consentRow.style.borderColor='#b42318';consentRow.style.background='#fff7f7';consentRow.scrollIntoView({behavior:'smooth',block:'center'})}consent.focus();return}if(consentErr)consentErr.style.display='none';if(consentRow){consentRow.style.borderColor='';consentRow.style.background=''}let d;try{d=payload()}catch(e){alert(e.message);return}const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.dataset.busy==='1')return;try{if(btn){btn.dataset.busy='1';btn.disabled=true;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generando pedido…')}const ok=await registerCouponUse();if(!ok)return;const r=await pub(d);if(typeof window.liftTrackOrderCreated==='function')window.liftTrackOrderCreated().catch(()=>{});if(typeof window.liftSaveConsentAudit==='function')window.liftSaveConsentAudit(d,r);lastOrder={...r,phone:d.celular,name:d.nombre,text:typeof checkoutText==='function'?checkoutText():''};
+ window.finishCheckout=async function(){const consent=$('coDataConsent'),consentErr=$('liftDataConsentError'),consentRow=$('liftDataConsentRow');if(consent&&!consent.checked){if(consentErr)consentErr.style.display='block';if(consentRow){consentRow.style.borderColor='#b42318';consentRow.style.background='#fff7f7';consentRow.scrollIntoView({behavior:'smooth',block:'center'})}consent.focus();return}if(consentErr)consentErr.style.display='none';if(consentRow){consentRow.style.borderColor='';consentRow.style.background=''}let d;try{d=payload()}catch(e){alert(e.message);return}const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.dataset.busy==='1')return;try{if(btn){btn.dataset.busy='1';btn.disabled=true;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generando pedido…')}const ok=await registerCouponUse();if(!ok)return;const r=await pub(d);window.liftRememberCheckoutSave?.();if(typeof window.liftTrackOrderCreated==='function')window.liftTrackOrderCreated().catch(()=>{});if(typeof window.liftSaveConsentAudit==='function')window.liftSaveConsentAudit(d,r);lastOrder={...r,phone:d.celular,name:d.nombre,text:typeof checkoutText==='function'?checkoutText():''};
 try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:r.referencia,phone:d.celular,token:r.token||''}))}catch(e){}
 const co=$('checkoutModal');if(co){co.classList.remove('open');co.setAttribute('aria-hidden','true')}
 const success=$('liftOrderSuccessModal');if(success){success.classList.remove('open');success.setAttribute('aria-hidden','true')}
@@ -14512,6 +14513,33 @@ document.addEventListener('DOMContentLoaded',function(){
  email.addEventListener('input',()=>refresh(false));
  refresh(false);
 });
+</script>
+<script id="lift-remember-checkout-v1">
+(function(){
+ const KEY='liftCheckoutRememberV1';
+ const fields=['coName','coPhone','coEmail','coAddress','coNotes'];
+ const get=id=>document.getElementById(id);
+ function read(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){return null}}
+ function save(){
+   const checkbox=get('coRememberDetails');if(!checkbox)return;
+   if(!checkbox.checked){try{localStorage.removeItem(KEY)}catch(_){}return}
+   const data={};fields.forEach(id=>{data[id]=get(id)?.value||''});
+   try{if(typeof selectedCity!=='undefined'&&selectedCity)data.city={name:selectedCity.name,department:selectedCity.department||''}}catch(_){}
+   try{localStorage.setItem(KEY,JSON.stringify(data))}catch(_){}
+ }
+ window.liftRememberCheckoutSave=save;
+ function init(){
+   const check=get('coRememberDetails');if(!check)return;
+   const data=read();if(!data)return;
+   check.checked=true;
+   fields.forEach(id=>{const el=get(id);if(el&&!el.value&&data[id]){el.value=data[id];el.dispatchEvent(new Event('input',{bubbles:true}))}});
+   if(data.city&&get('coCity')&&!get('coCity').value){
+     try{if(typeof selectCity==='function')selectCity(data.city.name,data.city.department||'')}catch(_){}
+   }
+   check.addEventListener('change',()=>{if(!check.checked){try{localStorage.removeItem(KEY)}catch(_){}}});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
 </script>
 </body>
 </html>
