@@ -12855,8 +12855,26 @@ window.dispatchEvent(new CustomEvent('supgo:pedido-generado',{detail:{...savedOr
 </script>
 
 <style id="lift-final-track-guard-v7">
+/* Mostrar únicamente el recorrido moderno generado por journey(p). */
 #liftTrackResult .liftTrackSteps{display:none!important}
+#liftTrackResult .liftJourney,#liftTrackResult .liftJourneySteps,#liftTrackResult .liftJourneyStep{visibility:visible!important;opacity:1!important}
 </style>
+<script id="supgo-track-modern-only-20261022">
+(function(){
+ // El HTML incluye un rastreador antiguo. La consulta siempre debe invocar el moderno.
+ const nativeTrack=window.liftTrackOrder;
+ if(typeof nativeTrack!=='function')return;
+ window.liftTrackOrder=function(...args){return nativeTrack.apply(this,args)};
+ const modal=document.getElementById('liftTrackModal');
+ if(!modal)return;
+ modal.addEventListener('click',function(event){
+  const button=event.target.closest('button[onclick="liftTrackOrder()"]');
+  if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  window.liftTrackOrder();
+ },true);
+})();
+</script>
 <script id="lift-final-track-guard-v7-js">
 (function(){
   /* El tracker moderno ya quedó como window.liftTrackOrder.
