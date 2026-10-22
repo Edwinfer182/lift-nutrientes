@@ -125,7 +125,8 @@ function renderCart(){
    if(qty<=0)continue;
    const id=key.split('::')[0],product=catalog.find(x=>String(x.id)===id)?.product||{},fallback=meta[key]||{};
    const name=field(product,'name','nombre')||field(fallback,'name','nombre')||('Producto '+id);
-   const rawPrice=field(product,'price','precio')||field(fallback,'price','precio');
+   const promoActive=fallback.on_offer===true&&(!fallback.promoUntil||Date.parse(fallback.promoUntil)>Date.now());
+   const rawPrice=promoActive?field(fallback,'price','precio'):(field(product,'price','precio')||field(fallback,'price','precio'));
    const price=Number(rawPrice);if(!Number.isFinite(price)||price<=0)priced=false;else subtotal+=price*qty;
    const line=document.createElement('div');line.className='supgo-cart-row';
    const img=document.createElement('img');img.alt='';img.loading='lazy';
@@ -219,7 +220,7 @@ updateCount();
     const key=String(p.id),cart=getCart(),old=cart[key];
     const selected=Number(document.getElementById('qtyValue')?.textContent?.trim()||1);const amount=Number.isFinite(selected)?Math.max(1,Math.min(99,Math.floor(selected))):1;cart[key]=(Number(typeof old==='object'?(old.quantity??old.qty):old)||0)+amount;
     const meta=json(STORAGE.meta,{});
-    meta[key]={...(meta[key]||{}),name:p.name||p.nombre||'',image:p.image||p.imagen||'',price:p.price??p.precio??0};
+    meta[key]={...(meta[key]||{}),name:p.name||p.nombre||'',image:p.image||p.imagen||'',price:p.price??p.precio??0,on_offer:p.on_offer===true,promoUntil:p.promoUntil||null};
     localStorage.setItem(STORAGE.meta,JSON.stringify(meta));saveCart(cart);openCart();
   },true);
   if(fav){
