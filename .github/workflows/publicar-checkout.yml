@@ -13,19 +13,14 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
 concurrency:
-  group: github-pages-supgo
-  cancel-in-progress: false
+  group: supgo-legacy-validation
+  cancel-in-progress: true
 
 jobs:
   publicar-checkout:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Descargar version actual de main
         uses: actions/checkout@v4
@@ -66,12 +61,4 @@ jobs:
           assert 'mi-pedido-visible2' in c, 'Carrito usa cargador antiguo'
           print('VALIDADO: boton, offcanvas y cargador del carrito')
           PY
-      - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v5
-      - name: Subir sitio a GitHub Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-      - name: Publicar en GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+
