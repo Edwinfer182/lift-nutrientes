@@ -192,6 +192,27 @@ document.addEventListener('click',e=>{if(!popup.contains(e.target)&&!menuButton?
 window.addEventListener('storage',e=>{if(e.key===STORAGE.cart||e.key===STORAGE.meta){updateCount();if(!drawer.hidden)renderCart();}});
 window.addEventListener('supgo-cart-change',()=>{updateCount();if(!drawer.hidden)renderCart();});
 updateCount();
+// Seguimiento compartido: utiliza el mismo renderer real del checkout/index,
+// no una segunda plantilla que se desactualice.
+(function sharedOrderDrawer(){
+ const btn=host.querySelector('.myOrder');
+ const shade=document.createElement('div');
+ const panel=document.createElement('aside');
+ shade.hidden=true;panel.hidden=true;
+ shade.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0007';
+ panel.style.cssText='position:fixed;top:0;right:0;width:min(100vw,650px);height:100dvh;z-index:2147483601;background:white;box-shadow:-10px 0 30px #0003;display:flex;flex-direction:column';
+ panel.setAttribute('aria-label','Consultar mi pedido');
+ panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid #eee;font:600 15px Poppins,Arial,sans-serif"><span>Mi pedido</span><button type="button" aria-label="Cerrar seguimiento" style="border:0;background:#eee;border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer">×</button></div><iframe title="Seguimiento de pedido SUPGO" style="width:100%;flex:1;border:0;min-height:0" loading="lazy"></iframe>';
+ document.body.append(shade,panel);
+ const frame=panel.querySelector('iframe');
+ function close(){panel.hidden=true;shade.hidden=true;panel.style.setProperty('display','none');frame.removeAttribute('src');}
+ function open(){shade.hidden=false;panel.hidden=false;panel.style.setProperty('display','flex');if(!frame.getAttribute('src'))frame.src='/checkout/?seguimiento=1';}
+ panel.querySelector('button').onclick=close;shade.onclick=close;
+ if(btn){btn.removeAttribute('onclick');btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();open();},true);}
+ window.supgoOpenPedidoCompartido=open;
+ window.addEventListener('supgo:pedido-generado',open);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();});
+})();
 // Integración con las fichas HTML: las acciones de producto alimentan el
 // mismo estado del index (liftCartV2 / liftCartMetaV1 / liftFavoritesV1).
 // No se borra el almacenamiento SEO anterior ni se duplican encabezados.
