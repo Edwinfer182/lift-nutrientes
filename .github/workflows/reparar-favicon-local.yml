@@ -1,0 +1,90 @@
+name: Reparar favicon con archivo local
+on:
+  push:
+    paths:
+      - '.github/workflows/reparar-favicon-local.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  reparar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Descargar favicon original y guardar en GitHub Pages
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import urllib.request
+          fid='1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib'
+          urls=[
+            f'https://drive.google.com/thumbnail?id={fid}&sz=w512',
+            f'https://drive.usercontent.google.com/download?id={fid}&export=view',
+            f'https://drive.google.com/uc?export=download&id={fid}'
+          ]
+          data=None
+          for url in urls:
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'image/png,image/jpeg,image/webp,image/*'})
+                  with urllib.request.urlopen(req,timeout=25) as res:
+                      b=res.read(2_000_000)
+                      valid=b[:8]==bytes.fromhex('89504e470d0a1a0a') or b[:3]==bytes.fromhex('ffd8ff') or b[:4]==b'RIFF'
+                      print('Favicon source:',res.status,res.headers.get('Content-Type'),'valid:',valid,'bytes:',len(b))
+                      if valid and len(b)>1000:data=b;break
+              except Exception as e:print('Source unavailable:',type(e).__name__,str(e)[:160])
+          if not data:raise SystemExit('El favicon original no es accesible desde Drive. No publicar un icono incorrecto.')
+          from PIL import Image
+          from io import BytesIO
+          im=Image.open(BytesIO(data)).convert('RGBA')
+          im.thumbnail((512,512))
+          im.save('favicon.png',format='PNG')
+          print('Favicon local guardado:',im.size)
+          PY
+      - name: Sustituir referencias por favicon local en todas las páginas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          base='<link rel="icon" type="image/png" sizes="any" href="/favicon.png">\n<link rel="apple-touch-icon" href="/favicon.png">'
+          folders=['productos','categorias','laboratorios','ofertas','checkout','mi-pedido','mis-pedidos','favoritos','buscar','carrito']
+          changed=0
+          for path in [Path('index.html'),*[p for f in folders if Path(f).exists() for p in Path(f).rglob('*.html')]]:
+              s=path.read_text(encoding='utf-8',errors='replace')
+              if '</head>' not in s.lower():continue
+              old=s
+              s=re.sub(r'<!-- LIFT-FAVICON-SYNC -->.*?<!-- /LIFT-FAVICON-SYNC -->','',s,flags=re.S)
+              s=re.sub(r'<link\b[^>]*\brel=["\'](?:shortcut\s+)?(?:icon|apple-touch-icon|mask-icon)["\'][^>]*>','',s,flags=re.I)
+              s=re.sub(r'</head>',base+'\n</head>',s,count=1,flags=re.I)
+              if s!=old:path.write_text(s,encoding='utf-8');changed+=1
+          print('HTML corregidos:',changed)
+          assert changed>100,'No se encontraron suficientes páginas.'
+          PY
+      - name: Ajustar generador futuro para usar archivo local
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/sincronizar_favicon.py')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('    unique=list(dict.fromkeys(parser.icons))','    unique=[\'<link rel="icon" type="image/png" href="https://supgo.co/favicon.png">\', \'<link rel="apple-touch-icon" href="https://supgo.co/favicon.png">\']')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Confirmar archivos y publicar
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          assert Path('favicon.png').is_file()
+          for file in ('index.html','ofertas/index.html'):
+              assert '/favicon.png' in Path(file).read_text(encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add favicon.png index.html scripts/sincronizar_favicon.py
+          for folder in productos categorias laboratorios ofertas checkout mi-pedido mis-pedidos favoritos buscar carrito; do
+            if [ -d "$folder" ]; then git add -A -- "$folder"; fi
+          done
+          git commit -m "Favicon: servir icono original como archivo local en todo SUPGO"
+          git pull --rebase -X theirs origin main
+          git push origin HEAD:main
