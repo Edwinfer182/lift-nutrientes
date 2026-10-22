@@ -13,18 +13,18 @@
   }
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
-    if(document.querySelector('header.top,#supgo-global-header'))return;
-    const response=await fetch(path+'header.html?v=20261022-mi-pedido-visible2',{credentials:'same-origin'});
+    if(document.querySelector('#supgo-global-header'))return;
+    const response=await fetch(path+'header.html?v=20261022-pedido-local3',{credentials:'same-origin'});
     if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
     const html=await response.text();
-    if(document.querySelector('header.top,#supgo-global-header'))return;
+    if(document.querySelector('#supgo-global-header'))return;
     let styles=document.querySelector('link[data-supgo-header-style]');
     if(!styles){
       styles=document.createElement('link');
       styles.rel='stylesheet';styles.dataset.supgoHeaderStyle='1';document.head.appendChild(styles);
     }
     // Reemplazar también la URL de un link previamente insertado en caché.
-    const cssUrl=path+'header-public.css?v=20261022-mi-pedido-visible2';
+    const cssUrl=path+'header-public.css?v=20261022-pedido-local3';
     if(styles.getAttribute('href')!==cssUrl)styles.href=cssUrl;
     await new Promise(resolve=>{if(styles.sheet){resolve();return;}styles.addEventListener('load',resolve,{once:true});styles.addEventListener('error',resolve,{once:true});});
     const host=document.createElement('div');
@@ -32,7 +32,7 @@
     host.innerHTML=html;
     document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261022-mi-pedido-visible2');
+      await loadScript(path+'header.js?v=20261022-pedido-local3');
       // Refuerzo para fichas que conservan en caché el marcado antiguo.
       function ensureCheckoutButton(){
         const drawer=document.querySelector('.supgo-cart-drawer');
