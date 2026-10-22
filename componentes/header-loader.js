@@ -26,7 +26,7 @@
     }
     btn.removeAttribute('hidden');
     btn.style.cssText='display:inline-flex!important;align-items:center;justify-content:center;gap:5px;flex-shrink:0;padding:10px 12px;background:#1c1d20;color:#fff;border:1px solid #424348;border-radius:11px;font:500 12px Poppins,Arial,sans-serif;cursor:pointer';
-    btn.onclick=function(e){e.preventDefault();window.supgoOpenPedidoCompartido?.()};
+    btn.onclick=function(e){e.preventDefault();location.assign('/?mi-pedido=1')};
   }
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
@@ -96,4 +96,4 @@
    Eliminada la consulta simplificada que se registraba antes del componente. */
 
 /* Permite al checkout abrir el seguimiento en la misma URL tras crear el pedido. */
-window.addEventListener('supgo:pedido-generado',function(e){if(typeof window.supgoOpenPedidoCompartido==='function')window.supgoOpenPedidoCompartido(e.detail||{});});
+window.addEventListener('supgo:pedido-generado',function(e){location.assign('/?mi-pedido=1');});
