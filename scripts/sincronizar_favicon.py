@@ -33,7 +33,7 @@ def run():
         for path in directory.rglob('*.html'):
             content=path.read_text(encoding='utf-8',errors='replace')
             if '</head>' not in content.lower():continue
-            newer=re.sub(r"<link\\b[^>]*\\brel=['\\\"](?:shortcut\\s+)?(?:icon|apple-touch-icon|mask-icon)['\\\"][^>]*>", '',content,flags=re.I)
+            newer=re.sub(r"<link\b[^>]*\brel=['\"](?:shortcut\s+)?(?:icon|apple-touch-icon|mask-icon)['\"][^>]*>", '',content,flags=re.I)
             newer=re.sub(r'<!-- LIFT-FAVICON-SYNC -->.*?<!-- /LIFT-FAVICON-SYNC -->','',newer,flags=re.S)
             newer=re.sub(r'</head>', '<!-- LIFT-FAVICON-SYNC -->\n'+tags+'\n<!-- /LIFT-FAVICON-SYNC -->\n</head>',newer,count=1,flags=re.I)
             if newer!=content:path.write_text(newer,encoding='utf-8');changed+=1
