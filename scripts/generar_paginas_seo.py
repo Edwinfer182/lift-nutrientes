@@ -295,7 +295,7 @@ def build(row):
  variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'" title="'+esc(v["label"])+'">'+('<span class="option-photo"><img src="'+esc(v["image"])+'" alt="'+esc(v["label"])+'" loading="lazy"></span>' if v["image"] else '<span class="option-photo option-empty">Sin foto</span>')+'<span class="option-label">'+esc(v["label"])+'</span>'+('<span class="option-offer">Oferta</span>' if v.get('on_offer') else '')+'</a>' for v in variants)
  related_html=''.join('<a class="related-item" href="'+esc(v["url"])+'">'+('<img loading="lazy" src="'+esc(v["image"])+'" alt="'+esc(v["name"])+'">' if v["image"] else '')+'<strong>'+esc(v["name"])+'</strong><small>'+esc(v["brand"])+'</small></a>' for v in related)
  title_brand_html = (' <span class="seo-title-brand">' + esc(brand) + '</span>') if brand else ''
- product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical},ensure_ascii=False).replace("<","\\u003c")
+ product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical,"on_offer":bool(promotion),"promoUntil":(row.get("_offer") or {}).get("promoUntil") if promotion else None},ensure_ascii=False).replace("<","\\u003c")
  return filename, f'''<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title><meta name="description" content="{esc(meta)}">\n<meta name="robots" content="{'index, follow' if row.get('_indexable', True) else 'noindex, follow'}">
