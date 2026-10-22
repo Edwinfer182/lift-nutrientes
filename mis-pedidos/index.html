@@ -35,21 +35,9 @@ try{const res=await fetch(endpoint,{method:'POST',headers:{apikey:key,'Content-T
 try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:String(data.id),phone,token:''}))}catch(_){}
 const target=new URL('/',location.origin);
 target.searchParams.set('pedido',String(data.id));
+target.searchParams.set('origen','mis-pedidos');
 location.assign(target.toString());
 return;
-output.replaceChildren();const card=document.createElement('article');card.className='order';const title=document.createElement('h2');title.textContent='Pedido #'+data.id;card.append(title);
-field(card,'Fecha',data.fecha?new Date(data.fecha).toLocaleDateString('es-CO'):'');
-const state=String(data.estado||'Recibido');
-const progress=document.createElement('div');progress.className='liftOrderProgress';
-const stages=['Pedido recibido','Disponibilidad','Pago','Preparando','En ruta','Entregado'];
-const normalize=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-const current=normalize(state);
-const map={'recibido':0,'pedido recibido':0,'disponibilidad':1,'disponible':1,'pendiente de pago':2,'pago':2,'pagado':2,'preparando':3,'preparacion':3,'en preparacion':3,'en ruta':4,'despachado':4,'entregado':5};
-const idx=Object.prototype.hasOwnProperty.call(map,current)?map[current]:-1;
-stages.forEach((stage,i)=>{const step=document.createElement('div');step.className='liftOrderStep'+(idx>=0&&i<idx?' done':idx===i?' active':'');const dot=document.createElement('span');dot.className='liftOrderDot';dot.textContent=idx>=0&&i<idx?'✓':idx===i?'●':'○';const label=document.createElement('span');label.textContent=stage;step.append(dot,label);progress.append(step)});
-card.append(progress);
-field(card,'Estado',state);field(card,'Disponibilidad',data.disponibilidad);field(card,'Estado del pago',data.pago_estado);field(card,'Total',money(data.total));field(card,'Envío',money(data.envio));field(card,'Transportadora',data.transportadora);field(card,'Número de guía',data.guia);
-if(Array.isArray(data.productos)&&data.productos.length){const h=document.createElement('h3');h.textContent='Productos';card.append(h);const list=document.createElement('ul');list.className='items';for(const item of data.productos){const li=document.createElement('li');li.textContent=(item.cantidad||1)+' × '+(item.nombre||'Producto')+' · '+money(item.total);list.append(li)}card.append(list)}output.append(card);
 }catch(err){message('No pudimos consultar tu pedido en este momento. Intenta nuevamente.')}finally{button.disabled=false;button.textContent='Consultar pedido'}});
 })();
 </script></body></html>
