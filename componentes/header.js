@@ -205,8 +205,9 @@ updateCount();
  panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid #eee;font:600 15px Poppins,Arial,sans-serif"><span>Mi pedido</span><button type="button" aria-label="Cerrar seguimiento" style="border:0;background:#eee;border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer">×</button></div><iframe title="Seguimiento de pedido SUPGO" style="width:100%;flex:1;border:0;min-height:0" loading="lazy"></iframe>';
  document.body.append(shade,panel);
  const frame=panel.querySelector('iframe');
- function close(){panel.hidden=true;shade.hidden=true;panel.style.setProperty('display','none');frame.removeAttribute('src');}
- function open(){shade.hidden=false;panel.hidden=false;panel.style.setProperty('display','flex');if(!frame.getAttribute('src'))frame.src='/checkout/?seguimiento=1';}
+ function close(){panel.hidden=true;shade.hidden=true;panel.style.setProperty('display','none','important');shade.style.setProperty('display','none','important');frame.removeAttribute('src');document.body.style.removeProperty('overflow');}
+ function syncOpen(){panel.style.removeProperty('display');shade.style.removeProperty('display');panel.style.setProperty('display','flex');shade.style.setProperty('display','block');}
+ function open(){shade.hidden=false;panel.hidden=false;syncOpen();if(!frame.getAttribute('src'))frame.src='/checkout/?seguimiento=1';}
  panel.querySelector('button').onclick=close;shade.onclick=close;
  if(btn){btn.removeAttribute('onclick');btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();open();},true);}
  window.supgoOpenPedidoCompartido=open;
