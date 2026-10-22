@@ -14815,3 +14815,17 @@ button:active{transform:scale(.98)}
 </script>
 
 
+
+<script id="supgo-open-native-order-from-url">
+(function(){
+ if(new URLSearchParams(location.search).get('mi-pedido')!=='1')return;
+ let attempts=0;
+ const timer=setInterval(function(){
+  if(typeof window.liftOpenTrack==='function'&&document.getElementById('liftTrackModal')){
+   clearInterval(timer);
+   window.liftOpenTrack();
+   history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])mi-pedido=1(&?)/,function(_,a,b){return a==='?'&&b?'?':a==='?'?'':b?'&':''}).replace(/[?&]$/,'')+location.hash);
+  }else if(++attempts>=100)clearInterval(timer);
+ },100);
+})();
+</script>
