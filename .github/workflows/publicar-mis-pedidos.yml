@@ -1,4 +1,4 @@
-name: Retirar página antigua Mis pedidos
+name: Publicar consulta independiente Mis pedidos
 on:
   push:
     branches: [main]
@@ -28,9 +28,10 @@ jobs:
         shell: bash
         run: |
           test -s mis-pedidos/index.html
-          grep -Fq 'Página no disponible' mis-pedidos/index.html
+          grep -Fq 'id="lookup"' mis-pedidos/index.html
+          grep -Fq 'lift_pedidos' mis-pedidos/index.html
           grep -Fq '/mis-pedidos/' checkout/index.html
-          echo 'Página retirada verificada'
+          echo 'Consulta independiente verificada'
       - name: Preparar sitio completo
         shell: bash
         run: |
