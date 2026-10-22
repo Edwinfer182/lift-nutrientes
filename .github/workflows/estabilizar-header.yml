@@ -1,0 +1,46 @@
+name: Estabilizar header principal
+on:
+  push:
+    paths:
+      - '.github/workflows/estabilizar-header.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  corregir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Eliminar scripts de header en conflicto
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          html=p.read_text(encoding='utf-8')
+          blocks=[
+            'LIFT-HEADER-MOVIL-20261022',
+            'LIFT-HEADER-ORIGINAL-OFERTAS-V2',
+            'LIFT-OFERTAS-HEADER-V3',
+            'LIFT-HEADER-CART-V4'
+          ]
+          for marker in blocks:
+              pattern=r'<!-- '+re.escape(marker)+r' -->\s*<style>.*?</style>\s*<script>.*?</script>'
+              html,n=re.subn(pattern,'',html,count=1,flags=re.S)
+              print(marker, n)
+          assert not any('<!-- '+m+' -->' in html for m in blocks)
+          p.write_text(html,encoding='utf-8')
+          print('Header devuelto a disposición nativa sin parches superpuestos')
+          PY
+      - name: Guardar corrección
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Estabilizar header retirando cuatro parches superpuestos"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
