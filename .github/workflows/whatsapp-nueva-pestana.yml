@@ -1,0 +1,67 @@
+name: Abrir WhatsApp en pestaña nueva
+on:
+  push:
+    paths:
+      - '.github/workflows/whatsapp-nueva-pestana.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  aplicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Mantener supgo abierta al ir a WhatsApp
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<!-- LIFT-WA-NEW-TAB-20261022 -->'
+          if marker not in s:
+              code=r"""
+          <!-- LIFT-WA-NEW-TAB-20261022 -->
+          <script>
+          (function(){
+            function whatsapp(url){
+              try {
+                var parsed=new URL(url,window.location.href);
+                return /^(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|www\.wa\.me)$/i.test(parsed.hostname);
+              } catch(e){return false;}
+            }
+            function ready(){
+              document.querySelectorAll('a[href]').forEach(function(a){
+                if(whatsapp(a.href)){
+                  a.target='_blank';
+                  a.rel='noopener noreferrer';
+                }
+              });
+            }
+            // Capturar clicks dinámicos sin alterar el comportamiento del carrito.
+            document.addEventListener('click',function(ev){
+              const a=ev.target.closest&&ev.target.closest('a[href]');
+              if(!a||!whatsapp(a.href))return;
+              a.target='_blank';
+              a.rel='noopener noreferrer';
+            },true);
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+            new MutationObserver(ready).observe(document.documentElement,{subtree:true,childList:true});
+          })();
+          </script>
+          """
+              s=s.replace('</body>',code+'\n</body>',1)
+          p.write_text(s,encoding='utf-8')
+          print('Apertura de enlaces WhatsApp en pestaña nueva integrada.')
+          PY
+      - name: Confirmar publicación
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Abrir enlaces WhatsApp en pestaña nueva sin salir de SUPGO"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
