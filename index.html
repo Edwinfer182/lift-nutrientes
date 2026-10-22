@@ -14609,47 +14609,55 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
-<!-- LIFT-HEADER-ORIGINAL-OFERTAS-V2 -->
+
+
+
+<!-- LIFT-OFERTAS-HEADER-V3 -->
 <style>
 @media(max-width:767px){
-  .lift-original-offers-in-header{position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex-shrink:0!important;z-index:auto!important;padding:9px 9px!important;font-size:12px!important;white-space:nowrap!important}
-  .lift-original-offers-in-header *{font-size:inherit}
-  .lift-hidden-duplicate-box{display:none!important}
+  #lift-ofertas-header-slot{display:inline-flex;align-items:center;flex:0 0 auto;min-width:0;margin:0 4px}
+  #lift-ofertas-header-slot>a,#lift-ofertas-header-slot>button,#lift-ofertas-header-slot>div{position:static!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin:0!important;min-height:40px!important;min-width:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;z-index:1!important;padding:7px 9px!important;font-size:12px!important}
+  #lift-ofertas-header-slot *{font-size:inherit}
+  .lift-offers-original-shell{display:contents!important;position:static!important;inset:auto!important;transform:none!important}
+  .lift-old-box-hidden{display:none!important}
 }
+@media(min-width:768px){#lift-ofertas-header-slot{display:contents}}
 </style>
 <script>
 (function(){
-  function fix(){
-    if(window.innerWidth>767)return;
-    // Eliminar el enlace de ofertas que creó el parche previo, no el original.
+  function moveOffers(){
+    if(innerWidth>767)return;
+    const buttons=[...document.querySelectorAll('a,button,[role="button"]')];
+    const order=buttons.find(x=>/mi pedido/i.test(x.textContent||'')&&x.getBoundingClientRect().width>70);
+    if(!order)return;
+    let target=document.getElementById('lift-ofertas-header-slot');
+    if(!target){
+      target=document.createElement('span');
+      target.id='lift-ofertas-header-slot';
+      order.insertAdjacentElement('afterend',target);
+    }
     document.getElementById('lift-header-offers')?.remove();
-    const items=[...document.querySelectorAll('a,button')];
-    const pedido=items.find(x=>/mi pedido/i.test(x.textContent||'')&&!x.closest('#lift-wa-index'));
-    if(!pedido)return;
-    // Buscar el botón de ofertas original con contador visible.
-    const ofertas=items.find(x=>x!==pedido&&/ofertas/i.test(x.textContent||'')&&/\d+/.test(x.textContent||'')&&x.id!=='lift-header-offers');
-    if(ofertas){
-      ofertas.style.removeProperty('display');
-      ofertas.classList.add('lift-original-offers-in-header');
-      // Conservar su enlace y sus eventos, trasladando el nodo real junto a Mi pedido.
-      if(ofertas.previousElementSibling!==pedido)pedido.insertAdjacentElement('afterend',ofertas);
+    // El original ofrece un contador, no el enlace generado anteriormente.
+    let original=buttons.find(x=>x.id!=='lift-header-offers'&&x!==order&&/ofertas/i.test(x.textContent||'')&&/\b\d+\b/.test(x.textContent||'')&&!x.closest('#lift-ofertas-header-slot'));
+    if(!original){
+      original=[...document.querySelectorAll('a,button,[role="button"]')].find(x=>/ofertas/i.test(x.textContent||'')&&/\b\d+\b/.test(x.textContent||''));
     }
-    // La cajita es un acceso redundante a Mi pedido. Solo se oculta visualmente.
-    const candidates=[...document.querySelectorAll('button,a,[role="button"]')];
-    for(const el of candidates){
-      if(el===pedido||el===ofertas||el.contains(pedido)||el.contains(ofertas))continue;
-      const words=((el.textContent||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).trim();
-      const isBox=/📦/.test(words)||(/pedido|package|box/i.test(words)&&!(/mi pedido/i.test(el.textContent||'')));
-      if(!isBox)continue;
-      const rect=el.getBoundingClientRect();
-      if(rect.width>=30&&rect.width<110&&rect.height>=30&&rect.height<110){
-        el.classList.add('lift-hidden-duplicate-box');
-        break;
+    if(original&&!target.contains(original)){
+      const parent=original.parentElement;
+      if(parent&&parent!==document.body&&getComputedStyle(parent).position==='fixed'){
+        parent.classList.add('lift-offers-original-shell');
       }
+      target.appendChild(original);
     }
+    // Cajita duplicada, sin borrar sus escuchadores de eventos.
+    const all=[...document.querySelectorAll('a,button,[role="button"]')];
+    const box=all.find(x=>x!==order&&!target.contains(x)&&
+       (x.textContent||'').trim()==='📦'&&x.getBoundingClientRect().width<100);
+    if(box)box.classList.add('lift-old-box-hidden');
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix,{once:true});else fix();
-  window.addEventListener('load',fix,{once:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',moveOffers,{once:true});else moveOffers();
+  window.addEventListener('load',moveOffers,{once:true});
+  window.addEventListener('pageshow',moveOffers);
 })();
 </script>
 
