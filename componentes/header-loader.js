@@ -13,11 +13,11 @@
   }
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
-    if(document.querySelector('#supgo-global-header'))return;
+    if(document.querySelector('header.top,#supgo-global-header'))return;
     const response=await fetch(path+'header.html?v=20261022-pedido-local3',{credentials:'same-origin'});
     if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
     const html=await response.text();
-    if(document.querySelector('#supgo-global-header'))return;
+    if(document.querySelector('header.top,#supgo-global-header'))return;
     let styles=document.querySelector('link[data-supgo-header-style]');
     if(!styles){
       styles=document.createElement('link');
