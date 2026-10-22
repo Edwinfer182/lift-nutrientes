@@ -25,6 +25,10 @@
 .hero .product-lineup:after{content:"";position:absolute;left:0;right:0;bottom:12px;height:3px;background:linear-gradient(90deg,transparent,#3ea36c66,transparent);pointer-events:none}
 }
 @media(min-width:761px) and (max-width:1059px){.hero .product-lineup .hero-product-link{width:115%}.hero .product-lineup .hero-product-link img{max-height:220px!important}}
+/* Diez productos reales, juntos y visibles sobre el fondo verde */
+@media(min-width:1060px){.hero .slide:first-child .hero-art.product-lineup{grid-template-columns:repeat(10,minmax(0,1fr))!important;width:56%!important;flex:1 1 56%!important;gap:0!important;padding-bottom:15px!important;align-items:end!important}.hero .slide:first-child .hero-copy{flex:0 0 44%!important;max-width:44%!important}.hero .product-lineup .hero-product-link{width:185%!important;height:285px!important;transform:none!important;translate:0 0!important;transition:translate .2s ease!important}.hero .product-lineup .hero-product-link:nth-child(2n){translate:0 -7px!important}.hero .product-lineup .hero-product-link:hover{translate:0 -17px!important;z-index:20!important}.hero .product-lineup .hero-product-link img{height:100%!important;max-height:285px!important;mix-blend-mode:multiply!important;filter:drop-shadow(0 12px 10px #0008)!important}.hero .product-lineup .hero-product-link:nth-child(3),.hero .product-lineup .hero-product-link:nth-child(4){z-index:12!important}}
+@media(min-width:761px) and (max-width:1059px){.hero .hero-art.product-lineup{grid-template-columns:repeat(10,minmax(0,1fr))!important}.hero .product-lineup .hero-product-link{width:160%!important}}
+@media(max-width:760px){.hero .hero-art.product-lineup{grid-template-columns:repeat(10,minmax(0,1fr))!important;width:100%!important;right:0!important;gap:0!important}.hero .product-lineup .hero-product-link{width:145%!important}.hero .product-lineup .hero-product-link img{mix-blend-mode:multiply!important}}
 </style></head><body>
 <main>
 <section class="hero" aria-label="Promociones destacadas">
@@ -44,5 +48,5 @@
 <footer class="footer">SUPGO · Suplementos y nutrición deportiva · <a href="/mis-pedidos/">Mis pedidos</a></footer>
 </main>
 <script defer src="/componentes/header-loader.js?v=20261022-unificado"></script>
-<script defer src="/home/home.js?v=20261022-lineup7"></script>
+<script defer src="/home/home.js?v=20261022-lineup10"></script>
 </body></html>
