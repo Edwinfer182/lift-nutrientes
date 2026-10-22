@@ -37,7 +37,7 @@ jobs:
           const name=document.querySelector('.product-info h1')?.childNodes[0]?.textContent?.trim()||document.querySelector('h1')?.textContent?.trim()||'este producto';
           field.value='Hola, estoy interesado en '+name+'. ¿Está disponible?';
           button.onclick=function(){panel.hidden=!panel.hidden;button.setAttribute('aria-expanded',String(!panel.hidden));};
-          send.onclick=function(){location.href='https://api.whatsapp.com/send?text='+encodeURIComponent(field.value+'\\n'+location.href);};
+          send.onclick=function(){location.href='https://api.whatsapp.com/send?phone=573137380766&text='+encodeURIComponent(field.value+'\\n'+location.href);};
           })();
           </script>"""
           changed=0
@@ -46,6 +46,9 @@ jobs:
               if 'class="product-info"' not in html or '<body' not in html:
                   continue
               old=html
+              # Vincular los botones existentes al WhatsApp comercial, sin regenerar fichas.
+              html=html.replace('https://api.whatsapp.com/send?text=', 'https://api.whatsapp.com/send?phone=573137380766&text=')
+              html=html.replace('https://wa.me/?text=', 'https://wa.me/573137380766?text=')
               # Eliminar el bloque rectangular antiguo, incluidos sus estilos.
               html=re.sub(r'<div class="seo-wa-wrap"[^>]*>.*?</div>\s*</div>', '', html, count=1, flags=re.S)
               html=re.sub(r'<style>\s*\.seo-wa-wrap\{.*?</style>', '', html, count=1, flags=re.S)
