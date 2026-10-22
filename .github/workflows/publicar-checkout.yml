@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'checkout/**'
+      - 'componentes/**'
+      - 'carrito/**'
       - 'mis-pedidos/**'
       - '.github/workflows/publicar-checkout.yml'
   workflow_dispatch:
@@ -49,7 +51,9 @@ jobs:
           test -s _site/mis-pedidos/index.html || { echo "::error::Falta Mis pedidos en la publicacion"; exit 1; }
           grep -Fq 'class="backdrop"' _site/mis-pedidos/index.html || { echo "::error::Se intenta publicar la version antigua de Mis pedidos"; exit 1; }
           grep -Fq "public-track-order" _site/mis-pedidos/index.html || { echo "::error::Falta seguimiento por token"; exit 1; }
-          grep -Fq "/mis-pedidos/" _site/checkout/index.html || { echo "::error::Checkout no dirige a Mis pedidos"; exit 1; }
+          grep -Fq "supgo:pedido-generado" _site/checkout/index.html || { echo "::error::Checkout no abre seguimiento local"; exit 1; }
+          grep -Fq "Mi pedido" _site/componentes/header.html || { echo "::error::Falta Mi pedido en header compartido"; exit 1; }
+          grep -Fq "header-loader.js" _site/carrito/index.html || { echo "::error::Carrito no carga header compartido"; exit 1; }
           echo "OK: modal nuevo y checkout incluidos en artefacto de Pages."
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
