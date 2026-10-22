@@ -1,0 +1,89 @@
+name: Subir ofertas al header movil
+on:
+  push:
+    paths:
+      - '.github/workflows/subir-ofertas-header.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  ajustar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Reubicar ofertas con marcador visual estable
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=re.sub(r'<!-- LIFT-HEADER-ORIGINAL-OFERTAS-V2 -->\s*<style>.*?</style>\s*<script>.*?</script>','',s,count=1,flags=re.S)
+          marker='<!-- LIFT-OFERTAS-HEADER-V3 -->'
+          if marker not in s:
+              code=r"""
+          <!-- LIFT-OFERTAS-HEADER-V3 -->
+          <style>
+          @media(max-width:767px){
+            #lift-ofertas-header-slot{display:inline-flex;align-items:center;flex:0 0 auto;min-width:0;margin:0 4px}
+            #lift-ofertas-header-slot>a,#lift-ofertas-header-slot>button,#lift-ofertas-header-slot>div{position:static!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin:0!important;min-height:40px!important;min-width:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;z-index:1!important;padding:7px 9px!important;font-size:12px!important}
+            #lift-ofertas-header-slot *{font-size:inherit}
+            .lift-offers-original-shell{display:contents!important;position:static!important;inset:auto!important;transform:none!important}
+            .lift-old-box-hidden{display:none!important}
+          }
+          @media(min-width:768px){#lift-ofertas-header-slot{display:contents}}
+          </style>
+          <script>
+          (function(){
+            function moveOffers(){
+              if(innerWidth>767)return;
+              const buttons=[...document.querySelectorAll('a,button,[role="button"]')];
+              const order=buttons.find(x=>/mi pedido/i.test(x.textContent||'')&&x.getBoundingClientRect().width>70);
+              if(!order)return;
+              let target=document.getElementById('lift-ofertas-header-slot');
+              if(!target){
+                target=document.createElement('span');
+                target.id='lift-ofertas-header-slot';
+                order.insertAdjacentElement('afterend',target);
+              }
+              document.getElementById('lift-header-offers')?.remove();
+              // El original ofrece un contador, no el enlace generado anteriormente.
+              let original=buttons.find(x=>x.id!=='lift-header-offers'&&x!==order&&/ofertas/i.test(x.textContent||'')&&/\b\d+\b/.test(x.textContent||'')&&!x.closest('#lift-ofertas-header-slot'));
+              if(!original){
+                original=[...document.querySelectorAll('a,button,[role="button"]')].find(x=>/ofertas/i.test(x.textContent||'')&&/\b\d+\b/.test(x.textContent||''));
+              }
+              if(original&&!target.contains(original)){
+                const parent=original.parentElement;
+                if(parent&&parent!==document.body&&getComputedStyle(parent).position==='fixed'){
+                  parent.classList.add('lift-offers-original-shell');
+                }
+                target.appendChild(original);
+              }
+              // Cajita duplicada, sin borrar sus escuchadores de eventos.
+              const all=[...document.querySelectorAll('a,button,[role="button"]')];
+              const box=all.find(x=>x!==order&&!target.contains(x)&&
+                 (x.textContent||'').trim()==='📦'&&x.getBoundingClientRect().width<100);
+              if(box)box.classList.add('lift-old-box-hidden');
+            }
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',moveOffers,{once:true});else moveOffers();
+            window.addEventListener('load',moveOffers,{once:true});
+            window.addEventListener('pageshow',moveOffers);
+          })();
+          </script>
+          """
+              s=s.replace('</body>',code+'\n</body>',1)
+          p.write_text(s,encoding='utf-8')
+          print('Marcador V3 escrito en index:',s.count(marker))
+          PY
+      - name: Guardar index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Mover botón Ofertas original al header móvil"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
