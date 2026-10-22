@@ -2251,7 +2251,7 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
         <div class="field"><label for="coName">Nombre</label><input id="coName" autocomplete="name" placeholder="Nombre completo"></div>
         <div class="field"><label for="coPhone">Celular <span>(opcional si tiene @usuario)</span></label><input id="coPhone" inputmode="tel" autocomplete="tel" placeholder="300 000 0000 o +1 212 555 1234"></div>
         <div class="field full liftWhatsappField"><label for="coWhatsappUser">Usuario de WhatsApp <span>(solo si aplica)</span></label><input id="coWhatsappUser" autocomplete="off" placeholder="@usuario"></div>
-        <div class="field full"><label for="coEmail">Correo electrónico *</label><input id="coEmail" required type="email" autocomplete="email" placeholder="tu@correo.com"></div>
+        <div class="field full"><label for="coEmail">Correo electrónico (opcional)</label><input id="coEmail" type="email" autocomplete="email" placeholder="tu@correo.com"></div>
       </div>
 
       <div class="liftCheckoutSectionTitle"><span>2</span><div><b>Datos de entrega</b><small>Dinos dónde debemos llevar tu pedido.</small></div></div>
@@ -2300,9 +2300,9 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
         </label>
         <div id="liftDataConsentError" role="alert" style="display:none;color:#b42318;font-size:10px;margin:4px 0">Debes autorizar el tratamiento de tus datos para continuar.</div>
         <label class="liftPrefRow liftEmailNotifyCompact" for="coEmailNotify">
-          <input id="coEmailNotify" type="checkbox" required>
+          <input id="coEmailNotify" type="checkbox">
           <span>Autorizo recibir las actualizaciones de mi pedido por correo.
-            <small>Necesario para avisarte de la preparación, ruta y entrega. Sin publicidad.</small>
+            <small>Opcional: avisos de preparación, ruta y entrega. Sin publicidad.</small>
           </span>
         </label>
       </div>
@@ -12773,7 +12773,7 @@ window.liftVariantMoney=function(value){
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  async function pub(payload){const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo completar la operación');return j}
  function injectTrack(){const bar=document.querySelector('.top .bar');if(!bar||$('liftTrackBtn'))return;const b=document.createElement('button');b.id='liftTrackBtn';b.className='liftTrackBtn';b.type='button';b.textContent='📦 Mi pedido';b.onclick=window.liftOpenTrack;const cart=bar.querySelector('.cartDesktop');bar.insertBefore(b,cart||null)}
- function payload(){const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'',email=$('coEmail')?.value.trim().toLowerCase()||'',email_notificaciones=Boolean($('coEmailNotify')?.checked),tratamiento_datos=Boolean($('coDataConsent')?.checked),marketing_autorizado=Boolean($('coMarketingConsent')?.checked),tratamiento_datos_fecha=new Date().toISOString(),tratamiento_datos_version='LIFT-DATOS-2026-10-06-v1';if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)throw new Error('Completa nombre, celular, dirección y selecciona una ciudad.');if(!tratamiento_datos)throw new Error('Para generar el pedido debes autorizar el tratamiento de tus datos personales.');if(!email_notificaciones){$('coEmailNotify')?.closest('label')?.scrollIntoView({behavior:'smooth',block:'center'});throw new Error('Para recibir los avisos del pedido, autoriza las notificaciones por correo.');}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('Escribe un correo electrónico válido para continuar.');if(window.liftRequiresDocument?.()&&!$('coDocument')?.value.trim())throw new Error('Ingresa la cédula o documento para el envío nacional.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip)||0,descuento=checkoutCouponDiscount(its),noDiscount=adminTrainerMode()||trainerCouponActive(),total=Math.max(0,effective-(noDiscount?0:descuento))+Number(envio||0);return {action:'public-save-order',request_key:'public-'+Date.now()+'-'+Math.random().toString(36).slice(2),nombre,celular,direccion,ciudad:selectedCity.name,departamento:selectedCity.department||'',notas:(window.liftRequiresDocument?.()? [notas, 'Documento: '+$('coDocument').value.trim()].filter(Boolean).join(' | '):notas),email,email_notificaciones,tratamiento_datos,tratamiento_datos_fecha,tratamiento_datos_version,marketing_autorizado,subtotal,envio,descuento:noDiscount?0:descuento,total,items:its.map(({p,q})=>{const unit=checkoutUnitPrice(p);return{producto_id:p.id||null,nombre:String(p.name||'Producto')+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||p.marca||'',cantidad:q,precio_unitario:unit,total_linea:unit*q}})} }
+ function payload(){const nombre=$('coName')?.value.trim()||'',celular=$('coPhone')?.value.trim()||'',direccion=$('coAddress')?.value.trim()||'',notas=$('coNotes')?.value.trim()||'',email=$('coEmail')?.value.trim().toLowerCase()||'',email_notificaciones=Boolean($('coEmailNotify')?.checked),tratamiento_datos=Boolean($('coDataConsent')?.checked),marketing_autorizado=Boolean($('coMarketingConsent')?.checked),tratamiento_datos_fecha=new Date().toISOString(),tratamiento_datos_version='LIFT-DATOS-2026-10-06-v1';if(!nombre||!celular||!direccion||typeof selectedCity==='undefined'||!selectedCity)throw new Error('Completa nombre, celular, dirección y selecciona una ciudad.');if(!tratamiento_datos)throw new Error('Para generar el pedido debes autorizar el tratamiento de tus datos personales.');if(email_notificaciones&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){const campo=$('coEmail');if(campo){campo.setCustomValidity('Ingresa un correo válido para recibir notificaciones.');campo.style.borderColor='#dc2626';campo.scrollIntoView({behavior:'smooth',block:'center'});campo.focus();campo.reportValidity();}throw new Error('Ingresa un correo electrónico válido para recibir notificaciones.');}if(window.liftRequiresDocument?.()&&!$('coDocument')?.value.trim())throw new Error('Ingresa la cédula o documento para el envío nacional.');const its=checkoutItemsList();if(!its.length)throw new Error('El pedido no tiene productos.');const subtotal=checkoutPublicSubtotal(its),effective=checkoutEffectiveSubtotal(its),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),envio=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip)||0,descuento=checkoutCouponDiscount(its),noDiscount=adminTrainerMode()||trainerCouponActive(),total=Math.max(0,effective-(noDiscount?0:descuento))+Number(envio||0);return {action:'public-save-order',request_key:'public-'+Date.now()+'-'+Math.random().toString(36).slice(2),nombre,celular,direccion,ciudad:selectedCity.name,departamento:selectedCity.department||'',notas:(window.liftRequiresDocument?.()? [notas, 'Documento: '+$('coDocument').value.trim()].filter(Boolean).join(' | '):notas),email,email_notificaciones,tratamiento_datos,tratamiento_datos_fecha,tratamiento_datos_version,marketing_autorizado,subtotal,envio,descuento:noDiscount?0:descuento,total,items:its.map(({p,q})=>{const unit=checkoutUnitPrice(p);return{producto_id:p.id||null,nombre:String(p.name||'Producto')+(p._cartFlavor?' · Sabor: '+p._cartFlavor:''),marca:p.brand||p.marca||'',cantidad:q,precio_unitario:unit,total_linea:unit*q}})} }
  window.finishCheckout=async function(){const consent=$('coDataConsent'),consentErr=$('liftDataConsentError'),consentRow=$('liftDataConsentRow');if(consent&&!consent.checked){if(consentErr)consentErr.style.display='block';if(consentRow){consentRow.style.borderColor='#b42318';consentRow.style.background='#fff7f7';consentRow.scrollIntoView({behavior:'smooth',block:'center'})}consent.focus();return}if(consentErr)consentErr.style.display='none';if(consentRow){consentRow.style.borderColor='';consentRow.style.background=''}let d;try{d=payload()}catch(e){alert(e.message);return}const btn=document.querySelector('#checkoutModal .checkoutSend');if(btn?.dataset.busy==='1')return;try{if(btn){btn.dataset.busy='1';btn.disabled=true;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generando pedido…')}const ok=await registerCouponUse();if(!ok)return;const r=await pub(d);if(typeof window.liftTrackOrderCreated==='function')window.liftTrackOrderCreated().catch(()=>{});if(typeof window.liftSaveConsentAudit==='function')window.liftSaveConsentAudit(d,r);lastOrder={...r,phone:d.celular,name:d.nombre,text:typeof checkoutText==='function'?checkoutText():''};
 try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:r.referencia,phone:d.celular,token:r.token||''}))}catch(e){}
 const co=$('checkoutModal');if(co){co.classList.remove('open');co.setAttribute('aria-hidden','true')}
@@ -14494,6 +14494,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 <script defer src="/componentes/whatsapp-general.js?v=20261021-4"></script>
+<script>
+/* Validación contextual de avisos por correo: no bloquear compras sin autorización. */
+document.addEventListener('DOMContentLoaded',function(){
+ const email=document.getElementById('coEmail'),check=document.getElementById('coEmailNotify');
+ if(!email||!check)return;
+ const valid=()=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+ const refresh=(focus)=>{
+   const missing=check.checked&&!valid();
+   email.required=check.checked;
+   email.setCustomValidity(missing?'Ingresa un correo válido para recibir notificaciones.':'');
+   email.style.borderColor=missing?'#dc2626':'';
+   email.setAttribute('aria-invalid',missing?'true':'false');
+   if(missing&&focus){email.scrollIntoView({behavior:'smooth',block:'center'});email.focus();email.reportValidity();}
+ };
+ check.addEventListener('change',()=>refresh(true));
+ email.addEventListener('input',()=>refresh(false));
+ refresh(false);
+});
+</script>
 </body>
 </html>
 
