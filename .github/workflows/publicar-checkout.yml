@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'checkout/**'
+      - 'mis-pedidos/**'
       - '.github/workflows/publicar-checkout.yml'
   workflow_dispatch:
 
