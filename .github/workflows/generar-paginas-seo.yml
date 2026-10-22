@@ -69,6 +69,8 @@ jobs:
           assert 'class="seo-wa-wrap"' not in html, "Persiste botón grande antiguo"
           print("WhatsApp integrado en HTML SEO")
           PY
+      - name: Sincronizar favicon con index principal
+        run: python scripts/sincronizar_favicon.py
       - name: Publicar páginas generadas
         run: |
           git config user.name "github-actions[bot]"
