@@ -21,7 +21,7 @@ const message=t=>{output.replaceChildren();const p=document.createElement('p');p
 const tokenParams=new URLSearchParams(location.search);
 const incomingToken=tokenParams.get('token');
 const incomingId=tokenParams.get('pedido')||tokenParams.get('id')||tokenParams.get('pedido_id');
-if(incomingToken&&incomingId&&/^\\d+$/.test(incomingId)){
+if(incomingToken&&incomingId&&/^\d+$/.test(incomingId)){
  const target=new URL('/',location.origin);
  target.searchParams.set('pedido',incomingId);
  target.searchParams.set('token',incomingToken);
@@ -36,7 +36,7 @@ field(card,'Fecha',data.fecha?new Date(data.fecha).toLocaleDateString('es-CO'):'
 const state=String(data.estado||'Recibido');
 const progress=document.createElement('div');progress.className='liftOrderProgress';
 const stages=['Pedido recibido','Disponibilidad','Pago','Preparando','En ruta','Entregado'];
-const normalize=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim();
+const normalize=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 const current=normalize(state);
 const map={'recibido':0,'pedido recibido':0,'disponibilidad':1,'disponible':1,'pendiente de pago':2,'pago':2,'pagado':2,'preparando':3,'preparacion':3,'en preparacion':3,'en ruta':4,'despachado':4,'entregado':5};
 const idx=Object.prototype.hasOwnProperty.call(map,current)?map[current]:-1;
