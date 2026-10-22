@@ -1,7 +1,12 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Entrenadores | Lift Nutrientes</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f6f7f8;color:#171717;font:15px system-ui,Arial}header{background:#101010;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center}header strong{font-size:20px}main{max-width:1160px;margin:36px auto;padding:0 20px}.login{max-width:420px;margin:9vh auto;background:#fff;padding:30px;border:1px solid #e4e4e4;border-radius:18px;box-shadow:0 12px 35px #00000008}h1{font-size:27px;margin:0 0 10px}p{color:#555}label{display:block;margin:18px 0 7px;font-weight:650}input{width:100%;padding:13px;border:1px solid #d1d5db;border-radius:9px;font:inherit}button{border:0;background:#111;color:white;border-radius:9px;padding:13px 18px;cursor:pointer;font:inherit}button:disabled{opacity:.55;cursor:wait}.login button{width:100%;margin-top:20px}.error{color:#b42318;margin-top:12px}.toolbar{display:flex;gap:12px;align-items:center;margin:20px 0}.toolbar input{flex:1}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}.product{background:white;border:1px solid #eee;border-radius:14px;padding:16px}.product img{width:100%;height:180px;object-fit:contain}.product h3{font-size:15px;min-height:40px}.product .price{font-size:22px;font-weight:750;color:#111}.muted{font-size:12px;color:#666}.hidden{display:none!important}@media(max-width:600px){main{margin:20px auto}.login{margin:5vh auto;padding:22px}header{padding:17px}}
-</style></head><body><header><strong>LIFT NUTRIENTES</strong><span>Portal de entrenadores</span></header><main><section id="login" class="login"><h1>Acceso entrenadores</h1><p>Ingresa con tu celular y la clave asignada por Lift Nutrientes.</p><form id="form"><label for="phone">Número de celular</label><input id="phone" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="300 123 4567"><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" required placeholder="Tu clave"><button id="enter" type="submit">Ingresar</button><div id="error" class="error" role="alert"></div></form></section><section id="catalog" class="hidden"><div class="toolbar"><div><h1>Precios para entrenadores</h1><p id="welcome"></p></div><button id="logout">Salir</button></div><div class="toolbar"><input id="search" type="search" placeholder="Buscar producto, marca o sabor..."><span id="count"></span></div><div id="grid" class="grid"></div></section></main><script>
+</style><style id="trainer-cart-style">
+.trainer-qty{display:flex;gap:8px;align-items:center;margin-top:12px}.trainer-qty button{padding:7px 12px}.trainer-qty output{min-width:25px;text-align:center;font-weight:700}
+#trainer-cart{position:sticky;bottom:0;z-index:5;background:white;border:1px solid #ddd;border-radius:15px;padding:16px;margin-top:22px;box-shadow:0 3px 24px #0002}
+#trainer-cart h2{margin:0 0 10px;font-size:19px}#trainer-cart-lines{max-height:210px;overflow:auto}#trainer-cart-lines div{padding:7px 0;border-bottom:1px solid #eee}
+.trainer-totals{display:grid;grid-template-columns:1fr auto;gap:6px;margin:12px 0}#trainer-send{width:100%;background:#168b50;font-weight:700}#trainer-send:disabled{opacity:.45}
+</style></head><body><header><strong>LIFT NUTRIENTES</strong><span>Portal de entrenadores</span></header><main><section id="login" class="login"><h1>Acceso entrenadores</h1><p>Ingresa con tu celular y la clave asignada por Lift Nutrientes.</p><form id="form"><label for="phone">Número de celular</label><input id="phone" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="300 123 4567"><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" required placeholder="Tu clave"><button id="enter" type="submit">Ingresar</button><div id="error" class="error" role="alert"></div></form></section><section id="catalog" class="hidden"><div class="toolbar"><div><h1>Precios para entrenadores</h1><p id="welcome"></p></div><button id="logout">Salir</button></div><div class="toolbar"><input id="search" type="search" placeholder="Buscar producto, marca o sabor..."><span id="count"></span></div><div id="grid" class="grid"></div></section><section id="trainer-cart" class="hidden"><h2>Mi carrito</h2><div id="trainer-cart-lines"></div><div class="trainer-totals"><span>Subtotal</span><strong id="trainer-subtotal">$0</strong><span>Envío fijo</span><strong>$11.000</strong><span>Total</span><strong id="trainer-total">$0</strong></div><button type="button" id="trainer-send" disabled>Enviar pedido por WhatsApp</button><p class="muted">Se abrirá WhatsApp para que confirmes el envío del mensaje.</p></section></main><script>
 const API='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/lift_catalogo_entrenador';
 const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 let products=[];
@@ -9,4 +14,54 @@ const $=id=>document.getElementById(id);
 function render(){const q=$('search').value.toLocaleLowerCase('es');const filtered=products.filter(p=>[p.name,p.brand,p.flavor].join(' ').toLocaleLowerCase('es').includes(q));$('count').textContent=filtered.length+' productos';$('grid').replaceChildren(...filtered.map(p=>{const card=document.createElement('article');card.className='product';const img=document.createElement('img');img.loading='lazy';img.alt=p.name||'Producto';if(/^https?:\/\//.test(p.image||''))img.src=p.image;const name=document.createElement('h3');name.textContent=p.name||'Producto';const brand=document.createElement('div');brand.className='muted';brand.textContent=[p.brand,p.flavor].filter(Boolean).join(' · ');const price=document.createElement('div');price.className='price';price.textContent=new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(p.price)||0);card.append(img,brand,name,price);return card;}));}
 $('form').addEventListener('submit',async e=>{e.preventDefault();$('error').textContent='';$('enter').disabled=true;try{const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({p_celular:$('phone').value,p_clave:$('password').value})});if(!res.ok)throw Error('El acceso aún no está habilitado. Contacta a Lift Nutrientes.');const data=await res.json();if(!data.ok)throw Error(data.error||'Credenciales incorrectas');products=Array.isArray(data.productos)?data.productos:[];$('welcome').textContent='Bienvenido, '+(data.nombre||'entrenador');$('password').value='';$('login').classList.add('hidden');$('catalog').classList.remove('hidden');render();}catch(err){$('error').textContent=err.message||'No se pudo iniciar sesión';}finally{$('enter').disabled=false;}});
 $('search').addEventListener('input',render);$('logout').addEventListener('click',()=>{products=[];$('grid').replaceChildren();$('catalog').classList.add('hidden');$('login').classList.remove('hidden');});
+</script><script id="trainer-cart-script">
+(()=>{
+'use strict';
+const shipping=11000, phone='573137380766', cart=new Map();
+const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
+const el=id=>document.getElementById(id);
+function keyOf(p,i){return String(p.id??p.product_id??i);}
+function refreshCart(){
+ const entries=[...cart.values()],subtotal=entries.reduce((a,x)=>a+x.qty*Number(x.product.price||0),0);
+ el('trainer-subtotal').textContent=money(subtotal);
+ el('trainer-total').textContent=money(subtotal+(entries.length?shipping:0));
+ el('trainer-send').disabled=!entries.length;
+ const lines=el('trainer-cart-lines');lines.replaceChildren();
+ if(!entries.length){lines.textContent='Agrega productos para preparar tu pedido.';return;}
+ for(const x of entries){const d=document.createElement('div');d.textContent=x.qty+' × '+(x.product.name||'Producto')+' · '+money(x.qty*Number(x.product.price||0));lines.append(d);}
+}
+const originalRender=render;
+render=function(){
+ originalRender();
+ const q=el('search').value.toLocaleLowerCase('es');
+ const filtered=products.map((p,i)=>({p,i})).filter(({p})=>[p.name,p.brand,p.flavor].join(' ').toLocaleLowerCase('es').includes(q));
+ const cards=el('grid').querySelectorAll('.product');
+ filtered.forEach(({p,i},position)=>{
+  const card=cards[position];if(!card)return;
+  const id=keyOf(p,i),control=document.createElement('div');control.className='trainer-qty';
+  const minus=document.createElement('button'),count=document.createElement('output'),plus=document.createElement('button');
+  minus.type='button';plus.type='button';minus.textContent='−';plus.textContent='+';
+  count.textContent=cart.get(id)?.qty||0;
+  const change=delta=>{
+   const next=Math.max(0,Math.min(99,(cart.get(id)?.qty||0)+delta));
+   if(next)cart.set(id,{product:p,qty:next});else cart.delete(id);
+   count.textContent=next;refreshCart();
+  };
+  minus.onclick=()=>change(-1);plus.onclick=()=>change(1);
+  control.append(minus,count,plus);card.append(control);
+ });
+ refreshCart();
+};
+el('form').addEventListener('submit',()=>{cart.clear();refreshCart();});
+el('logout').addEventListener('click',()=>{cart.clear();el('trainer-cart').classList.add('hidden');refreshCart();});
+new MutationObserver(()=>{const visible=!el('catalog').classList.contains('hidden');el('trainer-cart').classList.toggle('hidden',!visible);}).observe(el('catalog'),{attributes:true,attributeFilter:['class']});
+el('trainer-send').addEventListener('click',()=>{
+ if(!cart.size)return;
+ const items=[...cart.values()],subtotal=items.reduce((a,x)=>a+x.qty*Number(x.product.price||0),0);
+ const lines=items.map(x=>x.qty+' x '+(x.product.name||'Producto')+(x.product.flavor?' - '+x.product.flavor:'')+' | '+money(Number(x.product.price||0))+' c/u | '+money(x.qty*Number(x.product.price||0)));
+ const msg=['Hola, soy entrenador de Lift Nutrientes y quiero solicitar este pedido:','',...lines,'','Subtotal: '+money(subtotal),'Envío: '+money(shipping),'TOTAL: '+money(subtotal+shipping),'','Por favor confirmar disponibilidad.'].join('\n');
+ window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank','noopener,noreferrer');
+});
+refreshCart();
+})();
 </script></body></html>
