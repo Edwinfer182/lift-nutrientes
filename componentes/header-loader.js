@@ -31,7 +31,7 @@
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
     if(document.querySelector('header.top,#supgo-global-header')){attachOrderButtonToExistingHeader();return;}
-    const response=await fetch(path+'header.html?v=20261022-seguimiento-unificado4',{credentials:'same-origin',cache:'no-store'});
+    const response=await fetch(path+'header.html?v=20261022-cierre-pedido5',{credentials:'same-origin',cache:'no-store'});
     if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
     const html=await response.text();
     if(document.querySelector('header.top,#supgo-global-header')){attachOrderButtonToExistingHeader();return;}
@@ -41,7 +41,7 @@
       styles.rel='stylesheet';styles.dataset.supgoHeaderStyle='1';document.head.appendChild(styles);
     }
     // Reemplazar también la URL de un link previamente insertado en caché.
-    const cssUrl=path+'header-public.css?v=20261022-seguimiento-unificado4';
+    const cssUrl=path+'header-public.css?v=20261022-cierre-pedido5';
     if(styles.getAttribute('href')!==cssUrl)styles.href=cssUrl;
     await new Promise(resolve=>{if(styles.sheet){resolve();return;}styles.addEventListener('load',resolve,{once:true});styles.addEventListener('error',resolve,{once:true});});
     const host=document.createElement('div');
@@ -49,7 +49,7 @@
     host.innerHTML=html;
     document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261022-seguimiento-unificado4');
+      await loadScript(path+'header.js?v=20261022-cierre-pedido5');
       // Refuerzo para fichas que conservan en caché el marcado antiguo.
       function ensureCheckoutButton(){
         const drawer=document.querySelector('.supgo-cart-drawer');
