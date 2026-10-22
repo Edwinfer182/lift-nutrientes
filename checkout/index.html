@@ -1963,7 +1963,18 @@ body.supgo-checkout-ready #checkoutModal .checkoutHead{padding:20px 34px!importa
 body.supgo-checkout-ready #checkoutModal .field input{min-width:0}
 }
 @media(max-width:760px){body.supgo-checkout-ready #checkoutModal>.supgoCheckoutNav{width:calc(100% - 24px);margin:12px auto 8px}.supgoCheckoutNav .supgoCheckoutNavBrand{font-size:16px}.supgoCheckoutNavLinks a{font-size:11px;padding:8px 10px}body.supgo-checkout-ready #checkoutModal>.checkoutCard{width:100%!important;margin:0 auto 20px!important}}
-</style><style id="supgo-checkout-no-flash">html{background:#fff}body:not(.supgo-checkout-ready)>:not(#checkoutModal){display:none!important}body:not(.supgo-checkout-ready){background:#fff!important;min-height:100dvh}body:not(.supgo-checkout-ready)::before{content:"Preparando tu pedido…";display:block;position:fixed;inset:0;background:#fff;color:#333;font:500 14px Poppins,Arial,sans-serif;text-align:center;padding-top:42vh;z-index:2147483000}body.supgo-checkout-ready::before{content:none}</style></head><body>
+</style><style id="supgo-checkout-no-flash">html{background:#fff}body:not(.supgo-checkout-ready)>:not(#checkoutModal){display:none!important}body:not(.supgo-checkout-ready){background:#fff!important;min-height:100dvh}body:not(.supgo-checkout-ready)::before{content:"Preparando tu pedido…";display:block;position:fixed;inset:0;background:#fff;color:#333;font:500 14px Poppins,Arial,sans-serif;text-align:center;padding-top:42vh;z-index:2147483000}body.supgo-checkout-ready::before{content:none}</style>
+<style id="supgo-track-sidepanel-20261022">
+/* Conserva la interfaz y consulta nativas del index, pero como panel lateral. */
+#liftTrackModal.liftOrderModal{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:stretch!important;justify-content:flex-end!important;background:rgba(0,0,0,.38)!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;transition:opacity .2s ease!important}
+#liftTrackModal.liftOrderModal.open{visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+#liftTrackModal .liftOrderCard{position:relative!important;margin:0!important;width:min(100%,650px)!important;max-width:650px!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain!important;border-radius:18px 0 0 18px!important;background:#fff!important;box-shadow:-10px 0 30px #0002!important;padding:54px 24px 32px!important;transform:translateX(102%);transition:transform .25s ease!important}
+#liftTrackModal.open .liftOrderCard{transform:translateX(0)!important}
+#liftTrackModal .liftTrackX{position:absolute!important;top:18px!important;right:18px!important}
+#liftTrackModal .liftTrackResult{max-height:none!important;overflow:visible!important}
+@media(max-width:650px){#liftTrackModal .liftOrderCard{width:100%!important;max-width:100%!important;border-radius:16px 0 0 16px!important;padding:54px 16px 24px!important}}
+</style>
+</head><body>
 
 <script id="lift-mobile-share-fix-v1">
 (function(){
