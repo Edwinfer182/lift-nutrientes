@@ -14610,6 +14610,55 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+<!-- LIFT-ADMIN-DELETE-ORDER-V1 -->
+<style>
+#lift-admin-delete-order{background:#262626;color:#fff;border:1px solid #777;border-radius:9px;padding:9px 13px;font:600 12px Poppins,Arial,sans-serif;cursor:pointer;margin:6px}
+#lift-admin-delete-order:disabled{opacity:.55;cursor:wait}
+</style>
+<script>
+(function(){
+  const endpoint='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/rpc/lift_eliminar_pedido_admin';
+  const key='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+  function mount(){
+    const tabs=document.querySelector('.liftOrdersTabs');
+    const pass=sessionStorage.getItem('liftAdminCloudPasswordV1');
+    let btn=document.getElementById('lift-admin-delete-order');
+    if(!tabs||!pass){if(btn)btn.remove();return;}
+    if(btn)return;
+    btn=document.createElement('button');
+    btn.id='lift-admin-delete-order';
+    btn.type='button';
+    btn.textContent='🗑 Eliminar pedido';
+    btn.title='Borrar un pedido sin pagos ni movimientos relacionados';
+    tabs.insertAdjacentElement('afterend',btn);
+    btn.addEventListener('click',async function(){
+      const password=sessionStorage.getItem('liftAdminCloudPasswordV1');
+      if(!password){alert('Inicia sesión como administrador.');return;}
+      const input=prompt('Escribe el número ID del pedido que deseas eliminar:');
+      if(input===null)return;
+      const id=Number(input.trim());
+      if(!Number.isSafeInteger(id)||id<=0){alert('Escribe un ID de pedido válido.');return;}
+      if(!confirm('¿Eliminar definitivamente el pedido #'+id+'? Esta acción no se puede deshacer. Los pedidos con pagos o movimientos asociados están protegidos.'))return;
+      btn.disabled=true;
+      try{
+        const response=await fetch(endpoint,{method:'POST',headers:{'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({p_password:password,p_pedido_id:id})});
+        const json=await response.json();
+        if(!response.ok||!json?.ok)throw new Error(json?.message||json?.error||'No se pudo eliminar el pedido');
+        alert('Pedido #'+id+' eliminado correctamente.');
+        if(typeof window.liftLoadAllOrders==='function')await window.liftLoadAllOrders();
+        else location.reload();
+      }catch(err){alert('No se eliminó el pedido: '+(err.message||err));}
+      finally{btn.disabled=false;}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+  const observer=new MutationObserver(function(){if(!document.getElementById('lift-admin-delete-order')&&document.querySelector('.liftOrdersTabs'))mount();});
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+  document.addEventListener('click',function(){queueMicrotask(mount)},true);
+})();
+</script>
+
 </body>
 </html>
 
