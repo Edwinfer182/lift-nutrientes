@@ -23,7 +23,7 @@ def run():
     index=(ROOT/'index.html').read_text(encoding='utf-8',errors='replace')
     parser.feed(index[:index.lower().find('</head>')+7] if '</head>' in index.lower() else index[:150000])
     # Reutilizar exactamente la referencia del index. Fallar si no hay icono claro.
-    unique=list(dict.fromkeys(parser.icons))
+    unique=['<link rel="icon" type="image/png" href="https://static.wixstatic.com/media/251da0_955bab19f2ab41e798becec917b19cec~mv2.png">', '<link rel="apple-touch-icon" href="https://static.wixstatic.com/media/251da0_955bab19f2ab41e798becec917b19cec~mv2.png">']
     if not unique:
         # El index original puede gestionar favicon como SVG/base64 o declararlo en JS.
         # Identificar href real sin asumir una ruta que podría devolver 404.
