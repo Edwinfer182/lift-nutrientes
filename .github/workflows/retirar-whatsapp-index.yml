@@ -1,0 +1,79 @@
+name: Retirar WhatsApp flotante del index
+on:
+  push:
+    paths:
+      - '.github/workflows/retirar-whatsapp-index.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  retirar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Quitar widgets y scripts WhatsApp flotante
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          for marker in ['LIFT-WA-INDEX-V1','LIFT-WA-OFFCANVAS-V1']:
+              pattern=r'<!-- '+marker+r' -->\s*<style>.*?</style>\s*<script>.*?</script>'
+              s,n=re.subn(pattern,'',s,count=1,flags=re.S)
+              print(marker,'retirados:',n)
+          # Anular visualmente los widgets flotantes previos generados por el index
+          # sin tocar enlaces de WhatsApp normales ni botones compartir.
+          marker='<!-- LIFT-SIN-WHATSAPP-FLOTANTE-V1 -->'
+          if marker not in s:
+              s=s.replace('</head>',r"""
+          <!-- LIFT-SIN-WHATSAPP-FLOTANTE-V1 -->
+          <style>
+          #lift-wa-index,#seo-wa-float,
+          .whatsapp-float,.whatsapp-floating,.floating-whatsapp,
+          .float-whatsapp,.wa-floating,.wa-float,
+          #whatsapp-float,#floating-whatsapp,
+          a.whatsapp-float,button.whatsapp-float,
+          .whatsapp-float-button,.floating-whatsapp-button
+          {display:none!important;visibility:hidden!important;pointer-events:none!important}
+          </style>
+          """+'</head>',1)
+              # Legacy buttons can be injected dynamically: hide fixed WhatsApp only.
+              s=s.replace('</body>',r"""
+          <script>
+          (function(){
+            function hideLegacyWA(){
+              for(const el of document.querySelectorAll('a,button,div')){
+                if(el.id==='lift-wa-index'||el.id==='seo-wa-float') {el.style.setProperty('display','none','important');continue;}
+                const txt=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.id||'')+' '+(typeof el.className==='string'?el.className:'')).toLowerCase();
+                const href=(el.getAttribute('href')||'').toLowerCase();
+                if(!/whatsapp|wa-float|float-wa|wa\.me/.test(txt+' '+href))continue;
+                const css=getComputedStyle(el),rect=el.getBoundingClientRect();
+                if((css.position==='fixed'||css.position==='sticky')&&rect.width>=32&&rect.width<=150&&rect.height>=32&&rect.height<=150){
+                  el.style.setProperty('display','none','important');
+                }
+              }
+            }
+            const observer=new MutationObserver(()=>{if(!window.__liftWaHideQueued){window.__liftWaHideQueued=true;requestAnimationFrame(()=>{window.__liftWaHideQueued=false;hideLegacyWA()})}});
+            observer.observe(document.documentElement,{subtree:true,childList:true});
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideLegacyWA);else hideLegacyWA();
+            addEventListener('load',hideLegacyWA,{once:true});
+          })();
+          </script>
+          </body>""",1)
+          p.write_text(s,encoding='utf-8')
+          assert 'LIFT-WA-INDEX-V1' not in s and 'LIFT-WA-OFFCANVAS-V1' not in s
+          print('Index sin widgets WA nuevos, bytes',p.stat().st_size)
+          PY
+      - name: Guardar en main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Retirar ambos WhatsApp flotantes del index"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
