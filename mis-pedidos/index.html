@@ -5,6 +5,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff;color:#181818;font:14px/1.6 Poppins,Arial,sans-serif}main{max-width:850px;margin:0 auto;padding:32px 20px 90px}h1{font-size:clamp(24px,4vw,34px);margin:0 0 8px}p{color:#666}.lookup{margin-top:22px;padding:24px;border:1px solid #e7e7e7;border-radius:12px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}label{font-weight:600}input{width:100%;border:1px solid #ccc;border-radius:8px;padding:12px;font:inherit;font-size:16px}.lookup button{background:#161616;color:white;border:0;border-radius:8px;padding:12px 20px;font:600 14px Poppins,Arial,sans-serif;cursor:pointer;margin-top:18px}.lookup button:disabled{opacity:.6;cursor:wait}.result{margin-top:24px}.order{padding:22px;border:1px solid #ddd;border-radius:12px}.order h2{margin:0 0 14px;font-size:21px}.detail{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid #eee;padding:9px 0}.detail span{color:#666}.detail strong{text-align:right}.items{margin:12px 0 0;padding-left:20px}.items li{margin:8px 0}.notice{padding:12px 15px;border-radius:8px;background:#f6f6f6;color:#333}@media(max-width:600px){main{padding:22px 15px 65px}.lookup{padding:17px}.fields{grid-template-columns:1fr}.detail{font-size:12px}}
+.liftOrderProgress{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:14px 0 20px;padding:14px 6px;background:#fafafa;border-radius:10px}.liftOrderStep{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:10px;color:#999}.liftOrderDot{font-size:20px;line-height:1}.liftOrderStep.done{color:#13804a}.liftOrderStep.active{color:#111;font-weight:700}@media(max-width:600px){.liftOrderProgress{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:13px}}
 </style></head><body><main><h1>Mis pedidos</h1><p>Consulta el estado de tu compra con el número de pedido y el celular registrado al comprar.</p>
 <form id="lookup" class="lookup"><div class="fields"><div class="field"><label for="pedido">Número de pedido</label><input id="pedido" name="pedido" type="text" inputmode="numeric" pattern="[0-9]+" required placeholder="Ej. 12345" autocomplete="off"></div><div class="field"><label for="celular">Celular de la compra</label><input id="celular" name="celular" type="tel" inputmode="tel" required minlength="10" placeholder="Número registrado" autocomplete="tel"></div></div><button id="consultar" type="submit">Consultar pedido</button></form>
 <section id="resultado" class="result" aria-live="polite"></section></main>
@@ -17,13 +18,31 @@ const form=document.getElementById('lookup'),output=document.getElementById('res
 const money=v=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(v)||0);
 const field=(parent,label,value)=>{if(value===null||value===undefined||value==='')return;const row=document.createElement('div');row.className='detail';const a=document.createElement('span'),b=document.createElement('strong');a.textContent=label;b.textContent=String(value);row.append(a,b);parent.append(row)};
 const message=t=>{output.replaceChildren();const p=document.createElement('p');p.className='notice';p.textContent=t;output.append(p)};
+const tokenParams=new URLSearchParams(location.search);
+const incomingToken=tokenParams.get('token');
+const incomingId=tokenParams.get('pedido')||tokenParams.get('id')||tokenParams.get('pedido_id');
+if(incomingToken&&incomingId&&/^\\d+$/.test(incomingId)){
+ const target=new URL('/',location.origin);
+ target.searchParams.set('pedido',incomingId);
+ target.searchParams.set('token',incomingToken);
+ location.replace(target.toString());
+}
 const params=new URLSearchParams(location.search);const id=params.get('id')||params.get('pedido')||params.get('pedido_id');if(id&&/^\d+$/.test(id))document.getElementById('pedido').value=id;
 form.addEventListener('submit',async e=>{e.preventDefault();const id=document.getElementById('pedido').value.trim(),phone=document.getElementById('celular').value.replace(/\D/g,'');if(!/^\d+$/.test(id)||phone.length<10){message('Revisa el número de pedido y el celular.');return}
 button.disabled=true;button.textContent='Consultando…';message('Buscando tu pedido…');
 try{const res=await fetch(endpoint,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({p_id:Number(id),p_celular:phone})});if(!res.ok)throw Error('No fue posible consultar el pedido');const data=await res.json();if(!data||!data.id){message('No encontramos un pedido con esos datos. Comprueba el número y el celular utilizado en la compra.');return}
 output.replaceChildren();const card=document.createElement('article');card.className='order';const title=document.createElement('h2');title.textContent='Pedido #'+data.id;card.append(title);
 field(card,'Fecha',data.fecha?new Date(data.fecha).toLocaleDateString('es-CO'):'');
-field(card,'Estado',data.estado||'Recibido');field(card,'Disponibilidad',data.disponibilidad);field(card,'Estado del pago',data.pago_estado);field(card,'Total',money(data.total));field(card,'Envío',money(data.envio));field(card,'Transportadora',data.transportadora);field(card,'Número de guía',data.guia);
+const state=String(data.estado||'Recibido');
+const progress=document.createElement('div');progress.className='liftOrderProgress';
+const stages=['Pedido recibido','Disponibilidad','Pago','Preparando','En ruta','Entregado'];
+const normalize=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim();
+const current=normalize(state);
+const map={'recibido':0,'pedido recibido':0,'disponibilidad':1,'disponible':1,'pendiente de pago':2,'pago':2,'pagado':2,'preparando':3,'preparacion':3,'en preparacion':3,'en ruta':4,'despachado':4,'entregado':5};
+const idx=Object.prototype.hasOwnProperty.call(map,current)?map[current]:-1;
+stages.forEach((stage,i)=>{const step=document.createElement('div');step.className='liftOrderStep'+(idx>=0&&i<idx?' done':idx===i?' active':'');const dot=document.createElement('span');dot.className='liftOrderDot';dot.textContent=idx>=0&&i<idx?'✓':idx===i?'●':'○';const label=document.createElement('span');label.textContent=stage;step.append(dot,label);progress.append(step)});
+card.append(progress);
+field(card,'Estado',state);field(card,'Disponibilidad',data.disponibilidad);field(card,'Estado del pago',data.pago_estado);field(card,'Total',money(data.total));field(card,'Envío',money(data.envio));field(card,'Transportadora',data.transportadora);field(card,'Número de guía',data.guia);
 if(Array.isArray(data.productos)&&data.productos.length){const h=document.createElement('h3');h.textContent='Productos';card.append(h);const list=document.createElement('ul');list.className='items';for(const item of data.productos){const li=document.createElement('li');li.textContent=(item.cantidad||1)+' × '+(item.nombre||'Producto')+' · '+money(item.total);list.append(li)}card.append(list)}output.append(card);
 }catch(err){message('No pudimos consultar tu pedido en este momento. Intenta nuevamente.')}finally{button.disabled=false;button.textContent='Consultar pedido'}});
 })();
