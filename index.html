@@ -14661,6 +14661,68 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+<!-- LIFT-HEADER-CART-V4 -->
+<style>
+@media(max-width:767px){
+ .lift-box-duplicate-v4{display:none!important}
+ .lift-cart-top-v4{order:5!important;flex:0 0 auto!important;position:relative!important;inset:auto!important;transform:none!important}
+ #lift-ofertas-header-slot{order:2!important}
+ .lift-head-row-v4{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:7px!important;min-width:0!important}
+ .lift-head-row-v4>*{flex-shrink:0}
+ .lift-head-row-v4 #lift-ofertas-header-slot>a,.lift-head-row-v4 #lift-ofertas-header-slot>button{padding:8px!important;font-size:11px!important;min-height:42px!important}
+ .lift-head-row-v4 .lift-cart-top-v4{min-width:43px!important;width:43px!important}
+ .lift-header-search-v4{width:100%!important;max-width:100%!important;flex:0 0 100%!important;clear:both}
+}
+</style>
+<script>
+(function(){
+ function adjust(){
+  if(innerWidth>767)return;
+  const all=[...document.querySelectorAll('a,button,[role="button"]')];
+  const pedido=all.find(x=>/mi pedido/i.test(x.textContent||'')&&x.getBoundingClientRect().width>75);
+  if(!pedido)return;
+  const ofertas=document.getElementById('lift-ofertas-header-slot');
+  // Contenedor del header que incluye el acceso a Mi pedido.
+  let row=pedido.parentElement;
+  if(!row)return;
+  // Cajita: usar el propio emoji mostrado, sin borrar eventos ni datos.
+  const box=all.find(x=>x!==pedido&&!x.contains(pedido)&&!x.closest('#lift-wa-index')&&
+   ((x.textContent||'').trim()==='📦'||(x.getAttribute('aria-label')||'').toLowerCase().includes('paquete'))&&
+   x.getBoundingClientRect().width<105);
+  if(box)box.classList.add('lift-box-duplicate-v4');
+  // Identificar el carrito por icono/etiqueta, nunca por el contador (que cambia).
+  const cart=all.find(x=>{
+   if(x===pedido||x===box||x.closest('#lift-wa-index'))return false;
+   const t=((x.getAttribute('aria-label')||'')+' '+(x.getAttribute('title')||'')+' '+(x.id||'')+' '+(x.className||'')).toLowerCase();
+   return /carrito|shopping.cart|cart.btn|cart-button|abrir.cart|ver.cart/.test(t)&&x.getBoundingClientRect().width>30&&x.getBoundingClientRect().width<105;
+  })||all.find(x=>{
+   const svg=x.querySelector('svg');
+   if(!svg||x===pedido||x.closest('#lift-wa-index'))return false;
+   const h=(svg.outerHTML||'').toLowerCase();
+   return (h.includes('shopping-cart')||h.includes('lucide-shopping-cart'))&&x.getBoundingClientRect().width<105;
+  });
+  if(!cart)return;
+  const menu=all.find(x=>{
+   const label=((x.getAttribute('aria-label')||'')+' '+(x.getAttribute('title')||'')).toLowerCase();
+   return (/menú|menu/.test(label)||x.innerText?.trim()==='☰')&&x.getBoundingClientRect().width<95;
+  });
+  const slot=document.getElementById('lift-ofertas-header-slot');
+  if(slot&&slot.parentElement!==row)pedido.insertAdjacentElement('afterend',slot);
+  if(cart.parentElement!==row){
+    if(menu&&menu.parentElement===row)menu.insertAdjacentElement('afterend',cart);
+    else if(slot&&slot.parentElement===row)slot.insertAdjacentElement('afterend',cart);
+    else pedido.insertAdjacentElement('afterend',cart);
+  }
+  cart.classList.add('lift-cart-top-v4');
+  // Evitar segundas filas con controles anchos: solo los botones, no el buscador.
+  if(row.children.length<=9)row.classList.add('lift-head-row-v4');
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adjust,{once:true});else adjust();
+ addEventListener('load',adjust,{once:true});addEventListener('pageshow',adjust);
+})();
+</script>
+
 </body>
 </html>
 
