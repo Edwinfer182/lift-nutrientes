@@ -14660,6 +14660,9 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 
 
+
+
+
 <!-- LIFT-TRAINERS-ADMIN-V1 -->
 <style>
 #lift-trainer-admin-open{margin:8px;padding:10px 16px;background:#111;color:#fff;border:0;border-radius:9px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer}
@@ -14711,10 +14714,11 @@ document.addEventListener('DOMContentLoaded',function(){
     }catch(e){list.textContent=e.message}
   }
   function mount(){
-    const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order');
-    if(!anchor||!pass()||document.getElementById('lift-trainer-admin-open'))return;
+    const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order')||document.querySelector('[class*=liftOrdersTabs]');
+    if(!pass()||document.getElementById('lift-trainer-admin-open'))return;
+    const target=anchor||document.querySelector('#lift-trainer-admin-open-anchor')||document.querySelector('button[onclick*=pedido]')?.parentElement||document.querySelector('main')||document.body;
     const btn=document.createElement('button');btn.id='lift-trainer-admin-open';btn.type='button';btn.textContent='🏋 Entrenadores';
-    anchor.insertAdjacentElement('afterend',btn);
+    if(anchor)anchor.insertAdjacentElement('afterend',btn);else target.prepend(btn);
     btn.onclick=()=>{modal.classList.add('lift-open');load()};
   }
   document.getElementById('lift-trainer-admin-close').onclick=()=>modal.classList.remove('lift-open');
