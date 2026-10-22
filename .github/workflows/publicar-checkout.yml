@@ -58,7 +58,7 @@ jobs:
           c=Path('_site/carrito/index.html').read_text()
           assert 'class="iconbtn myOrder"' in h, 'No existe boton Mi pedido en header'
           assert 'supgoOpenPedidoCompartido' in l, 'No existe offcanvas compartido'
-          assert 'mi-pedido-visible2' in c, 'Carrito usa cargador antiguo'
+          assert 'data-supgo-order-access' in c, 'Falta boton Mi pedido en carrito'
           print('VALIDADO: boton, offcanvas y cargador del carrito')
           PY
 
