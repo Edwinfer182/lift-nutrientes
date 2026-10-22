@@ -1,4 +1,4 @@
-name: Publicar Mis pedidos reconstruido
+name: Retirar página antigua Mis pedidos
 on:
   push:
     branches: [main]
@@ -28,11 +28,9 @@ jobs:
         shell: bash
         run: |
           test -s mis-pedidos/index.html
-          grep -Fq 'mis-pedidos-reconstruido-20261022-v2' mis-pedidos/index.html
-          grep -Fq 'public-track-order' mis-pedidos/index.html
-          grep -Fq 'supgo_consultar_pedido' mis-pedidos/index.html
+          grep -Fq 'Página no disponible' mis-pedidos/index.html
           grep -Fq '/mis-pedidos/' checkout/index.html
-          echo 'Nueva pagina Mis pedidos verificada'
+          echo 'Página retirada verificada'
       - name: Preparar sitio completo
         shell: bash
         run: |
