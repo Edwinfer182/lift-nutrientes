@@ -11,13 +11,30 @@
       document.body.appendChild(script);
     });
   }
+  function attachOrderButtonToExistingHeader(){
+    const bar=document.querySelector('header.top .bar');
+    if(!bar)return;
+    let btn=bar.querySelector('.myOrder');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.type='button';
+      btn.className='iconbtn myOrder';
+      btn.innerHTML='▤ <span class="txt">Mi pedido</span>';
+      btn.setAttribute('aria-label','Mi pedido');
+      const cart=bar.querySelector('.cartDesktop');
+      if(cart)cart.before(btn);else bar.append(btn);
+    }
+    btn.removeAttribute('hidden');
+    btn.style.cssText='display:inline-flex!important;align-items:center;justify-content:center;gap:5px;flex-shrink:0;padding:10px 12px;background:#1c1d20;color:#fff;border:1px solid #424348;border-radius:11px;font:500 12px Poppins,Arial,sans-serif;cursor:pointer';
+    btn.onclick=function(e){e.preventDefault();window.supgoOpenPedidoCompartido?.()};
+  }
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
-    if(document.querySelector('header.top,#supgo-global-header'))return;
+    if(document.querySelector('header.top,#supgo-global-header')){attachOrderButtonToExistingHeader();return;}
     const response=await fetch(path+'header.html?v=20261022-pedido-local3',{credentials:'same-origin'});
     if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
     const html=await response.text();
-    if(document.querySelector('header.top,#supgo-global-header'))return;
+    if(document.querySelector('header.top,#supgo-global-header')){attachOrderButtonToExistingHeader();return;}
     let styles=document.querySelector('link[data-supgo-header-style]');
     if(!styles){
       styles=document.createElement('link');
@@ -65,6 +82,7 @@
       ensureCheckoutButton();
       document.querySelector('.cartDesktop')?.addEventListener('click',()=>queueMicrotask(ensureCheckoutButton));
 
+      attachOrderButtonToExistingHeader();
       document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
     }catch(error){host.remove();throw error;}
   }
