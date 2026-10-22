@@ -96,9 +96,10 @@ jobs:
           </script>
           """
           if marker in s:
-              start=s.index('          <!-- '+marker+' -->')
-              end=s.index('          </script>',start)+len('          </script>')
-              s=s[:start]+s[end:]
+              import re
+              old=re.compile(r'<!-- '+re.escape(marker)+r' -->.*?</script>',re.S)
+              s,n=old.subn('',s,count=1)
+              print('Bloque anterior reemplazado:',n)
           s=s.replace('</body>',snippet+'\n</body>',1)
           p.write_text(s,encoding='utf-8')
           assert s.count(marker)==1
