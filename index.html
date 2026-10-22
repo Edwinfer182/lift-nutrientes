@@ -1940,6 +1940,17 @@ body.liftAdminUnlocked #cart .liftCartShareWrap{display:block!important}
 #checkoutModal .liftEmailNotifyCompact span{font-size:10.5px;line-height:1.3;color:#333}
 #checkoutModal .liftEmailNotifyCompact small{font-size:9px;margin-top:1px;color:#888}
 </style>
+
+<!-- LIFT-SIN-WHATSAPP-FLOTANTE-V1 -->
+<style>
+#lift-wa-index,#seo-wa-float,
+.whatsapp-float,.whatsapp-floating,.floating-whatsapp,
+.float-whatsapp,.wa-floating,.wa-float,
+#whatsapp-float,#floating-whatsapp,
+a.whatsapp-float,button.whatsapp-float,
+.whatsapp-float-button,.floating-whatsapp-button
+{display:none!important;visibility:hidden!important;pointer-events:none!important}
+</style>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -14542,135 +14553,29 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
-<!-- LIFT-WA-INDEX-V1 -->
-<style>
-#lift-wa-index{position:fixed;right:24px;bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:2147483600;font-family:Poppins,Arial,sans-serif}
-#lift-wa-index *{box-sizing:border-box}
-#lift-wa-index-toggle{width:60px;height:60px;border-radius:50%;border:0;background:#20c765;color:white;display:grid;place-items:center;cursor:pointer;box-shadow:0 5px 20px #0003}
-#lift-wa-index-panel{position:absolute;right:0;bottom:74px;width:min(330px,calc(100vw - 28px));background:#fff;color:#222;border-radius:16px;padding:15px;box-shadow:0 9px 35px #0004;border:1px solid #eee}
-#lift-wa-index-panel[hidden]{display:none!important}
-#lift-wa-index-panel header{display:flex;align-items:center;justify-content:space-between;background:none!important;padding:0!important;color:#202020!important;position:static!important;min-height:0!important}
-#lift-wa-index-panel header strong{font-size:15px}
-#lift-wa-index-close{background:transparent;border:0;font-size:23px;cursor:pointer;color:#333;line-height:1}
-#lift-wa-index-panel p{font-size:13px;line-height:1.5;margin:10px 0}
-#lift-wa-index-message{display:block;width:100%;min-height:85px;background:#fff;color:#222;border:1px solid #ddd;border-radius:10px;padding:10px;font:14px/1.45 Poppins,Arial,sans-serif;resize:vertical}
-#lift-wa-index-send{width:100%;padding:12px;margin-top:11px;border:0;border-radius:10px;background:#20c765;color:white;font:600 14px Poppins,Arial,sans-serif;cursor:pointer}
-@media(max-width:767px){#lift-wa-index{right:18px;bottom:calc(22px + env(safe-area-inset-bottom,0px))}#lift-wa-index-toggle{width:56px;height:56px}}
-</style>
-<div id="lift-wa-index">
-  <section id="lift-wa-index-panel" hidden aria-label="Consulta por WhatsApp">
-    <header><strong>Habla con Lift Nutrientes</strong><button id="lift-wa-index-close" type="button" aria-label="Cerrar">×</button></header>
-    <p>Escribe tu consulta y envíala directamente por WhatsApp.</p>
-    <textarea id="lift-wa-index-message" aria-label="Tu mensaje">Hola, quiero recibir asesoría sobre los productos de Lift Nutrientes.</textarea>
-    <button id="lift-wa-index-send" type="button">Enviar por WhatsApp</button>
-  </section>
-  <button id="lift-wa-index-toggle" type="button" aria-label="Abrir WhatsApp" aria-controls="lift-wa-index-panel" aria-expanded="false">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="31" height="31" fill="currentColor" aria-hidden="true"><path d="M16 1a15 15 0 0 0-13 22.5L1 31l7.7-2A15 15 0 1 0 16 1Zm0 27a12 12 0 0 1-6.1-1.6l-.5-.3-4.6 1.2L6 22.8l-.3-.5A12 12 0 1 1 16 28Zm6.7-9c-.4-.2-2.1-1-2.5-1.2-.3-.1-.6-.1-.8.2-.3.4-.9 1.1-1.2 1.4-.2.2-.4.3-.7.1-.4-.2-1.6-.6-3-1.8-1.1-1-1.8-2.2-2-2.5-.2-.4 0-.6.2-.8l.5-.6c.2-.2.3-.4.4-.6.1-.2 0-.4 0-.6-.1-.2-.8-1.9-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.7.1-1 .5-.3.4-1.3 1.3-1.3 3.1s1.4 3.5 1.6 3.8c.2.2 2.5 3.9 6.1 5.4.9.4 1.6.6 2.1.7.9.3 1.7.2 2.3.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.6.2-1.7-.1-.2-.3-.3-.7-.5Z"/></svg>
-  </button>
-</div>
+
+
+
 <script>
 (function(){
-  var root=document.getElementById('lift-wa-index'),btn=document.getElementById('lift-wa-index-toggle'),
-    panel=document.getElementById('lift-wa-index-panel'),close=document.getElementById('lift-wa-index-close'),
-    send=document.getElementById('lift-wa-index-send'),msg=document.getElementById('lift-wa-index-message');
-  function toggle(open){panel.hidden=!open;btn.setAttribute('aria-expanded',String(open));}
-  btn.addEventListener('click',function(){toggle(panel.hidden)});
-  close.addEventListener('click',function(){toggle(false)});
-  send.addEventListener('click',function(){
-    var value=msg.value.trim();if(!value){msg.focus();return}
-    window.open('https://api.whatsapp.com/send?phone=573137380766&text='+encodeURIComponent(value),'_blank','noopener,noreferrer');
-  });
-  // Ocultar exclusivamente el boton WA flotante anterior, no otros enlaces WhatsApp.
-  function suppressOld(){
-    var nodes=document.querySelectorAll('a,button');
-    nodes.forEach(function(el){
-      if(root.contains(el)||el.hidden)return;
-      var raw=(el.outerHTML||'').slice(0,1500).toLowerCase();
-      if(!/whatsapp|wa\.me|wa-button|btn-wa|fab-wa/.test(raw))return;
-      var rect=el.getBoundingClientRect();
-      if(rect.width<25||rect.width>150||rect.height<25||rect.height>150)return;
-      if(rect.right<innerWidth-160||rect.bottom<innerHeight-200)return;
-      var cs=getComputedStyle(el);
-      var fixed=cs.position==='fixed'||cs.position==='sticky';
-      var parent=el.parentElement;
-      for(var i=0;i<3&&!fixed&&parent;i++,parent=parent.parentElement){
-        var pos=getComputedStyle(parent).position;
-        fixed=pos==='fixed'||pos==='sticky';
-      }
-      if(fixed){el.style.setProperty('display','none','important');}
-    });
-  }
-  suppressOld();
-  window.addEventListener('load',suppressOld,{once:true});
-})();
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- LIFT-WA-OFFCANVAS-V1 -->
-<style>
-body.lift-offcanvas-active #lift-wa-index,
-body.lift-offcanvas-active #seo-wa-float,
-body.lift-offcanvas-active .lift-wa-floating,
-body.lift-offcanvas-active a[href*="wa.me"][style*="fixed"],
-body.lift-offcanvas-active a[href*="whatsapp"][style*="fixed"]{display:none!important;pointer-events:none!important}
-</style>
-<script>
-(function(){
-  const overlays=['[role="dialog"]','.offcanvas','.off-canvas','.drawer','.product-modal','.cart-drawer','.favorites-drawer','.modal','.sheet'];
-  function shown(el){
-    if(!el||el.closest('#lift-wa-index'))return false;
-    const s=getComputedStyle(el),r=el.getBoundingClientRect();
-    if(s.display==='none'||s.visibility==='hidden'||s.opacity==='0'||el.hidden||el.getAttribute('aria-hidden')==='true')return false;
-    return r.width>Math.min(220,innerWidth*.45)&&r.height>Math.min(220,innerHeight*.28);
-  }
-  function sync(){
-    const open=overlays.some(sel=>[...document.querySelectorAll(sel)].some(el=>shown(el)));
-    document.body.classList.toggle('lift-offcanvas-active',open);
-    // También ocultar los accesos flotantes antiguos sin alterar los de producto.
-    [...document.querySelectorAll('a,button')].forEach(el=>{
-      if(el.closest('#lift-wa-index')||el.closest('#seo-wa-float'))return;
-      const label=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.className||'')).toLowerCase();
+  function hideLegacyWA(){
+    for(const el of document.querySelectorAll('a,button,div')){
+      if(el.id==='lift-wa-index'||el.id==='seo-wa-float') {el.style.setProperty('display','none','important');continue;}
+      const txt=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.id||'')+' '+(typeof el.className==='string'?el.className:'')).toLowerCase();
       const href=(el.getAttribute('href')||'').toLowerCase();
-      if(!/whatsapp|wa.me|wa-float|floating-wa/.test(label+' '+href))return;
-      const c=getComputedStyle(el),p=el.parentElement?getComputedStyle(el.parentElement):null;
-      if(c.position!=='fixed'&&p?.position!=='fixed')return;
-      if(open){
-        if(!el.hasAttribute('data-lift-wa-display'))el.setAttribute('data-lift-wa-display',el.style.display||'');
+      if(!/whatsapp|wa-float|float-wa|wa\.me/.test(txt+' '+href))continue;
+      const css=getComputedStyle(el),rect=el.getBoundingClientRect();
+      if((css.position==='fixed'||css.position==='sticky')&&rect.width>=32&&rect.width<=150&&rect.height>=32&&rect.height<=150){
         el.style.setProperty('display','none','important');
-      }else if(el.hasAttribute('data-lift-wa-display')){
-        const old=el.getAttribute('data-lift-wa-display');
-        el.style.removeProperty('display');
-        if(old)el.style.display=old;
-        el.removeAttribute('data-lift-wa-display');
       }
-    });
+    }
   }
-  let queued=false;
-  function schedule(){
-    if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;sync()});
-  }
-  const observer=new MutationObserver(schedule);
-  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden','open']});
-  document.addEventListener('click',()=>setTimeout(sync,0),true);
-  document.addEventListener('keydown',schedule,true);
-  window.addEventListener('pageshow',schedule);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
+  const observer=new MutationObserver(()=>{if(!window.__liftWaHideQueued){window.__liftWaHideQueued=true;requestAnimationFrame(()=>{window.__liftWaHideQueued=false;hideLegacyWA()})}});
+  observer.observe(document.documentElement,{subtree:true,childList:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideLegacyWA);else hideLegacyWA();
+  addEventListener('load',hideLegacyWA,{once:true});
 })();
 </script>
-
 </body>
 </html>
 
