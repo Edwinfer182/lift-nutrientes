@@ -32,7 +32,7 @@
     host.innerHTML=html;
     document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261020-standalone-routes32');
+      await loadScript(path+'header.js?v=20261021-ofertas-carrito');
       // Refuerzo para fichas que conservan en caché el marcado antiguo.
       function ensureCheckoutButton(){
         const drawer=document.querySelector('.supgo-cart-drawer');
