@@ -1974,6 +1974,31 @@ body.supgo-checkout-ready #checkoutModal .field input{min-width:0}
 #liftTrackModal .liftTrackResult{max-height:none!important;overflow:visible!important}
 @media(max-width:650px){#liftTrackModal .liftOrderCard{width:100%!important;max-width:100%!important;border-radius:16px 0 0 16px!important;padding:54px 16px 24px!important}}
 </style>
+
+<style id="supgo-embedded-order-tracking">
+html.supgo-embedded-track,html.supgo-embedded-track body{height:100%;overflow:hidden!important;background:#fff!important}
+html.supgo-embedded-track body>*:not(#liftTrackModal):not(script){visibility:hidden!important}
+html.supgo-embedded-track #liftTrackModal{visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:#fff!important;position:fixed!important;inset:0!important;display:block!important;overflow:hidden!important}
+html.supgo-embedded-track #liftTrackModal .liftOrderCard{transform:none!important;width:100%!important;max-width:100%!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;box-shadow:none!important;padding:18px 16px 28px!important;overflow-y:auto!important}
+html.supgo-embedded-track #liftTrackModal .liftTrackX{display:none!important}
+</style>
+<script id="supgo-embedded-order-tracking-script">
+if(new URLSearchParams(location.search).get('seguimiento')==='1'){
+ document.documentElement.classList.add('supgo-embedded-track');
+ window.addEventListener('load',()=>{
+  let count=0;
+  const timer=setInterval(()=>{
+   if(typeof window.liftOpenTrack==='function'&&document.getElementById('liftTrackModal')){
+    clearInterval(timer);window.liftOpenTrack();
+    let saved={};try{saved=JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}')}catch(e){}
+    if(saved.ref&&(saved.phone||saved.token)&&typeof window.liftTrackOrder==='function'){
+     Promise.resolve(window.liftTrackOrder(saved.token||undefined)).catch(console.error);
+    }
+   }else if(++count>80)clearInterval(timer);
+  },100);
+ });
+}
+</script>
 </head><body>
 
 <script id="lift-mobile-share-fix-v1">
