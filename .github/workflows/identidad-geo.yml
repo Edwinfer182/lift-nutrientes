@@ -26,13 +26,31 @@ jobs:
       - name: Comprobar JSON-LD de identidad
         run: |
           python - <<'PY'
+          import json
           from pathlib import Path
-          import re,json
-          p=Path("productos/iso-100-5-lb-dunkin-mocha-latte-901284.html")
-          html=p.read_text(encoding="utf8")
-          blocks=re.findall(r'<script type="application/ld[+]json">(.*?)</script>',html,re.S)
-          assert any((lambda x: x.get("@id")=="https://supgo.co/#organization")(json.loads(x)) for x in blocks)
-          print("Identidad GEO presente en ficha ISO100")
+          from html.parser import HTMLParser
+          class JsonScripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.capture = False
+                  self.scripts = []
+              def handle_starttag(self, tag, attrs):
+                  self.capture = tag == "script" and dict(attrs).get("type") == "application/ld+json"
+              def handle_data(self, data):
+                  if self.capture:
+                      self.scripts.append(data)
+              def handle_endtag(self, tag):
+                  if tag == "script":
+                      self.capture = False
+          p = Path("productos/iso-100-5-lb-dunkin-mocha-latte-901284.html")
+          html = p.read_text(encoding="utf-8")
+          parser = JsonScripts()
+          parser.feed(html)
+          entries = [json.loads(s) for s in parser.scripts]
+          ids = [x.get("@id") for x in entries if isinstance(x,dict)]
+          print(f"JSON-LD encontrados: {len(entries)}; identidades: {ids}")
+          assert "https://supgo.co/#organization" in ids, "No se insertó identidad en ficha ISO100"
+          print("Identidad GEO validada en ficha ISO100")
           PY
       - name: Publicar cambios
         run: |
