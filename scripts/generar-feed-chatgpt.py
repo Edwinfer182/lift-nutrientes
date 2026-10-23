@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"feeds"
 OUT.mkdir(exist_ok=True)
-BLOCKED=re.compile(r"(?i)(tadalafil|sildenafil|proviron|provibolic|masteron|mastenom|trembol|trembon|testosteron|testonom|anabol|esteroide|yk.?11|sarms|oxandrol|nandrol|clenbuterol|hgh|hormona|peptid|retatrutide|yohimbina|lipodrene|ephedra|efedrina|cbd|thc|cannabis|melatonina)")
+BLOCKED=re.compile(r"(?i)(tadalafil|sildenafil|proviron|provibolic|masteron|mastenom|trembol|trembon|testosteron|testonom|anabol|esteroide|yk.?11|sarms|oxandrol|nandrol|clenbuterol|hgh|hormona|peptid|retatrutide|yohimbina|lipodrene|ephedra|efedrina|cbd|thc|cannabis|melatonina|burner|quemador|psychotic|lipodry|hydroxycut)")
 class ProductParser(HTMLParser):
     def __init__(self):
         super().__init__();self.in_script=False;self.scripts=[];self.buf=""
@@ -75,7 +75,7 @@ def export():
         description=re.sub(r"\s+"," ",re.sub(r"<[^>]*>"," ",data.get("description") or page.get("description") or name)).strip()[:5000]
         record={"item_id":str(id),"title":name[:150],"description":description,"url":url,"brand":brand,"seller_name":"Lift Nutrientes","image_url":image,"price":f"{int(price)} COP","availability":status(data)}
         rows.append(record)
-    if not rows:raise ValueError("No se generaron productos elegibles; se conserva el feed anterior")
+    if len(rows)<600:raise ValueError(f"Feed incompleto ({len(rows)} filas); se conserva el feed anterior")
     fields=["item_id","title","description","url","brand","seller_name","image_url","price","availability"]
     with (OUT/"productos-chatgpt.csv").open("w",encoding="utf-8",newline="") as f:
         writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
