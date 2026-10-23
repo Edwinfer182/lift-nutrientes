@@ -447,6 +447,17 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 }}
 
 </style>
+<style id="seo-compact-variants">
+.product-page .variant-panel{{padding:11px!important;border-radius:12px!important}}
+.product-page .variant-panel h3{{font-size:12px!important;font-weight:500!important;margin:0 0 9px!important}}
+.product-page .variant-grid{{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(72px,82px))!important;justify-content:start!important;gap:7px!important}}
+.product-page .variant-grid .option{{width:82px!important;max-width:82px!important;min-width:0!important;margin:0!important;padding:6px 4px!important;gap:4px!important;border-radius:9px!important;font-size:10px!important}}
+.product-page .variant-grid .option.selected{{padding:5px 3px!important}}
+.product-page .variant-grid .option-photo{{width:100%!important;height:49px!important;padding:1px!important}}
+.product-page .variant-grid .option-photo img{{max-height:47px!important}}
+.product-page .variant-grid .option-label{{font-size:9px!important;line-height:1.25!important;font-weight:400!important}}
+@media(max-width:600px){{.product-page .variant-grid{{grid-template-columns:repeat(auto-fill,minmax(62px,70px))!important;gap:6px!important}}.product-page .variant-grid .option{{width:70px!important;max-width:70px!important;padding:4px 3px!important}}.product-page .variant-grid .option-photo{{height:43px!important}}.product-page .variant-grid .option-photo img{{max-height:41px!important}}.product-page .variant-grid .option-label{{font-size:8px!important}}}}
+</style>
 <style id="seo-buy-assurance-css">
 .seo-buy-assurance{{margin:16px 0 20px;border:1px solid #e8eaed;border-radius:14px;background:#fff;padding:15px;font-family:Poppins,Arial,sans-serif;color:#1c1e22}}
 .seo-buy-assurance-grid{{display:grid;gap:11px}}
