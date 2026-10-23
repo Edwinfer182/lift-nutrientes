@@ -146,6 +146,23 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
 }
 
 </style>
+<style id="seo-buy-assurance-css">
+.seo-buy-assurance{margin:16px 0 20px;border:1px solid #e8eaed;border-radius:14px;background:#fff;padding:15px;font-family:Poppins,Arial,sans-serif;color:#1c1e22}
+.seo-buy-assurance-grid{display:grid;gap:11px}
+.seo-buy-benefit{display:flex;align-items:flex-start;gap:10px;font-size:14px}
+.seo-buy-benefit>span{width:28px;height:28px;flex:none;display:grid;place-items:center;background:#f2f5f3;border-radius:9px;font-size:14px;color:#15834b}
+.seo-buy-benefit strong{display:block;font-size:12px;font-weight:500;line-height:1.5}
+.seo-buy-benefit small{display:block;color:#62666d;font-size:11px;line-height:1.6;font-weight:400}
+.seo-payments{margin-top:13px;border-top:1px solid #eceef0;padding-top:12px}
+.seo-payments summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;list-style:none}
+.seo-payments summary::-webkit-details-marker{display:none}
+.seo-payments-content{display:grid;gap:10px;padding-top:13px;font-size:12px}
+.seo-payments-content>div{background:#f8f9fa;padding:10px 12px;border-radius:9px}
+.seo-payments-content strong{font-size:12px;font-weight:600}
+.seo-payments-content p{font-size:11px;line-height:1.6;margin:4px 0 0;color:#5d6269}
+.seo-payments-content .seo-payment-note{margin:0;color:#747880;font-size:10px}
+@media(max-width:600px){.seo-buy-assurance{padding:12px;margin:12px 0}.seo-buy-benefit{gap:8px}}
+</style>
 <style id="seo-header-css">/* Scoped header and cart UI for SEO product pages only. */
 #supgo-global-header{position:sticky;top:0;z-index:1000;font:400 13px/1.4 Poppins,Arial,sans-serif;color:#fff}
 #supgo-global-header *{box-sizing:border-box}
@@ -268,8 +285,6 @@ body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 
 
 
-
-
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w512">
 <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w512">
@@ -285,6 +300,19 @@ body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 <section class="product-info">
 <h1>Coyote En Polvo 400 Gr 50 Serv Mora Azul <span class="seo-title-brand">ProScience</span></h1><div class="product-price"><p class="price">$ 60.000</p></div>
 
+<section class="seo-buy-assurance" aria-label="Compra, entrega y medios de pago">
+<div class="seo-buy-assurance-grid">
+<div class="seo-buy-benefit"><span aria-hidden="true">✓</span><div><strong>Compra con confianza</strong><small>Confirma disponibilidad y presentación antes de pagar.</small></div></div>
+<div class="seo-buy-benefit"><span aria-hidden="true">🚚</span><div><strong>Envíos en Medellín y Colombia</strong><small>Los tiempos y el costo dependen del destino y de la confirmación del pedido.</small></div></div>
+<div class="seo-buy-benefit"><span aria-hidden="true">🔒</span><div><strong>Pago seguro</strong><small>Selecciona el medio de pago durante el proceso de compra.</small></div></div>
+</div>
+<details class="seo-payments"><summary>Medios de pago disponibles <span aria-hidden="true">⌄</span></summary>
+<div class="seo-payments-content">
+<div><strong>Tarjetas de crédito y débito</strong><p>Pago mediante Bold. Las cuotas y condiciones dependen de la tarjeta y del banco.</p></div>
+<div><strong>Transferencia Bre-B</strong><p>Paga con la llave indicada al confirmar tu pedido.</p></div>
+<div><strong>Corresponsal bancario</strong><p>Solicita los datos para consignar antes de realizar el pago.</p></div>
+<p class="seo-payment-note">Elige el medio de pago disponible al finalizar tu pedido. No se ofrece pago contraentrega.</p>
+</div></details></section>
 <div class="product-rule"></div>
 <details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description"><h2>Coyote En Polvo 400 Gr 50 Serv Mora Azul</h2><p>Encuentra Coyote En Polvo 400 Gr 50 Serv Mora Azul en Supgo. Consulta el precio actualizado, la disponibilidad y las opciones de envío en Colombia.</p><p>Revisa la presentación, ingredientes e instrucciones del fabricante antes de comprar.</p></div></details>
 <div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" aria-live="polite"></p>
