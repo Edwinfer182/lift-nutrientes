@@ -164,6 +164,7 @@ body{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMac
 .seo-buy-benefit>span{width:28px;height:28px;flex:none;display:grid;place-items:center;background:#f2f5f3;border-radius:9px;font-size:14px;color:#15834b}
 .seo-buy-benefit strong{display:block;font-size:12px;font-weight:500;line-height:1.5}
 .seo-buy-benefit small{display:block;color:#62666d;font-size:11px;line-height:1.6;font-weight:400}
+.seo-shipping-table-wrap{width:100%;overflow-x:auto;margin:9px 0 4px}.seo-shipping-table{width:100%;border-collapse:collapse;font-size:11px;text-align:left}.seo-shipping-table th,.seo-shipping-table td{padding:9px 7px;border-bottom:1px solid #edf0f2;vertical-align:middle}.seo-shipping-table th{font-size:10px;font-weight:600;color:#555b63;background:#f7f8fa}.seo-shipping-table td{font-weight:400}.seo-shipping-table td:first-child{font-weight:600}.seo-shipping-note{font-size:10px!important;color:#62666d;line-height:1.6;margin:7px 0 11px}@media(max-width:600px){.seo-shipping-table th,.seo-shipping-table td{padding:7px 4px;font-size:10px}}
 .seo-payments{margin-top:13px;border-top:1px solid #eceef0;padding-top:12px}
 .seo-payments summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;list-style:none}
 .seo-payments summary::-webkit-details-marker{display:none}
@@ -324,8 +325,9 @@ body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 <section class="seo-buy-assurance" aria-label="Compra, entrega y medios de pago">
 <div class="seo-buy-assurance-grid">
 <div class="seo-buy-benefit"><span aria-hidden="true">✓</span><div><strong>Compra con confianza</strong><small>Confirma disponibilidad y presentación antes de pagar.</small></div></div>
-<div class="seo-buy-benefit"><span aria-hidden="true">🚚</span><div><strong>Envíos en Medellín y Colombia</strong><small>Medellín: 1 producto $11.000. Entrega el mismo día para pedidos confirmados antes de las 2:00 p. m., según cobertura y disponibilidad.</small></div></div>
-<div class="seo-buy-benefit"><span aria-hidden="true">📦</span><div><strong>Otras ciudades y envío gratis</strong><small>El valor fuera de Medellín se confirma según destino y transportadora. Ciudades principales: aproximadamente 1 día hábil desde la guía; otras zonas: 2 a 3 días hábiles. El envío gratis aplica únicamente cuando la promoción o marca lo indique.</small></div></div>
+<div class="seo-buy-benefit"><span aria-hidden="true">🚚</span><div><strong>Tarifas de envío por cantidad</strong><small>Se cuenta el total de unidades del pedido, incluso si son del mismo producto.</small></div></div>
+<div class="seo-shipping-table-wrap"><table class="seo-shipping-table"><thead><tr><th>Unidades</th><th>Medellín y área metropolitana</th><th>Otras ciudades</th></tr></thead><tbody><tr><td>1</td><td>$11.000</td><td>$15.000</td></tr><tr><td>2</td><td>$7.000</td><td>$12.000</td></tr><tr><td>3</td><td>Gratis</td><td>$10.000</td></tr><tr><td>4 o más</td><td>Gratis</td><td>Gratis</td></tr></tbody></table></div>
+<p class="seo-shipping-note">Medellín y área metropolitana: entregas según ruta; pedidos confirmados antes de las 2:00 p. m. pueden salir el mismo día hábil. Ciudades principales: aproximadamente 1 día hábil desde la guía; otros destinos: 2 a 3 días hábiles. Sujeto a cobertura y disponibilidad.</p>
 <div class="seo-buy-benefit"><span aria-hidden="true">🔒</span><div><strong>Pago seguro</strong><small>Selecciona el medio de pago durante el proceso de compra.</small></div></div>
 </div>
 <details class="seo-payments"><summary>Medios de pago disponibles <span aria-hidden="true">⌄</span></summary>
