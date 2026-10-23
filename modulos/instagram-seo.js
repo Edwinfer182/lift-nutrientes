@@ -8,31 +8,49 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clean = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   const hashtag = s => clean(s).replace(/\s+/g,'');
-  function generate(p, objective='ventas') {
+  function generate(p, objective='ventas', variant=0) {
     const nombre=String(p.nombre || p.product?.nombre || p.product?.name || '').trim();
     if (!nombre) throw new Error('El producto debe tener nombre.');
     const marca=String(p.marca || p.product?.marca || '').trim();
     const categoria=String(p.categoria || p.product?.categoria || 'suplementos deportivos').trim();
     const titulo=nombre+' en Medellín';
-    const clave=(marca ? (categoria+' '+marca) : nombre)+' Medellín';
-    const url=p.slug ? 'https://supgo.co/productos/'+encodeURIComponent(p.slug)+(p.id ? '-'+encodeURIComponent(p.id) : '')+'.html' : 'https://supgo.co';
-    const intro=objective==='educativo' ? 'Conoce las características de '+nombre+'.' : objective==='alcance' ? '¿Buscas información sobre '+nombre+'?' : '¿Buscas '+nombre+' en Medellín?';
-    const descripcion=[intro,'En Lift Nutrientes puedes consultar los detalles de '+nombre+' y solicitar información sobre precio y disponibilidad.','Categoría: '+categoria+'.'+(marca?' Marca: '+marca+'.':''),'Atención en Medellín y envíos a Colombia.','Consulta el producto: '+url,'Escríbenos para recibir asesoría y confirmar disponibilidad.'].join('\n\n');
+    const clave=nombre+' Medellín';
+    // Usar solo una URL real aportada por el catálogo; no construir slugs hipotéticos.
+    const candidates=[p.url_producto,p.product_url,p.url,p.enlace,p.product?.url_producto,p.product?.url,p.product?.enlace];
+    const url=candidates.find(u=>{try{const x=new URL(u);return x.protocol==='https:' && /(^|\.)supgo\.co$/i.test(x.hostname) && x.pathname!=='/'}catch{return false}})||'https://supgo.co';
+    const intros={
+      ventas:['¿Buscas '+nombre+' en Medellín?','Encuentra información de '+nombre+' en Lift Nutrientes.','Tu próximo suplemento puede estar en nuestro catálogo: '+nombre+'.'],
+      educativo:['¿Qué debes revisar antes de elegir '+nombre+'?','Conoce mejor '+nombre+' antes de comprar.','Hoy te mostramos '+nombre+' y cómo consultar sus características.'],
+      alcance:['¿Ya conocías '+nombre+'?','Si buscas '+nombre+' en Medellín, esta publicación es para ti.','Una opción para explorar en suplementos deportivos: '+nombre+'.']
+    };
+    const index=((Number(variant)||0)%3+3)%3;
+    const intro=(intros[objective]||intros.ventas)[index];
+    const bodies=[
+      'Consulta la presentación, características y detalles de '+nombre+' directamente con Lift Nutrientes.',
+      'Antes de elegir tu suplemento, revisa su presentación y composición. En Lift Nutrientes te ayudamos a consultar la información de '+nombre+'.',
+      'Si estás comparando opciones para tu entrenamiento, conoce los detalles de '+nombre+' en nuestro catálogo.'
+    ];
+    const endings=[
+      '📍 Atención en Medellín y envíos a Colombia.\n📲 Escríbenos para confirmar precio y disponibilidad.',
+      '📦 Consulta opciones de envío desde Medellín.\n💬 Pide información y cotización por mensaje.',
+      '🛒 Explora Lift Nutrientes y consulta las condiciones de compra.\n📩 Escríbenos para verificar disponibilidad.'
+    ];
+    const descripcion=[intro,bodies[index],endings[index],'🔗 '+url].join('\n\n');
     const hashtags=[nombre,marca,categoria,'SuplementosMedellin','LiftNutrientes'].filter(Boolean).map(x=>'#'+hashtag(x)).filter((x,i,a)=>x.length>1&&a.indexOf(x)===i).slice(0,8).join(' ');
-    const alt='Imagen de '+nombre+(marca?' de '+marca:'')+', '+categoria+', en el catálogo de Lift Nutrientes Medellín.';
-    const reel=['0–3 s: '+nombre+' en pantalla.','3–9 s: Muestra el envase y su información verificable.','9–15 s: Explica para quién está diseñado según su etiqueta, sin promesas de resultados.','15–20 s: Invita a consultar precio y disponibilidad en Lift Nutrientes.'].join('\n');
-    return {titulo,clave,relacionadas:[nombre,marca+' Colombia',categoria+' Medellín','Comprar '+categoria].filter(Boolean),descripcion,hashtags,alt,reel,url};
+    const alt='Imagen de '+nombre+(marca?' de '+marca:'')+', suplemento del catálogo Lift Nutrientes en Medellín.';
+    const reel=['0–3 s: Muestra el producto y escribe '+nombre+'.','3–9 s: Enfoca la presentación y los datos reales de su etiqueta.','9–15 s: Explica una característica comprobable, sin prometer resultados.','15–20 s: Invita a consultar precio y disponibilidad en Lift Nutrientes.'].join('\n');
+    return {titulo,clave,relacionadas:[nombre,marca?marca+' Colombia':'Suplementos Colombia',categoria+' Medellín','Comprar '+nombre].filter(Boolean),descripcion,hashtags,alt,reel,url};
   }
   function open(producto) {
     const existing=document.getElementById('lift-instagram-seo-modal'); if(existing)existing.remove();
     const root=document.createElement('div'); root.id='lift-instagram-seo-modal';
     root.style.cssText='position:fixed;inset:0;background:#0008;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px';
-    root.innerHTML='<section role="dialog" aria-modal="true" aria-label="Instagram SEO" style="background:white;color:#111;max-width:650px;width:100%;max-height:92vh;overflow:auto;border-radius:14px;padding:22px;font:14px Arial,sans-serif"><header style="display:flex;justify-content:space-between;align-items:center"><h2>Instagram SEO</h2><button type="button" data-close>Cerrar ✕</button></header><label>Objetivo <select data-objective><option value="ventas">Ventas</option><option value="educativo">Educativo</option><option value="alcance">Alcance</option></select></label><div data-fields></div></section>';
+    root.innerHTML='<section role="dialog" aria-modal="true" aria-label="Instagram SEO" style="background:white;color:#111;max-width:650px;width:100%;max-height:92vh;overflow:auto;border-radius:14px;padding:22px;font:14px Arial,sans-serif"><header style="display:flex;justify-content:space-between;align-items:center"><h2>Instagram SEO</h2><button type="button" data-close>Cerrar ✕</button></header><label>Objetivo <select data-objective><option value="ventas">Ventas</option><option value="educativo">Educativo</option><option value="alcance">Alcance</option></select></label><label style="display:block;margin-top:12px">Estilo <select data-variant><option value="0">Directo</option><option value="1">Asesoría</option><option value="2">Descubrimiento</option></select></label><div data-fields></div></section>';
     document.body.appendChild(root);
     root.querySelector('[data-close]').onclick=()=>root.remove();
     root.onclick=e=>{if(e.target===root)root.remove()};
     function render(){
-      const o=generate(producto,root.querySelector('[data-objective]').value);
+      const o=generate(producto,root.querySelector('[data-objective]').value,Number(root.querySelector('[data-variant]').value));
       const fields=root.querySelector('[data-fields]');fields.innerHTML='';
       for(const [key,value] of Object.entries(o)){
         const label=document.createElement('label');label.style.cssText='display:block;font-weight:bold;margin-top:14px';label.textContent=({titulo:'Título',clave:'Frase clave',relacionadas:'Palabras relacionadas',descripcion:'Descripción Instagram',hashtags:'Hashtags',alt:'Texto alternativo',reel:'Guion Reel',url:'Enlace producto'})[key]||key;
@@ -41,7 +59,7 @@
         fields.append(label,area,btn);
       }
     }
-    root.querySelector('[data-objective]').onchange=render;render();
+    root.querySelector('[data-objective]').onchange=render;root.querySelector('[data-variant]').onchange=render;render();
   }
   async function openSelector(){
     const prev=document.getElementById('lift-ig-product-selector');if(prev)prev.remove();
