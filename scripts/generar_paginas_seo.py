@@ -591,6 +591,7 @@ paint();
 }})();
 </script>
 <script>
+document.addEventListener('DOMContentLoaded',function(){{if(window.matchMedia('(max-width:700px)').matches){{var gallery=document.querySelector('.product-card .product-gallery');var card=document.querySelector('.product-card');var related=gallery&&gallery.querySelector('.related-under-image');if(card&&related)card.insertAdjacentElement('afterend',related);}}}});
 document.addEventListener('DOMContentLoaded',function(){{document.querySelectorAll('.related-under-image').forEach(function(section){{var track=section.querySelector('.related-grid');if(!track)return;section.querySelector('.related-prev').addEventListener('click',function(){{track.scrollBy({{left:-track.clientWidth*.75,behavior:'smooth'}});}});section.querySelector('.related-next').addEventListener('click',function(){{track.scrollBy({{left:track.clientWidth*.75,behavior:'smooth'}});}});}});}});
 </script></body></html>'''
 
