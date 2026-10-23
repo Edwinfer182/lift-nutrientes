@@ -582,7 +582,7 @@ paint();
 }})();
 </script>
 <script>
-document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.related-under-image').forEach(function(section){var track=section.querySelector('.related-grid');if(!track)return;section.querySelector('.related-prev').addEventListener('click',function(){track.scrollBy({left:-track.clientWidth*.75,behavior:'smooth'});});section.querySelector('.related-next').addEventListener('click',function(){track.scrollBy({left:track.clientWidth*.75,behavior:'smooth'});});});});
+document.addEventListener('DOMContentLoaded',function(){{document.querySelectorAll('.related-under-image').forEach(function(section){{var track=section.querySelector('.related-grid');if(!track)return;section.querySelector('.related-prev').addEventListener('click',function(){{track.scrollBy({{left:-track.clientWidth*.75,behavior:'smooth'}});}});section.querySelector('.related-next').addEventListener('click',function(){{track.scrollBy({{left:track.clientWidth*.75,behavior:'smooth'}});}});}});}});
 </script></body></html>'''
 
 def build_direct(row, shared):
