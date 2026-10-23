@@ -706,6 +706,18 @@ def main():
       suffix=" ".join(v["name"].split()[count:]).strip()
       if suffix:v["label"]=suffix
   item["_variants"]=variants[:24]
+  # Compartir imágenes secundarias entre sabores de una misma familia/presentación.
+  # Nunca sustituir la imagen principal de cada variante.
+  shared_secondary=[]
+  for sibling in variants:
+   sibling_row=next((candidate for candidate,info in entries if str(candidate["id"])==str(sibling["id"])),None)
+   if sibling_row is None:continue
+   for secondary in sibling_row.get("_images",[]):
+    if secondary and secondary not in shared_secondary:
+     shared_secondary.append(secondary)
+  own_primary=str(p.get("image") or p.get("imagen") or "") if (p:=item["product"]) else ""
+  own_secondary=item.get("_images",[])
+  item["_images"]=list(dict.fromkeys([u for u in own_secondary+shared_secondary if u and u!=own_primary]))
   excluded={str(v["id"]) for v in variants}
   p=item["product"]
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
