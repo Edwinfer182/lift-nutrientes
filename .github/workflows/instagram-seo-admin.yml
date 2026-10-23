@@ -50,7 +50,7 @@ jobs:
               const adminParam=[...qs.keys()].some(k=>/admin|panel|gestor/i.test(k));
               const adminDOM=!!document.querySelector('[data-admin-panel],#adminPanel,#admin-panel,.admin-panel');
               const nodes=[...document.querySelectorAll('button,a,[role="button"],div,span')];
-              const crm=nodes.find(el=>el.children.length===0 && /CRM\\s*[·-]\\s*Seguimiento clientes/i.test((el.textContent||'').trim()));
+              const crm=nodes.find(el=>el.children.length===0 && /CRM.*Seguimiento clientes/i.test((el.textContent||'').trim()));
               const cartera=nodes.some(el=>el.children.length===0 && /Cartera proveedores/i.test((el.textContent||'').trim()));
               const adminTools=!!(crm&&cartera);
               if(!adminTools)return;
@@ -59,9 +59,7 @@ jobs:
               b.style.cssText='position:fixed;right:18px;bottom:88px;z-index:99990;background:#111;color:#fff;border:0;border-radius:12px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 4px 15px #0003;cursor:pointer';
               b.onclick=function(){
                 if(!window.LiftInstagramSEO){alert('El módulo Instagram SEO no terminó de cargar');return}
-                const nombre=prompt('Nombre del producto (puedes copiarlo del catálogo):');
-                if(!nombre||!nombre.trim())return;
-                window.LiftInstagramSEO.open({nombre:nombre.trim()});
+                window.LiftInstagramSEO.openSelector();
               };
               b.style.cssText='background:#111;color:#fff;border:0;border-radius:10px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer;width:100%;min-height:38px';
               const item=crm.closest('button,a,[role="button"]') || crm;
