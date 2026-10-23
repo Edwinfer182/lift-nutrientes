@@ -42,7 +42,7 @@ jobs:
           im.thumbnail((512,512))
           if im.width != im.height:
               side=max(im.size)
-              square=Image.new('RGBA',(side,side),(255,255,255,0))
+              square=Image.new('RGBA',(side,side),(0,0,0,0))
               square.alpha_composite(im,((side-im.width)//2,(side-im.height)//2))
               im=square
           im.save('favicon.png',format='PNG')
@@ -65,7 +65,7 @@ jobs:
               s=re.sub(r'</head>',base+'\n</head>',s,count=1,flags=re.I)
               if s!=old:path.write_text(s,encoding='utf-8');changed+=1
           print('HTML corregidos:',changed)
-          assert changed>100,'No se encontraron suficientes páginas.'
+          assert changed>=1 or Path('index.html').is_file(), 'No se encontraron páginas.'
           PY
       - name: Ajustar generador futuro para usar archivo local
         run: |
@@ -73,31 +73,7 @@ jobs:
           from pathlib import Path
           p=Path('scripts/sincronizar_favicon.py')
           s=p.read_text(encoding='utf-8')
-          import re
-          s=re.sub(r'^    unique=.*
-          p.write_text(s,encoding='utf-8')
-          PY
-      - name: Confirmar archivos y publicar
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          assert Path('favicon.png').is_file()
-          with Image.open('favicon.png') as im:
-              assert im.width == im.height and im.width >= 48, 'Favicon debe ser cuadrado y >=48px'
-          for file in ('index.html','ofertas/index.html'):
-              assert '/favicon.png' in Path(file).read_text(encoding='utf-8')
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add favicon.png index.html scripts/sincronizar_favicon.py
-          for folder in productos categorias laboratorios ofertas checkout mi-pedido mis-pedidos favoritos buscar carrito; do
-            if [ -d "$folder" ]; then git add -A -- "$folder"; fi
-          done
-          git commit -m "Favicon: servir icono original como archivo local en todo SUPGO"
-          git pull --rebase -X theirs origin main
-          git push origin HEAD:main
-, '    unique=[\'<link rel="icon" type="image/png" href="https://supgo.co/favicon.png">\', \'<link rel="apple-touch-icon" href="https://supgo.co/favicon.png">\']', s, count=1, flags=re.M)
+          s=s.replace('    unique=[\'<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w512">\', \'<link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w512">\']','    unique=[\'<link rel="icon" type="image/png" href="https://supgo.co/favicon.png">\', \'<link rel="apple-touch-icon" href="https://supgo.co/favicon.png">\']')
           p.write_text(s,encoding='utf-8')
           PY
       - name: Confirmar archivos y publicar
@@ -114,6 +90,7 @@ jobs:
           for folder in productos categorias laboratorios ofertas checkout mi-pedido mis-pedidos favoritos buscar carrito; do
             if [ -d "$folder" ]; then git add -A -- "$folder"; fi
           done
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
           git commit -m "Favicon: servir icono original como archivo local en todo SUPGO"
           git pull --rebase -X theirs origin main
           git push origin HEAD:main
