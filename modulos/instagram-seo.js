@@ -43,5 +43,32 @@
     }
     root.querySelector('[data-objective]').onchange=render;render();
   }
-  window.LiftInstagramSEO={generate,open};
+  async function openSelector(){
+    const prev=document.getElementById('lift-ig-product-selector');if(prev)prev.remove();
+    const overlay=document.createElement('div');overlay.id='lift-ig-product-selector';
+    overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#0009;display:grid;place-items:center;padding:16px';
+    const panel=document.createElement('section');panel.style.cssText='background:white;color:#111;border-radius:14px;padding:22px;width:min(560px,100%);max-height:85vh;overflow:auto;font:14px Poppins,Arial,sans-serif';
+    panel.innerHTML='<h2>Instagram SEO · Productos</h2><p>Selecciona un producto del catálogo para generar su publicación.</p><input aria-label="Buscar producto" placeholder="Buscar por nombre o marca" style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><div data-results style="margin-top:12px"></div><button data-close type="button" style="margin-top:12px">Cerrar</button>';
+    overlay.appendChild(panel);document.body.appendChild(overlay);
+    overlay.onclick=e=>{if(e.target===overlay)overlay.remove()};
+    panel.querySelector('[data-close]').onclick=()=>overlay.remove();
+    const results=panel.querySelector('[data-results]'),input=panel.querySelector('input');
+    let products=[];
+    const clients=[window.supabaseClient,window.supabase,window.sb,window.liftSupabase,window._supabase].filter(x=>x&&typeof x.from==='function');
+    for(const client of clients){
+      try{const res=await client.from('lift_productos').select('id,nombre,marca,categoria,imagen,product').limit(1000);if(!res.error&&Array.isArray(res.data)){products=res.data;break}}catch(e){}
+    }
+    function render(){
+      results.replaceChildren();const term=clean(input.value).toLowerCase();
+      const filtered=products.filter(p=>clean([p.nombre,p.marca].join(' ')).toLowerCase().includes(term)).slice(0,40);
+      if(!products.length){
+        const msg=document.createElement('p');msg.textContent='No se pudo acceder al catálogo desde esta vista. Escribe el nombre del producto manualmente.';results.appendChild(msg);
+        const manual=document.createElement('button');manual.textContent='Usar nombre manual';manual.onclick=()=>{const nombre=input.value.trim();if(!nombre){input.focus();return}overlay.remove();open({nombre})};results.appendChild(manual);return;
+      }
+      if(!filtered.length){results.textContent='No se encontraron productos';return}
+      for(const p of filtered){const b=document.createElement('button');b.type='button';b.textContent=[p.nombre,p.marca].filter(Boolean).join(' · ');b.style.cssText='display:block;width:100%;text-align:left;padding:10px;margin:4px 0;background:#f8f8f8;border:1px solid #ddd;border-radius:8px;cursor:pointer';b.onclick=()=>{overlay.remove();open(p)};results.appendChild(b)}
+    }
+    input.addEventListener('input',render);render();input.focus();
+  }
+  window.LiftInstagramSEO={generate,open,openSelector};
 })();
