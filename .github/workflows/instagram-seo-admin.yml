@@ -1,6 +1,9 @@
 name: Instalar Instagram SEO en panel administrativo
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/instagram-seo-admin.yml'
 permissions:
   contents: write
 concurrency:
@@ -26,12 +29,12 @@ jobs:
           p=Path('index.html')
           html=p.read_text(encoding='utf-8')
           marker='<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->'
-          # Permitir corregir una instalación anterior sin duplicar scripts.
+          # Reemplazar el bloque previo de forma segura, sin depender de regex escapadas.
           if marker in html:
-              import re
-              pattern=re.compile(r'<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->\\s*<script src="/modulos/instagram-seo.js" defer></script>\\s*<script>.*?</script>',re.S)
-              html,n=pattern.subn('',html,count=1)
-              if n!=1: raise SystemExit('No se pudo aislar la instalación anterior; sin cambios')
+              start=html.index(marker)
+              end=html.find('</script>',start)
+              if end<0: raise SystemExit('Bloque anterior incompleto; no se modifica')
+              html=html[:start]+html[end+len('</script>'):]
           if '</body>' not in html.lower():
               raise SystemExit('ERROR: index.html no contiene cierre body; no se modifica')
           snippet=r"""
@@ -84,7 +87,7 @@ jobs:
       - name: Validar instalacion
         run: |
           grep -q 'LIFT-INSTAGRAM-SEO-ADMIN-V1' index.html
-          grep -q 'Cartera proveedores' index.html
+          grep -q 'adminTools' index.html
           grep -q 'window.LiftInstagramSEO' modulos/instagram-seo.js
       - name: Publicar cambios al repositorio
         run: |
