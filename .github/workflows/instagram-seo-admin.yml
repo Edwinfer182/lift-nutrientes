@@ -21,72 +21,54 @@ jobs:
         run: |
           test -s index.html
           test -s modulos/instagram-seo.js
-      - name: Instalar acceso al modulo sin alterar el catalogo
+      - name: Instalar botón en cuadrícula real del checkout
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('index.html')
           html=p.read_text(encoding='utf-8')
-          marker='<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->'
-          # Reemplazar el bloque previo de forma segura, sin depender de regex escapadas.
-          if marker in html:
-              start=html.index(marker)
-              end=html.find('</script>',start)
-              if end<0: raise SystemExit('Bloque anterior incompleto; no se modifica')
+          marker='<!-- LIFT-INSTAGRAM-SEO-ADMIN-V2 -->'
+          # Quitar instalación V1 anterior, si existe, sin afectar el resto.
+          old='<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->'
+          if old in html:
+              start=html.index(old)
+              end=html.find('</script>',html.find('</script>',start)+len('</script>'))
+              if end<0: raise SystemExit('Bloque V1 incompleto; no se modifica')
               html=html[:start]+html[end+len('</script>'):]
-          if '</body>' not in html.lower():
-              raise SystemExit('ERROR: index.html no contiene cierre body; no se modifica')
-          snippet=r"""
-          <!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->
+          if marker not in html:
+              if '</body>' not in html.lower(): raise SystemExit('No existe cierre body')
+              snippet="""<!-- LIFT-INSTAGRAM-SEO-ADMIN-V2 -->
           <script src="/modulos/instagram-seo.js" defer></script>
           <script>
           (function(){
-            'use strict';
             function install(){
-              if(document.getElementById('lift-ig-seo-launcher'))return;
-              // Solo en la vista administrativa; no agregar controles al catálogo público.
-              const qs=new URLSearchParams(location.search);
-              const adminParam=[...qs.keys()].some(k=>/admin|panel|gestor/i.test(k));
-              const adminDOM=!!document.querySelector('[data-admin-panel],#adminPanel,#admin-panel,.admin-panel');
-              const nodes=[...document.querySelectorAll('button,a,[role="button"],div,span')];
-              const crm=nodes.find(el=>el.children.length===0 && /CRM.*Seguimiento clientes/i.test((el.textContent||'').trim()));
-              const cartera=nodes.some(el=>el.children.length===0 && /Cartera proveedores/i.test((el.textContent||'').trim()));
-              const adminTools=!!(crm&&cartera);
-              if(!adminTools)return;
-              const b=document.createElement('button');
-              b.id='lift-ig-seo-launcher';b.type='button';b.textContent='Instagram SEO';
-              b.style.cssText='position:fixed;right:18px;bottom:88px;z-index:99990;background:#111;color:#fff;border:0;border-radius:12px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 4px 15px #0003;cursor:pointer';
-              b.onclick=function(){
-                if(!window.LiftInstagramSEO){alert('El módulo Instagram SEO no terminó de cargar');return}
-                window.LiftInstagramSEO.openSelector();
+              if(!document.body.classList.contains('liftAdminUnlocked'))return;
+              const row=document.querySelector('#checkoutModal .liftAdminToolsRow') || document.querySelector('.liftAdminToolsRow');
+              if(!row||row.querySelector('#lift-ig-seo-launcher'))return;
+              const btn=document.createElement('button');
+              btn.type='button';btn.id='lift-ig-seo-launcher';btn.textContent='Instagram SEO';
+              btn.onclick=function(){
+                if(!window.LiftInstagramSEO){alert('No se cargó Instagram SEO');return}
+                if(window.LiftInstagramSEO.openSelector)window.LiftInstagramSEO.openSelector();
+                else alert('Falta actualizar el selector de Instagram SEO');
               };
-              b.style.cssText='background:#111;color:#fff;border:0;border-radius:10px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer;width:100%;min-height:38px';
-              const item=crm.closest('button,a,[role="button"]') || crm;
-              const cell=item.parentElement;
-              if(!cell || !cell.parentElement)return;
-              const wrapper=document.createElement('div');
-              wrapper.style.cssText='min-width:180px;flex:1 1 220px;align-self:stretch';
-              wrapper.appendChild(b);
-              cell.parentElement.insertBefore(wrapper,cell.nextSibling);
-
+              row.appendChild(btn);
             }
             if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
-            const obs=new MutationObserver(()=>{if(!document.getElementById('lift-ig-seo-launcher'))install()});
-            obs.observe(document.documentElement,{childList:true,subtree:true});
+            new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
           })();
           </script>
           """
-          idx=html.lower().rfind('</body>')
-          html=html[:idx]+snippet+'\n'+html[idx:]
+              idx=html.lower().rfind('</body>')
+              html=html[:idx]+snippet+'\n'+html[idx:]
           p.write_text(html,encoding='utf-8')
-          print('Instalado lanzador de Instagram SEO en index.html')
           PY
-      - name: Validar instalacion
+      - name: Validar instalación
         run: |
-          grep -q 'LIFT-INSTAGRAM-SEO-ADMIN-V1' index.html
-          grep -q 'adminTools' index.html
-          grep -q 'window.LiftInstagramSEO' modulos/instagram-seo.js
+          grep -q 'LIFT-INSTAGRAM-SEO-ADMIN-V2' index.html
+          grep -q 'liftAdminToolsRow' index.html
+          grep -q 'openSelector' modulos/instagram-seo.js
       - name: Publicar cambios al repositorio
         run: |
           git config user.name "github-actions[bot]"
