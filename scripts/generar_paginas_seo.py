@@ -279,7 +279,7 @@ def build(row):
  if promotion:
   original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
   discounted=("$ {:,.0f}".format(promotion[1])).replace(",",".")
-  price_html='<div class="seo-offer-price"><span class="seo-offer-label">OFERTA</span><del>'+original+'</del><strong>'+discounted+'</strong><span class="seo-offer-saving">Ahorras '+("$ {:,.0f}".format(max(0,amount-promotion[1]))).replace(",",".")+'</span></div>'
+  price_html='<div class="seo-offer-price"><span class="seo-offer-label">OFERTA</span><del>'+original+'</del><strong>'+discounted+'</strong><span class="seo-offer-saving">Ahorras '+("$ {:,.0f}".format(max(0,promotion[0]-promotion[1]))).replace(",",".")+'</span></div>'
  # Mostrar la descripción larga como HTML real dentro de un acordeón nativo.
  # El contenido viene del editor SEO; se eliminan scripts y eventos inline.
  long_html=str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
