@@ -54,9 +54,29 @@
     panel.querySelector('[data-close]').onclick=()=>overlay.remove();
     const results=panel.querySelector('[data-results]'),input=panel.querySelector('input');
     let products=[];
-    const clients=[window.supabaseClient,window.supabase,window.sb,window.liftSupabase,window._supabase].filter(x=>x&&typeof x.from==='function');
-    for(const client of clients){
-      try{const res=await client.from('lift_productos').select('id,nombre,marca,categoria,imagen,product').limit(1000);if(!res.error&&Array.isArray(res.data)){products=res.data;break}}catch(e){}
+    const normalizeProduct=p=>{
+      const raw=p&&typeof p==='object'?p:{};
+      const nested=raw.product&&typeof raw.product==='object'?raw.product:{};
+      return {
+        ...raw,
+        nombre:raw.nombre||raw.name||raw.title||nested.nombre||nested.name||nested.title||'',
+        marca:raw.marca||raw.brand||nested.marca||nested.brand||'',
+        categoria:raw.categoria||raw.category||nested.categoria||nested.category||'',
+        slug:raw.slug||nested.slug||'',
+        id:raw.id||nested.id
+      };
+    };
+    const local=window.PRODUCTS;
+    if(Array.isArray(local))products=local.map(normalizeProduct).filter(p=>p.nombre);
+    else if(local&&typeof local==='object')products=Object.values(local).map(normalizeProduct).filter(p=>p.nombre);
+    if(!products.length){
+      const clients=[window.supabaseClient,window.supabase,window.sb,window.liftSupabase,window._supabase].filter(x=>x&&typeof x.from==='function');
+      for(const client of clients){
+        try{
+          const res=await client.from('lift_productos').select('id,nombre,marca,categoria,product').eq('activo',true).limit(1000);
+          if(!res.error&&Array.isArray(res.data)){products=res.data.map(normalizeProduct).filter(p=>p.nombre);break}
+        }catch(e){console.warn('Instagram SEO: catálogo no disponible',e)}
+      }
     }
     function render(){
       results.replaceChildren();const term=clean(input.value).toLowerCase();
