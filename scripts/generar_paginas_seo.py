@@ -490,10 +490,14 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <section class="product-info">
 <h1>{esc(name)}{title_brand_html}</h1><div class="product-price">{price_html}</div>
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
+<div class="product-rule"></div>
+<details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
+<div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" aria-live="polite"></p>
 <section class="seo-buy-assurance" aria-label="Compra, entrega y medios de pago">
 <div class="seo-buy-assurance-grid">
 <div class="seo-buy-benefit"><span aria-hidden="true">✓</span><div><strong>Compra con confianza</strong><small>Confirma disponibilidad y presentación antes de pagar.</small></div></div>
-<div class="seo-buy-benefit"><span aria-hidden="true">🚚</span><div><strong>Envíos en Medellín y Colombia</strong><small>Los tiempos y el costo dependen del destino y de la confirmación del pedido.</small></div></div>
+<div class="seo-buy-benefit"><span aria-hidden="true">🚚</span><div><strong>Envíos en Medellín y Colombia</strong><small>Medellín: 1 producto $11.000. Entrega el mismo día para pedidos confirmados antes de las 2:00 p. m., según cobertura y disponibilidad.</small></div></div>
+<div class="seo-buy-benefit"><span aria-hidden="true">📦</span><div><strong>Otras ciudades y envío gratis</strong><small>El valor fuera de Medellín se confirma según destino y transportadora. Ciudades principales: aproximadamente 1 día hábil desde la guía; otras zonas: 2 a 3 días hábiles. El envío gratis aplica únicamente cuando la promoción o marca lo indique.</small></div></div>
 <div class="seo-buy-benefit"><span aria-hidden="true">🔒</span><div><strong>Pago seguro</strong><small>Selecciona el medio de pago durante el proceso de compra.</small></div></div>
 </div>
 <details class="seo-payments"><summary>Medios de pago disponibles <span aria-hidden="true">⌄</span></summary>
@@ -503,9 +507,6 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <div><strong>Corresponsal bancario</strong><p>Solicita los datos para consignar antes de realizar el pago.</p></div>
 <p class="seo-payment-note">Elige el medio de pago disponible al finalizar tu pedido. No se ofrece pago contraentrega.</p>
 </div></details></section>
-<div class="product-rule"></div>
-<details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
-<div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" aria-live="polite"></p>
 </section></article>
 {f'<section class="related"><h2>Productos relacionados</h2><div class="related-grid">{related_html}</div></section>' if related_html else ''}
 </main>
