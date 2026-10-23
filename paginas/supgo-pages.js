@@ -45,7 +45,17 @@ const amount=document.createElement('div');amount.className='price';
 const offer=state.offers?.[String(r.id)],regular=price(r),sale=Number(offer?.price);
 const active=offer&&sale>0&&sale<regular&&(!offer.promoUntil||!Number.isFinite(Date.parse(offer.promoUntil))||Date.now()<=Date.parse(offer.promoUntil));
 if(active){const old=document.createElement('del');old.className='old-price';old.textContent=money(regular);const now=document.createElement('strong');now.textContent=money(sale);const tag=document.createElement('span');tag.className='discount';tag.textContent=Math.round((1-sale/regular)*100)+'% OFF';amount.append(old,now,tag)}
-else{const now=document.createElement('strong');now.textContent=regular>0?money(regular):'Consultar precio';amount.append(now)}
+else{const now=document.createElement('strong');now.textContent=regular>0?money(regular):'Consultar precio';amount.append(now)} 
+if(active&&page==='ofertas'){
+ const details=document.createElement('div');details.className='offer-card-extras';
+ const original=Number(offer.originalPrice),base=Number.isFinite(original)&&original>sale?original:regular;
+ const savings=Math.max(0,base-sale);
+ if(savings>0){const saving=document.createElement('span');saving.className='offer-card-saving';saving.textContent='Ahorras '+money(savings);details.append(saving)}
+ if(offer.promoUntil){const end=Date.parse(offer.promoUntil);if(Number.isFinite(end)){const date=document.createElement('span');date.className='offer-card-date';date.textContent='Hasta el '+new Intl.DateTimeFormat('es-CO',{day:'numeric',month:'short',year:'numeric',timeZone:'America/Bogota'}).format(new Date(end));details.append(date)}}
+ if(offer.gift){const giftProduct=state.rows.find(p=>String(p.id)===String(offer.giftProductId));const giftName=String(offer.giftName|| (giftProduct?name(giftProduct):'')).trim();if(giftName){const gift=document.createElement('div');gift.className='offer-card-gift';if(giftProduct&&image(giftProduct)){const img=document.createElement('img');img.src=image(giftProduct);img.alt=giftName;img.loading='lazy';gift.append(img)}const label=document.createElement('span');const qtyGift=Math.max(1,Number(offer.giftQty)||1);label.textContent='Regalo: '+(qtyGift>1?qtyGift+' × ':'')+giftName;gift.append(label);details.append(gift)}}
+ if(details.childNodes.length)amount.insertAdjacentElement('afterend',details);
+}
+
 const actions=document.createElement('div');actions.className='actions';
 const buy=document.createElement('button');buy.type='button';buy.className='buy';buy.title='Agregar al carrito';buy.setAttribute('aria-label','Agregar al carrito');buy.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>';
 buy.onclick=()=>{const key=String(r.id),meta=get('liftCartMetaV1',{}),activeOffer=active&&Number.isFinite(sale)&&sale>0;meta[key]={...(meta[key]||{}),name:name(r),image:image(r),price:activeOffer?sale:regular,on_offer:!!activeOffer,promoUntil:activeOffer?(offer.promoUntil||null):null};save('liftCartMetaV1',meta);change(r.id,1);buy.classList.add('added');setTimeout(()=>buy.classList.remove('added'),900)};
