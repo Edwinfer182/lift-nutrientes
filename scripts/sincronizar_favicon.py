@@ -23,7 +23,7 @@ def run():
     index=(ROOT/'index.html').read_text(encoding='utf-8',errors='replace')
     parser.feed(index[:index.lower().find('</head>')+7] if '</head>' in index.lower() else index[:150000])
     # Reutilizar exactamente la referencia del index. Fallar si no hay icono claro.
-    unique=['<link rel="icon" type="image/png" href="https://static.wixstatic.com/media/251da0_955bab19f2ab41e798becec917b19cec~mv2.png">', '<link rel="apple-touch-icon" href="https://static.wixstatic.com/media/251da0_955bab19f2ab41e798becec917b19cec~mv2.png">']
+    unique=['<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w512">', '<link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1zAaG9-QksiwKUbDX8ryv3Yy4cIDHt_Ib&amp;sz=w512">']
     if not unique:
         # El index original puede gestionar favicon como SVG/base64 o declararlo en JS.
         # Identificar href real sin asumir una ruta que podría devolver 404.
@@ -41,7 +41,7 @@ def run():
     tags='\n'.join(unique)
     changed=0
     files=[ROOT/'index.html']
-    for folder in ('productos','categorias','laboratorios','ofertas','checkout','mi-pedido','mis-pedidos','favoritos','buscar','carrito'):
+    for folder in ('productos','categorias','laboratorios','ofertas','checkout','mi-pedido','mis-pedidos','favoritos','buscar','carrito','entrenadores'):
         directory=ROOT/folder
         if not directory.exists():continue
         files.extend(directory.rglob('*.html'))
