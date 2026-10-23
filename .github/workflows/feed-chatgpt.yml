@@ -24,13 +24,24 @@ jobs:
       - name: Validar las nueve columnas obligatorias
         run: |
           python - <<'PY'
-          import csv
+          import csv, json
           from pathlib import Path
           rows=list(csv.DictReader(Path('feeds/productos-chatgpt.csv').open(encoding='utf-8')))
-          assert rows
-          assert len(set(x['item_id'] for x in rows))==len(rows)
-          assert all(all(x.values()) for x in rows)
-          print('Productos válidos:',len(rows))
+          import re
+          sitemap=Path('sitemap-productos.xml').read_text(encoding='utf-8')
+          listed=set(re.findall(r'<loc>([^<]+)</loc>',sitemap))
+          required={'item_id','title','description','url','brand','seller_name','image_url','price','availability'}
+          assert len(rows)>=600, f'Feed incompleto: {len(rows)} filas'
+          assert required==set(rows[0]), 'Columnas obligatorias incorrectas'
+          assert len(set(x['item_id'] for x in rows))==len(rows), 'IDs duplicados'
+          assert all(all(x.values()) for x in rows), 'Valores vacíos'
+          assert all(x['url'] in listed for x in rows), 'Hay URLs fuera del sitemap'
+          assert all(x['image_url'].startswith('https://') for x in rows), 'Imágenes inválidas'
+          assert all(re.fullmatch(r'[0-9]+ COP',x['price']) for x in rows), 'Precios inválidos'
+          assert all(x['availability'] in {'unknown','in_stock','out_of_stock'} for x in rows), 'Stock inválido'
+          jsonlines=[json.loads(line) for line in Path('feeds/productos-chatgpt.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
+          assert len(jsonlines)==len(rows), 'CSV y JSONL tienen distinto número de productos'
+          print('Catálogo validado:',len(rows),'productos')
           PY
       - name: Guardar feed en GitHub
         run: |
