@@ -14812,8 +14812,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 
 
-<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->
-<script src="/modulos/instagram-seo.js" defer></script>
+
 <script>
 (function(){
   'use strict';
@@ -14836,6 +14835,46 @@ document.addEventListener('DOMContentLoaded',function(){
       const nombre=prompt('Nombre del producto (puedes copiarlo del catálogo):');
       if(!nombre||!nombre.trim())return;
       window.LiftInstagramSEO.open({nombre:nombre.trim()});
+    };
+    b.style.cssText='background:#111;color:#fff;border:0;border-radius:10px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer;width:100%;min-height:38px';
+    const item=crm.closest('button,a,[role="button"]') || crm;
+    const cell=item.parentElement;
+    if(!cell || !cell.parentElement)return;
+    const wrapper=document.createElement('div');
+    wrapper.style.cssText='min-width:180px;flex:1 1 220px;align-self:stretch';
+    wrapper.appendChild(b);
+    cell.parentElement.insertBefore(wrapper,cell.nextSibling);
+
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+  const obs=new MutationObserver(()=>{if(!document.getElementById('lift-ig-seo-launcher'))install()});
+  obs.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
+
+<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->
+<script src="/modulos/instagram-seo.js" defer></script>
+<script>
+(function(){
+  'use strict';
+  function install(){
+    if(document.getElementById('lift-ig-seo-launcher'))return;
+    // Solo en la vista administrativa; no agregar controles al catálogo público.
+    const qs=new URLSearchParams(location.search);
+    const adminParam=[...qs.keys()].some(k=>/admin|panel|gestor/i.test(k));
+    const adminDOM=!!document.querySelector('[data-admin-panel],#adminPanel,#admin-panel,.admin-panel');
+    const nodes=[...document.querySelectorAll('button,a,[role="button"],div,span')];
+    const crm=nodes.find(el=>el.children.length===0 && /CRM.*Seguimiento clientes/i.test((el.textContent||'').trim()));
+    const cartera=nodes.some(el=>el.children.length===0 && /Cartera proveedores/i.test((el.textContent||'').trim()));
+    const adminTools=!!(crm&&cartera);
+    if(!adminTools)return;
+    const b=document.createElement('button');
+    b.id='lift-ig-seo-launcher';b.type='button';b.textContent='Instagram SEO';
+    b.style.cssText='position:fixed;right:18px;bottom:88px;z-index:99990;background:#111;color:#fff;border:0;border-radius:12px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 4px 15px #0003;cursor:pointer';
+    b.onclick=function(){
+      if(!window.LiftInstagramSEO){alert('El módulo Instagram SEO no terminó de cargar');return}
+      window.LiftInstagramSEO.openSelector();
     };
     b.style.cssText='background:#111;color:#fff;border:0;border-radius:10px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer;width:100%;min-height:38px';
     const item=crm.closest('button,a,[role="button"]') || crm;
