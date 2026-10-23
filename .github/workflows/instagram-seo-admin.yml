@@ -26,9 +26,12 @@ jobs:
           p=Path('index.html')
           html=p.read_text(encoding='utf-8')
           marker='<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->'
+          # Permitir corregir una instalación anterior sin duplicar scripts.
           if marker in html:
-              print('Instagram SEO ya instalado: sin duplicados')
-              raise SystemExit(0)
+              import re
+              pattern=re.compile(r'<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->\\s*<script src="/modulos/instagram-seo.js" defer></script>\\s*<script>.*?</script>',re.S)
+              html,n=pattern.subn('',html,count=1)
+              if n!=1: raise SystemExit('No se pudo aislar la instalación anterior; sin cambios')
           if '</body>' not in html.lower():
               raise SystemExit('ERROR: index.html no contiene cierre body; no se modifica')
           snippet=r"""
@@ -43,7 +46,11 @@ jobs:
               const qs=new URLSearchParams(location.search);
               const adminParam=[...qs.keys()].some(k=>/admin|panel|gestor/i.test(k));
               const adminDOM=!!document.querySelector('[data-admin-panel],#adminPanel,#admin-panel,.admin-panel');
-              if(!adminParam&&!adminDOM)return;
+              const buttons=[...document.querySelectorAll('button,[role="button"]')];
+              const crm=buttons.find(el=>/CRM\\s*[·-]\\s*Seguimiento clientes/i.test((el.textContent||'').trim()));
+              const cartera=buttons.some(el=>/Cartera proveedores/i.test(el.textContent||''));
+              const adminTools=!!(crm&&cartera);
+              if(!adminParam&&!adminDOM&&!adminTools)return;
               const b=document.createElement('button');
               b.id='lift-ig-seo-launcher';b.type='button';b.textContent='Instagram SEO';
               b.style.cssText='position:fixed;right:18px;bottom:88px;z-index:99990;background:#111;color:#fff;border:0;border-radius:12px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 4px 15px #0003;cursor:pointer';
@@ -53,7 +60,15 @@ jobs:
                 if(!nombre||!nombre.trim())return;
                 window.LiftInstagramSEO.open({nombre:nombre.trim()});
               };
-              document.body.appendChild(b);
+              if(adminTools && crm){
+                b.style.cssText='background:#111;color:#fff;border:0;border-radius:10px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;cursor:pointer;width:100%';
+                const host=crm.parentElement;
+                if(host && host.parentElement){
+                  const wrapper=document.createElement('div');
+                  wrapper.style.cssText='flex:1 1 220px;min-width:180px;margin:4px 0';
+                  wrapper.appendChild(b);host.parentElement.insertBefore(wrapper,host.nextSibling);
+                }else crm.insertAdjacentElement('afterend',b);
+              }else document.body.appendChild(b);
             }
             if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
             const obs=new MutationObserver(()=>{if(!document.getElementById('lift-ig-seo-launcher'))install()});
@@ -69,6 +84,7 @@ jobs:
       - name: Validar instalacion
         run: |
           grep -q 'LIFT-INSTAGRAM-SEO-ADMIN-V1' index.html
+          grep -q 'Cartera proveedores' index.html
           grep -q 'window.LiftInstagramSEO' modulos/instagram-seo.js
       - name: Publicar cambios al repositorio
         run: |
