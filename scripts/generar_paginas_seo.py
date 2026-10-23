@@ -270,7 +270,7 @@ def build(row):
    offer["priceSpecification"]={"@type":"UnitPriceSpecification","price":int(original_price) if original_price.is_integer() else original_price,"priceCurrency":"COP","priceType":"https://schema.org/StrikethroughPrice"}
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
- breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":BASE+"/"},{"@type":"ListItem","position":2,"name":name,"item":canonical}]}
+ breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SUPGO","item":BASE+"/"},{"@type":"ListItem","position":2,"name":"Laboratorios","item":BASE+"/laboratorios/"},{"@type":"ListItem","position":3,"name":name,"item":canonical}]}
  breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
@@ -461,6 +461,14 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 .product-page .related-under-image .related-item small{{font-size:9px;color:#7b7f86}}
 @media(max-width:900px){{.product-page .related-under-image .related-item{{flex-basis:112px;max-width:112px}}.product-page .related-under-image .related-item img{{height:76px!important}}}}
 </style>
+<style id="seo-breadcrumb-style">
+.product-page .seo-breadcrumb{{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;white-space:nowrap;padding:2px 0 11px;margin:0;font:400 11px/1.35 Poppins,Arial,sans-serif;color:#848991}}
+.product-page .seo-breadcrumb a{{color:#666e79;text-decoration:none;flex-shrink:0}}
+.product-page .seo-breadcrumb a:hover{{color:#111;text-decoration:underline}}
+.product-page .seo-breadcrumb-brand{{flex-shrink:0;color:#6c7480}}
+.product-page .seo-breadcrumb-current{{overflow:hidden;text-overflow:ellipsis;min-width:0;color:#30353b}}
+@media(max-width:600px){{.product-page .seo-breadcrumb{{font-size:10px;gap:5px;padding-bottom:8px}}.product-page .seo-breadcrumb-brand{{max-width:90px;overflow:hidden;text-overflow:ellipsis}}}}
+</style>
 <style id="seo-price-hierarchy">
 .product-page .product-info h1{{margin:0 0 5px!important;line-height:1.25!important}}
 .product-page .product-info .product-brand{{margin:0 0 6px!important}}
@@ -513,6 +521,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <script defer src="/componentes/header-loader.js?v=20261022-oculto-inicial6"></script>
 
 <main class="product-page">
+<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/laboratorios/">Laboratorios</a>{f'<span aria-hidden="true">›</span><span class="seo-breadcrumb-brand">{esc(brand)}</span>' if brand else ''}<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">{esc(name)}</span></nav>
 <article class="product-card">
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<section class="related related-under-image"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="related-grid">{related_html}</div></section>' if related_html else ''}</section>
 <section class="product-info">
