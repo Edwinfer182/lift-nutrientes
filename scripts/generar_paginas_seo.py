@@ -280,6 +280,32 @@ def build(row):
   original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
   discounted=("$ {:,.0f}".format(promotion[1])).replace(",",".")
   price_html='<div class="seo-offer-price"><span class="seo-offer-label">OFERTA</span><del>'+original+'</del><strong>'+discounted+'</strong><span class="seo-offer-saving">Ahorras '+("$ {:,.0f}".format(max(0,promotion[0]-promotion[1]))).replace(",",".")+'</span></div>'
+ # Información adicional de la oferta: vencimiento y regalo asociado en Lift.
+ offer_extra_html=""
+ if promotion:
+  offer_data=row.get("_offer") or {}
+  until=offer_data.get("promoUntil")
+  if until:
+   try:
+    deadline=datetime.fromisoformat(str(until).replace("Z","+00:00"))
+    if deadline.tzinfo is None:deadline=deadline.replace(tzinfo=timezone.utc)
+    date_label=deadline.strftime("%d/%m/%Y")
+    offer_extra_html+='<span class="seo-offer-until">Válida hasta el '+esc(date_label)+'</span>'
+   except (ValueError,TypeError):pass
+  if offer_data.get("gift"):
+   gift_id=str(offer_data.get("giftProductId") or "").strip()
+   gift_product=(row.get("_products_by_id") or {}).get(gift_id) or {}
+   gift_name=str(offer_data.get("giftName") or gift_product.get("name") or gift_product.get("nombre") or "").strip()
+   gift_image=str(gift_product.get("image") or gift_product.get("imagen") or "").strip()
+   if gift_image.startswith("//"):gift_image="https:"+gift_image
+   elif gift_image.startswith("/"):gift_image=BASE+gift_image
+   if not gift_image.startswith(("https://","http://")):gift_image=""
+   try:gift_qty=max(1,int(offer_data.get("giftQty") or 1))
+   except (ValueError,TypeError):gift_qty=1
+   if gift_name:
+    gift_img_html=f'<img src="{esc(gift_image)}" alt="{esc(gift_name)}" loading="lazy" width="54" height="54">' if gift_image else ""
+    offer_extra_html+=f'<div class="seo-offer-gift">{gift_img_html}<div><span class="seo-gift-tag">REGALO INCLUIDO</span><strong>{gift_qty} × {esc(gift_name)}</strong></div></div>'
+ if offer_extra_html:offer_extra_html='<div class="seo-offer-extras">'+offer_extra_html+'</div>'
  # Mostrar la descripción larga como HTML real dentro de un acordeón nativo.
  # El contenido viene del editor SEO; se eliminan scripts y eventos inline.
  long_html=str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
@@ -469,6 +495,16 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 .product-page .seo-breadcrumb-current{{overflow:hidden;text-overflow:ellipsis;min-width:0;color:#30353b}}
 @media(max-width:600px){{.product-page .seo-breadcrumb{{font-size:10px;gap:5px;padding-bottom:8px}}.product-page .seo-breadcrumb-brand{{max-width:90px;overflow:hidden;text-overflow:ellipsis}}}}
 </style>
+<style id="seo-offer-extras">
+.product-page .seo-offer-extras{{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;width:100%;margin:-4px 0 12px;font-size:11px}}
+.product-page .seo-offer-until{{font-size:11px;color:#5c626a}}
+.product-page .seo-offer-gift{{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid #dbeee0;border-radius:10px;background:#f6fbf7;max-width:100%}}
+.product-page .seo-offer-gift img{{width:48px;height:48px;object-fit:contain;border-radius:6px;background:#fff;flex:none}}
+.product-page .seo-offer-gift>div{{display:flex;flex-direction:column;gap:2px}}
+.product-page .seo-gift-tag{{font-size:9px;font-weight:650;color:#17804a}}
+.product-page .seo-offer-gift strong{{font-size:11px;font-weight:500;color:#252b27}}
+@media(max-width:600px){{.product-page .seo-offer-extras{{margin:-2px 0 9px}}}}
+</style>
 <style id="seo-price-hierarchy">
 .product-page .product-info h1{{margin:0 0 5px!important;line-height:1.25!important}}
 .product-page .product-info .product-brand{{margin:0 0 6px!important}}
@@ -525,7 +561,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <article class="product-card">
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<section class="related related-under-image"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="related-grid">{related_html}</div></section>' if related_html else ''}</section>
 <section class="product-info">
-<h1>{esc(name)}{title_brand_html}</h1><div class="product-price">{price_html}</div>
+<h1>{esc(name)}{title_brand_html}</h1><div class="product-price">{price_html}</div>{offer_extra_html}
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
 <div class="product-rule"></div>
 <details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
@@ -638,6 +674,8 @@ def main():
   row["_seo"]=seo_rows.get(str(row["id"]),{})
   row["_offer"]=offers.get(str(row["id"]))
   row["_merchant_settings"]=merchant_settings
+ products_by_id={str(row["id"]):row["product"] for row in rows}
+ for row in rows:row["_products_by_id"]=products_by_id
  filter_counts=seo_filter_data(rows,fetch_lab_logos())
  for row in rows: row["_filter_counts"]=filter_counts
  allowed_brands=fetch_allowed_brands()
