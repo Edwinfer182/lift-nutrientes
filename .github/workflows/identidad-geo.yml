@@ -1,0 +1,45 @@
+name: Identidad GEO Lift Nutrientes
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/insertar-identidad-geo.py'
+      - '.github/workflows/identidad-geo.yml'
+permissions:
+  contents: write
+concurrency:
+  group: identidad-geo
+  cancel-in-progress: false
+jobs:
+  identidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Actualizar identidad estructurada
+        run: python scripts/insertar-identidad-geo.py
+      - name: Comprobar JSON-LD de identidad
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re,json
+          p=Path("productos/iso-100-5-lb-dunkin-mocha-latte-901284.html")
+          html=p.read_text(encoding="utf8")
+          blocks=re.findall(r'<script type="application/ld\\+json">(.*?)</script>',html,re.S)
+          assert any((lambda x: x.get("@id")=="https://supgo.co/#organization")(json.loads(x)) for x in blocks)
+          print("Identidad GEO presente en ficha ISO100")
+          PY
+      - name: Publicar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.html'
+          if ! git diff --cached --quiet; then
+            git commit -m "GEO: publicar identidad de Lift Nutrientes en paginas HTML"
+            git push
+          fi
