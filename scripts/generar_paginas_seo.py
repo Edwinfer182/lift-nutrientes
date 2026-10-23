@@ -279,7 +279,7 @@ def build(row):
  if promotion:
   original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
   discounted=("$ {:,.0f}".format(promotion[1])).replace(",",".")
-  price_html='<p><del style="color:#777;margin-right:12px">'+original+'</del><strong style="color:#168451;font-size:26px">'+discounted+'</strong></p>'
+  price_html='<div class="seo-offer-price"><span class="seo-offer-label">PRECIO EN OFERTA</span><del>'+original+'</del><strong>'+discounted+'</strong><span class="seo-offer-saving">Ahorra '+("$ {:,.0f}".format(max(0,amount-promotion[1]))).replace(",",".")+'</span></div>'
  # Mostrar la descripción larga como HTML real dentro de un acordeón nativo.
  # El contenido viene del editor SEO; se eliminan scripts y eventos inline.
  long_html=str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
@@ -446,6 +446,17 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  body > main.product-page .related:last-child{{margin-bottom:0!important;padding-bottom:0!important}}
 }}
 
+</style>
+<style id="seo-price-hierarchy">
+.product-page .product-info h1{{margin-bottom:5px!important;line-height:1.3!important}}
+.product-page .product-info .product-brand{{margin:0 0 10px!important}}
+.product-page .product-info .product-price{{margin:4px 0 16px!important;line-height:1.15!important}}
+.product-page .product-info .seo-offer-price{{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:4px;padding:12px 14px;background:#f2faf5;border:1px solid #d9eee0;border-radius:13px;max-width:440px}}
+.product-page .product-info .seo-offer-label{{flex:0 0 100%;width:max-content;color:#167643;font-size:10px;font-weight:700;letter-spacing:.07em}}
+.product-page .product-info .seo-offer-price del{{font-size:13px!important;color:#7b8087!important;text-decoration:line-through;margin:0!important;display:inline!important}}
+.product-page .product-info .seo-offer-price strong{{font-size:clamp(27px,2.8vw,35px)!important;font-weight:700!important;color:#121a14!important;letter-spacing:-.035em!important;flex:0 0 100%;line-height:1.15}}
+.product-page .product-info .seo-offer-saving{{font-size:11px;font-weight:600;color:#167643}}
+@media(max-width:600px){{.product-page .product-info .seo-offer-price{{padding:10px 12px;max-width:100%}}.product-page .product-info .seo-offer-price strong{{font-size:28px!important}}}}
 </style>
 <style id="seo-compact-variants">
 .product-page .variant-panel{{padding:11px!important;border-radius:12px!important}}
