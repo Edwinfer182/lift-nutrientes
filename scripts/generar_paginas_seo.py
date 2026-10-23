@@ -521,7 +521,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <script defer src="/componentes/header-loader.js?v=20261022-oculto-inicial6"></script>
 
 <main class="product-page">
-<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/laboratorios/">Laboratorios</a>{f'<span aria-hidden="true">›</span><span class="seo-breadcrumb-brand">{esc(brand)}</span>' if brand else ''}<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">{esc(name)}</span></nav>
+<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/laboratorios/">Laboratorios</a>{f'<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/{slug(brand)}/">{esc(brand)}</a>' if brand else ''}<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">{esc(name)}</span></nav>
 <article class="product-card">
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<section class="related related-under-image"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="related-grid">{related_html}</div></section>' if related_html else ''}</section>
 <section class="product-info">
