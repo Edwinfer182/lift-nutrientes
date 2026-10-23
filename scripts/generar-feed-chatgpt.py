@@ -36,7 +36,7 @@ def fetch_supabase():
 def find_static_pages():
     data={}
     for path in (ROOT/"productos").glob("*.html"):
-        m=re.search(r"-(\\d+)\\.html$",path.name)
+        m=re.search(r"-(\d+)\.html$",path.name)
         if not m:continue
         parser=ProductParser()
         parser.feed(path.read_text(encoding="utf-8",errors="replace"))
@@ -72,7 +72,7 @@ def export():
         if not all((name,brand,image,url)) or not str(image).startswith("https://") or not url.startswith("https://supgo.co/productos/"):continue
         if BLOCKED.search(" ".join((name,brand,item.get("categoria") or ""))):continue
         if not isinstance(price,(int,float)) or price<=0:continue
-        description=re.sub(r"\\s+"," ",re.sub(r"<[^>]*>"," ",data.get("description") or page.get("description") or name)).strip()[:5000]
+        description=re.sub(r"\s+"," ",re.sub(r"<[^>]*>"," ",data.get("description") or page.get("description") or name)).strip()[:5000]
         record={"item_id":str(id),"title":name[:150],"description":description,"url":url,"brand":brand,"seller_name":"Lift Nutrientes","image_url":image,"price":f"{int(price)} COP","availability":status(data)}
         rows.append(record)
     if not rows:raise ValueError("No se generaron productos elegibles; se conserva el feed anterior")
@@ -80,8 +80,8 @@ def export():
     with (OUT/"productos-chatgpt.csv").open("w",encoding="utf-8",newline="") as f:
         writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
     with (OUT/"productos-chatgpt.jsonl").open("w",encoding="utf-8") as f:
-        for row in rows:f.write(json.dumps(row,ensure_ascii=False)+"\\n")
+        for row in rows:f.write(json.dumps(row,ensure_ascii=False)+"\n")
     summary={"productos_publicados":len(rows),"sin_stock_verificado":sum(x["availability"]=="unknown" for x in rows),"excluidos_o_sin_pagina":len(products)-len(rows)}
-    (OUT/"estado-feed.json").write_text(json.dumps(summary,indent=2,ensure_ascii=False)+"\\n",encoding="utf-8")
+    (OUT/"estado-feed.json").write_text(json.dumps(summary,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps(summary,ensure_ascii=False))
 if __name__=="__main__":export()
