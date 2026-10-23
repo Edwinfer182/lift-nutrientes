@@ -1,0 +1,84 @@
+name: Instalar Instagram SEO en panel administrativo
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lift-instagram-seo-admin
+  cancel-in-progress: false
+jobs:
+  instalar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Validar archivos
+        run: |
+          test -s index.html
+          test -s modulos/instagram-seo.js
+      - name: Instalar acceso al modulo sin alterar el catalogo
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          html=p.read_text(encoding='utf-8')
+          marker='<!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->'
+          if marker in html:
+              print('Instagram SEO ya instalado: sin duplicados')
+              raise SystemExit(0)
+          if '</body>' not in html.lower():
+              raise SystemExit('ERROR: index.html no contiene cierre body; no se modifica')
+          snippet=r"""
+          <!-- LIFT-INSTAGRAM-SEO-ADMIN-V1 -->
+          <script src="/modulos/instagram-seo.js" defer></script>
+          <script>
+          (function(){
+            'use strict';
+            function install(){
+              if(document.getElementById('lift-ig-seo-launcher'))return;
+              // Solo en la vista administrativa; no agregar controles al catálogo público.
+              const qs=new URLSearchParams(location.search);
+              const adminParam=[...qs.keys()].some(k=>/admin|panel|gestor/i.test(k));
+              const adminDOM=!!document.querySelector('[data-admin-panel],#adminPanel,#admin-panel,.admin-panel');
+              if(!adminParam&&!adminDOM)return;
+              const b=document.createElement('button');
+              b.id='lift-ig-seo-launcher';b.type='button';b.textContent='Instagram SEO';
+              b.style.cssText='position:fixed;right:18px;bottom:88px;z-index:99990;background:#111;color:#fff;border:0;border-radius:12px;padding:12px 16px;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 4px 15px #0003;cursor:pointer';
+              b.onclick=function(){
+                if(!window.LiftInstagramSEO){alert('El módulo Instagram SEO no terminó de cargar');return}
+                const nombre=prompt('Nombre del producto (puedes copiarlo del catálogo):');
+                if(!nombre||!nombre.trim())return;
+                window.LiftInstagramSEO.open({nombre:nombre.trim()});
+              };
+              document.body.appendChild(b);
+            }
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+            const obs=new MutationObserver(()=>{if(!document.getElementById('lift-ig-seo-launcher'))install()});
+            obs.observe(document.documentElement,{childList:true,subtree:true});
+          })();
+          </script>
+          """
+          idx=html.lower().rfind('</body>')
+          html=html[:idx]+snippet+'\n'+html[idx:]
+          p.write_text(html,encoding='utf-8')
+          print('Instalado lanzador de Instagram SEO en index.html')
+          PY
+      - name: Validar instalacion
+        run: |
+          grep -q 'LIFT-INSTAGRAM-SEO-ADMIN-V1' index.html
+          grep -q 'window.LiftInstagramSEO' modulos/instagram-seo.js
+      - name: Publicar cambios al repositorio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: acceso Instagram SEO en panel administrativo"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          else
+            echo "Sin cambios pendientes"
+          fi
