@@ -25,12 +25,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          for folder in productos categorias laboratorios ofertas checkout mi-pedido mis-pedidos favoritos buscar carrito entrenadores; do
-            if [ -d "$folder" ]; then git add -A -- "$folder"; fi
-          done
+          # Incluir todas las páginas generadas y cambios rastreados antes de rebase.
+          git add -A
+          git status --short | tail -n 15
           if ! git diff --cached --quiet; then
             git commit -m "Usar favicon del index en paginas publicas"
-            git pull --rebase -X theirs origin main
+            git fetch origin main
+            git rebase -X theirs origin/main
             git push origin HEAD:main
           fi
