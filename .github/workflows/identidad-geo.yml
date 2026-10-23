@@ -30,7 +30,7 @@ jobs:
           import re,json
           p=Path("productos/iso-100-5-lb-dunkin-mocha-latte-901284.html")
           html=p.read_text(encoding="utf8")
-          blocks=re.findall(r'<script type="application/ld\\+json">(.*?)</script>',html,re.S)
+          blocks=re.findall(r'<script type="application/ld[+]json">(.*?)</script>',html,re.S)
           assert any((lambda x: x.get("@id")=="https://supgo.co/#organization")(json.loads(x)) for x in blocks)
           print("Identidad GEO presente en ficha ISO100")
           PY
