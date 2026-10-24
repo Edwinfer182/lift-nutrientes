@@ -74,7 +74,7 @@ def read(record, *keys):
 def template(kind, title, url_slug, count, image_url=''):
     plural = "categorias" if kind == "categoria" else "laboratorios"
     heading = escape(title)
-    description = f"Compra productos de {title} en SUPGO. Consulta suplementos disponibles, precios y presentaciones."
+    description = (f"Compra suplementos de {title} en Medellín con Lift Nutrientes. Consulta productos, precios y disponibilidad. Envíos a Bogotá, Cali y Colombia." if kind == "laboratorio" else f"Compra {title} en Medellín con Lift Nutrientes. Encuentra suplementos, precios y presentaciones. Envíos a Bogotá, Cali y toda Colombia.")[:160]
     canonical = f"https://supgo.co/{plural}/{url_slug}/"
     safe_title = escape(f"{title} en Medellín | SUPGO" if kind == "laboratorio" else f"{title} | SUPGO", quote=True)
     safe_description = escape(description, quote=True)
