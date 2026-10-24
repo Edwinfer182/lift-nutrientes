@@ -241,16 +241,16 @@ def build(row):
  except (ValueError,TypeError):valid_price=False;amount=0
  title=str(embedded.get("title") or seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
  seo_description=seo_plain(embedded.get("html") or seo_data.get("descripcion_larga_html"))
-  # Meta única por ficha: prioridad a nombre y marca, con enfoque local real.
-  # No reutilizar textos heredados de WordPress ni descripciones genéricas.
-  product_label=name if not brand or brand.casefold() in name.casefold() else f"{name} de {brand}"
-  meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y Colombia."
-  if len(meta)>160:
-   meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precios y disponibilidad. Envíos a toda Colombia."
-  if len(meta)>160:
-   prefix="Compra "
-   suffix=" en Medellín con Lift Nutrientes. Envíos a Colombia."
-   meta=prefix+product_label[:160-len(prefix)-len(suffix)].rstrip()+suffix
+ # Meta única por ficha: prioridad a nombre y marca, con enfoque local real.
+ # No reutilizar textos heredados de WordPress ni descripciones genéricas.
+ product_label=name if not brand or brand.casefold() in name.casefold() else f"{name} de {brand}"
+ meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y Colombia."
+ if len(meta)>160:
+  meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precios y disponibilidad. Envíos a toda Colombia."
+ if len(meta)>160:
+  prefix="Compra "
+  suffix=" en Medellín con Lift Nutrientes. Envíos a Colombia."
+  meta=prefix+product_label[:160-len(prefix)-len(suffix)].rstrip()+suffix
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(embedded.get("sku") or p.get("sku") or pid)}
  settings=row.get("_merchant_settings") or {}
  for source,target in (("gtin","gtin"),("gtin8","gtin8"),("color","color"),("material","material"),("size","size")):
