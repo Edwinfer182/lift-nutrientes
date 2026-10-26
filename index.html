@@ -14875,6 +14875,46 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+<!-- LIFT-FIX-TOOLS-CHECKOUT-20261025 -->
+<style>
+  body.lift-checkout-tools-hidden .liftAdminToolsRow,
+  body.lift-checkout-tools-hidden #lift-ig-seo-launcher {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+</style>
+<script>
+(() => {
+  let pending = false;
+  function visible(el) {
+    if (!el) return false;
+    const st = getComputedStyle(el);
+    const r = el.getBoundingClientRect();
+    return st.display !== 'none' && st.visibility !== 'hidden' &&
+      Number(st.opacity) > 0 && r.width > 100 && r.height > 100 &&
+      r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+  }
+  function sync() {
+    pending = false;
+    const checkout = document.getElementById('checkoutModal');
+    document.body.classList.toggle('lift-checkout-tools-hidden', visible(checkout));
+  }
+  function schedule() {
+    if (!pending) { pending = true; requestAnimationFrame(sync); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule);
+  else schedule();
+  new MutationObserver(schedule).observe(document.documentElement, {
+    attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open'],
+    subtree: true, childList: true
+  });
+  document.addEventListener('click', schedule, true);
+  document.addEventListener('transitionend', schedule, true);
+  window.addEventListener('resize', schedule);
+})();
+</script>
+
 </body>
 </html>
 
