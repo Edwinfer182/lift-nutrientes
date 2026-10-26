@@ -868,7 +868,7 @@ def main():
   if "/catalogo/assets/producto.css" not in old_html and "/catalogo/assets/producto.js" not in old_html:
    continue
   product_schema=None
-  for raw_schema in re.findall(r'<script[^>]*type=[^>]*application/ld\+json[^>]*>(.*?)</script>',old_html,re.S|re.I):
+  for raw_schema in re.findall(r"<script[^>]*application/ld.json[^>]*>(.*?)</script>", old_html, re.S | re.I):
    try:
     obj=json.loads(raw_schema)
    except (ValueError,TypeError):
