@@ -36,6 +36,11 @@ jobs:
               end=html.find('</script>',html.find('</script>',start)+len('</script>'))
               if end<0: raise SystemExit('Bloque V1 incompleto; no se modifica')
               html=html[:start]+html[end+len('</script>'):]
+          if marker in html:
+              import re
+              pattern=re.compile(r'<!-- LIFT-INSTAGRAM-SEO-ADMIN-V2 -->.*?</script>\s*<script>.*?</script>',re.S)
+              html,n=pattern.subn('',html,count=1)
+              if n!=1: raise SystemExit('No se pudo sustituir V2 con seguridad')
           if marker not in html:
               if '</body>' not in html.lower(): raise SystemExit('No existe cierre body')
               snippet="""<!-- LIFT-INSTAGRAM-SEO-ADMIN-V2 -->
