@@ -76,12 +76,14 @@ jobs:
               }catch(e){list.textContent=e.message}
             }
             function mount(){
-              const anchor=document.querySelector('.liftOrdersTabs')||document.querySelector('#lift-admin-delete-order')||document.querySelector('[class*=liftOrdersTabs]');
-              if(document.getElementById('lift-trainer-admin-open'))return;
-              const target=anchor||document.querySelector('#lift-trainer-admin-open-anchor')||document.querySelector('main')||document.body;
+              const anchor=document.querySelector('#checkoutModal .liftAdminToolsRow');
+              if(!anchor || !document.body.classList.contains('liftAdminUnlocked'))return;
+              const existing=document.getElementById('lift-trainer-admin-open');
+              if(existing){if(!anchor.contains(existing)){existing.style.cssText='position:static;margin:6px;padding:10px 14px;background:#111;color:#fff;border:0;border-radius:9px;box-shadow:none';anchor.appendChild(existing);}return;}
+              const target=anchor;
               const btn=document.createElement('button');btn.id='lift-trainer-admin-open';btn.type='button';btn.textContent='🏋 Entrenadores';
-              if(anchor)anchor.insertAdjacentElement('afterend',btn);else document.body.append(btn);
-              btn.style.cssText='position:fixed;right:18px;bottom:90px;z-index:2147483500;background:#111;color:#fff;border-radius:999px;padding:12px 18px;box-shadow:0 4px 18px #0005';
+              target.appendChild(btn);
+              btn.style.cssText='position:static;margin:6px;padding:10px 14px;background:#111;color:#fff;border:0;border-radius:9px;box-shadow:none';
               btn.onclick=()=>{if(!pass()){alert('Inicia sesión como administrador para gestionar entrenadores.');return;}modal.classList.add('lift-open');load()};
             }
             document.getElementById('lift-trainer-admin-close').onclick=()=>modal.classList.remove('lift-open');
@@ -92,7 +94,7 @@ jobs:
               catch(err){msg.textContent=err.message}
             };
             if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
-            new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});
+            new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
           })();
           </script>
           """
