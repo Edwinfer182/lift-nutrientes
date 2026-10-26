@@ -283,6 +283,8 @@ def build(row):
  if embedded.get("manufacturer"):product_schema["manufacturer"]={"@type":"Organization","name":brand,"url":str(embedded["manufacturer"])} if str(embedded["manufacturer"]).startswith(("https://","http://")) else {"@type":"Organization","name":str(embedded["manufacturer"])}
  if image:product_schema["image"]=[image]
  product_schema["description"]=(seo_description or description or meta)[:5000]
+ if brand.strip().casefold()=="applied nutrition":
+  product_schema["description"]=meta
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
  for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
   value=p.get(source)
