@@ -22,7 +22,7 @@
   toggle.addEventListener('click',()=>open(dock.dataset.open!=='true'));
   document.addEventListener('pointerdown',e=>{if(!dock.contains(e.target))open(false)},true);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')open(false)});
-  const key=/^(instagram(?: seo)?|wp herramientas|herramientas wp|herramientas seo|seo|envío|envio|atención|atencion|pedidos|cartera|cartera proveedores|crm[^]*|pagos|calculadora|carritos abandonados|pdf|instagram seo|herramientas)$/i;
+  const key=/^(instagram(?: seo)?|wp herramientas|herramientas wp|herramientas seo|seo|envío|envio|atención|atencion|pedidos|cartera|cartera proveedores|crm.*|pagos|calculadora|carritos abandonados|pdf|inst.*|herramientas)$/i;
   let queued=false;
   function update(){
     queued=false;
@@ -35,7 +35,7 @@
     const candidates=[...document.querySelectorAll('button,a')];
     for(const el of candidates){
       if(dock.contains(el)||el.closest('#checkoutModal')||el.closest('[role="dialog"]'))continue;
-      const label=(el.textContent||'').trim().replace(/\\s+/g,' ');
+      const label=(el.textContent||'').replace(/[^\\p{L}\\p{N} .·-]/gu,' ').trim().replace(/\\s+/g,' ');
       if(!key.test(label))continue;
       const css=getComputedStyle(el);
       let fixed=css.position==='fixed';
@@ -49,6 +49,18 @@
       if(!fixed && el.id!=='lift-ig-seo-launcher')continue;
       if(/^herramientas$/i.test(label)){el.classList.add('lift-legacy-tools-toggle');continue}
       panel.appendChild(el);
+    }
+    // Suprimir exclusivamente paneles fijos que quedaron vacios al mover sus controles.
+    for(const wrapper of [...document.querySelectorAll('body > div, body > aside, body > section')]){
+      if(wrapper===dock || wrapper.contains(dock) || wrapper.contains(panel))continue;
+      if(wrapper.matches('#checkoutModal, [role="dialog"]'))continue;
+      const st=getComputedStyle(wrapper);
+      if(st.position!=='fixed')continue;
+      const own=wrapper.querySelectorAll('button,a,[role="button"]');
+      if(own.length===0 && wrapper.querySelectorAll('input,textarea,select').length===0 &&
+        /envío|atención|pedidos|cartera|crm|instagram|calculadora/i.test(wrapper.textContent||'')){
+        wrapper.style.setProperty('display','none','important');
+      }
     }
     dock.hidden=panel.querySelectorAll('button:not(.lift-legacy-tools-toggle),a').length===0;
   }
