@@ -1,46 +1,39 @@
-/* Lift admin tools: checkout only. No global floating menu. */
+/* Solo tres accesos en la fila administrativa original del checkout. */
 (() => {
-  if (window.__liftCheckoutToolsFixed) return;
-  window.__liftCheckoutToolsFixed = true;
+  if (window.__liftThreeToolsInCheckout) return;
+  window.__liftThreeToolsInCheckout=true;
   const style=document.createElement('style');
   style.textContent=`
-    #lift-tools-dock{display:none!important}
-    #lift-checkout-admin-tools{position:relative!important;inset:auto!important;z-index:1!important;display:block!important;width:100%!important;max-width:100%!important;margin:14px 0!important;padding:10px!important;box-sizing:border-box!important;background:#f8f8f8!important;border:1px solid #dedede!important;border-radius:14px!important}
-    #lift-checkout-admin-tools summary{cursor:pointer;list-style:none;padding:9px 6px;font:600 14px Poppins,Arial,sans-serif;color:#111}
-    #lift-checkout-admin-tools summary::-webkit-details-marker{display:none}
-    #lift-checkout-admin-content{display:flex;flex-direction:column;gap:8px;max-height:48dvh;overflow-y:auto;overscroll-behavior:contain;padding:8px 0}
-    #lift-checkout-admin-content .liftAdminToolsRow{position:static!important;inset:auto!important;transform:none!important;display:flex!important;flex-direction:column!important;width:100%!important;height:auto!important;gap:8px!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;margin:0!important;padding:0!important}
-    #lift-checkout-admin-content button,#lift-checkout-admin-content a{position:static!important;inset:auto!important;transform:none!important;display:flex!important;width:100%!important;min-height:42px!important;height:auto!important;justify-content:center!important;align-items:center!important;margin:0!important;padding:8px!important;box-sizing:border-box!important;white-space:normal!important}
+    #lift-tools-dock,#lift-checkout-admin-tools{display:none!important}
+    #checkoutModal .liftAdminToolsRow #lift-trainer-admin-open,
+    #checkoutModal .liftAdminToolsRow #lift-ig-seo-launcher,
+    #checkoutModal .liftAdminToolsRow .lift-moved-seo-button{
+      position:static!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;
+      transform:none!important;float:none!important;z-index:auto!important;
+      width:auto!important;max-width:100%!important;height:auto!important;min-height:40px!important;
+      margin:4px!important;box-shadow:none!important;
+    }
   `;
   document.head.appendChild(style);
-  const details=document.createElement('details');
-  details.id='lift-checkout-admin-tools';
-  details.innerHTML='<summary>⚙ Herramientas administrativas</summary><div id="lift-checkout-admin-content"></div>';
-  const contents=details.querySelector('#lift-checkout-admin-content');
   let scheduled=false;
-  function install(){
+  function move(){
     scheduled=false;
-    const checkout=document.getElementById('checkoutModal');
-    if(!checkout || !document.body.classList.contains('liftAdminUnlocked')) {
-      if(details.isConnected)details.remove();
-      return;
-    }
-    const row=document.querySelector('#checkoutModal .liftAdminToolsRow') ||
-              document.querySelector('body > .liftAdminToolsRow') ||
-              [...document.querySelectorAll('.liftAdminToolsRow')].find(x=>!contents.contains(x));
-    if(!row && !contents.querySelector('button,a'))return;
-    if(!checkout.contains(details)) {
-      const target=checkout.querySelector('.modal-body,.checkout-body,.offcanvas-body,[class*="modal-content"]')||checkout;
-      target.appendChild(details);
-    }
-    if(row && !contents.contains(row))contents.appendChild(row);
-    // Only relocate the known Instagram launcher if it was independently mounted.
+    if(!document.body?.classList.contains('liftAdminUnlocked'))return;
+    const row=document.querySelector('#checkoutModal .liftAdminToolsRow');
+    if(!row)return;
+    const trainer=document.getElementById('lift-trainer-admin-open');
+    if(trainer && !row.contains(trainer)){trainer.removeAttribute('style');row.appendChild(trainer)}
     const ig=document.getElementById('lift-ig-seo-launcher');
-    if(ig && !contents.contains(ig))contents.appendChild(ig);
+    if(ig && !row.contains(ig))row.appendChild(ig);
+    const seo=[...document.querySelectorAll('button,a')].find(el=>{
+      if(row.contains(el)||el.closest('#checkoutModal')||el.id==='lift-tools-toggle')return false;
+      const t=(el.textContent||'').trim().replace(/\\s+/g,' ');
+      return /^(?:seo|seo productos|seo web|seo administrador)$/i.test(t) && 
+        (getComputedStyle(el).position==='fixed'||getComputedStyle(el.parentElement||el).position==='fixed');
+    });
+    if(seo){seo.removeAttribute('style');seo.classList.add('lift-moved-seo-button');row.appendChild(seo)}
   }
-  function schedule(){
-    if(!scheduled){scheduled=true;requestAnimationFrame(install)}
-  }
+  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(move)}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);
   else schedule();
   new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
