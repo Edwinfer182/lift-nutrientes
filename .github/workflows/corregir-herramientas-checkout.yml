@@ -1,0 +1,87 @@
+name: Corregir herramientas flotantes en checkout
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/corregir-herramientas-checkout.yml'
+permissions:
+  contents: write
+concurrency:
+  group: lift-correccion-herramientas-checkout
+  cancel-in-progress: false
+jobs:
+  corregir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Ocultar herramientas administrativas mientras checkout esta abierto
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '<!-- LIFT-FIX-TOOLS-CHECKOUT-20261025 -->'
+          if marker in s:
+              print('Correccion ya instalada')
+          else:
+              assert '</body>' in s.lower(), 'index.html sin cierre body'
+              patch = """<!-- LIFT-FIX-TOOLS-CHECKOUT-20261025 -->
+          <style>
+            body.lift-checkout-tools-hidden .liftAdminToolsRow,
+            body.lift-checkout-tools-hidden #lift-ig-seo-launcher {
+              display: none !important;
+              visibility: hidden !important;
+              pointer-events: none !important;
+            }
+          </style>
+          <script>
+          (() => {
+            let pending = false;
+            function visible(el) {
+              if (!el) return false;
+              const st = getComputedStyle(el);
+              const r = el.getBoundingClientRect();
+              return st.display !== 'none' && st.visibility !== 'hidden' &&
+                Number(st.opacity) > 0 && r.width > 100 && r.height > 100 &&
+                r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+            }
+            function sync() {
+              pending = false;
+              const checkout = document.getElementById('checkoutModal');
+              document.body.classList.toggle('lift-checkout-tools-hidden', visible(checkout));
+            }
+            function schedule() {
+              if (!pending) { pending = true; requestAnimationFrame(sync); }
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule);
+            else schedule();
+            new MutationObserver(schedule).observe(document.documentElement, {
+              attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open'],
+              subtree: true, childList: true
+            });
+            document.addEventListener('click', schedule, true);
+            document.addEventListener('transitionend', schedule, true);
+            window.addEventListener('resize', schedule);
+          })();
+          </script>
+          """
+              pos = s.lower().rfind('</body>')
+              s = s[:pos] + patch + '\n' + s[pos:]
+              p.write_text(s, encoding='utf-8')
+          assert marker in p.read_text(encoding='utf-8')
+          PY
+      - name: Guardar cambio y republicar en main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: ocultar herramientas flotantes en checkout movil"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          else
+            echo "Correccion ya presente"
+          fi
