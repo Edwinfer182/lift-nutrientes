@@ -45,7 +45,17 @@ jobs:
             function install(){
               if(!document.body.classList.contains('liftAdminUnlocked'))return;
               const row=document.querySelector('#checkoutModal .liftAdminToolsRow') || document.querySelector('.liftAdminToolsRow');
-              if(!row||row.querySelector('#lift-ig-seo-launcher'))return;
+              if(!row)return;
+              // Mantener el boton del checkout y eliminar solamente copias flotantes adicionales.
+              const candidates=[...document.querySelectorAll('button,a')].filter(x=>
+                x.id==='lift-ig-seo-launcher' || (x.textContent||'').trim()==='Instagram SEO');
+              for(const x of candidates){
+                if(row.contains(x))continue;
+                const pos=getComputedStyle(x).position;
+                const parentPos=x.parentElement?getComputedStyle(x.parentElement).position:'';
+                if(pos==='fixed'||parentPos==='fixed')x.remove();
+              }
+              if(row.querySelector('#lift-ig-seo-launcher'))return;
               const btn=document.createElement('button');
               btn.type='button';btn.id='lift-ig-seo-launcher';btn.textContent='Instagram SEO';
               btn.onclick=function(){
