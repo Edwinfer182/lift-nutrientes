@@ -29,6 +29,8 @@ jobs:
           s=p.read_text(encoding='utf-8')
           assert len(s)>10000 and '</body>' in s.lower()
           # No modificar formularios, productos, pagos ni estilos originales del checkout.
+          # Retirar el parche inline antiguo que ocultaba herramientas durante el checkout.
+          s=re.sub(r'<!-- LIFT-FIX-TOOLS-CHECKOUT-20261025 -->\\s*<style>.*?</style>\\s*<script>.*?</script>','',s,flags=re.I|re.S)
           s=re.sub(r'<!-- LIFT-GLOBAL-ADMIN-TOOLS-20261025 -->','',s)
           s=re.sub(r'<script\b[^>]*\bsrc\s*=\s*["\x27]/modulos/herramientas-flotantes\.js[^"\x27]*["\x27][^>]*>\s*</script>','',s,flags=re.I)
           marker='<!-- LIFT-THREE-ADMIN-CHECKOUT-20261025 -->'
