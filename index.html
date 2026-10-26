@@ -11909,7 +11909,7 @@ window.liftAdminAvailability=async function(id,available,btn){
   function openPublicOrderFromUrl(){
     const q=new URLSearchParams(location.search);
     const id=String(q.get('pedido')||'').replace(/\D/g,'');
-    if(!id)return;
+    if(!id || q.get('token'))return; // El autoload con token gestiona esta URL.
     setTimeout(()=>{
       try{
         if(typeof window.liftOpenTrack==='function')window.liftOpenTrack();
@@ -12125,9 +12125,19 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    await window.liftTrackOrder(token||undefined);
   }catch(e){console.warn('LIFT order URL:',e)}
  }
- if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(openOrderFromUrl,350));
- else setTimeout(openOrderFromUrl,350);
- window.addEventListener('pageshow',()=>setTimeout(openOrderFromUrl,250));
+ // Una sola apertura por navegación. pageshow inicial no debe duplicar DOMContentLoaded.
+ let opening=false, opened=false;
+ const openOnce=async()=>{
+   if(opening||opened)return;
+   opening=true;
+   try{await openOrderFromUrl();opened=true;}finally{opening=false;}
+ };
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(openOnce,350),{once:true});
+ else setTimeout(openOnce,350);
+ window.addEventListener('pageshow',(event)=>{
+   // Safari puede emitir pageshow en la primera carga y al volver desde caché.
+   if(event.persisted) setTimeout(()=>{opened=false;openOnce();},250);
+ });
 })();
 </script>
 
