@@ -1,25 +1,24 @@
-name: Restaurar checkout y ubicar tres accesos administrativos
+name: Revertir parches de botones y recuperar checkout
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - '.github/workflows/corregir-herramientas-checkout.yml'
-      - 'modulos/herramientas-flotantes.js'
 permissions:
   contents: write
 concurrency:
   group: lift-checkout-admin-tools
   cancel-in-progress: false
 jobs:
-  reparar:
+  revertir:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           persist-credentials: true
-      - name: Eliminar los parches previos del checkout y mantener solo tres botones
+      - name: Eliminar exclusivamente inserciones recientes
         shell: bash
         run: |
           python3 - <<'PY'
@@ -28,29 +27,27 @@ jobs:
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           assert len(s)>10000 and '</body>' in s.lower()
-          # No modificar formularios, productos, pagos ni estilos originales del checkout.
-          # Retirar el parche inline antiguo que ocultaba herramientas durante el checkout.
-          s=re.sub(r'<!-- LIFT-FIX-TOOLS-CHECKOUT-20261025 -->\\s*<style>.*?</style>\\s*<script>.*?</script>','',s,flags=re.I|re.S)
-          s=re.sub(r'<!-- LIFT-GLOBAL-ADMIN-TOOLS-20261025 -->','',s)
+          original=len(s)
+          s=re.sub(r'<!-- LIFT-FIX-TOOLS-CHECKOUT-20261025 -->\s*<style>.*?</style>\s*<script>.*?</script>', '',s, flags=re.I|re.S)
+          for marker in ('<!-- LIFT-GLOBAL-ADMIN-TOOLS-20261025 -->','<!-- LIFT-THREE-ADMIN-CHECKOUT-20261025 -->'):
+              s=s.replace(marker,'')
           s=re.sub(r'<script\b[^>]*\bsrc\s*=\s*["\x27]/modulos/herramientas-flotantes\.js[^"\x27]*["\x27][^>]*>\s*</script>','',s,flags=re.I)
-          marker='<!-- LIFT-THREE-ADMIN-CHECKOUT-20261025 -->'
-          s=s.replace(marker,'')
-          snippet=marker+'\n<script src="/modulos/herramientas-flotantes.js?v=20261025-7" defer></script>\n'
-          pos=s.lower().rfind('</body>')
-          s=s[:pos]+snippet+s[pos:]
-          assert s.count('src="/modulos/herramientas-flotantes.js')==1
+          assert '</body>' in s.lower() and len(s)>10000
+          assert 'LIFT-THREE-ADMIN-CHECKOUT-20261025' not in s
+          assert '/modulos/herramientas-flotantes.js' not in s
           p.write_text(s,encoding='utf-8')
+          print('Rollback completo. Bytes antes:',original,'despues:',len(s))
           PY
-      - name: Guardar cambios en rama principal
+      - name: Publicar rollback
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if ! git diff --cached --quiet; then
-            git commit -m "fix: checkout original y accesos entrenador SEO Instagram"
+            git commit -m "revert: eliminar inserciones flotantes y restaurar checkout"
             git pull --rebase origin main
             git push origin HEAD:main
           else
-            echo "El index ya contiene la nueva integracion"
+            echo "No quedan inserciones que revertir"
           fi
