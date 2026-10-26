@@ -1,4 +1,4 @@
-name: Organizar herramientas flotantes globales
+name: Mover herramientas administrativas al checkout
 on:
   workflow_dispatch:
   push:
@@ -30,7 +30,7 @@ jobs:
           # Renovar la URL del modulo con cada version para evitar cache persistente.
           s=re.sub(r'<script\\s+src=["\\']/modulos/herramientas-flotantes\\.js[^"\\']*["\\']\\s+defer></script>', '', s, flags=re.I)
           s=s.replace(marker, '')
-          script=marker+'\\n<script src="/modulos/herramientas-flotantes.js?v=20261025-3" defer></script>\\n'
+          script=marker+'\\n<script src="/modulos/herramientas-flotantes.js?v=20261025-4" defer></script>\\n'
           at=s.lower().rfind('</body>')
           assert at>=0, 'index.html no tiene cierre body'
           s=s[:at]+script+s[at:]
