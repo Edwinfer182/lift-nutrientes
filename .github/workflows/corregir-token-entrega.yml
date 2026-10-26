@@ -1,0 +1,42 @@
+name: Corregir token entrega entre navegadores
+on:
+  push:
+    paths:
+      - 'scripts/corregir_token_entrega_compartido.py'
+      - '.github/workflows/corregir-token-entrega.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: corregir-token-entrega
+  cancel-in-progress: false
+jobs:
+  corregir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Aplicar corrección mínima al index
+        run: python scripts/corregir_token_entrega_compartido.py
+      - name: Verificar cambio
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          assert "const alreadyTaken=Boolean(p.already_taken)||decision==='accepted';" in s
+          print("Verificado: consulta estado persistido en Supabase")
+          PY
+      - name: Publicar index corregido
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: token tomado se respeta en cualquier navegador"
+            git pull --rebase origin main
+            git push origin main
+          fi
