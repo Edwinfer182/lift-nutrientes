@@ -774,6 +774,14 @@ def main():
  urls=[]
  for row in valid:
   filename,content=build_direct(row,shared)
+  # Mantener la URL histórica de Hyper ID 450, pero usar la plantilla SEO vigente.
+  # La ficha heredada apuntaba a /catalogo/assets/producto.css y .js inexistentes.
+  if str(row["id"])=="450":
+   legacy_filename="factor-sabor-lemon-lychee-30serv-bcaa-hyper.html"
+   generated_url=BASE+"/productos/"+filename
+   legacy_url=BASE+"/productos/"+legacy_filename
+   content=content.replace(generated_url,legacy_url)
+   filename=legacy_filename
   destination=OUT/filename
   # Protección: nunca reemplazar fichas existentes salvo autorización explícita.
   if not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
