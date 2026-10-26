@@ -770,23 +770,42 @@ def main():
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and (cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat)][:12]
  OUT.mkdir(exist_ok=True)
- shared=None  # Las fichas usan estilos propios y no heredan la skin del index.
+ shared=None  # Conservar la plantilla SEO moderna existente.
+ # Detectar fichas antiguas que dependen de assets /catalogo/assets/ inexistentes.
+ # Asociar por ID real para mantener todas sus URL publicadas, sin cambiar slugs.
+ legacy_by_id={}
+ for old_page in OUT.glob("*.html"):
+  try:
+   old_html=old_page.read_text(encoding="utf-8")
+  except (OSError,UnicodeError):
+   continue
+  if not any(asset in old_html for asset in ("/catalogo/assets/producto.css","/catalogo/assets/producto.js")):
+   continue
+  match=re.search(r'<body\\b[^>]*\\bdata-id=["\\\'](\\d+)["\\\']',old_html,re.I)
+  if not match:
+   match=re.search(r'"sku"\\s*:\\s*"LIFT-(\\d+)"',old_html,re.I)
+  if match:
+   legacy_by_id.setdefault(match.group(1),[]).append(old_page.name)
+  else:
+   print("Ficha antigua sin ID identificable, revisar:",old_page.name)
+ print("Fichas heredadas detectadas:",sum(map(len,legacy_by_id.values())))
  urls=[]
+ repaired_legacy=0
  for row in valid:
   filename,content=build_direct(row,shared)
-  # Mantener la URL histórica de Hyper ID 450, pero usar la plantilla SEO vigente.
-  # La ficha heredada apuntaba a /catalogo/assets/producto.css y .js inexistentes.
-  if str(row["id"])=="450":
-   legacy_filename="factor-sabor-lemon-lychee-30serv-bcaa-hyper.html"
-   generated_url=BASE+"/productos/"+filename
-   legacy_url=BASE+"/productos/"+legacy_filename
-   content=content.replace(generated_url,legacy_url)
-   filename=legacy_filename
-  destination=OUT/filename
-  # Protección: nunca reemplazar fichas existentes salvo autorización explícita.
-  if not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
-   destination.write_text(content,encoding="utf-8")
-  if row.get("_indexable",True): urls.append(BASE+"/productos/"+filename)
+  generated_url=BASE+"/productos/"+filename
+  # Actualizar tanto la URL vigente como cualquier URL heredada del mismo producto.
+  names=list(dict.fromkeys([filename]+legacy_by_id.get(str(row["id"]),[])))
+  for target_name in names:
+   destination=OUT/target_name
+   target_content=content.replace(generated_url,BASE+"/productos/"+target_name) if target_name!=filename else content
+   # Las heredadas rotas se reparan incluso sin SEO_OVERWRITE_EXISTING.
+   is_legacy=target_name in legacy_by_id.get(str(row["id"]),[])
+   if is_legacy or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
+    destination.write_text(target_content,encoding="utf-8")
+    if is_legacy:repaired_legacy+=1
+  if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
+ print("Fichas heredadas reparadas:",repaired_legacy)
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas SEO independientes sin skin.")
