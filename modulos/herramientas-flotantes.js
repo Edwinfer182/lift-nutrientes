@@ -10,7 +10,7 @@
     #lift-tools-dock[data-open="true"] #lift-tools-panel{display:flex!important;flex-direction:column;gap:8px}
     #lift-tools-panel .liftAdminToolsRow,#lift-tools-panel .lift-admin-floating-group{position:static!important;inset:auto!important;transform:none!important;display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;max-width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important}
     #lift-tools-panel button:not(#lift-tools-toggle),#lift-tools-panel a{position:static!important;inset:auto!important;transform:none!important;float:none!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;min-height:42px!important;height:auto!important;margin:0!important;white-space:normal!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;box-sizing:border-box!important}
-    #lift-tools-panel .lift-legacy-tools-toggle{display:none!important}
+    body.liftAdminUnlocked .lift-legacy-tools-toggle{display:none!important}
     body.lift-checkout-tools-hidden #lift-tools-dock{display:none!important}
   `;
   document.head.appendChild(style);
