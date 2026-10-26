@@ -788,6 +788,36 @@ def main():
    legacy_by_id.setdefault(match.group(1),[]).append(old_page.name)
   else:
    print("Ficha antigua sin ID identificable, revisar:",old_page.name)
+ # Los ID de las fichas HTML históricas pueden pertenecer al catálogo previo.
+ # Relacionar también por slug completo nombre+marca, con coincidencia única.
+ legacy_by_name={}
+ for old_page in OUT.glob("*.html"):
+  try:
+   old_html=old_page.read_text(encoding="utf-8")
+  except (OSError,UnicodeError):
+   continue
+  if "/catalogo/assets/producto.css" not in old_html and "/catalogo/assets/producto.js" not in old_html:
+   continue
+  key=old_page.stem.casefold()
+  legacy_by_name.setdefault(key,[]).append(old_page.name)
+ # Construir índice solo de nombres inequívocos para evitar cruzar productos.
+ name_keys={}
+ for item in rows:
+  if not allowed(item):continue
+  product=item["product"]
+  product_name=str(product.get("name") or product.get("nombre") or "")
+  product_brand=str(product.get("brand") or product.get("marca") or "")
+  candidates={slug(product_name),slug(product_name+" "+product_brand)}
+  for candidate in candidates:
+   if candidate:name_keys.setdefault(candidate,set()).add(str(item["id"]))
+ name_to_id={key:next(iter(ids)) for key,ids in name_keys.items() if len(ids)==1}
+ for key,old_files in legacy_by_name.items():
+  product_id=name_to_id.get(key)
+  if product_id:
+   bucket=legacy_by_id.setdefault(product_id,[])
+   for old_name in old_files:
+    if old_name not in bucket:bucket.append(old_name)
+ print("Fichas heredadas asociadas por ID o nombre:",sum(map(len,legacy_by_id.values())))
  print("Fichas heredadas detectadas:",sum(map(len,legacy_by_id.values())))
  # Las URL antiguas no pueden quedar fuera por cambios en los filtros de generación.
  # Solo se recuperan registros públicos y activos; nunca publicar productos privados.
