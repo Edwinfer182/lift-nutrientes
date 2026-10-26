@@ -817,6 +817,21 @@ def main():
    bucket=legacy_by_id.setdefault(product_id,[])
    for old_name in old_files:
     if old_name not in bucket:bucket.append(old_name)
+ # Comparar también el título real del HTML legado (no solo el nombre del archivo).
+ # Los slugs históricos incluían abreviaturas distintas a las del catálogo.
+ for old_key,old_files in legacy_by_name.items():
+  if any(old_name in names for names in legacy_by_id.values() for old_name in old_files):
+   continue
+  old_html=(OUT/old_files[0]).read_text(encoding="utf-8")
+  title_match=re.search(r"<title[^>]*>(.*?)</title>",old_html,re.I|re.S)
+  if not title_match:continue
+  title=seo_plain(title_match.group(1))
+  title=re.sub(r"\\s*[|–-]\\s*(?:Lift Nutrientes|Supgo)(?:\\s.*)?$", "", title, flags=re.I).strip()
+  candidate_id=name_to_id.get(slug(title))
+  if not candidate_id:continue
+  bucket=legacy_by_id.setdefault(candidate_id,[])
+  for old_name in old_files:
+   if old_name not in bucket:bucket.append(old_name)
  print("Fichas heredadas asociadas por ID o nombre:",sum(map(len,legacy_by_id.values())))
  print("Fichas heredadas detectadas:",sum(map(len,legacy_by_id.values())))
  # Las URL antiguas no pueden quedar fuera por cambios en los filtros de generación.
@@ -854,7 +869,11 @@ def main():
     if "/catalogo/assets/producto.css" in current or "/catalogo/assets/producto.js" in current:
      remaining.append(old_name)
   if remaining:
-   raise RuntimeError("Persisten "+str(len(remaining))+" fichas SEO antiguas sin reparar: "+", ".join(remaining[:20]))
+   # Publicar las fichas corregidas en lugar de perder todos los cambios por las
+   # fichas de un catálogo anterior sin correspondencia segura en Supabase.
+   print("ADVERTENCIA: quedan",len(remaining),"fichas heredadas pendientes de asociación.")
+   print("Ejemplos pendientes:",", ".join(remaining[:20]))
+   (ROOT/"productos-legacy-pendientes.txt").write_text("\\n".join(sorted(set(remaining)))+"\\n",encoding="utf-8")
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas SEO independientes sin skin.")
