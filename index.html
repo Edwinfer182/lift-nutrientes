@@ -12295,7 +12295,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
     const decisionKey='liftCourierDecision:'+courierToken;
     let decision='';try{decision=localStorage.getItem(decisionKey)||''}catch(_){}
     if(route||done)decision='accepted';
-    const alreadyTaken=decision==='accepted';
+    const alreadyTaken=Boolean(p.already_taken)||decision==='accepted';
 
     const addressParts=[p.direccion,p.barrio,p.sector,p.ciudad,p.departamento].filter((v,i,a)=>v&&a.indexOf(v)===i);
     const fullAddress=addressParts.join(' · ');
