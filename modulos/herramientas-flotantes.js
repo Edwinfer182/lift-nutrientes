@@ -1,71 +1,58 @@
-/* Lift admin: un solo acceso flotante global; reutiliza botones y eventos originales. */
+/* Lift: todas las herramientas administrativas dentro de Finalizar compra. */
 (() => {
-  if (window.__liftAdminToolsDockV2) return;
-  window.__liftAdminToolsDockV2 = true;
-  const style=document.createElement('style');
-  style.textContent=`
-    #lift-tools-dock{position:fixed!important;right:12px!important;bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;left:auto!important;top:auto!important;z-index:2147483000;font-family:Poppins,Arial,sans-serif}
-    #lift-tools-toggle{display:flex!important;align-items:center;justify-content:center;gap:7px;min-height:46px;border:0;border-radius:24px;padding:0 17px;background:#111;color:white;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 4px 16px #0004}
-    #lift-tools-panel{display:none;position:absolute!important;right:0!important;left:auto!important;bottom:calc(100% + 9px)!important;top:auto!important;transform:none!important;width:min(340px,calc(100vw - 24px))!important;max-height:min(68dvh,540px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;background:#fff;border:1px solid #ddd;border-radius:17px;padding:10px;box-sizing:border-box;box-shadow:0 8px 30px #0004}
-    #lift-tools-dock[data-open="true"] #lift-tools-panel{display:flex!important;flex-direction:column;gap:8px}
-    #lift-tools-panel .liftAdminToolsRow,#lift-tools-panel .lift-admin-floating-group{position:static!important;inset:auto!important;transform:none!important;display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;max-width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important}
-    #lift-tools-panel button:not(#lift-tools-toggle),#lift-tools-panel a{position:static!important;inset:auto!important;transform:none!important;float:none!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;min-height:42px!important;height:auto!important;margin:0!important;white-space:normal!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;box-sizing:border-box!important}
-    body.liftAdminUnlocked .lift-legacy-tools-toggle{display:none!important}
-    body.lift-checkout-tools-hidden #lift-tools-dock{display:none!important}
+  if (window.__liftCheckoutAdminToolsV1) return;
+  window.__liftCheckoutAdminToolsV1 = true;
+  const css = document.createElement('style');
+  css.textContent = `
+    #lift-checkout-admin-tools{position:relative!important;inset:auto!important;transform:none!important;z-index:1!important;display:block!important;width:100%!important;margin:18px 0!important;box-sizing:border-box!important;background:#f8f8f8!important;border:1px solid #dedede!important;border-radius:14px!important;padding:10px!important;color:#111!important;font:14px Poppins,Arial,sans-serif!important}
+    #lift-checkout-admin-tools summary{cursor:pointer;padding:10px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px;min-height:34px}
+    #lift-checkout-admin-tools summary::-webkit-details-marker{display:none}
+    #lift-checkout-admin-tools summary:after{content:'⌄';margin-left:auto}
+    #lift-checkout-admin-tools[open] summary:after{content:'⌃'}
+    #lift-checkout-admin-content{display:flex;flex-direction:column;gap:8px;padding:10px 2px 3px;max-height:48dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+    #lift-checkout-admin-content .liftAdminToolsRow{position:static!important;inset:auto!important;transform:none!important;display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}
+    #lift-checkout-admin-content button,#lift-checkout-admin-content a{position:static!important;inset:auto!important;transform:none!important;float:none!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:44px!important;margin:0!important;padding:10px!important;white-space:normal!important;box-sizing:border-box!important;visibility:visible!important;pointer-events:auto!important}
+    #lift-tools-dock{display:none!important}
+    body.liftAdminUnlocked #lift-checkout-admin-tools{display:block!important}
   `;
-  document.head.appendChild(style);
-  const dock=document.createElement('div');
-  dock.id='lift-tools-dock';dock.dataset.open='false';
-  dock.innerHTML='<div id="lift-tools-panel"></div><button id="lift-tools-toggle" type="button" aria-expanded="false" aria-controls="lift-tools-panel">⚙ Herramientas</button>';
-  const panel=dock.querySelector('#lift-tools-panel'),toggle=dock.querySelector('#lift-tools-toggle');
-  function open(v){dock.dataset.open=String(v);toggle.setAttribute('aria-expanded',String(v));}
-  toggle.addEventListener('click',()=>open(dock.dataset.open!=='true'));
-  document.addEventListener('pointerdown',e=>{if(!dock.contains(e.target))open(false)},true);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')open(false)});
-  const key=/^(instagram(?: seo)?|wp herramientas|herramientas wp|herramientas seo|seo|envío|envio|atención|atencion|pedidos|cartera|cartera proveedores|crm.*|pagos|calculadora|carritos abandonados|pdf|inst.*|herramientas)$/i;
+  document.head.appendChild(css);
+  const details=document.createElement('details');
+  details.id='lift-checkout-admin-tools';
+  details.innerHTML='<summary>⚙ Herramientas administrativas</summary><div id="lift-checkout-admin-content"></div>';
+  const content=details.querySelector('#lift-checkout-admin-content');
+  const labels=/^(instagram(?: seo)?|wp herramientas|herramientas wp|herramientas seo|seo|envío|envio|atención|atencion|pedidos|cartera|cartera proveedores|crm.*|pagos|calculadora|carritos abandonados|pdf|inst.*)$/i;
   let queued=false;
   function update(){
     queued=false;
-    if(!document.body||!document.body.classList.contains('liftAdminUnlocked')){dock.remove();return}
-    if(!dock.isConnected)document.body.appendChild(dock);
-    // Conservar los botones originales y sus controladores. Nunca clonar.
+    const checkout=document.getElementById('checkoutModal');
+    if(!checkout||!document.body?.classList.contains('liftAdminUnlocked')){
+      details.remove();return;
+    }
+    if(!checkout.contains(details)){
+      const target=checkout.querySelector('.modal-body,.checkout-body,.offcanvas-body,[class*="modalContent"],[class*="modal-content"]')||checkout;
+      target.appendChild(details);
+    }
     for(const row of [...document.querySelectorAll('.liftAdminToolsRow')]){
-      if(!panel.contains(row))panel.appendChild(row);
+      if(!content.contains(row))content.appendChild(row);
     }
-    const candidates=[...document.querySelectorAll('button,a')];
-    for(const el of candidates){
-      if(dock.contains(el)||el.closest('#checkoutModal')||el.closest('[role="dialog"]'))continue;
+    for(const el of [...document.querySelectorAll('button,a')]){
+      if(content.contains(el)||details.contains(el)||el.closest('#checkoutModal'))continue;
       const label=(el.textContent||'').replace(/[^\\p{L}\\p{N} .·-]/gu,' ').trim().replace(/\\s+/g,' ');
-      if(!key.test(label))continue;
-      const css=getComputedStyle(el);
-      let fixed=css.position==='fixed';
-      let anc=el.parentElement,steps=0;
-      while(anc&&steps++<5&&!fixed){
-        if(anc.id==='checkoutModal')break;
-        const cs=getComputedStyle(anc);
-        if(cs.position==='fixed') fixed=true;
-        anc=anc.parentElement;
+      if(!labels.test(label))continue;
+      let parent=el,globalFloating=false,steps=0;
+      while(parent&&steps++<6&&!globalFloating){
+        if(getComputedStyle(parent).position==='fixed')globalFloating=true;
+        parent=parent.parentElement;
       }
-      if(!fixed && el.id!=='lift-ig-seo-launcher')continue;
-      if(/^herramientas$/i.test(label)){el.classList.add('lift-legacy-tools-toggle');continue}
-      panel.appendChild(el);
+      if(globalFloating||el.id==='lift-ig-seo-launcher')content.appendChild(el);
     }
-    // Suprimir exclusivamente paneles fijos que quedaron vacios al mover sus controles.
-    for(const wrapper of [...document.querySelectorAll('body > div, body > aside, body > section')]){
-      if(wrapper===dock || wrapper.contains(dock) || wrapper.contains(panel))continue;
-      if(wrapper.matches('#checkoutModal, [role="dialog"]'))continue;
-      const st=getComputedStyle(wrapper);
-      if(st.position!=='fixed')continue;
-      const own=wrapper.querySelectorAll('button,a,[role="button"]');
-      if(own.length===0 && wrapper.querySelectorAll('input,textarea,select').length===0 &&
-        /envío|atención|pedidos|cartera|crm|instagram|calculadora/i.test(wrapper.textContent||'')){
-        wrapper.style.setProperty('display','none','important');
-      }
+    // No dejar el viejo lanzador flotante duplicado.
+    for(const old of document.querySelectorAll('#lift-tools-dock')){
+      if(old!==details)old.style.setProperty('display','none','important');
     }
-    dock.hidden=panel.querySelectorAll('button:not(.lift-legacy-tools-toggle),a').length===0;
+    details.hidden=content.querySelectorAll('button,a').length===0;
   }
   function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);
-  else schedule();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);else schedule();
   new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
