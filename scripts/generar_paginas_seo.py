@@ -242,6 +242,22 @@ def applied_local_seo(row, name, brand, description):
   '<h3>Más opciones de Applied Nutrition</h3><p>Consulta el '+a(*links[0])+', y compara también '+a(*links[1])+', '+a(*links[2])+' y '+a(*links[3])+'. Estos enlaces permiten navegar entre fichas de productos reales de la marca y revisar sus precios y presentaciones sin depender de búsquedas externas.</p>'
   '<h3>Pedidos desde otras ciudades</h3><p>Además de Medellín y el área metropolitana, recibimos consultas de Bogotá, Cali, Barranquilla, Cartagena y Bucaramanga, así como de otras ciudades de Colombia. Confirma los datos de entrega y el medio de pago disponible antes de finalizar tu compra. Los precios y existencias pueden cambiar, por lo que siempre conviene comprobar la información actualizada en el catálogo.</p></section>')
 
+def bsn_local_seo(row,name,brand,description):
+ """Texto local BSN y cuatro enlaces internos."""
+ clean=seo_plain(description)
+ links=[("/laboratorios/bsn/","catálogo BSN")]
+ links.extend((x["url"],x["name"]) for x in row.get("_bsn_links",[])[:3])
+ if len(links)!=4:raise RuntimeError("BSN requiere cuatro enlaces internos")
+ a=lambda url,label:'<a href="'+esc(url)+'">'+esc(label)+'</a>'
+ detail=('<p>'+esc(clean[:650])+'</p>') if clean else ''
+ return ('<section class="seo-local-bsn"><h2>'+esc(name)+' en Medellín y Colombia</h2>'
+ '<p>Conoce '+esc(name)+' de BSN en Medellín. Consulta presentación, disponibilidad y precio actualizado antes de comprar. Compara sus características con las opciones de la marca y revisa siempre la información del fabricante.</p>'
+ +detail+
+ '<h3>BSN en Medellín y el área metropolitana</h3><p>Atendemos consultas y pedidos de Medellín, Envigado, Itagüí, Bello y Sabaneta. La disponibilidad, los tiempos y las condiciones de entrega dependen de la dirección y la confirmación del pedido.</p>'
+ '<h3>Cómo elegir tu producto BSN</h3><p>Antes de comprar, revisa el tamaño de la presentación, la cantidad de servicios, el sabor y las instrucciones de uso que figuran en la etiqueta. Según el producto, puedes comparar proteínas, aminoácidos y fórmulas de preentrenamiento sin asumir que todos cumplen la misma función.</p>'
+ '<h3>Productos relacionados de BSN</h3><p>Explora el '+a(*links[0])+', compara '+a(*links[1])+', '+a(*links[2])+' y '+a(*links[3])+'. Estos enlaces permiten descubrir otras referencias de la misma marca y encontrar la presentación que buscas.</p>'
+ '<h3>Envíos de BSN a Colombia</h3><p>También puedes consultar pedidos desde Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y otras ciudades de Colombia. Confirma cobertura, costo de envío, medios de pago y disponibilidad antes de finalizar tu compra. Cada ficha incluye los detalles publicados del producto para ayudarte a tomar una decisión informada.</p></section>')
+
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
@@ -283,7 +299,7 @@ def build(row):
  if embedded.get("manufacturer"):product_schema["manufacturer"]={"@type":"Organization","name":brand,"url":str(embedded["manufacturer"])} if str(embedded["manufacturer"]).startswith(("https://","http://")) else {"@type":"Organization","name":str(embedded["manufacturer"])}
  if image:product_schema["image"]=[image]
  product_schema["description"]=(seo_description or description or meta)[:5000]
- if brand.strip().casefold()=="applied nutrition":
+ if brand.strip().casefold() in ("applied nutrition","bsn"):
   product_schema["description"]=meta
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
  for source,target in (("gtin13","gtin13"),("gtin12","gtin12"),("gtin14","gtin14"),("mpn","mpn")):
@@ -347,6 +363,8 @@ def build(row):
  description_body=long_html if long_html else '<p>'+esc(description or "Consulta presentaciones, sabores y disponibilidad de este producto.")+'</p>'
  if brand.strip().casefold()=="applied nutrition":
   description_body=applied_local_seo(row,name,brand,description)
+ if brand.strip().casefold()=="bsn":
+  description_body=bsn_local_seo(row,name,brand,description)
  gallery=[]
  for url in [image]+row.get("_images",[]):
   if url and url not in gallery:gallery.append(url)
@@ -723,6 +741,11 @@ def main():
   choices=[r for r in applied if str(r["id"])!=str(row["id"])]
   choices.sort(key=lambda other:(slug(other["product"].get("name") or other["product"].get("nombre"))==slug(row["product"].get("name") or row["product"].get("nombre")),str(other["id"])))
   row["_applied_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/productos/"+(slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"-"+str(r["id"])+".html"} for r in choices[:3]]
+ bsn_rows=[r for r in valid if str((r["product"].get("brand") or r["product"].get("marca") or "")).strip().casefold()=="bsn"]
+ for row in bsn_rows:
+  choices=[r for r in bsn_rows if str(r["id"])!=str(row["id"])]
+  choices.sort(key=lambda other:(slug(other["product"].get("name") or other["product"].get("nombre"))==slug(row["product"].get("name") or row["product"].get("nombre")),str(other["id"])))
+  row["_bsn_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/productos/"+(slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"-"+str(r["id"])+".html"} for r in choices[:3]]
  preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
  if preview_id:
   valid=[r for r in valid if str(r["id"])==preview_id]
