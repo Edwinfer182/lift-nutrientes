@@ -1,51 +1,54 @@
-name: Mover herramientas administrativas al checkout
+name: Instalar herramientas dentro del checkout
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
-      - '.github/workflows/corregir-herramientas-checkout.yml'
       - 'modulos/herramientas-flotantes.js'
+      - '.github/workflows/corregir-herramientas-checkout.yml'
 permissions:
   contents: write
 concurrency:
-  group: lift-correccion-herramientas-checkout
+  group: lift-checkout-admin-tools
   cancel-in-progress: false
 jobs:
-  corregir:
+  instalar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           persist-credentials: true
-      - name: Instalar menu unico global de herramientas administrativas
+      - name: Limpiar versiones rotas y cargar script actualizado
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          assert Path('modulos/herramientas-flotantes.js').is_file()
-          marker='<!-- LIFT-GLOBAL-ADMIN-TOOLS-20261025 -->'
           import re
-          # Renovar la URL del modulo con cada version para evitar cache persistente.
-          s=re.sub(r'<script\\s+src=["\\']/modulos/herramientas-flotantes\\.js[^"\\']*["\\']\\s+defer></script>', '', s, flags=re.I)
-          s=s.replace(marker, '')
-          script=marker+'\\n<script src="/modulos/herramientas-flotantes.js?v=20261025-4" defer></script>\\n'
-          at=s.lower().rfind('</body>')
-          assert at>=0, 'index.html no tiene cierre body'
-          s=s[:at]+script+s[at:]
-          p.write_text(s,encoding='utf-8')
-          assert marker in p.read_text(encoding='utf-8')
+          path=Path("index.html")
+          html=path.read_text(encoding="utf-8")
+          assert Path("modulos/herramientas-flotantes.js").is_file()
+          assert "</body>" in html.lower()
+          marker="<!-- LIFT-GLOBAL-ADMIN-TOOLS-20261025 -->"
+          html=html.replace(marker,"")
+          html=re.sub(r'<script\b[^>]*\bsrc\s*=\s*["\x27]/modulos/herramientas-flotantes\.js[^"\x27]*["\x27][^>]*>\s*</script>', '', html, flags=re.I)
+          insert='\n'+marker+'\n<script src="/modulos/herramientas-flotantes.js?v=20261025-6" defer></script>\n'
+          pos=html.lower().rfind("</body>")
+          html=html[:pos]+insert+html[pos:]
+          assert html.count(marker)==1
+          assert html.count('src="/modulos/herramientas-flotantes.js')==1
+          path.write_text(html,encoding="utf-8")
           PY
-      - name: Guardar en main y publicar
+      - name: Confirmar y publicar index
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if ! git diff --cached --quiet; then
-            git commit -m "fix: organizar herramientas flotantes en menu global"
+            git commit -m "fix: cargar modulo checkout sin duplicados"
             git pull --rebase origin main
             git push origin HEAD:main
           else
-            echo "Menu ya instalado"
+            echo "Index ya actualizado"
           fi
