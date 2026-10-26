@@ -781,9 +781,9 @@ def main():
    continue
   if not any(asset in old_html for asset in ("/catalogo/assets/producto.css","/catalogo/assets/producto.js")):
    continue
-  match=re.search(r'<body\\b[^>]*\\bdata-id=["\\\'](\\d+)["\\\']',old_html,re.I)
+  match=re.search(r"<body\b[^>]*\bdata-id=['\"](\d+)['\"]",old_html,re.I)
   if not match:
-   match=re.search(r'"sku"\\s*:\\s*"LIFT-(\\d+)"',old_html,re.I)
+   match=re.search(r'"sku"\s*:\s*"LIFT-(\d+)"',old_html,re.I)
   if match:
    legacy_by_id.setdefault(match.group(1),[]).append(old_page.name)
   else:
