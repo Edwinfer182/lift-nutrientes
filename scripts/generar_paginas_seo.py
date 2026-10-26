@@ -868,7 +868,7 @@ def main():
   if "/catalogo/assets/producto.css" not in old_html and "/catalogo/assets/producto.js" not in old_html:
    continue
   product_schema=None
-  for raw_schema in re.findall(r'<script[^>]*type=["\\']application/ld\+json["\\'][^>]*>(.*?)</script>',old_html,re.S|re.I):
+  for raw_schema in re.findall(r'<script[^>]*type=[^>]*application/ld\+json[^>]*>(.*?)</script>',old_html,re.S|re.I):
    try:
     obj=json.loads(raw_schema)
    except (ValueError,TypeError):
@@ -889,12 +889,12 @@ def main():
   original_offers=product_schema.get("offers") or {}
   if isinstance(original_offers,list):original_offers=original_offers[0] if original_offers else {}
   original_price=original_offers.get("price") if isinstance(original_offers,dict) else None
-  original_id=re.search(r'<body\b[^>]*\bdata-id=["\\'](\d+)["\\']',old_html,re.I)
+  original_id=re.search(r'<body\b[^>]*\bdata-id=[^0-9]*(\d+)',old_html,re.I)
   if not original_id:original_id=re.search(r'"sku"\s*:\s*"LIFT-(\d+)"',old_html,re.I)
   if not original_name or not original_id:
    unmatched_legacy.append(legacy_file.name)
    continue
-  category_match=re.search(r'class=["\\']productCategory["\\'][^>]*>(.*?)</',old_html,re.S|re.I)
+  category_match=re.search(r'class=[^>]*productCategory[^>]*>(.*?)</',old_html,re.S|re.I)
   original_category=seo_plain(category_match.group(1)) if category_match else ""
   legacy_row={"id":original_id.group(1),"activo":True,"product":{
    "name":original_name,"brand":str(original_brand),
