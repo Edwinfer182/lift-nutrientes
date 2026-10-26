@@ -789,6 +789,15 @@ def main():
   else:
    print("Ficha antigua sin ID identificable, revisar:",old_page.name)
  print("Fichas heredadas detectadas:",sum(map(len,legacy_by_id.values())))
+ # Las URL antiguas no pueden quedar fuera por cambios en los filtros de generación.
+ # Solo se recuperan registros públicos y activos; nunca publicar productos privados.
+ selected_ids={str(r["id"]) for r in valid}
+ if not brand_only and not preview_id:
+  restored=[r for r in rows if str(r["id"]) in legacy_by_id and str(r["id"]) not in selected_ids and allowed(r)]
+  for restored_row in restored:
+   restored_row["_indexable"]=False
+  valid.extend(restored)
+  print("Productos heredados recuperados fuera del filtro:",len(restored))
  urls=[]
  repaired_legacy=0
  for row in valid:
@@ -806,6 +815,16 @@ def main():
     if is_legacy:repaired_legacy+=1
   if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
  print("Fichas heredadas reparadas:",repaired_legacy)
+ # Control real de calidad: no aprobar ni publicar una corrida que deja HTML roto.
+ if not brand_only and not preview_id:
+  remaining=[]
+  for old_files in legacy_by_id.values():
+   for old_name in old_files:
+    current=(OUT/old_name).read_text(encoding="utf-8")
+    if "/catalogo/assets/producto.css" in current or "/catalogo/assets/producto.js" in current:
+     remaining.append(old_name)
+  if remaining:
+   raise RuntimeError("Persisten "+str(len(remaining))+" fichas SEO antiguas sin reparar: "+", ".join(remaining[:20]))
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
  if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas SEO independientes sin skin.")
