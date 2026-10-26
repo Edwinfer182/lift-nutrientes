@@ -224,6 +224,24 @@ def seo_filter_data(rows,logos=None):
    if name: source[name]=source.get(name,0)+1
  return {"brands":[[name,count,(logos or {}).get(name.casefold(),"")] for name,count in sorted(brands.items(),key=lambda x:x[0].casefold())],"categories":sorted(categories.items(),key=lambda x:x[0].casefold()),"total":total}
 
+def applied_local_seo(row, name, brand, description):
+ """Contenido local específico de Applied Nutrition con cuatro enlaces internos reales."""
+ p=row["product"]
+ clean=seo_plain(description)
+ cities="Medellín, Envigado, Itagüí, Bello, Sabaneta, Bogotá, Cali, Barranquilla, Cartagena y Bucaramanga"
+ links=[("/laboratorios/applied-nutrition/","catálogo Applied Nutrition")]
+ links.extend((x["url"],x["name"]) for x in row.get("_applied_links",[])[:3])
+ if len(links)!=4:raise RuntimeError("Applied Nutrition requiere cuatro enlaces internos")
+ a=lambda url,label:'<a href="'+esc(url)+'">'+esc(label)+'</a>'
+ detail=('<p>'+esc(clean[:650])+'</p>') if clean else ''
+ return ('<section class="seo-local-applied"><h2>'+esc(name)+' en Medellín y Colombia</h2>'
+  '<p>¿Buscas '+esc(name)+' de Applied Nutrition en Medellín? En Lift Nutrientes puedes consultar la presentación disponible, el precio vigente y las opciones de compra. Este producto forma parte del catálogo de la marca y su ficha muestra los datos publicados para ayudarte a comparar alternativas antes de realizar un pedido.</p>'
+  +detail+
+  '<h3>Comprar Applied Nutrition en Medellín</h3><p>Atendemos consultas de clientes de '+esc(cities)+'. La disponibilidad, el costo del envío y los tiempos de entrega se confirman según el destino y el pedido. Para elegir correctamente, revisa el nombre, el tamaño, el sabor cuando aplique y las características que aparecen en la etiqueta del fabricante. No todas las presentaciones son equivalentes.</p>'
+  '<h3>Cómo elegir tu presentación</h3><p>Antes de comprar, compara el contenido neto, las porciones indicadas, los ingredientes y las recomendaciones de uso que figuren en el envase. Si buscas proteínas, creatina, snacks o productos para el entrenamiento, comprueba que la referencia sea la adecuada para tus preferencias y objetivos. Evita asumir que dos versiones de una misma línea tienen exactamente la misma composición.</p>'
+  '<h3>Más opciones de Applied Nutrition</h3><p>Consulta el '+a(*links[0])+', y compara también '+a(*links[1])+', '+a(*links[2])+' y '+a(*links[3])+'. Estos enlaces permiten navegar entre fichas de productos reales de la marca y revisar sus precios y presentaciones sin depender de búsquedas externas.</p>'
+  '<h3>Pedidos desde otras ciudades</h3><p>Además de Medellín y el área metropolitana, recibimos consultas de Bogotá, Cali, Barranquilla, Cartagena y Bucaramanga, así como de otras ciudades de Colombia. Confirma los datos de entrega y el medio de pago disponible antes de finalizar tu compra. Los precios y existencias pueden cambiar, por lo que siempre conviene comprobar la información actualizada en el catálogo.</p></section>')
+
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
@@ -325,6 +343,8 @@ def build(row):
  long_html=re.sub(r"(?i)<\\s*/?details\\b[^>]*>","",long_html)
  long_html=re.sub(r"(?i)<\\s*/?summary\\b[^>]*>","",long_html)
  description_body=long_html if long_html else '<p>'+esc(description or "Consulta presentaciones, sabores y disponibilidad de este producto.")+'</p>'
+ if brand.strip().casefold()=="applied nutrition":
+  description_body=applied_local_seo(row,name,brand,description)
  gallery=[]
  for url in [image]+row.get("_images",[]):
   if url and url not in gallery:gallery.append(url)
@@ -695,6 +715,12 @@ def main():
  if brand_only:
   if brand_only not in allowed_brands:raise RuntimeError("Marca no habilitada para SEO: "+brand_only)
   valid=[r for r in valid if str((r["product"].get("brand") or r["product"].get("marca") or "")).strip().casefold()==brand_only]
+ # Enlaces cruzados a tres productos distintos de la misma marca, sin URL inventadas.
+ applied=[r for r in valid if str((r["product"].get("brand") or r["product"].get("marca") or "")).strip().casefold()=="applied nutrition"]
+ for row in applied:
+  choices=[r for r in applied if str(r["id"])!=str(row["id"])]
+  choices.sort(key=lambda other:(slug(other["product"].get("name") or other["product"].get("nombre"))==slug(row["product"].get("name") or row["product"].get("nombre")),str(other["id"])))
+  row["_applied_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/productos/"+(slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"-"+str(r["id"])+".html"} for r in choices[:3]]
  preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
  if preview_id:
   valid=[r for r in valid if str(r["id"])==preview_id]
