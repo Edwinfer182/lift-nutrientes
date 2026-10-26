@@ -859,6 +859,57 @@ def main():
     destination.write_text(target_content,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
   if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
+ # Sustituir las fichas históricas restantes con la MISMA plantilla moderna.
+ # Conservar datos explícitos de su propio HTML, nunca usar otro producto.
+ migrated_from_legacy=0
+ unmatched_legacy=[]
+ for legacy_file in OUT.glob("*.html"):
+  old_html=legacy_file.read_text(encoding="utf-8",errors="replace")
+  if "/catalogo/assets/producto.css" not in old_html and "/catalogo/assets/producto.js" not in old_html:
+   continue
+  product_schema=None
+  for raw_schema in re.findall(r'<script[^>]*type=["\\\']application/ld\\+json["\\\'][^>]*>(.*?)</script>',old_html,re.S|re.I):
+   try:
+    obj=json.loads(raw_schema)
+   except (ValueError,TypeError):
+    continue
+   for obj_item in (obj if isinstance(obj,list) else [obj]):
+    if isinstance(obj_item,dict) and obj_item.get("@type")=="Product":
+     product_schema=obj_item
+     break
+   if product_schema:break
+  if not product_schema:
+   unmatched_legacy.append(legacy_file.name)
+   continue
+  original_name=str(product_schema.get("name") or "").strip()
+  original_brand=product_schema.get("brand") or {}
+  if isinstance(original_brand,dict):original_brand=original_brand.get("name") or ""
+  original_image=product_schema.get("image") or ""
+  if isinstance(original_image,list):original_image=original_image[0] if original_image else ""
+  original_offers=product_schema.get("offers") or {}
+  if isinstance(original_offers,list):original_offers=original_offers[0] if original_offers else {}
+  original_price=original_offers.get("price") if isinstance(original_offers,dict) else None
+  original_id=re.search(r'<body\\b[^>]*\\bdata-id=["\\\'](\\d+)["\\\']',old_html,re.I)
+  if not original_id:original_id=re.search(r'"sku"\\s*:\\s*"LIFT-(\\d+)"',old_html,re.I)
+  if not original_name or not original_id:
+   unmatched_legacy.append(legacy_file.name)
+   continue
+  category_match=re.search(r'class=["\\\']productCategory["\\\'][^>]*>(.*?)</',old_html,re.S|re.I)
+  original_category=seo_plain(category_match.group(1)) if category_match else ""
+  legacy_row={"id":original_id.group(1),"activo":True,"product":{
+   "name":original_name,"brand":str(original_brand),
+   "image":str(original_image),"price":original_price,
+   "category":original_category},
+   "_indexable":False,"_merchant_settings":merchant_settings,
+   "_filter_counts":filter_counts}
+  modern_name,modern_html=build_direct(legacy_row,shared)
+  modern_html=modern_html.replace(BASE+"/productos/"+modern_name,BASE+"/productos/"+legacy_file.name)
+  legacy_file.write_text(modern_html,encoding="utf-8")
+  migrated_from_legacy+=1
+ print("Fichas antiguas migradas directamente a la plantilla moderna:",migrated_from_legacy)
+ print("Fichas antiguas sin datos suficientes:",len(unmatched_legacy))
+ if unmatched_legacy:
+  print("Requieren revisión:",", ".join(unmatched_legacy[:15]))
  print("Fichas heredadas reparadas:",repaired_legacy)
  # Control real de calidad: no aprobar ni publicar una corrida que deja HTML roto.
  if not brand_only and not preview_id:
