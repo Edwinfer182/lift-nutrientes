@@ -6830,17 +6830,86 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
  // Reemplaza la imagen del carrito de Fase 4 para que siempre muestre el total.
  window.shareLiftCartImage=async function(){try{const rows=typeof items==='function'?items():[];if(!rows.length){liftShareToast('No hay productos en el carrito');return}liftShareToast('Creando imagen…');const W=1080,rowH=205,H=128+45+rows.length*rowH+190,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);drawHeader(ctx,W,'Tu carrito');let y=165,total=0;for(const row of rows){const p=row.p,q=row.q||1;total+=priceOf(p)*q;y+=await drawProduct(ctx,p,q,y,W)}ctx.fillStyle='#111';ctx.font='600 24px Poppins,Arial';ctx.fillText('TOTAL',55,H-105);ctx.font='700 38px Poppins,Arial';const txt=money(total);ctx.fillText(txt,W-55-ctx.measureText(txt).width,H-102);ctx.fillStyle='#777';ctx.font='500 18px Poppins,Arial';ctx.fillText('Total de productos. El envío se calcula al finalizar la compra.',55,H-55);await shareCanvas(c,'lift-carrito.png','Carrito SUPlementos GO')}catch(e){console.error(e);liftShareToast('No se pudo generar la imagen')}};
  function injectCheckoutShare(){const send=document.querySelector('#checkoutModal .checkoutSend');if(!send||document.getElementById('liftCheckoutShareBtn'))return;const b=document.createElement('button');b.id='liftCheckoutShareBtn';b.type='button';b.className='checkoutShareOrder';b.innerHTML=shareSvg+'<span>Compartir pedido con datos</span>';b.onclick=()=>shareLiftCheckoutImage();send.insertAdjacentElement('afterend',b)}
- window.shareLiftCheckoutImage=async function(){try{const name=document.getElementById('coName').value.trim(),phone=document.getElementById('coPhone').value.trim(),address=document.getElementById('coAddress').value.trim(),notes=document.getElementById('coNotes').value.trim();if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad antes de compartir el pedido.');return}const rows=checkoutItemsList();if(!rows.length)return;liftShareToast('Creando pedido…');const sub=checkoutPublicSubtotal(rows),effectiveSub=checkoutEffectiveSubtotal(rows),autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty()),ship=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip),discount=checkoutCouponDiscount(rows),total=Math.max(0,effectiveSub-((adminTrainerMode()||trainerCouponActive())?0:discount))+(ship||0);const info=[];info.push(['Cliente',name],['Celular',phone],['Dirección',address],['Ciudad',selectedCity.name+(selectedCity.department?' · '+selectedCity.department:'')]);if(notes)info.push(['Notas',notes]);if(appliedCoupon)info.push(['Cupón',appliedCoupon.code]);const W=1080,rowH=205;let infoLines=0;const tmp=document.createElement('canvas').getContext('2d');tmp.font='500 21px Poppins,Arial';for(const [,v] of info)infoLines+=Math.max(1,wrap(tmp,v,750,3).length);const infoH=125+infoLines*42;const totalsH=245;const H=128+infoH+45+rows.length*rowH+totalsH;const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);drawHeader(ctx,W,'Pedido');let y=165;
-// Datos del cliente mucho más visibles: bloque independiente, título y valores grandes.
-ctx.fillStyle='#f4f4f4';ctx.beginPath();ctx.roundRect(45,y-22,W-90,infoH+18,22);ctx.fill();
-ctx.fillStyle='#111';ctx.font='700 27px Poppins,Arial';ctx.fillText('DATOS DEL CLIENTE',70,y+18);y+=58;
-for(const [k,v] of info){
-  ctx.fillStyle='#666';ctx.font='700 18px Poppins,Arial';ctx.fillText(k.toUpperCase(),70,y);
-  ctx.fillStyle='#111';ctx.font='700 25px Poppins,Arial';
-  const ls=wrap(ctx,v,720,3);ls.forEach((ln,i)=>ctx.fillText(ln,270,y+i*34));
-  y+=Math.max(1,ls.length)*34+8;
-}
-y+=26;ctx.fillStyle='#111';ctx.font='700 24px Poppins,Arial';ctx.fillText('PRODUCTOS DEL PEDIDO',55,y);y+=18;ctx.strokeStyle='#cfcfcf';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(55,y);ctx.lineTo(W-55,y);ctx.stroke();ctx.lineWidth=1;y+=25;for(const row of rows)y+=await drawProduct(ctx,row.p,row.q||1,y,W);y+=20;function totalLine(label,value,strong){ctx.fillStyle=strong?'#111':'#555';ctx.font=(strong?'700 29px':'500 22px')+' Poppins,Arial';ctx.fillText(label,55,y);const t=value;ctx.fillText(t,W-55-ctx.measureText(t).width,y);y+=strong?48:37}totalLine('Subtotal',money((adminTrainerMode()||trainerCouponActive())?effectiveSub:sub),false);if(discount)totalLine(trainerCouponActive()?'Precio entrenador / ahorro':'Descuento','-'+money(discount),false);totalLine('Envío',ship===0?'GRATIS':money(ship),false);y+=8;totalLine('TOTAL',money(total),true);ctx.fillStyle='#777';ctx.font='500 17px Poppins,Arial';const exactVariants=rows.some(r=>r.p?._variantId);ctx.fillText(exactVariants?'Los sabores seleccionados quedan incluidos en este pedido.':'Sabores sujetos a disponibilidad y confirmación por WhatsApp.',55,H-38);await shareCanvas(c,'lift-pedido-'+Date.now()+'.png','Pedido SUPlementos GO')}catch(e){console.error(e);liftShareToast('No se pudo generar el pedido')}};
+ window.shareLiftCheckoutImage=async function(){
+  try{
+    const val=id=>String(document.getElementById(id)?.value||'').trim();
+    const name=val('coName'),phone=val('coPhone'),address=val('coAddress'),notes=val('coNotes');
+    if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad antes de compartir el pedido.');return}
+    const rows=checkoutItemsList();if(!rows.length)return;
+    liftShareToast('Creando imagen SUPGO…');
+    const effectiveSub=checkoutEffectiveSubtotal(rows),sub=checkoutPublicSubtotal(rows);
+    const autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty());
+    const ship=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip);
+    const discount=checkoutCouponDiscount(rows);
+    const trainer=adminTrainerMode()||trainerCouponActive();
+    const shownSub=trainer?effectiveSub:sub;
+    const total=Math.max(0,effectiveSub-(trainer?0:discount))+(ship||0);
+    const W=720,pad=22,inside=18,ink='#111111',gray='#333333',green='#C8F34B';
+    const c=document.createElement('canvas'),ctx=c.getContext('2d');
+    c.width=W;ctx.font='500 19px Poppins,Arial';
+    const lines=(s,max)=>wrap(ctx,s,max,3);
+    const city=[selectedCity.name,selectedCity.department].filter(Boolean).join(', ');
+    const addressLines=lines(address,W-2*(pad+inside));
+    const noteLines=notes?lines('Notas: '+notes,W-2*(pad+inside)):[];
+    const itemsData=rows.map(row=>({p:row.p,q:row.q||1}));
+    const productHeights=itemsData.map(({p})=>Math.max(84,44+lines(p.name||'Producto',W-240).length*23));
+    const customerH=82+addressLines.length*23+noteLines.length*23+26;
+    const productsH=45+productHeights.reduce((a,b)=>a+b,0)+15+(discount>0?76:54);
+    const H=90+7+customerH+7+productsH+7+95+38;
+    c.height=H;
+    const round=(x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()};
+    const txt=(s,x,y,size=19,color=ink,weight=500)=>{ctx.fillStyle=color;ctx.font=weight+' '+size+'px Poppins,Arial';ctx.fillText(String(s),x,y)};
+    const right=(s,x,y,size=19,color=ink,weight=500)=>{ctx.font=weight+' '+size+'px Poppins,Arial';txt(s,x-ctx.measureText(String(s)).width,y,size,color,weight)};
+    const moneyText=n=>money(n);
+    ctx.fillStyle='#F2F3F2';ctx.fillRect(0,0,W,H);
+    let y=0;
+    round(pad,y,W-pad*2,90,12,ink);
+    txt('SUPGO',pad+inside,40,36,'#FFFFFF',700);
+    round(W-pad-118,12,100,26,13,green);
+    txt('RECIBIDO',W-pad-104,30,14,ink,700);
+    const no=typeof lastOrder!=='undefined'&&lastOrder?.id?'#'+lastOrder.id:'';
+    txt(no?'Pedido '+no:'RESUMEN DE PEDIDO',pad+inside,72,17,'#F0F0F0',500);
+    const dateText=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date());
+    right(dateText,W-pad-inside,72,16,'#F0F0F0',500);
+    y=97;
+    round(pad,y,W-pad*2,customerH,12,'#FFFFFF');
+    let cy=y+28;
+    txt('DATOS DEL CLIENTE',pad+inside,cy,18,ink,700);cy+=25;
+    txt(name+' · '+phone,pad+inside,cy,18,ink,600);cy+=24;
+    for(const line of addressLines){txt(line,pad+inside,cy,17,gray,500);cy+=23}
+    txt(city,pad+inside,cy,17,gray,500);cy+=23;
+    for(const line of noteLines){txt(line,pad+inside,cy,16,gray,500);cy+=23}
+    y+=customerH+7;
+    round(pad,y,W-pad*2,productsH,12,'#FFFFFF');
+    let py=y+28;txt('PRODUCTOS',pad+inside,py,18,ink,700);py+=13;
+    for(let i=0;i<itemsData.length;i++){
+      const {p,q}=itemsData[i],h=productHeights[i],rowY=py;
+      try{
+        const img=await liftLoadShareImage(p.image);
+        if(img){const size=55,sc=Math.min(size/img.width,size/img.height);ctx.drawImage(img,pad+inside+(size-img.width*sc)/2,rowY+11+(size-img.height*sc)/2,img.width*sc,img.height*sc)}
+      }catch(e){}
+      const ix=pad+inside+70;
+      const productLines=lines(p.name||'Producto',W-280);
+      productLines.forEach((line,j)=>txt(line,ix,rowY+27+j*23,18,ink,600));
+      txt('Cant. '+q+(p._cartFlavor?' · '+p._cartFlavor:''),ix,rowY+27+productLines.length*23,15,gray,500);
+      const unit=typeof checkoutUnitPrice==='function'?checkoutUnitPrice(p):priceOf(p);
+      right(moneyText(unit*q),W-pad-inside,rowY+27,18,ink,600);
+      py+=h;
+    }
+    ctx.strokeStyle='#E7E7E7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad+inside,py);ctx.lineTo(W-pad-inside,py);ctx.stroke();py+=24;
+    txt('Subtotal',pad+inside,py,17,gray);right(moneyText(shownSub),W-pad-inside,py,17,ink);py+=23;
+    if(discount>0){txt('Descuento',pad+inside,py,17,gray);right('-'+moneyText(discount),W-pad-inside,py,17,ink);py+=23}
+    txt('Envío',pad+inside,py,17,gray);right(ship===0?'GRATIS':moneyText(ship),W-pad-inside,py,17,ink);
+    y+=productsH+7;
+    round(pad,y,W-pad*2,95,12,ink);
+    txt('TOTAL',pad+inside,y+37,22,'#FFFFFF',700);
+    right(moneyText(total),W-pad-inside,y+40,30,green,700);
+    txt('Tu pedido se entregará en 3 a 8 horas.',pad+inside,y+73,17,'#FFFFFF',500);
+    y+=103;
+    txt('Gracias por tu compra · supgo.co',W/2-145,y+16,16,gray,500);
+    await shareCanvas(c,'supgo-pedido-'+Date.now()+'.png','Pedido SUPGO');
+  }catch(e){console.error(e);liftShareToast('No se pudo generar el pedido')}
+ };
  document.addEventListener('DOMContentLoaded',injectCheckoutShare);setTimeout(injectCheckoutShare,100);const oldOpenCheckout=window.openCheckout;if(typeof oldOpenCheckout==='function')window.openCheckout=function(){const r=oldOpenCheckout.apply(this,arguments);setTimeout(injectCheckoutShare,0);return r};
 })();
 </script>
