@@ -1,0 +1,29 @@
+name: Unificar favicon SUPGO
+on:
+  push:
+    paths:
+      - 'scripts/normalizar-favicon.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  favicon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Normalizar favicon de todas las páginas
+        run: python scripts/normalizar-favicon.py
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.html'
+          if ! git diff --cached --quiet; then
+            git commit -m "Unificar favicon circular SUPGO en todas las páginas"
+            git push
+          fi
