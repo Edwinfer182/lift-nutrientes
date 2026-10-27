@@ -3,7 +3,7 @@
 import pathlib,re,subprocess
 root=pathlib.Path(__file__).resolve().parents[1]
 paths=subprocess.check_output(['git','ls-files','-z','*.html'],cwd=root).decode().split('\0')
-favicon='<link rel="icon" type="image/png" href="https://static.wixstatic.com/media/251da0_a2056558d8284210b4ed7477cb36a49f~mv2.png?v=20261027-supgo-s"><link rel="apple-touch-icon" href="https://static.wixstatic.com/media/251da0_a2056558d8284210b4ed7477cb36a49f~mv2.png?v=20261027-supgo-s">'
+favicon='<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=supgo-rounded-2"><link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=supgo-rounded-2"><link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2">'
 count=0
 for rel in filter(None,paths):
     p=root/rel
