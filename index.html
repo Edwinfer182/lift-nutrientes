@@ -1990,6 +1990,27 @@ a.whatsapp-float,button.whatsapp-float,
 #liftTrackModal.supgo-track-found .liftTrackResult{margin-top:0!important}
 #liftTrackModal .supgo-track-again{font-size:11px!important}
 @media(max-width:600px){#liftTrackModal .supgo-bold-payment-logos{gap:9px}#liftTrackModal .supgo-bold-payment-logos img{height:18px;max-width:49px}#liftTrackModal .supgo-bold-payment-logos img[alt="Codensa"]{height:24px}#liftTrackModal .supgo-bold-pay-btn{min-height:52px}}
+</style><style id="supgo-order-professional-20261027">
+#liftTrackModal.supgo-track-found .liftOrderCard{padding:18px 20px 20px!important;border-radius:18px!important}
+#liftTrackModal.supgo-track-found .liftTrackX{margin-bottom:0!important;min-width:92px!important;height:38px!important}
+#liftTrackModal.supgo-track-found .liftOrderRef{padding:6px 0!important;margin:10px 0 8px!important}
+#liftTrackModal.supgo-track-found .liftJourney{margin-top:6px!important;margin-bottom:12px!important}
+#liftTrackModal.supgo-track-found .liftOrderRedesign{margin:10px 0 12px!important;padding:15px!important;border-radius:15px!important}
+#liftTrackModal.supgo-track-found .liftReportTitle{font-size:12px!important;font-weight:600!important}
+#liftTrackModal.supgo-track-found .liftTrackCustomer{margin-bottom:10px!important}
+#liftTrackModal.supgo-track-found .liftTrackTotals .grand{padding-top:12px!important}
+#liftTrackModal.supgo-track-found .liftTrackTotals .grand b{font-size:21px!important;color:#171717!important}
+#liftTrackModal.supgo-track-found .liftPaymentTop{margin:6px 0 16px!important}
+#liftTrackModal.supgo-track-found .supgo-bold-checkout{margin:0!important}
+#liftTrackModal.supgo-track-found .supgo-bold-pay-btn{min-height:52px!important;border-radius:9px!important;font:600 14px Arial,sans-serif!important}
+#liftTrackModal.supgo-track-found .supgo-bold-payment-logos{gap:10px 14px!important;padding:10px 5px 0!important}
+#liftTrackModal.supgo-track-found .supgo-bold-payment-logos img{max-width:51px!important;max-height:23px!important;object-fit:contain!important}
+#liftTrackModal.supgo-track-found .supgo-bold-payment-logos img[alt="Codensa"]{max-width:64px!important}
+#liftTrackModal.supgo-track-found .supgo-bold-payment-logos img[alt="Apple Pay"]{max-width:78px!important}
+#liftTrackModal.supgo-track-found .liftTokenAccess{padding:12px 14px!important;margin-top:10px!important}
+#liftTrackModal.supgo-track-found .liftTokenAccess p{margin:4px 0 0!important;font-size:10px!important}
+#liftTrackModal.supgo-track-found .supgo-track-again{margin:7px 0 0!important;border:0!important;padding:6px 0!important;color:#525f70!important;text-decoration:underline!important;background:transparent!important}
+@media(max-width:600px){#liftTrackModal.supgo-track-found .liftOrderCard{padding:12px 8px 18px!important}#liftTrackModal.supgo-track-found .supgo-bold-payment-logos{gap:9px!important}#liftTrackModal.supgo-track-found .supgo-bold-payment-logos img{max-width:43px!important;max-height:19px!important}#liftTrackModal.supgo-track-found .supgo-bold-payment-logos img[alt="Codensa"]{max-width:55px!important}#liftTrackModal.supgo-track-found .supgo-bold-payment-logos img[alt="Apple Pay"]{max-width:67px!important}}
 </style></head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -11452,7 +11473,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
     out.innerHTML=`<div class="liftOrderRef"><small>PEDIDO</small><b>#${esc(id)}</b></div>
       ${journey(p)}
       ${dispatch.tipo==='guia'&&dispatch.guia?`<div class="liftNextCard"><b>🚚 Seguimiento del envío</b><p>${esc(dispatch.transportadora||'Transportadora')} · Guía: <strong>${esc(dispatch.guia)}</strong></p><div style="display:flex;gap:9px;flex-wrap:wrap"><button type="button" onclick="navigator.clipboard.writeText(this.dataset.guia)" data-guia="${esc(dispatch.guia)}">Copiar guía</button><a href="${esc(({'Coordinadora':'https://coordinadora.com/rastreo/','Inter Rapidísimo':'https://siguetuenvio.interrapidisimo.com/','Envía':'https://envia.co/'})[dispatch.transportadora]||'https://www.google.com/search?q='+encodeURIComponent(dispatch.transportadora+' seguimiento guía'))}" target="_blank" rel="noopener noreferrer">Consultar envío ↗</a></div></div>`:dispatch.tipo==='local'?`<div class="liftNextCard"><b>🛵 Tu pedido salió a ruta</b><p>El mensajero realiza varias entregas. No manejamos una hora exacta de llegada.</p></div>`:''}
-      ${action?`<div class="liftPaymentTop">${action}</div>`:``}
+      
       <div class="liftCompactPurchase liftOrderRedesign liftReportOrder">
         <div class="liftReportTitle">DATOS DEL CLIENTE</div>
         <div class="liftTrackCustomer liftCustomerSix">
@@ -11464,6 +11485,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
         <div class="liftTrackTotals">${sub?`<div><span>Subtotal</span><b>${money(sub)}</b></div>`:''}<div><span>Envío</span><b>${ship?money(ship):'GRATIS'}</b></div>${disc?`<div class="discount"><span>Descuento</span><b>− ${money(disc)}</b></div>`:''}<div class="grand"><span>Total a pagar</span><b>${money(total)}</b></div></div>
       </div>
 
+      ${action?`<div class="liftPaymentTop">${action}</div>`:``}
       ${p.tiene_evidencia_entrega?`<div class="liftDeliveryProof"><div class="liftDeliveryProofHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><small>La foto se carga únicamente cuando la abras.</small></div><button id="liftPublicEvidenceBtn-${esc(id)}" class="liftDeliveryProofBtn" type="button" onclick="liftViewPublicEvidence('${esc(id)}','${esc(tok)}','${esc(p.celular||phone)}')">📷 VER FOTO</button></div><div id="liftPublicEvidenceViewer-${esc(id)}" class="liftProofViewer"></div></div>`:''}
       ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>ENLACE DE TU PEDIDO</small><b>${esc(orderUrl(id,tok))}</b></div><button type="button" onclick="liftCopyOrderLink('${id}','${esc(tok)}')">Copiar enlace</button></div><p>Guarda este enlace para volver a consultar tu pedido y continuar con el pago.</p></div>`:''}`;
    }catch(e){out.innerHTML='<div style="color:#b42318;font-size:11px">'+esc(e.message)+'</div>'}
