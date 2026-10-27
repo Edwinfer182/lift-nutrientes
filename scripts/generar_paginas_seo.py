@@ -381,8 +381,8 @@ def build(row):
 <title>{esc(title)}</title><meta name="description" content="{esc(meta)}">\n<meta name="robots" content="{'index, follow' if row.get('_indexable', True) else 'noindex, follow'}">
 <link rel="canonical" href="{esc(canonical)}"><meta property="og:type" content="product">
 <meta property="og:title" content="{esc(name)}"><meta property="og:description" content="{esc(meta)}">
-<meta property="og:url" content="{esc(canonical)}">
-<meta property="og:site_name" content="Lift Nutrientes"><meta property="og:locale" content="es_CO">
+<meta property="og:url" content="{esc(canonical)}"><link rel="icon" type="image/png" href="https://static.wixstatic.com/media/251da0_a2056558d8284210b4ed7477cb36a49f~mv2.png"><link rel="apple-touch-icon" href="https://static.wixstatic.com/media/251da0_a2056558d8284210b4ed7477cb36a49f~mv2.png">
+<meta property="og:site_name" content="SUPGO"><meta property="og:locale" content="es_CO">
 {f'<meta property="og:image" content="{esc(image)}"><meta property="og:image:alt" content="{esc(name)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{esc(image)}">' if image else '<meta name="twitter:card" content="summary">'}
 <meta name="twitter:title" content="{esc(name)}"><meta name="twitter:description" content="{esc(meta)}">
 {f'<meta property="product:price:amount" content="{amount:g}"><meta property="product:price:currency" content="COP">' if valid_price else ''}
