@@ -6837,6 +6837,12 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
     if(!name||!phone||!address||!selectedCity){alert('Completa nombre, celular, dirección y selecciona una ciudad antes de compartir el pedido.');return}
     const rows=checkoutItemsList();if(!rows.length)return;
     liftShareToast('Creando imagen SUPGO…');
+    // El canvas no espera las fuentes web automáticamente.
+    // Cargarlas antes de medir y dibujar evita la sustitución por Arial.
+    if(document.fonts){
+      await Promise.all([400,500,600,700].map(w=>document.fonts.load(w+' 18px Poppins').catch(()=>[])));
+      await document.fonts.ready;
+    }
     const effectiveSub=checkoutEffectiveSubtotal(rows),sub=checkoutPublicSubtotal(rows);
     const autoShip=adminTrainerMode()?11000:shippingFor(selectedCity.name,checkoutQty());
     const ship=(typeof window.liftAdminShippingValue==='function'?window.liftAdminShippingValue(autoShip):autoShip);
@@ -6846,7 +6852,7 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
     const total=Math.max(0,effectiveSub-(trainer?0:discount))+(ship||0);
     const W=720,pad=22,inside=18,ink='#111111',gray='#333333',green='#C8F34B';
     const c=document.createElement('canvas'),ctx=c.getContext('2d');
-    c.width=W;ctx.font='500 19px Poppins,Arial';
+    c.width=W;ctx.font='400 17px Poppins,Arial';
     const lines=(s,max)=>wrap(ctx,s,max,3);
     const city=[selectedCity.name,selectedCity.department].filter(Boolean).join(', ');
     const addressLines=lines(address,W-2*(pad+inside));
@@ -6858,8 +6864,8 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
     const H=90+7+customerH+7+productsH+7+95+38;
     c.height=H;
     const round=(x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()};
-    const txt=(s,x,y,size=19,color=ink,weight=500)=>{ctx.fillStyle=color;ctx.font=weight+' '+size+'px Poppins,Arial';ctx.fillText(String(s),x,y)};
-    const right=(s,x,y,size=19,color=ink,weight=500)=>{ctx.font=weight+' '+size+'px Poppins,Arial';txt(s,x-ctx.measureText(String(s)).width,y,size,color,weight)};
+    const txt=(s,x,y,size=19,color=ink,weight=400)=>{ctx.fillStyle=color;ctx.font=weight+' '+size+'px Poppins,Arial';ctx.fillText(String(s),x,y)};
+    const right=(s,x,y,size=19,color=ink,weight=400)=>{ctx.font=weight+' '+size+'px Poppins,Arial';txt(s,x-ctx.measureText(String(s)).width,y,size,color,weight)};
     const moneyText=n=>money(n);
     ctx.fillStyle='#F2F3F2';ctx.fillRect(0,0,W,H);
     let y=0;
@@ -6874,14 +6880,14 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
     y=97;
     round(pad,y,W-pad*2,customerH,12,'#FFFFFF');
     let cy=y+28;
-    txt('DATOS DEL CLIENTE',pad+inside,cy,18,ink,700);cy+=25;
-    txt(name+' · '+phone,pad+inside,cy,18,ink,600);cy+=24;
-    for(const line of addressLines){txt(line,pad+inside,cy,17,gray,500);cy+=23}
-    txt(city,pad+inside,cy,17,gray,500);cy+=23;
-    for(const line of noteLines){txt(line,pad+inside,cy,16,gray,500);cy+=23}
+    txt('DATOS DEL CLIENTE',pad+inside,cy,18,ink,500);cy+=25;
+    txt(name+' · '+phone,pad+inside,cy,18,ink,500);cy+=24;
+    for(const line of addressLines){txt(line,pad+inside,cy,17,gray,400);cy+=23}
+    txt(city,pad+inside,cy,17,gray,400);cy+=23;
+    for(const line of noteLines){txt(line,pad+inside,cy,16,gray,400);cy+=23}
     y+=customerH+7;
     round(pad,y,W-pad*2,productsH,12,'#FFFFFF');
-    let py=y+28;txt('PRODUCTOS',pad+inside,py,18,ink,700);py+=13;
+    let py=y+28;txt('PRODUCTOS',pad+inside,py,18,ink,500);py+=13;
     for(let i=0;i<itemsData.length;i++){
       const {p,q}=itemsData[i],h=productHeights[i],rowY=py;
       try{
@@ -6890,10 +6896,10 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
       }catch(e){}
       const ix=pad+inside+70;
       const productLines=lines(p.name||'Producto',W-280);
-      productLines.forEach((line,j)=>txt(line,ix,rowY+27+j*23,18,ink,600));
+      productLines.forEach((line,j)=>txt(line,ix,rowY+27+j*23,18,ink,500));
       txt('Cant. '+q+(p._cartFlavor?' · '+p._cartFlavor:''),ix,rowY+27+productLines.length*23,15,gray,500);
       const unit=typeof checkoutUnitPrice==='function'?checkoutUnitPrice(p):priceOf(p);
-      right(moneyText(unit*q),W-pad-inside,rowY+27,18,ink,600);
+      right(moneyText(unit*q),W-pad-inside,rowY+27,18,ink,500);
       py+=h;
     }
     ctx.strokeStyle='#E7E7E7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad+inside,py);ctx.lineTo(W-pad-inside,py);ctx.stroke();py+=24;
@@ -6906,7 +6912,7 @@ body.liftAdminUnlocked #checkoutModal #liftCheckoutShareBtn{display:flex!importa
     right(moneyText(total),W-pad-inside,y+40,30,green,700);
     txt('Tu pedido se entregará en 3 a 8 horas.',pad+inside,y+73,17,'#FFFFFF',500);
     y+=103;
-    txt('Gracias por tu compra · supgo.co',W/2-145,y+16,16,gray,500);
+    txt('Gracias por tu compra · supgo.co',W/2-145,y+16,16,gray,400);
     await shareCanvas(c,'supgo-pedido-'+Date.now()+'.png','Pedido SUPGO');
   }catch(e){console.error(e);liftShareToast('No se pudo generar el pedido')}
  };
