@@ -14,3 +14,4 @@ for rel in filter(None,paths):
     if out!=s:
         p.write_text(out,encoding='utf-8');count+=1
 print('Updated',count,'HTML pages')
+
