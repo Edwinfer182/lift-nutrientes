@@ -11491,8 +11491,8 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
      const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-bold-pagos',{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({pedido_id:Number(id),token,accion:'crear',ambiente:'production'})});
      const j=await r.json().catch(()=>({}));if(!r.ok||!j.url)throw new Error(j.error||'No se pudo crear el enlace de pago');
      if(!/^https:\/\/checkout\.bold\.co\//.test(j.url))throw new Error('Enlace de pago no válido');
-     window.open(j.url,'_blank','noopener,noreferrer');
-     const box=document.getElementById('liftPayDetails-'+id);if(box)box.innerHTML='<p style="font-size:12px;color:#555">Pago real con Bold. Verifica el importe antes de confirmar: '+Number(j.monto).toLocaleString('es-CO')+' COP. <a target="_blank" rel="noopener noreferrer" href="'+j.url+'">Abrir pago Bold</a></p>';
+     window.location.assign(j.url);
+     const box=document.getElementById('liftPayDetails-'+id);if(box)box.innerHTML='<p style="font-size:12px;color:#555">Pago real con Bold. Verifica el importe antes de confirmar: '+Number(j.monto).toLocaleString('es-CO')+' COP. <a href="'+j.url+'">Continuar pago Bold</a></p>';
    }catch(e){alert(e.message||'Error preparando Bold')}finally{if(btn){btn.disabled=false;btn.textContent=previous}}
  };
  window.liftChoosePayment=async function(id,token,medio){
