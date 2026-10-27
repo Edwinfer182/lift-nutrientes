@@ -5968,7 +5968,7 @@ window.shareLiftProductImage=async function(id){
  }:rawProduct;
  liftShareToast('Creando imagen…');
  try{
-  if(document.fonts){await Promise.all([400,500,600,700].map(w=>document.fonts.load(w+' 22px Poppins').catch(()=>[])));await document.fonts.ready;}
+  if(document.fonts){await Promise.all([400,500,600,700].map(w=>document.fonts.load(w+' 22px Inter').catch(()=>[])));await document.fonts.ready;}
   const W=1080,pad=48,black='#0b0b0b',lime='#C8F34B';
   const c=document.createElement('canvas');c.width=W;
   const ctx=c.getContext('2d');
@@ -5986,7 +5986,7 @@ window.shareLiftProductImage=async function(id){
   const titleLines=[];let current='';
   for(const word of title.split(/\s+/)){
     const trial=current?current+' '+word:word;
-    if(measure(trial,'600 34px Poppins,Arial')>510&&current){titleLines.push(current);current=word;}else current=trial;
+    if(measure(trial,'600 34px Inter,Arial')>510&&current){titleLines.push(current);current=word;}else current=trial;
   }
   if(current)titleLines.push(current);
   const headerH=Math.max(126,42+titleLines.length*42);
@@ -6011,22 +6011,22 @@ window.shareLiftProductImage=async function(id){
   c.height=footerY+footerH;
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,c.height);
   ctx.fillStyle=black;ctx.fillRect(0,0,W,headerH);
-  ctx.fillStyle='#fff';ctx.font='600 34px Poppins,Arial';
+  ctx.fillStyle='#fff';ctx.font='600 34px Inter,Arial';
   titleLines.forEach((line,i)=>ctx.fillText(line,pad,53+i*42));
-  let fontSize=58;while(fontSize>35&&measure(priceText,'700 '+fontSize+'px Poppins,Arial')>450)fontSize-=2;
-  ctx.textAlign='right';ctx.fillStyle=lime;ctx.font='700 '+fontSize+'px Poppins,Arial';
+  let fontSize=58;while(fontSize>35&&measure(priceText,'700 '+fontSize+'px Inter,Arial')>450)fontSize-=2;
+  ctx.textAlign='right';ctx.fillStyle=lime;ctx.font='700 '+fontSize+'px Inter,Arial';
   ctx.fillText(priceText,W-pad,Math.min(headerH-27,headerH/2+fontSize/3));
-  if(offer){ctx.font='400 24px Poppins,Arial';ctx.fillStyle='#dddddd';ctx.fillText(oldPrice,W-pad,headerH-17);}
+  if(offer){ctx.font='400 24px Inter,Arial';ctx.fillStyle='#dddddd';ctx.fillText(oldPrice,W-pad,headerH-17);}
   ctx.textAlign='left';
   const drawContained=(photo,box)=>{const scale=Math.min(box.w/photo.width,box.h/photo.height);const w=photo.width*scale,h=photo.height*scale;ctx.drawImage(photo,box.x+(box.w-w)/2,box.y+(box.h-h)/2,w,h);};
   if(secondImg){
     drawContained(img,{x:pad,y:imageY,w:478,h:imageH});
     drawContained(secondImg,{x:554,y:imageY,w:478,h:imageH});
   }else drawContained(img,{x:100,y:imageY,w:880,h:imageH});
-  if(meta){ctx.fillStyle='#333';ctx.font='500 29px Poppins,Arial';ctx.fillText(meta,pad,metaY);}
+  if(meta){ctx.fillStyle='#333';ctx.font='500 29px Inter,Arial';ctx.fillText(meta,pad,metaY);}
   ctx.fillStyle=black;ctx.fillRect(0,footerY,W,footerH);
-  ctx.fillStyle='#fff';ctx.font='700 27px Poppins,Arial';ctx.fillText('SUPGO',pad,footerY+75);
-  ctx.fillStyle='#c8c8c8';ctx.font='400 22px Poppins,Arial';ctx.fillText('supgo.co',175,footerY+74);
+  ctx.fillStyle='#fff';ctx.font='700 27px Inter,Arial';ctx.fillText('SUPGO',pad,footerY+75);
+  ctx.fillStyle='#c8c8c8';ctx.font='400 22px Inter,Arial';ctx.fillText('supgo.co',175,footerY+74);
   // Conservar los tres logos originales de Wix, en una sola fila con SUPGO.
   const paymentLogos=[
     {url:'https://static.wixstatic.com/media/251da0_059f710a3ef941aa902cb0b5b15a758f~mv2.png',x:625,w:125},
