@@ -505,7 +505,7 @@
       <g:description>Creatina Iron Nutrition 500 G 100 Serv</g:description>
       <g:link>https://supgo.co/productos/creatina-iron-nutrition-500-g-100-serv-102.html</g:link>
       <g:image_link>https://lh3.googleusercontent.com/d/1WgTsfF74d80FErFRBZ_qsN_pDnB08hD_=w1200</g:image_link>
-      <g:price>130000.00 COP</g:price>
+      <g:price>109000.00 COP</g:price>
       <g:availability>in_stock</g:availability>
       <g:condition>new</g:condition>
       <g:brand>Smart Nutrition</g:brand>
@@ -9628,6 +9628,28 @@
       <g:availability>in_stock</g:availability>
       <g:condition>new</g:condition>
       <g:brand>UNIVERSAL</g:brand>
+    </item>
+    <item>
+      <g:id>990007</g:id>
+      <g:title>THERMA PRO-HARDCORE  120 CAPSULAS</g:title>
+      <g:description>THERMA PRO-HARDCORE 120 CAPSULAS</g:description>
+      <g:link>https://supgo.co/productos/therma-pro-hardcore-120-capsulas-990007.html</g:link>
+      <g:image_link>https://vitaminfit.com.co/cdn/shop/files/IMG-1678.png?v=1729704324&amp;width=2048</g:image_link>
+      <g:price>113000.00 COP</g:price>
+      <g:availability>in_stock</g:availability>
+      <g:condition>new</g:condition>
+      <g:brand>Integralmedica</g:brand>
+    </item>
+    <item>
+      <g:id>990008</g:id>
+      <g:title>THERMA PRO-HARDCORE 60 CAPSULAS</g:title>
+      <g:description>THERMA PRO-HARDCORE 60 CAPSULAS</g:description>
+      <g:link>https://supgo.co/productos/therma-pro-hardcore-60-capsulas-990008.html</g:link>
+      <g:image_link>https://vitaminfit.com.co/cdn/shop/files/3D101434-205F-4698-A900-C2341557B36B.png?v=1719260099&amp;width=2048</g:image_link>
+      <g:price>82000.00 COP</g:price>
+      <g:availability>in_stock</g:availability>
+      <g:condition>new</g:condition>
+      <g:brand>Integralmedica</g:brand>
     </item>
   </channel>
 </rss>
