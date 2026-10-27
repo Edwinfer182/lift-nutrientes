@@ -2035,7 +2035,29 @@ a.whatsapp-float,button.whatsapp-float,
 #liftTrackModal .supgo-track-spinner{width:42px;height:42px;border-radius:50%;border:3px solid #e7eefb;border-top-color:#0866e8;animation:supgo-track-spin .8s linear infinite}
 @keyframes supgo-track-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#liftTrackModal .supgo-track-spinner{animation:none}}
-</style></head><body>
+</style>
+<style id="supgo-journey-compact-20261027">
+#liftTrackResult .supgoJourneyCompact{margin:8px 0 10px!important;padding:11px 12px!important;border:1px solid #e5e7eb!important;border-radius:12px!important;background:#fff!important;font-family:Roboto,Arial,sans-serif!important}
+#liftTrackResult .supgoJourneyTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#liftTrackResult .supgoJourneyTop strong{font-size:12px;font-weight:500;line-height:1.35;color:#202124}
+#liftTrackResult .supgoJourneyTop small{font-size:11px;color:#666;white-space:nowrap}
+#liftTrackResult .supgoJourneyBars{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:14px 0 12px}
+#liftTrackResult .supgoJourneyBars span{height:5px;border-radius:9px;background:#ececec}
+#liftTrackResult .supgoJourneyBars span.done{background:#16a34a}
+#liftTrackResult .supgoJourneyBars span.current{background:#111827}
+#liftTrackResult .supgoJourneyDescription{font-size:11px;line-height:1.5;color:#666;margin:0 0 8px}
+#liftTrackResult .supgoJourneyDetails{margin:0;border:0;padding:0}
+#liftTrackResult .supgoJourneyDetails summary{cursor:pointer;font-size:11px;font-weight:500;color:#111;list-style:none;display:flex;align-items:center;gap:6px;outline-offset:3px}
+#liftTrackResult .supgoJourneyDetails summary::-webkit-details-marker{display:none}
+#liftTrackResult .supgoJourneyDetails summary span{display:inline-block;transition:transform .2s}
+#liftTrackResult .supgoJourneyDetails[open] summary span{transform:rotate(180deg)}
+#liftTrackResult .supgoJourneyStages{display:grid;gap:10px;border-top:1px solid #eee;margin-top:12px;padding-top:12px}
+#liftTrackResult .supgoJourneyStage{display:flex;align-items:center;gap:9px;color:#999;font-size:11px}
+#liftTrackResult .supgoJourneyStage span:first-child{width:18px;text-align:center}
+#liftTrackResult .supgoJourneyStage.done{color:#16803b}
+#liftTrackResult .supgoJourneyStage.current{color:#111;font-weight:600}
+</style>
+</head><body>
 
 <script id="lift-mobile-share-fix-v1">
 (function(){
@@ -11446,9 +11468,14 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
    return {title:'Pedido recibido',text:'El siguiente paso es confirmar la disponibilidad de los productos.'}
  }
  function journey(p){
-   const at=stage(p);
-   return `<div class="liftJourney"><div class="liftJourneyLine">${STEPS.map((x,i)=>`<div class="liftJourneyStep ${i<at?'done':i===at?'current':''}"><div class="liftJourneyDot">${i<at?'✓':i===at?'●':''}</div><div class="liftJourneyLabel">${x.l}</div></div>`).join('')}</div></div>`
+   const at=stage(p),info=nextInfo(p);
+   const status=String(p.estado||p.estado_operativo||''),payment=String(p.pago_estado||'');
+   const heading=status==='pendiente_pago'&&payment==='por_verificar'?'Verificando tu pago':status==='pendiente_pago'&&payment==='contraentrega'?'Pago contraentrega':status==='pendiente_pago'?'Esperando tu pago':info.title;
+   const description=status==='pendiente_pago'&&payment==='por_verificar'?'Recibimos tu comprobante. Estamos revisándolo.':status==='pendiente_pago'&&!payment?'Tus productos están disponibles. Completa el pago.':info.text;
+   const safe=s=>String(s||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+   return `<div class="liftJourney supgoJourneyCompact"><div class="supgoJourneyTop"><strong>◷ &nbsp;${safe(heading)}</strong><small>${at+1} de ${STEPS.length}</small></div><div class="supgoJourneyBars" aria-label="Progreso del pedido: etapa ${at+1} de ${STEPS.length}">${STEPS.map((x,i)=>`<span class="${i<at?'done':i===at?'current':''}"></span>`).join('')}</div><p class="supgoJourneyDescription">${safe(description)}</p><details class="supgoJourneyDetails"><summary>Ver seguimiento completo <span>⌄</span></summary><div class="supgoJourneyStages">${STEPS.map((x,i)=>`<div class="supgoJourneyStage ${i<at?'done':i===at?'current':''}"><span>${i<at?'✓':i===at?'●':'○'}</span><span>${safe(i===at?heading:x.t)}</span></div>`).join('')}</div></details></div>`;
  }
+
  window.liftExplainStep=i=>{const x=STEPS[i],b=$('liftJourneyHelp');if(b)b.innerHTML=`<b>${x.t}</b><p>${x.d}</p>`};
  window.liftToggleOrderDetails=()=>$('liftCompactDetails')?.classList.toggle('open');
 
