@@ -2417,12 +2417,11 @@ a.whatsapp-float,button.whatsapp-float,
         </label>
         <div id="liftDataConsentError" role="alert" style="display:none;color:#b42318;font-size:10px;margin:4px 0">Debes autorizar el tratamiento de tus datos para continuar.</div>
         <label class="liftRememberRow" for="coRememberDetails" style="display:flex;align-items:center;gap:7px;margin:8px 0 2px;font-size:11px;color:#555;cursor:pointer;font-weight:400"><input id="coRememberDetails" type="checkbox" style="width:14px;height:14px;accent-color:#111;flex:none;margin:0"><span>Guardar mis datos en este dispositivo</span></label>
-        <label class="liftPrefRow liftEmailNotifyCompact" for="coEmailNotify">
-          <input id="coEmailNotify" type="checkbox">
-          <span>Autorizo recibir las actualizaciones de mi pedido por correo.
-            <small>Opcional: avisos de preparación, ruta y entrega. Sin publicidad.</small>
-          </span>
-        </label>
+        <input id="coEmailNotify" type="checkbox" checked hidden aria-hidden="true" tabindex="-1">
+        <div class="supgo-order-email-note" style="display:flex;align-items:flex-start;gap:8px;margin:9px 0 3px;padding:9px 10px;background:#f6f7f8;border-radius:8px;color:#555;font-size:11px;line-height:1.5;font-weight:400">
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+          <span>Recibirás las actualizaciones importantes de tu pedido en el correo registrado.</span>
+        </div>
       </div>
 
       <div class="liftCheckoutActionArea">
