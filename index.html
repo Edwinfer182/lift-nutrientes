@@ -14929,6 +14929,44 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+<style id="supgo-track-compact-after-success">
+#liftTrackModal.supgo-track-found .liftTrackForm,
+#liftTrackModal.supgo-track-found .liftOrderSub{display:none!important}
+#liftTrackModal .supgo-track-again{display:inline-flex;align-items:center;justify-content:center;margin:5px 0 12px;padding:7px 12px;background:#fff;border:1px solid #ddd;border-radius:9px;color:#333;font:500 11px Poppins,Arial,sans-serif;cursor:pointer}
+#liftTrackModal .supgo-track-again:hover{background:#f5f5f5}
+</style>
+<script id="supgo-track-compact-after-success-js">
+(function(){
+ const modal=document.getElementById('liftTrackModal'),out=document.getElementById('liftTrackResult');
+ if(!modal||!out)return;
+ function sync(){
+   const found=!!out.querySelector('.liftOrderRef b');
+   modal.classList.toggle('supgo-track-found',found);
+   let again=modal.querySelector('.supgo-track-again');
+   if(found){
+     if(!again){
+       again=document.createElement('button');
+       again.type='button';
+       again.className='supgo-track-again';
+       again.textContent='Consultar otro pedido';
+       again.addEventListener('click',function(){
+         modal.classList.remove('supgo-track-found');
+         out.innerHTML='';
+         const ref=document.getElementById('liftTrackRef'),phone=document.getElementById('liftTrackPhone');
+         if(ref){ref.value='';ref.focus()}
+         if(phone)phone.value='';
+         try{localStorage.removeItem('liftLastPublicOrder')}catch(e){}
+       });
+       out.insertAdjacentElement('afterend',again);
+     }
+     again.hidden=false;
+   }else if(again)again.hidden=true;
+ }
+ new MutationObserver(sync).observe(out,{childList:true,subtree:true});
+ sync();
+})();
+</script>
 </body>
 </html>
 
