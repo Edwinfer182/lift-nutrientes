@@ -2027,6 +2027,14 @@ a.whatsapp-float,button.whatsapp-float,
 #liftTrackModal.supgo-track-found .supgo-bold-pay-btn{order:0!important;width:100%!important;min-width:0!important;margin:0!important}
 #liftTrackModal.supgo-track-found .supgo-bold-payment-logos{order:1!important;justify-content:center!important;gap:9px 12px!important;padding:12px 3px 0!important}
 }
+</style><style id="supgo-track-loading-screen-20261027">
+#liftTrackModal.supgo-track-loading-active .liftTrackForm,#liftTrackModal.supgo-track-loading-active .liftOrderSub,#liftTrackModal.supgo-track-loading-active h2{display:none!important}
+#liftTrackModal .supgo-track-loading{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:32px 15px;font-family:Roboto,Arial,sans-serif}
+#liftTrackModal .supgo-track-loading strong{font-size:19px;font-weight:500;color:#151515}
+#liftTrackModal .supgo-track-loading>span:last-child{font-size:13px;font-weight:400;color:#737373}
+#liftTrackModal .supgo-track-spinner{width:42px;height:42px;border-radius:50%;border:3px solid #e7eefb;border-top-color:#0866e8;animation:supgo-track-spin .8s linear infinite}
+@keyframes supgo-track-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#liftTrackModal .supgo-track-spinner{animation:none}}
 </style></head><body>
 
 <script id="lift-mobile-share-fix-v1">
@@ -11462,7 +11470,8 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
  window.liftTrackOrder=async function(forceToken){
    const x=stored(),ref=$('liftTrackRef')?.value.trim()||x.ref||'',phone=$('liftTrackPhone')?.value.trim()||x.phone||'',token=typeof forceToken==='string'?forceToken:(x.token||''),out=$('liftTrackResult');
    if(!ref||(!phone&&!token)){if(out)out.innerHTML='<div style="color:#b42318;font-size:11px">Escribe número de pedido y celular.</div>';return}
-   out.innerHTML='<div style="font-size:11px;color:#777">Consultando…</div>';
+   out.innerHTML='<div class="supgo-track-loading" role="status" aria-live="polite"><span class="supgo-track-spinner" aria-hidden="true"></span><strong>Cargando tu pedido</strong><span>Estamos consultando la información. Un momento, por favor.</span></div>';
+   document.getElementById('liftTrackModal')?.classList.add('supgo-track-loading-active');
    try{
     const r=await api({action:'public-track-order',referencia:ref,celular:phone,token}),p=r.pedido;
     const id=String(p.referencia||ref).replace(/\D/g,''),tok=p.token||token;
@@ -11505,6 +11514,7 @@ body.liftAdminUnlocked #liftPaymentsAdminBtn{display:block}
       ${p.tiene_evidencia_entrega?`<div class="liftDeliveryProof"><div class="liftDeliveryProofHead"><div><b>✓ EVIDENCIA DE ENTREGA</b><small>La foto se carga únicamente cuando la abras.</small></div><button id="liftPublicEvidenceBtn-${esc(id)}" class="liftDeliveryProofBtn" type="button" onclick="liftViewPublicEvidence('${esc(id)}','${esc(tok)}','${esc(p.celular||phone)}')">📷 VER FOTO</button></div><div id="liftPublicEvidenceViewer-${esc(id)}" class="liftProofViewer"></div></div>`:''}
       ${tok?`<div class="liftTokenAccess"><div class="liftTokenAccessHead"><div><small>ENLACE DE TU PEDIDO</small><b>${esc(orderUrl(id,tok))}</b></div><button type="button" onclick="liftCopyOrderLink('${id}','${esc(tok)}')">Copiar enlace</button></div><p>Guarda este enlace para volver a consultar tu pedido y continuar con el pago.</p></div>`:''}`;
    }catch(e){out.innerHTML='<div style="color:#b42318;font-size:11px">'+esc(e.message)+'</div>'}
+   finally{document.getElementById('liftTrackModal')?.classList.remove('supgo-track-loading-active')}
  };
 
 
