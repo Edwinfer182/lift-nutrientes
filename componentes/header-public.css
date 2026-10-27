@@ -115,3 +115,17 @@ body .supgo-menu .supgo-brand-logo{display:block;width:100%;height:54px;max-widt
 #supgo-global-header .supgo-search-price del{color:#858585;font-size:11px}
 #supgo-global-header .supgo-search-price strong{font-size:13px;color:#17844d;font-weight:650}
 #supgo-global-header .supgo-search-type{font-size:10px;color:#707070}
+
+/* SUPGO | Header grafito y verde, compacto y uniforme */
+#supgo-global-header .top{background:#111315;border-bottom:1px solid #292f31}
+#supgo-global-header .bar{gap:10px}
+#supgo-global-header .offersBtn{background:#159b61;color:#fff;border:1px solid #20ac70;border-radius:12px;font-weight:650;box-shadow:none}
+#supgo-global-header .offersBtn:hover{background:#117f50}
+#supgo-global-header .offersCount{display:none!important}
+#supgo-global-header .search input{background:#1c2023;border-color:#363e41;border-radius:12px;color:#f7faf9;transition:border-color .2s,box-shadow .2s}
+#supgo-global-header .search input:focus{border-color:#159b61;box-shadow:0 0 0 2px #159b6128}
+#supgo-global-header .iconbtn,#supgo-global-header .myOrder{background:#202528;border:1px solid #384045;color:#f4f7f6;border-radius:12px;transition:background .2s,border-color .2s}
+#supgo-global-header .iconbtn:hover,#supgo-global-header .myOrder:hover{background:#2a3235;border-color:#159b61}
+#supgo-global-header .supgo-section-links a{background:#202528!important;border-color:#384045!important}
+#supgo-global-header .supgo-section-links a:hover{background:#2a3235!important}
+#supgo-global-header .badge{background:#159b61;color:white}
