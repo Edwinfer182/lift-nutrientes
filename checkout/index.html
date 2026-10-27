@@ -12847,10 +12847,11 @@ const orderId=String(r.pedido_id||r.referencia||'').trim();
 if(!orderId)throw new Error('Supabase no devolvió el número de pedido. Comprueba el pedido antes de intentar generarlo de nuevo.');
 const savedOrder={ref:r.referencia||orderId,pedido_id:r.pedido_id||orderId,phone:d.celular,token:r.token||''};
 try{localStorage.setItem('liftLastPublicOrder',JSON.stringify(savedOrder));sessionStorage.setItem('liftLastPublicOrder',JSON.stringify(savedOrder))}catch(e){console.warn('No se pudo guardar la sesión local del pedido',e)}
-const destination=new URL('https://supgo.co/mis-pedidos/');
+const destination=new URL('https://supgo.co/');
 destination.searchParams.set('pedido',orderId);
 if(r.token)destination.searchParams.set('token',String(r.token));
-window.location.assign('https://supgo.co/?mi-pedido=1'); }catch(e){alert('No se pudo generar el pedido: '+e.message)}finally{if(btn){btn.dataset.busy='0';btn.disabled=false;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generar pedido')}}};
+else destination.searchParams.set('mi-pedido','1');
+window.location.assign(destination.toString()); }catch(e){alert('No se pudo generar el pedido: '+e.message)}finally{if(btn){btn.dataset.busy='0';btn.disabled=false;btn.querySelector('span')&&(btn.querySelector('span').textContent='Generar pedido')}}};
  window.liftCopyPay=async function(v){try{await navigator.clipboard.writeText(v);alert('Copiado.')}catch(e){prompt('Copia este dato:',v)}};
  window.liftOrderWhatsApp=function(){if(!lastOrder)return;const msg=`Hola, acabo de generar el pedido ${lastOrder.referencia}.\n\n${lastOrder.text||''}`;window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')};
  window.liftCloseOrderSuccess=function(){$('liftOrderSuccessModal').classList.remove('open');$('liftOrderSuccessModal').setAttribute('aria-hidden','true')};
