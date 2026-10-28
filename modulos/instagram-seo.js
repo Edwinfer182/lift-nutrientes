@@ -121,6 +121,23 @@ async function openSelector(){
     const b=button(label,async()=>{const text="@Estados: Haz esta imagen con la programación visual que tenemos para "+(mode==='publicacion'?'publicaciones de Instagram':'estados e historias')+", tamaño "+dimensions+". Producto: "+selected.nombre+". Marca: "+selected.marca+". Sabor: "+(selected.sabor||'no especificado')+". Precio: "+(formatPrice(selected.precio)||'no mostrar')+". Conserva fielmente la fotografía y la etiqueta original. Diseño limpio, producto protagonista, sin saturar de texto ni inventar información.";try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();document.execCommand('copy');ta.remove()}b.textContent='Copiado ✓'},mode==='publicacion');prompts.append(b)
    }
    editor.append(prompts);
+   const linkBox=document.createElement('div');linkBox.style.cssText='margin-top:14px;border:1px solid #e7e7e7;border-radius:12px;padding:12px';
+   const linkTitle=document.createElement('strong');linkTitle.textContent='Enlace para historia de Instagram';linkTitle.style.cssText='display:block;margin-bottom:8px;font-weight:500';
+   const linkField=document.createElement('input');linkField.readOnly=true;linkField.setAttribute('aria-label','Enlace del producto');linkField.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font:inherit';
+   const sticker=document.createElement('input');sticker.setAttribute('aria-label','Texto del sticker de Instagram');sticker.value='Ver precio y sabores';sticker.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font:inherit;margin-top:8px';
+   const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:9px';
+   const rawUrl=value(selected,'url_producto','product_url','url','enlace');
+   let verified='';
+   try{const u=new URL(String(rawUrl),location.origin);if(u.hostname==='supgo.co'||u.hostname==='www.supgo.co'){if(u.pathname!=='/'&&u.pathname!=='/home/')verified=u.toString()}}catch{}
+   linkField.value=verified||'Este producto no tiene una URL individual confirmada';
+   const copyText=async(text,b)=>{try{await navigator.clipboard.writeText(text)}catch{const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();document.execCommand('copy');t.remove()}b.textContent='Copiado ✓'};
+   const copyLink=button('Copiar enlace para historia',()=>copyText(linkField.value,copyLink),true);
+   copyLink.disabled=!verified;
+   const copySticker=button('Copiar texto del sticker',()=>copyText(sticker.value,copySticker));
+   actions.append(copyLink,copySticker);
+   linkBox.append(linkTitle,linkField,sticker,actions);
+   if(!verified){const warning=document.createElement('small');warning.textContent='Falta la URL de la ficha de este producto. No se generará un enlace inventado.';warning.style.cssText='display:block;color:#a55;margin-top:8px';linkBox.append(warning)}
+   editor.append(linkBox);
   }
   renderEditor();
   if(variants.length){const s=document.createElement('select');s.style.cssText='width:100%;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px';[p,...variants].forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.sabor||v.nombre+' · '+(i+1);s.append(o)});s.onchange=()=>{selected=[p,...variants][Number(s.value)];if(selected.imagen)photo.src=selected.imagen;meta.textContent=[selected.marca,formatPrice(selected.precio)].filter(Boolean).join(' · ');renderEditor()};card.append(s)}
