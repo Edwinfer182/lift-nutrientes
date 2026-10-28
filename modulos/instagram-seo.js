@@ -90,11 +90,12 @@ async function openSelector(){
  const ui=modal('Instagram SEO · Productos');
  const search=document.createElement('input');search.placeholder='Buscar por nombre o marca';search.setAttribute('aria-label','Buscar producto');search.style.cssText='width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:10px;padding:12px;font:inherit';
  const preview=document.createElement('div');preview.style.cssText='margin:14px 0';
- const results=document.createElement('div');results.style.cssText='max-height:45vh;overflow:auto';
- ui.panel.append(search,preview,results);
+ const editor=document.createElement('div');editor.style.cssText='margin-top:14px;border-top:1px solid #e8e8e8;padding-top:14px';
+ const results=document.createElement('div');results.style.cssText='max-height:210px;overflow:auto';
+ ui.panel.append(search,results,preview,editor);
  const items=await loadCatalog();if(!ui.root.isConnected)return;
  function selectProduct(p){
-  preview.replaceChildren();
+  preview.replaceChildren();editor.replaceChildren();
   const card=document.createElement('div');card.style.cssText='background:#fafafa;border:1px solid #eee;border-radius:12px;padding:12px';
   const row=document.createElement('div');row.style.cssText='display:flex;gap:14px;align-items:center';
   const photo=document.createElement('img');photo.alt=p.nombre;photo.style.cssText='width:95px;height:115px;object-fit:contain;background:white;border-radius:8px';
@@ -105,12 +106,29 @@ async function openSelector(){
   info.append(name,meta);row.append(info);card.append(row);
   const variants=items.filter(x=>x.id!==p.id&&norm(x.nombre)===norm(p.nombre)&&x.id);
   let selected=p;
-  if(variants.length){const s=document.createElement('select');s.style.cssText='width:100%;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px';[p,...variants].forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.sabor||v.nombre+' · '+(i+1);s.append(o)});s.onchange=()=>{selected=[p,...variants][Number(s.value)];if(selected.imagen)photo.src=selected.imagen;meta.textContent=[selected.marca,formatPrice(selected.precio)].filter(Boolean).join(' · ')};card.append(s)}
+  function renderEditor(){
+   editor.replaceChildren();
+   const heading=document.createElement('h3');heading.textContent='Contenido listo para copiar';heading.style.cssText='font-size:15px;font-weight:600;margin:0 0 10px';editor.append(heading);
+   const controls=document.createElement('div');controls.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+   const makeSelect=(label,opts)=>{const wrap=document.createElement('label');wrap.textContent=label;wrap.style.cssText='flex:1;min-width:120px;font-size:12px';const select=document.createElement('select');select.style.cssText='display:block;width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;background:#fff';opts.forEach(([v,t])=>{const op=document.createElement('option');op.value=v;op.textContent=t;select.append(op)});wrap.append(select);controls.append(wrap);return select};
+   const objective=makeSelect('Objetivo',[["ventas","Ventas"],["educativo","Educativo"],["alcance","Alcance"]]);
+   const style=makeSelect('Estilo',[["0","Directo"],["1","Asesoría"],["2","Descubrimiento"]]);
+   const fields=document.createElement('div');editor.append(controls,fields);
+   const draw=()=>{fields.replaceChildren();const d=generate(selected,objective.value,style.value);field(fields,'Nombre + marca + precio',d.titulo,2);field(fields,'Descripción + hashtags',d.descripcion,6);field(fields,'Texto alternativo',d.alt,2)};
+   objective.onchange=draw;style.onchange=draw;draw();
+   const prompts=document.createElement('div');prompts.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:12px';
+   for(const [mode,label,dimensions] of [["publicacion","Copiar prompt · Publicación 4:5","1080 × 1350 px"],["estado","Copiar prompt · Estado 9:16","1080 × 1920 px"]]){
+    const b=button(label,async()=>{const text="@Estados: Haz esta imagen con la programación visual que tenemos para "+(mode==='publicacion'?'publicaciones de Instagram':'estados e historias')+", tamaño "+dimensions+". Producto: "+selected.nombre+". Marca: "+selected.marca+". Sabor: "+(selected.sabor||'no especificado')+". Precio: "+(formatPrice(selected.precio)||'no mostrar')+". Conserva fielmente la fotografía y la etiqueta original. Diseño limpio, producto protagonista, sin saturar de texto ni inventar información.";try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();document.execCommand('copy');ta.remove()}b.textContent='Copiado ✓'},mode==='publicacion');prompts.append(b)
+   }
+   editor.append(prompts);
+  }
+  renderEditor();
+  if(variants.length){const s=document.createElement('select');s.style.cssText='width:100%;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px';[p,...variants].forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.sabor||v.nombre+' · '+(i+1);s.append(o)});s.onchange=()=>{selected=[p,...variants][Number(s.value)];if(selected.imagen)photo.src=selected.imagen;meta.textContent=[selected.marca,formatPrice(selected.precio)].filter(Boolean).join(' · ');renderEditor()};card.append(s)}
   const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px';
-  actions.append(button('Compartir imagen',async()=>{if(!selected.id||typeof window.shareLiftProductImage!=='function'){alert('No está disponible el generador de imágenes para este producto');return}try{await window.shareLiftProductImage(selected.id)}catch(e){alert('No se pudo compartir: '+e.message)}},true),button('Crear publicación SEO',()=>{ui.root.remove();open(selected)}));
+  actions.append(button('Compartir imagen',async()=>{if(!selected.id||typeof window.shareLiftProductImage!=='function'){alert('No está disponible el generador de imágenes para este producto');return}try{await window.shareLiftProductImage(selected.id)}catch(e){alert('No se pudo compartir: '+e.message)}},true),button('Ver SEO ↓',()=>editor.scrollIntoView({behavior:'smooth',block:'nearest'})));
   card.append(actions);preview.append(card);
  }
- function render(){results.replaceChildren();const term=norm(search.value);const found=items.filter(p=>norm(p.nombre+' '+p.marca).includes(term)).slice(0,50);if(!found.length){const msg=document.createElement('p');msg.textContent=items.length?'No hay coincidencias':'No se pudo cargar el catálogo';results.append(msg);return}found.forEach(p=>{const b=button([p.nombre,p.marca].filter(Boolean).join(' · '),()=>selectProduct(p));b.style.cssText+=';display:block;width:100%;text-align:left;margin:5px 0;background:#fafafa';results.append(b)})}
+ function render(){results.replaceChildren();const term=norm(search.value);const found=items.filter(p=>norm(p.nombre+' '+p.marca).includes(term)).slice(0,10);if(!found.length){const msg=document.createElement('p');msg.textContent=items.length?'No hay coincidencias':'No se pudo cargar el catálogo';results.append(msg);return}found.forEach(p=>{const b=button([p.nombre,p.marca].filter(Boolean).join(' · '),()=>selectProduct(p));b.style.cssText+=';display:block;width:100%;text-align:left;margin:5px 0;background:#fafafa';results.append(b)})}
  search.oninput=render;render();search.focus();
 }
 window.LiftInstagramSEO={generate,open,openSelector};
