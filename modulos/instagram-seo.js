@@ -150,8 +150,8 @@ function renderTikTokGenerator(panel){
 }
 
 function renderLaboratorySEO(panel,items){
- const heading=document.createElement('h3');heading.textContent='SEO de laboratorios';heading.style.cssText='font-size:16px;font-weight:600;margin:4px 0 7px';
- const hint=document.createElement('p');hint.textContent='Selecciona una marca del catálogo y copia la orden para otra IA. La IA localizará el workflow correcto.';hint.style.cssText='font-size:12px;color:#666;line-height:1.6;margin:0 0 16px';
+ const heading=document.createElement('h3');heading.textContent='SEO de productos por laboratorio';heading.style.cssText='font-size:16px;font-weight:600;margin:4px 0 7px';
+ const hint=document.createElement('p');hint.textContent='Selecciona una marca para optimizar las fichas SEO de todos sus productos. Copia la orden para otra IA.';hint.style.cssText='font-size:12px;color:#666;line-height:1.6;margin:0 0 16px';
  const label=document.createElement('label');label.textContent='Laboratorio';label.style.cssText='display:block;font-size:12px;font-weight:600;margin-bottom:7px';
  const select=document.createElement('select');select.style.cssText='width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff;font:inherit';
  const brands=[...new Set(items.map(p=>String(p.marca||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
@@ -163,7 +163,25 @@ function renderLaboratorySEO(panel,items){
  copy.style.marginTop='12px';
  function update(){
   const brand=select.value;copy.disabled=!brand;copy.style.opacity=brand?'1':'.55';
-  preview.value=brand?`Actúa como especialista en SEO técnico y posicionamiento local para SUPGO.\n\nLABORATORIO: ${brand}\nWEB: https://supgo.co\nREPOSITORIO: Edwinfer182/lift-nutrientes (rama main)\n\nOBJETIVO: Optimiza la página SEO existente del laboratorio ${brand} para búsquedas comerciales de suplementos deportivos, con prioridad en Medellín, Colombia. Busca competir por las primeras posiciones de Google mediante contenido original y útil, sin prometer rankings.\n\n1. Encuentra la página real del laboratorio y su fuente de datos. Optimiza título SEO, metadescripción, H1, subtítulos, descripción visible, canonical y metadatos sociales cuando correspondan.\n2. Enfoca naturalmente las búsquedas en Medellín e incluye Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y Pereira sin sobreoptimización.\n3. Incluye exactamente 4 enlaces internos relevantes, existentes y comprobados de supgo.co. Usa únicamente productos y datos reales de ${brand}. No inventes beneficios, disponibilidad, precios ni URLs.\n4. Conserva diseño, cabecera y funcionalidades actuales.\n5. Antes de ejecutar, inspecciona .github/workflows/ y los scripts relacionados. Identifica por tu cuenta qué workflow actualiza realmente las páginas de laboratorios. El archivo generar-paginas-seo.yml genera fichas de productos; no supongas que sirve para laboratorios sin verificarlo. No me preguntes dónde está ni cuál usar.\n6. Modifica la fuente correcta, ejecuta el workflow adecuado si existe y espera su finalización. No crees workflows duplicados.\n7. Verifica en la página pública que la nueva descripción y metadatos estén publicados.\n8. Entrega todas las URLs realmente modificadas y verificadas, cada una con botón para copiar, y un botón para abrir Google Search Console (https://search.google.com/search-console).\n9. Si falta un workflow o algo falla, explica el bloqueo concreto y no declares la publicación completada.\n\nInvestiga el repositorio y resuelve los pasos técnicos automáticamente.`:'Selecciona un laboratorio para preparar la orden.';
+  preview.value=brand?`Actúa como especialista en SEO técnico, posicionamiento local y automatización GitHub para SUPGO.
+
+MARCA SELECCIONADA: ${brand}
+SITIO: https://supgo.co
+REPOSITORIO: Edwinfer182/lift-nutrientes (rama main)
+
+OBJETIVO OBLIGATORIO: OPTIMIZAR LAS FICHAS INDIVIDUALES DE TODOS LOS PRODUCTOS DE LA MARCA ${brand}. La marca es solamente el filtro para encontrar sus productos. NO optimices únicamente la página general del laboratorio ni entregues solamente su enlace. No des por terminada la tarea hasta revisar todos los productos de esa marca.
+
+1. Consulta el catálogo real (Supabase o fuente vigente) y enumera TODOS los productos activos de ${brand}, con sus identificadores y URLs individuales. Comprueba también variantes o fichas separadas y evita duplicados. No inventes productos ni URLs.
+2. Para CADA producto, optimiza individualmente su descripción larga y visible, título SEO, metadescripción, H1 y subtítulos, canonical, Open Graph y datos estructurados Product/Offer cuando corresponda. Redacta texto original, útil, específico de cada presentación, sin repetir una plantilla genérica ni afirmar beneficios no verificados.
+3. Enfoca cada ficha en búsquedas comerciales de Medellín e incorpora naturalmente Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y Pereira cuando sea pertinente. Evita repetir ciudades o palabras clave artificialmente.
+4. Añade exactamente 4 enlaces internos REALES y relevantes EN LA DESCRIPCIÓN DE CADA PRODUCTO, verificando sus destinos. Conserva el diseño y las funciones existentes.
+5. Descubre automáticamente los workflows de .github/workflows/ y sus scripts. Verifica primero generar-paginas-seo.yml, que genera fichas individuales desde Supabase, y confirma su funcionamiento y la fuente correcta de las descripciones. No me preguntes qué workflow o archivo usar: investígalo.
+6. Actualiza las descripciones de TODOS los productos de ${brand} en la fuente persistente correcta; evita cambios solo en HTML generado que luego se sobrescriban. Ejecuta el workflow apropiado, espera a que termine y comprueba que no existan errores.
+7. Verifica en supgo.co, ficha por ficha, que la NUEVA descripción y metadatos se hayan publicado. Compara la lista de productos encontrados contra la lista de fichas verificadas. Si alguna falta o falla, identifícala y continúa con las demás sin declarar éxito total.
+8. ENTREGA OBLIGATORIA: un resumen con cantidad total de productos encontrados, actualizados, publicados, verificados y fallidos. Muestra TODAS las URLs INDIVIDUALES de los productos actualizados y verificados, cada una con botón para copiar. Incluye botón para abrir Google Search Console (https://search.google.com/search-console). No sustituyas estas URLs por la página del laboratorio. La URL general de marca es opcional y secundaria.
+9. No inventes precios, disponibilidad, registros sanitarios, afirmaciones médicas, resultados de indexación ni verificaciones. Si falta algún permiso o proceso, explica exactamente el bloqueo.
+
+IMPORTANTE: Esta orden se refiere a TODOS LOS PRODUCTOS de la marca ${brand}, NO a optimizar la descripción general del laboratorio.`:'Selecciona un laboratorio para preparar la orden.';
  }
  select.onchange=update;panel.append(heading,hint,label,select,promptLabel,preview,copy);update();
 }
