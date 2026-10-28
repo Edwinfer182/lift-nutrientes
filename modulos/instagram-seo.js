@@ -148,6 +148,19 @@ async function openSelector(){
    const copy=button('Copiar prompt',async()=>{try{await navigator.clipboard.writeText(prompt.value)}catch{prompt.select();document.execCommand('copy')}copy.textContent='Copiado ✓'},true);
    const random=button('Variar combinación',()=>{typeSelect.selectedIndex=(typeSelect.selectedIndex+3)%types.length;themeSelect.selectedIndex=(themeSelect.selectedIndex+5)%themes.length;extra.value='';update()});
    actions.append(copy,random);
+   const copyTitle=document.createElement('strong');copyTitle.textContent='Copy para Instagram';copyTitle.style.cssText='display:block;margin:14px 0 7px;font-size:13px';
+   const caption=document.createElement('textarea');caption.rows=6;caption.style.cssText=prompt.style.cssText;
+   const captionButton=button('Copiar copy',()=>{navigator.clipboard.writeText(caption.value).then(()=>{captionButton.textContent='Copiado ✓'}).catch(()=>{caption.select();document.execCommand('copy')})},true);
+   const captionArea=document.createElement('div');captionArea.append(copyTitle,caption,captionButton);
+   function makeCaption(){
+    const subject=extra.value.trim()||themes[Number(themeSelect.value)];
+    const kind=types[Number(typeSelect.value)][0];
+    const hooks={'Educativo':'¿Qué debes saber sobre ','Mitos y realidades':'Mitos y realidades sobre ','Comparación':'¿Cómo comparar opciones de ','Errores comunes':'Evita estos errores al hablar de ','Preguntas frecuentes':'Respondamos tus dudas sobre ','Consejo práctico':'Un consejo útil sobre ','Disciplina y motivación':'La constancia también cuenta en ','Interacción':'Hablemos de ','Producto protagonista':'Conoce mejor ','Guía de compra':'Antes de elegir, conoce '};
+    const opener=(hooks[kind]||'Conoce más sobre ')+subject.toLowerCase()+' 💪';
+    const explanation=kind==='Disciplina y motivación'?'La disciplina se construye con hábitos sostenibles.':kind==='Interacción'?'Queremos conocer tu experiencia y tus preguntas.':'Busca información confiable, revisa el contexto y toma decisiones según tus objetivos y necesidades.';
+    return opener+'\n\n'+explanation+'\n\n¿Qué opinas? Te leemos en comentarios. 👇\n\n#EducacionFitness #NutricionDeportiva #Entrenamiento #SUPGO';
+   }
+
    const schedule=document.createElement('div');schedule.style.cssText='border-top:1px solid #eee;margin-top:15px;padding-top:12px';
    const scheduleTitle=document.createElement('strong');scheduleTitle.textContent='Ideas para el día';scheduleTitle.style.cssText='display:block;margin-bottom:8px;font-size:13px';
    const slotList=document.createElement('div');
@@ -158,7 +171,7 @@ async function openSelector(){
     const dimensions=period==='noche'?'historia de Instagram o estado de WhatsApp, formato 9:16 (1080 × 1920 px)':'publicación de Instagram, formato 4:5 (1080 × 1350 px)';
     return '@Estados: Crea una imagen para '+dimensions+'. Tipo de contenido: '+t[0]+'. Tema: '+subject+'. Enfoque: '+t[1]+' '+(showProduct?'Usa la fotografía original del producto '+productName+'; respeta fielmente envase, marca, etiqueta y sabor. ':'No fuerces la inclusión del producto; prioriza el tema.')+' Utiliza la programación y estilo visual que ya tenemos definidos. Una sola idea principal, composición limpia, gancho breve y poco texto. No inventes datos, testimonios, afirmaciones nutricionales ni logos. No incluyas precios salvo que se soliciten. Entrega una sola imagen lista para publicar.';
    }
-   function update(){prompt.value=buildPrompt(Number(typeSelect.value),Number(themeSelect.value),moment.value);copy.textContent='Copiar prompt'}
+   function update(){prompt.value=buildPrompt(Number(typeSelect.value),Number(themeSelect.value),moment.value);copy.textContent='Copiar prompt';caption.value=makeCaption();captionButton.textContent='Copiar copy'}
    function renderSlots(){
     slotList.replaceChildren();
     const d=Number(day.value);
@@ -166,7 +179,7 @@ async function openSelector(){
     combinations.forEach(([ti,th,period])=>{const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;padding:8px 0';const info=document.createElement('span');info.style.cssText='font-size:12px;flex:1';info.textContent=(period==='mañana'?'Mañana':period==='tarde'?'Tarde':'Noche')+' · '+types[ti][0]+' / '+themes[th];const choose=button('Usar',()=>{typeSelect.value=String(ti);themeSelect.value=String(th);extra.value='';moment.value=period;update()});row.append(info,choose);slotList.append(row)})
    }
    typeSelect.onchange=update;themeSelect.onchange=()=>{extra.value='';update()};extra.oninput=update;moment.onchange=update;day.onchange=renderSlots;
-   plan.append(title,hint,layout,dayRow,promptLabel,prompt,actions,schedule);educationPanel.append(plan);renderSlots();update();
+   plan.append(title,hint,layout,dayRow,promptLabel,prompt,actions,captionArea,schedule);educationPanel.append(plan);renderSlots();update();
 
  }
  renderEducation();
