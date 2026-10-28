@@ -149,24 +149,46 @@ function renderTikTokGenerator(panel){
  actions.append(copy,send,vary);panel.append(heading,hint,grid,hookBox,salesLabel,sales,extraLabel,extra,promptLabel,prompt,actions,example);update();
 }
 
+function renderLaboratorySEO(panel,items){
+ const heading=document.createElement('h3');heading.textContent='SEO de laboratorios';heading.style.cssText='font-size:16px;font-weight:600;margin:4px 0 7px';
+ const hint=document.createElement('p');hint.textContent='Selecciona una marca del catálogo y copia la orden para otra IA. La IA localizará el workflow correcto.';hint.style.cssText='font-size:12px;color:#666;line-height:1.6;margin:0 0 16px';
+ const label=document.createElement('label');label.textContent='Laboratorio';label.style.cssText='display:block;font-size:12px;font-weight:600;margin-bottom:7px';
+ const select=document.createElement('select');select.style.cssText='width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff;font:inherit';
+ const brands=[...new Set(items.map(p=>String(p.marca||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+ const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=brands.length?'Selecciona un laboratorio':'No se encontraron laboratorios en el catálogo';select.append(placeholder);
+ brands.forEach(brand=>{const option=document.createElement('option');option.value=brand;option.textContent=brand;select.append(option)});
+ const promptLabel=document.createElement('p');promptLabel.textContent='Prompt listo para copiar';promptLabel.style.cssText='font-size:12px;font-weight:600;margin:18px 0 8px';
+ const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=12;preview.style.cssText='width:100%;box-sizing:border-box;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fafafa;font:12px/1.55 Poppins,Arial,sans-serif;resize:vertical';
+ const copy=button('Copiar prompt SEO',async()=>{if(!select.value)return;try{await navigator.clipboard.writeText(preview.value)}catch(e){preview.focus();preview.select();document.execCommand('copy')}copy.textContent='Copiado ✓';setTimeout(()=>copy.textContent='Copiar prompt SEO',1800)},true);
+ copy.style.marginTop='12px';
+ function update(){
+  const brand=select.value;copy.disabled=!brand;copy.style.opacity=brand?'1':'.55';
+  preview.value=brand?`Actúa como especialista en SEO técnico y posicionamiento local para SUPGO.\n\nLABORATORIO: ${brand}\nWEB: https://supgo.co\nREPOSITORIO: Edwinfer182/lift-nutrientes (rama main)\n\nOBJETIVO: Optimiza la página SEO existente del laboratorio ${brand} para búsquedas comerciales de suplementos deportivos, con prioridad en Medellín, Colombia. Busca competir por las primeras posiciones de Google mediante contenido original y útil, sin prometer rankings.\n\n1. Encuentra la página real del laboratorio y su fuente de datos. Optimiza título SEO, metadescripción, H1, subtítulos, descripción visible, canonical y metadatos sociales cuando correspondan.\n2. Enfoca naturalmente las búsquedas en Medellín e incluye Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y Pereira sin sobreoptimización.\n3. Incluye exactamente 4 enlaces internos relevantes, existentes y comprobados de supgo.co. Usa únicamente productos y datos reales de ${brand}. No inventes beneficios, disponibilidad, precios ni URLs.\n4. Conserva diseño, cabecera y funcionalidades actuales.\n5. Antes de ejecutar, inspecciona .github/workflows/ y los scripts relacionados. Identifica por tu cuenta qué workflow actualiza realmente las páginas de laboratorios. El archivo generar-paginas-seo.yml genera fichas de productos; no supongas que sirve para laboratorios sin verificarlo. No me preguntes dónde está ni cuál usar.\n6. Modifica la fuente correcta, ejecuta el workflow adecuado si existe y espera su finalización. No crees workflows duplicados.\n7. Verifica en la página pública que la nueva descripción y metadatos estén publicados.\n8. Entrega todas las URLs realmente modificadas y verificadas, cada una con botón para copiar, y un botón para abrir Google Search Console (https://search.google.com/search-console).\n9. Si falta un workflow o algo falla, explica el bloqueo concreto y no declares la publicación completada.\n\nInvestiga el repositorio y resuelve los pasos técnicos automáticamente.`:'Selecciona un laboratorio para preparar la orden.';
+ }
+ select.onchange=update;panel.append(heading,hint,label,select,promptLabel,preview,copy);update();
+}
+
 async function openSelector(){
  const ui=modal('Contenido para Instagram');
  const nav=document.createElement('nav');nav.style.cssText='display:flex;gap:8px;border-bottom:1px solid #e8e8e8;padding-bottom:12px;margin-bottom:14px';
  const productTab=button('Productos · Imagen y SEO',()=>activate('productos'),true);
  const educationTab=button('Educación · Calendario',()=>activate('educacion'));
  const tiktokTab=button('TikTok · Guiones',()=>activate('tiktok'));
+ const laboratoryTab=button('Laboratorios · SEO',()=>activate('laboratorios'));
  const productPanel=document.createElement('div');
  const educationPanel=document.createElement('div');educationPanel.hidden=true;
  educationPanel.style.cssText='display:none';
  const tiktokPanel=document.createElement('div');tiktokPanel.style.display='none';
+ const laboratoryPanel=document.createElement('div');laboratoryPanel.style.display='none';
  nav.style.flexWrap='wrap';
- nav.append(productTab,educationTab,tiktokTab);ui.panel.append(nav,productPanel,educationPanel,tiktokPanel);
+ nav.append(productTab,educationTab,tiktokTab,laboratoryTab);ui.panel.append(nav,productPanel,educationPanel,tiktokPanel,laboratoryPanel);
  function activate(which){
   const showProducts=which==='productos';
   productPanel.style.display=showProducts?'block':'none';
   educationPanel.style.display=which==='educacion'?'block':'none';
   tiktokPanel.style.display=which==='tiktok'?'block':'none';
-  for(const [tab,key] of [[productTab,'productos'],[educationTab,'educacion'],[tiktokTab,'tiktok']]){
+  laboratoryPanel.style.display=which==='laboratorios'?'block':'none';
+  for(const [tab,key] of [[productTab,'productos'],[educationTab,'educacion'],[tiktokTab,'tiktok'],[laboratoryTab,'laboratorios']]){
    tab.style.background=which===key?'#151515':'#fff';tab.style.color=which===key?'#fff':'#222';
   }
   ui.panel.scrollTop=0;
@@ -294,6 +316,7 @@ async function openSelector(){
  }
  renderEducation();
  const items=await loadCatalog();if(!ui.root.isConnected)return;
+ renderLaboratorySEO(laboratoryPanel,items);
  function selectProduct(p){
   preview.replaceChildren();editor.replaceChildren();
   const card=document.createElement('div');card.style.cssText='background:#fafafa;border:1px solid #eee;border-radius:12px;padding:12px';
