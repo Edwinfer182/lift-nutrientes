@@ -86,23 +86,90 @@ function open(raw){
  ui.panel.append(prompts);
  objective.onchange=render;style.onchange=render;render();
 }
+
+function renderTikTokGenerator(panel){
+ const topics=['NAC','Creatina monohidratada','Creatina HCL','Creapure','Proteína whey','Proteína aislada','Proteína hidrolizada','Proteína vegetal','Caseína','Mass gainer','Preentrenos','Café y preentreno','Preentreno sin cafeína','Cafeína','Citrulina','Beta alanina','BCAA','EAA','Glutamina','Electrolitos','Omega 3','Magnesio glicinato','Magnesio citrato','ZMA','Multivitamínicos','Vitamina D','Zinc','Colágeno','Glucosamina y condroitina','Probióticos','Enzimas digestivas','Ashwagandha','Coenzima Q10','Curcumina','Inositol','Suplementos para principiantes','Cómo leer etiquetas','Suplementos originales','Cuándo tomar suplementos','Suplementos y descanso'];
+ const hooks=[
+ ['¿Vale la pena X?','¿Vale la pena {x}?'],['Antes de comprar X','Antes de comprar {x}, escucha esto.'],['No hagas X sin revisar','No compres {x} sin revisar lo que contiene.'],['3 errores con X','3 errores que debes evitar con {x}.'],['¿Necesitas X?','¿Realmente necesitas {x}?'],['Lo que nadie explica','Lo que casi nadie te explica sobre {x}.'],['El error más común','Este es un error frecuente con {x}.'],['¿Qué dice la evidencia?','¿Qué dice realmente la evidencia sobre {x}?'],['No compres X todavía','No compres {x} todavía sin revisar la etiqueta.'],['El mito de X','Hay un mito sobre {x} que necesitas entender.'],['¿Qué revisar primero?','¿Qué deberías revisar primero en {x}?'],['El precio no lo es todo','¿Pagar más por {x} significa comprar mejor?'],['Te están confundiendo','¿Te están confundiendo con {x}?'],['Deja de hacer esto','Deja de elegir {x} sin revisar la etiqueta.'],['¿Sabes qué compras?','¿Tú sí sabes qué estás comprando cuando eliges {x}?'],['Antes de gastar','Antes de gastar en {x}, revisa esto.'],['No te dejes llevar','No te dejes llevar por la publicidad de {x}.'],['¿Lo estás usando bien?','¿Estás evaluando correctamente {x}?'],['El detalle olvidado','Este detalle de {x} merece tu atención.'],['Si empiezas de cero','Si vas a empezar con {x}, ten esto presente.'],['No confundas las cosas','No confundas {x} con una solución para todo.'],['La pregunta incómoda','¿Para qué necesitas realmente {x}?'],['Mira la etiqueta','¿Ya revisaste la etiqueta de {x}?'],['Lo que haría diferente','Si comprara {x}, revisaría esto primero.'],['¿Es indispensable?','¿Es indispensable {x} para tus objetivos?'],['Cuidado con el marketing','¿Estás eligiendo {x} por evidencia o por publicidad?'],['No te compliques','No te compliques con {x} sin entender lo básico.'],['Una cosa es comprar','Una cosa es comprar {x} y otra saber para qué sirve.'],['Te falta revisar esto','Si estás pensando en {x}, te falta revisar esto.'],['Hablemos claro','Hablemos claro sobre {x}.']
+ ];
+ const style='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:9px;background:#fff;font:inherit';
+ const heading=document.createElement('h3');heading.textContent='Generador de guiones · TikTok';heading.style.cssText='font-size:15px;margin:4px 0 7px;font-weight:600';
+ const hint=document.createElement('p');hint.textContent='Guiones de tú a tú: confrontativos, charros, educativos y con doble llamado a la acción.';hint.style.cssText='font-size:12px;color:#666;line-height:1.6;margin:0 0 14px';
+ const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px';
+ function select(label,options){const wrap=document.createElement('label');wrap.textContent=label;wrap.style.cssText='display:block;font-size:12px;font-weight:500';const el=document.createElement('select');el.style.cssText=style+';display:block;margin-top:6px';options.forEach(([value,title])=>{const o=document.createElement('option');o.value=value;o.textContent=title;el.append(o)});wrap.append(el);grid.append(wrap);return el}
+ const topic=select('Tema',topics.map((t,i)=>[String(i),t]));
+ const hook=select('Gancho',hooks.map((h,i)=>[String(i),(i+1)+'. '+h[0]]));
+ const duration=select('Duración',[['30','30 segundos'],['45','45 segundos'],['60','60 segundos']]);duration.value='60';
+ const tone=select('Personalidad',[['charro','Confrontativo y charro'],['fuerte','Más confrontativo'],['natural','Directo y natural']]);
+ const engagement=select('Interacción',[['comentarios','Pedir comentarios'],['guardar','Invitar a guardar'],['seguir','Invitar a seguir']]);
+ const commercial=select('Cierre comercial',[['interno','Escríbeme al interno'],['whatsapp','Escríbeme por WhatsApp'],['perfil','Enlace en mi perfil'],['asesoria','Asesoría por mensaje']]);
+ const hookBox=document.createElement('div');hookBox.style.cssText='background:#f7f7f7;border-radius:10px;padding:12px;margin:14px 0;font-weight:500;font-size:13px';
+ const salesLabel=document.createElement('label');salesLabel.textContent='Frase comercial editable';salesLabel.style.cssText='display:block;font-size:12px;font-weight:500;margin-top:12px';
+ const sales=document.createElement('textarea');sales.rows=2;sales.style.cssText=style+';display:block;margin-top:6px;resize:vertical';sales.value='Y si deseas adquirir suplementos, háblame al interno y te asesoro.';
+ const extraLabel=document.createElement('label');extraLabel.textContent='Indicaciones adicionales';extraLabel.style.cssText=salesLabel.style.cssText;
+ const extra=document.createElement('textarea');extra.rows=2;extra.placeholder='Ej.: menciona un error común o compara ingredientes…';extra.style.cssText=sales.style.cssText;
+ const promptLabel=document.createElement('strong');promptLabel.textContent='Prompt listo para copiar';promptLabel.style.cssText='display:block;font-size:13px;margin:15px 0 7px';
+ const prompt=document.createElement('textarea');prompt.rows=13;prompt.style.cssText=style+';resize:vertical;font-size:12px;line-height:1.55;background:#fafafa';
+ const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:10px';
+ const copy=button('Copiar prompt',async()=>{try{await navigator.clipboard.writeText(prompt.value)}catch{prompt.select();document.execCommand('copy')}copy.textContent='Copiado ✓'},true);
+ const send=button('Abrir ChatGPT',()=>{window.open('https://chatgpt.com/','_blank','noopener,noreferrer')});
+ const vary=button('Otro gancho',()=>{hook.selectedIndex=(hook.selectedIndex+1)%hooks.length;update()});
+ const example=document.createElement('p');example.style.cssText='font-size:11px;color:#666;line-height:1.6;margin:12px 0';
+ example.textContent='Ritmo: una idea por bloque, máximo dos renglones, 3 a 5 segundos. El prompt se copia completo; en ChatGPT solo tienes que pegarlo.';
+ function update(){
+  const subject=topics[Number(topic.value)],selected=hooks[Number(hook.value)][1].replace(/\{x\}/g,subject.toLowerCase().replace(/^/,''));
+  hookBox.textContent='Gancho obligatorio: '+selected;
+  if(commercial.value==='interno'){sales.disabled=false}
+  else {sales.disabled=true}
+  const phrase=commercial.value==='interno'?sales.value:commercial.value==='whatsapp'?'Si deseas adquirir suplementos, escríbeme por WhatsApp y te asesoro.':commercial.value==='perfil'?'Si deseas consultar suplementos, revisa el enlace de mi perfil.':'Si necesitas orientación para adquirir suplementos, escríbeme por mensaje privado.';
+  const n=duration.value==='60'?'12 a 16':duration.value==='45'?'9 a 12':'6 a 8';
+  prompt.value=[
+   'Actúa como guionista de TikTok especializado en suplementos deportivos, fitness y educación nutricional.',
+   'TEMA: '+subject,
+   'GANCHO SELECCIONADO (OBLIGATORIO): "'+selected+'"',
+   'Comienza el guion con ese gancho EXACTAMENTE como está escrito, sin reformularlo ni añadir palabras antes.',
+   'PALABRAS CLAVE SEO: '+subject+', para qué sirve '+subject+', suplementos deportivos.',
+   'DURACIÓN: aproximadamente '+duration.value+' segundos.',
+   'PERSONALIDAD: '+(tone.value==='charro'?'confrontativa y charra con humor colombiano':tone.value==='fuerte'?'muy confrontativa, provocadora y charra':'directa, natural y ligeramente sarcástica')+'.',
+   'VOZ: habla siempre de TÚ A TÚ a UNA sola persona como si la tuvieras enfrente. Usa tú, te, tu, haces, compras, revisaste. No uses expresiones colectivas como mucha gente, las personas, todos, hay quienes o la mayoría. No narres desde afuera lo que otros hacen.',
+   'HUMOR: confronta las decisiones con expresiones charrras y naturales como NPC del gym, desalentado, parcero, prime o aura, únicamente cuando encajen. Sé gracioso y confrontativo sin insultar ni humillar. No inventes que el espectador hizo algo; usa preguntas directas cuando corresponda. Evita explicar extensamente el comportamiento: señala el error con una frase charra y pasa al argumento concreto.',
+   'PROHIBIDOS: remates vacíos como por arte de magia, no es magia, no hace milagros, fórmula mágica, y listo, así de fácil, eso es todo. Ninguna idea debe acabar en relleno, motivación vacía ni frases robóticas. Termina con un dato, una consecuencia, una pregunta concreta o una recomendación.',
+   'ESTRUCTURA EN CUATRO PARTES: 1) gancho literal y crítica graciosa al error; 2) problema y argumentación clara, con evidencia prudente; 3) solución útil y concreta; 4) doble llamado a la acción.',
+   'DOBLE CTA: primero '+(engagement.value==='comentarios'?'haz una pregunta concreta que invite a comentar':engagement.value==='guardar'?'invita a guardar el video':'invita a seguir la cuenta')+'. Después añade naturalmente la invitación comercial: "'+phrase+'". Reserva tiempo para ambos dentro de la duración total, sin sonar como vendedor agresivo.',
+   'RITMO DE GRABACIÓN: UNA SOLA IDEA POR BLOQUE. Cada bloque puede ocupar UNO O DOS RENGLONES como máximo; si son dos, deben desarrollar la misma idea continua. Cada bloque se debe poder pronunciar en aproximadamente 3 a 5 segundos. Separa cada bloque con una línea en blanco. Usa aproximadamente '+n+' bloques, sin marcas de tiempo ni instrucciones de edición. No dividas artificialmente las frases ni alargues una idea durante cinco líneas.',
+   'Usa 2 o 3 frases SEO de manera natural. No inventes estudios, beneficios, resultados garantizados ni afirmaciones médicas. El CTA comercial no debe prometer efectos.',
+   extra.value.trim()?'INDICACIÓN ADICIONAL: '+extra.value.trim():'',
+   'ENTREGA SOLO: GUION PARA TIKTOK (cuatro partes narrativas en bloques breves, sin subtítulos intermedios); COPY PARA TIKTOK (SEO, pregunta, invitación discreta al interno y 3 a 5 hashtags); PALABRAS CLAVE (tres frases).',
+   'Verifica antes de entregar: gancho idéntico, segunda persona singular, humor confrontativo y charro, máximo dos renglones por bloque, sin remates vacíos y dos CTA.'
+  ].filter(Boolean).join('\n\n');
+ }
+ for(const el of [topic,hook,duration,tone,engagement,commercial,sales,extra]){el.addEventListener('input',update);el.addEventListener('change',update)}
+ actions.append(copy,send,vary);panel.append(heading,hint,grid,hookBox,salesLabel,sales,extraLabel,extra,promptLabel,prompt,actions,example);update();
+}
+
 async function openSelector(){
  const ui=modal('Contenido para Instagram');
  const nav=document.createElement('nav');nav.style.cssText='display:flex;gap:8px;border-bottom:1px solid #e8e8e8;padding-bottom:12px;margin-bottom:14px';
  const productTab=button('Productos · Imagen y SEO',()=>activate('productos'),true);
  const educationTab=button('Educación · Calendario',()=>activate('educacion'));
+ const tiktokTab=button('TikTok · Guiones',()=>activate('tiktok'));
  const productPanel=document.createElement('div');
  const educationPanel=document.createElement('div');educationPanel.hidden=true;
  educationPanel.style.cssText='display:none';
- nav.append(productTab,educationTab);ui.panel.append(nav,productPanel,educationPanel);
+ const tiktokPanel=document.createElement('div');tiktokPanel.style.display='none';
+ nav.style.flexWrap='wrap';
+ nav.append(productTab,educationTab,tiktokTab);ui.panel.append(nav,productPanel,educationPanel,tiktokPanel);
  function activate(which){
   const showProducts=which==='productos';
   productPanel.style.display=showProducts?'block':'none';
-  educationPanel.style.display=showProducts?'none':'block';
-  productTab.style.background=showProducts?'#151515':'#fff';productTab.style.color=showProducts?'#fff':'#222';
-  educationTab.style.background=showProducts?'#fff':'#151515';educationTab.style.color=showProducts?'#222':'#fff';
+  educationPanel.style.display=which==='educacion'?'block':'none';
+  tiktokPanel.style.display=which==='tiktok'?'block':'none';
+  for(const [tab,key] of [[productTab,'productos'],[educationTab,'educacion'],[tiktokTab,'tiktok']]){
+   tab.style.background=which===key?'#151515':'#fff';tab.style.color=which===key?'#fff':'#222';
+  }
   ui.panel.scrollTop=0;
  }
+ renderTikTokGenerator(tiktokPanel);
  const search=document.createElement('input');search.placeholder='Buscar por nombre o marca';search.setAttribute('aria-label','Buscar producto');search.style.cssText='width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:10px;padding:12px;font:inherit';
  const preview=document.createElement('div');preview.style.cssText='margin:14px 0';
  const editor=document.createElement('div');editor.style.cssText='margin-top:14px;border-top:1px solid #e8e8e8;padding-top:14px';
