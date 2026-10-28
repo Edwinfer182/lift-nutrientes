@@ -166,7 +166,7 @@ async function openSelector(){
     combinations.forEach(([ti,th,period])=>{const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;padding:8px 0';const info=document.createElement('span');info.style.cssText='font-size:12px;flex:1';info.textContent=(period==='mañana'?'Mañana':period==='tarde'?'Tarde':'Noche')+' · '+types[ti][0]+' / '+themes[th];const choose=button('Usar',()=>{typeSelect.value=String(ti);themeSelect.value=String(th);extra.value='';moment.value=period;update()});row.append(info,choose);slotList.append(row)})
    }
    typeSelect.onchange=update;themeSelect.onchange=()=>{extra.value='';update()};extra.oninput=update;moment.onchange=update;day.onchange=renderSlots;
-   plan.append(title,hint,layout,dayRow,promptLabel,prompt,actions,schedule);editor.append(plan);renderSlots();update();
+   plan.append(title,hint,layout,dayRow,promptLabel,prompt,actions,schedule);educationPanel.append(plan);renderSlots();update();
 
  }
  renderEducation();
