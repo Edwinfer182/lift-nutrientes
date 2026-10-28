@@ -13,9 +13,10 @@
     if (!nombre) throw new Error('El producto debe tener nombre.');
     const marca=String(p.marca || p.brand || p.product?.marca || p.product?.brand || '').trim();
     const precioRaw=p.precio??p.price??p.product?.precio??p.product?.price;
-    const precio=precioRaw!=null&&precioRaw!==''&&Number(precioRaw)>0?' || p.product?.categoria || 'suplementos deportivos').trim();
+    const precio=precioRaw!=null&&precioRaw!==''&&Number(precioRaw)>0?('$'+Number(precioRaw).toLocaleString('es-CO')):'';
+    const productoCompleto=[nombre,marca].filter(Boolean).join(' · ');
+    const categoria=String(p.categoria||p.category||p.product?.categoria||'suplementos deportivos').trim();
     const titulo=[nombre,marca,precio].filter(Boolean).join(' - ');
-    const clave=productoCompleto+' Medellín';
     // Usar solo una URL real aportada por el catálogo; no construir slugs hipotéticos.
     const candidates=[p.url_producto,p.product_url,p.url,p.enlace,p.product?.url_producto,p.product?.url,p.product?.enlace];
     const url=candidates.find(u=>{try{const x=new URL(u);return x.protocol==='https:' && /(^|\.)supgo\.co$/i.test(x.hostname) && x.pathname!=='/'}catch{return false}})||'https://supgo.co';
