@@ -80,6 +80,9 @@
         nombre:raw.nombre||raw.name||raw.title||nested.nombre||nested.name||nested.title||'',
         marca:raw.marca||raw.brand||nested.marca||nested.brand||'',
         categoria:raw.categoria||raw.category||nested.categoria||nested.category||'',
+        imagen:raw.imagen||raw.image||nested.imagen||nested.image||'',
+        sabor:raw.sabor||raw.flavor||nested.sabor||nested.flavor||'',
+        presentacion:raw.presentacion||raw.presentation||nested.presentacion||nested.presentation||'',
         slug:raw.slug||nested.slug||'',
         id:raw.id||nested.id
       };
@@ -96,6 +99,45 @@
         }catch(e){console.warn('Instagram SEO: catálogo no disponible',e)}
       }
     }
+    // Vista previa y compartir: reutiliza el generador oficial de fichas de SUPGO.
+    const preview=document.createElement('div');
+    preview.style.cssText='display:none;margin:14px 0;padding:14px;border:1px solid #e5e5e5;border-radius:12px;background:#fafafa';
+    results.before(preview);
+    function showPreview(p){
+      preview.replaceChildren();preview.style.display='block';
+      const head=document.createElement('div');head.style.cssText='display:flex;gap:14px;align-items:center';
+      const img=document.createElement('img');
+      const getImage=x=>x.imagen||x.image||x.imagen_url||x.foto||x.product?.imagen||x.product?.image||'';
+      const src=getImage(p);if(src){img.src=src;img.alt=p.nombre;img.style.cssText='width:110px;height:125px;object-fit:contain;background:white;border-radius:9px';head.append(img);}
+      const details=document.createElement('div');details.style.cssText='flex:1;min-width:0';
+      const title=document.createElement('strong');title.textContent=p.nombre;
+      const brand=document.createElement('div');brand.textContent=p.marca||'';brand.style.cssText='font-size:12px;color:#666;margin:5px 0';
+      details.append(title,brand);head.append(details);preview.append(head);
+      const matching=products.filter(x=>x.id!==p.id&&clean(x.nombre).toLowerCase()===clean(p.nombre).toLowerCase());
+      const options=[p,...matching].filter(x=>x.id!=null);
+      let selected=p;
+      if(options.length>1){
+        const label=document.createElement('label');label.textContent='Sabor / presentación';label.style.cssText='display:block;margin-top:12px';
+        const select=document.createElement('select');select.style.cssText='width:100%;padding:10px;border:1px solid #ddd;border-radius:8px';
+        options.forEach((x,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=x.sabor||x.flavor||x.presentacion||x.presentation||x.nombre+' · '+(i+1);select.append(op)});
+        select.onchange=()=>{selected=options[Number(select.value)];const url=getImage(selected);if(url){img.src=url;if(!img.isConnected)head.prepend(img)}};
+        label.append(select);preview.append(label);
+      }
+      const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px';
+      const share=document.createElement('button');share.type='button';share.textContent='Compartir imagen';share.style.cssText='background:#111;color:white;border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font:500 13px Poppins,Arial';
+      share.onclick=async()=>{
+        if(typeof window.shareLiftProductImage!=='function'){alert('El generador de imágenes del catálogo no está disponible.');return;}
+        if(selected.id==null){alert('Este producto no tiene identificador de catálogo.');return;}
+        const old=share.textContent;share.disabled=true;share.textContent='Preparando imagen…';
+        try{await window.shareLiftProductImage(selected.id)}
+        catch(e){console.error(e);alert('No se pudo generar la imagen: '+(e.message||e))}
+        finally{share.disabled=false;share.textContent=old}
+      };
+      const seo=document.createElement('button');seo.type='button';seo.textContent='Crear publicación SEO';seo.style.cssText='background:white;border:1px solid #ccc;border-radius:9px;padding:11px 16px;cursor:pointer;font:500 13px Poppins,Arial';
+      seo.onclick=()=>{overlay.remove();open(selected)};
+      actions.append(share,seo);preview.append(actions);
+      const note=document.createElement('small');note.textContent='La imagen se genera con el diseño de la ficha y las opciones de compartir de tu dispositivo. @Estados requiere adjuntar la imagen si no admite recepción directa.';note.style.cssText='display:block;color:#777;margin-top:9px';preview.append(note);
+    }
     function render(){
       results.replaceChildren();const term=clean(input.value).toLowerCase();
       const filtered=products.filter(p=>clean([p.nombre,p.marca].join(' ')).toLowerCase().includes(term)).slice(0,40);
@@ -104,7 +146,7 @@
         const manual=document.createElement('button');manual.textContent='Usar nombre manual';manual.onclick=()=>{const nombre=input.value.trim();if(!nombre){input.focus();return}overlay.remove();open({nombre})};results.appendChild(manual);return;
       }
       if(!filtered.length){results.textContent='No se encontraron productos';return}
-      for(const p of filtered){const b=document.createElement('button');b.type='button';b.textContent=[p.nombre,p.marca].filter(Boolean).join(' · ');b.style.cssText='display:block;width:100%;text-align:left;padding:10px;margin:4px 0;background:#f8f8f8;border:1px solid #ddd;border-radius:8px;cursor:pointer';b.onclick=()=>{overlay.remove();open(p)};results.appendChild(b)}
+      for(const p of filtered){const b=document.createElement('button');b.type='button';b.textContent=[p.nombre,p.marca].filter(Boolean).join(' · ');b.style.cssText='display:block;width:100%;text-align:left;padding:10px;margin:4px 0;background:#f8f8f8;border:1px solid #ddd;border-radius:8px;cursor:pointer';b.onclick=()=>{showPreview(p)};results.appendChild(b)}
     }
     input.addEventListener('input',render);render();input.focus();
   }
