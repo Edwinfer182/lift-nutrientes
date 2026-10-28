@@ -156,12 +156,52 @@ async function openSelector(){
    function makeCaption(){
     const subject=extra.value.trim()||themes[Number(themeSelect.value)];
     const kind=types[Number(typeSelect.value)][0];
-    const hooks={'Educativo':'¿Qué debes saber sobre ','Mitos y realidades':'Mitos y realidades sobre ','Comparación':'¿Cómo comparar opciones de ','Errores comunes':'Evita estos errores al hablar de ','Preguntas frecuentes':'Respondamos tus dudas sobre ','Consejo práctico':'Un consejo útil sobre ','Disciplina y motivación':'La constancia también cuenta en ','Interacción':'Hablemos de ','Producto protagonista':'Conoce mejor ','Guía de compra':'Antes de elegir, conoce '};
-    const opener=(hooks[kind]||'Conoce más sobre ')+subject.toLowerCase()+' 💪';
-    const explanation=kind==='Disciplina y motivación'?'La disciplina se construye con hábitos sostenibles.':kind==='Interacción'?'Queremos conocer tu experiencia y tus preguntas.':'Busca información confiable, revisa el contexto y toma decisiones según tus objetivos y necesidades.';
-    return opener+'\n\n'+explanation+'\n\n¿Qué opinas? Te leemos en comentarios. 👇\n\n#EducacionFitness #NutricionDeportiva #Entrenamiento #SUPGO';
+    const lower=subject.toLowerCase();
+    let fact='',tip='',question='';
+    if(/creatina/i.test(subject)){fact='La creatina ayuda a mejorar el rendimiento en esfuerzos cortos y de alta intensidad. La constancia importa más que una hora específica de consumo.';tip='No confundas cambios de agua dentro del músculo con un aumento inmediato de grasa.';question='¿La tomas a diario o solo cuando entrenas?'}
+    else if(/proteína|whey|aislada|masa|ganador/i.test(subject)){fact='La proteína contribuye al mantenimiento y crecimiento de la masa muscular junto con entrenamiento y alimentación adecuados. Un batido es una opción práctica, no una obligación.';tip='Compara la proteína por porción, los ingredientes y tus necesidades antes de elegir.';question='¿Prefieres cubrir tus necesidades con alimentos, batidos o ambos?'}
+    else if(/preentreno|cafeína|beta alanina|citrulina/i.test(subject)){fact='Los ingredientes de un preentreno no cumplen todos la misma función. La cafeína puede mejorar el estado de alerta, pero también afectar el sueño.';tip='Revisa ingredientes y cantidades; más estimulante no significa necesariamente mejor entrenamiento.';question='¿Revisas la cafeína antes de elegir un preentreno?'}
+    else if(/eaa|bcaa|aminoácid/i.test(subject)){fact='Los aminoácidos esenciales participan en la síntesis de proteínas. La utilidad de suplementarlos depende, entre otras cosas, de la proteína total de tu alimentación.';tip='Antes de añadir otro suplemento, revisa si tu dieta ya cubre tus necesidades.';question='¿Conoces la diferencia entre EAA y BCAA?'}
+    else if(/sueño|descanso|recuperación/i.test(subject)){fact='El descanso forma parte del entrenamiento. Dormir bien y gestionar la carga ayudan a recuperarte entre sesiones.';tip='No confundas entrenar más días con progresar necesariamente más.';question='¿Cuántas horas sueles dormir?'}
+    else if(/entren|fuerza|hipertrofia|piernas|espalda|hombros|bíceps|tríceps|pantorrillas|series|cargas|técnica|calentamiento|gimnasio/i.test(subject)){fact='Progresar en el gimnasio depende de una técnica adecuada, una carga que puedas controlar y una rutina sostenible.';tip='Registra tu entrenamiento y mejora gradualmente, sin sacrificar la ejecución.';question='¿Qué parte de tu rutina te cuesta más mejorar?'}
+    else if(/disciplina|constancia|motivación|solo/i.test(subject)){fact='La disciplina se construye repitiendo hábitos realistas, incluso cuando no hay motivación.';tip='Una sesión consistente vale más que un plan perfecto que nunca se cumple.';question='¿Qué hábito te ayuda a no abandonar?'}
+    else if(/etiqueta|registro|precio|porción|almacenamiento|sabores|presentaciones|comparar/i.test(subject)){fact='Leer la etiqueta permite comparar ingredientes, cantidades por porción, presentación y recomendaciones del fabricante.';tip='No elijas solo por el tamaño del envase o por una frase llamativa del empaque.';question='¿Qué revisas primero antes de comprar?'}
+    else if(/hidratación|electrolito/i.test(subject)){fact='Las necesidades de líquidos varían según la actividad, el clima y la sudoración. No todas las sesiones requieren bebidas con electrolitos.';tip='Considera la duración e intensidad del ejercicio y tus condiciones individuales.';question='¿Llevas agua a todos tus entrenamientos?'}
+    else if(/carbohidrato|déficit|superávit|nutrición|alimentación/i.test(subject)){fact='La alimentación y la energía disponible influyen en el rendimiento y la recuperación. No existe una estrategia idéntica para todas las personas.';tip='Ajusta tus decisiones a tus objetivos y evita las reglas extremas.';question='¿Qué parte de tu alimentación te gustaría entender mejor?'}
+    else {fact='Comprender para qué sirve cada opción y en qué contexto puede ser útil ayuda a tomar decisiones más informadas.';tip='Revisa la evidencia, las indicaciones del fabricante y tus necesidades antes de cambiar hábitos.';question='¿Qué duda tienes sobre este tema?'}
+    const hooks={
+     'Educativo':'Lo esencial sobre '+lower+' 📚',
+     'Mitos y realidades':'¿Mito o realidad? Hablemos de '+lower+' 🔎',
+     'Comparación':'Antes de comparar opciones de '+lower+', lee esto 👇',
+     'Errores comunes':'Un error común al hablar de '+lower+' ⚠️',
+     'Preguntas frecuentes':'Resolvamos dudas sobre '+lower+' 💬',
+     'Consejo práctico':'Un consejo práctico sobre '+lower+' 💡',
+     'Disciplina y motivación':'La constancia se entrena. Hoy hablamos de '+lower+' 💪',
+     'Interacción':'Queremos conocer tu opinión sobre '+lower+' 👇',
+     'Producto protagonista':'Antes de elegir un producto relacionado con '+lower+' 🔍',
+     'Guía de compra':'Guía rápida para entender '+lower+' 🛒',
+     'Dato curioso':'Un dato interesante sobre '+lower+' 🧠',
+     'Verdadero o falso':'¿Verdadero o falso? '+subject+' 🤔',
+     'Paso a paso':'Tres pasos para entender '+lower+' 📌',
+     'Checklist':'Lista rápida para revisar '+lower+' ✅',
+     'Antes y después de aprender':'Lo que muchos creen sobre '+lower+' y lo que conviene saber.',
+     'Glosario fitness':'Diccionario fitness: '+subject+' 📖',
+     'Caso hipotético':'Imagina que estás aprendiendo sobre '+lower+'...',
+     'Reto semanal':'Reto de la semana: aprende algo nuevo sobre '+lower+' 💪',
+     'Encuesta':'Encuesta rápida: '+subject+' 📊',
+     'Carrusel educativo':'Desliza para entender mejor '+lower+' 👉',
+     'Mini guía':'Mini guía: '+subject+' 📋',
+     'Lo que dice la evidencia':'¿Qué sabemos realmente sobre '+lower+'? 🔬',
+     'Señales para revisar':'Antes de decidir sobre '+lower+', revisa esto.',
+     'Hábitos de entrenamiento':'Pequeños hábitos, mejores rutinas: '+subject,
+     'Preguntas para tu entrenador':'Preguntas que vale la pena hacer sobre '+lower+' 💬'
+    };
+    const intro=hooks[kind]||'Aprendamos sobre '+lower;
+    const middle=/Errores|Checklist|Guía|Paso a paso|Señales|compra/i.test(kind)?tip+'\n\n'+fact:fact+'\n\n'+tip;
+    const closing=/Interacción|Encuesta|Preguntas/i.test(kind)?question+' Cuéntanos en comentarios. 👇':question;
+    const hashtags=/entren|gimnasio|disciplina|fuerza|hipertrofia|series/i.test(subject)?'#Entrenamiento #DisciplinaFitness #Gimnasio #SUPGO':'#NutricionDeportiva #Suplementos #EducacionFitness #SUPGO';
+    return intro+'\n\n'+middle+'\n\n'+closing+'\n\n'+hashtags;
    }
-
    const schedule=document.createElement('div');schedule.style.cssText='border-top:1px solid #eee;margin-top:15px;padding-top:12px';
    const scheduleTitle=document.createElement('strong');scheduleTitle.textContent='Ideas para el día';scheduleTitle.style.cssText='display:block;margin-bottom:8px;font-size:13px';
    const slotList=document.createElement('div');
