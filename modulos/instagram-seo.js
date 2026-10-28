@@ -128,7 +128,11 @@ async function openSelector(){
    const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:9px';
    const rawUrl=value(selected,'url_producto','product_url','url','enlace');
    let verified='';
-   try{const u=new URL(String(rawUrl),location.origin);if(u.hostname==='supgo.co'||u.hostname==='www.supgo.co'){if(u.pathname!=='/'&&u.pathname!=='/home/')verified=u.toString()}}catch{}
+   const candidates=[rawUrl,typeof window.liftStaticProductUrl==='function'?window.liftStaticProductUrl(selected):'',typeof window.liftPublicProductUrl==='function'?window.liftPublicProductUrl(selected):''];
+   for(const candidate of candidates){if(!candidate)continue;try{const u=new URL(String(candidate),'https://supgo.co');if((u.hostname==='supgo.co'||u.hostname==='www.supgo.co')&&u.pathname.startsWith('/productos/')){verified=u.toString();break}}catch{}}
+   if(!verified&&selected.id&&selected.nombre&&typeof window.seoSlug==='function'){
+    const slug=window.seoSlug(selected.nombre);if(slug)verified='https://supgo.co/productos/'+slug+'-'+encodeURIComponent(String(selected.id))+'.html';
+   }
    linkField.value=verified||'Este producto no tiene una URL individual confirmada';
    const copyText=async(text,b)=>{try{await navigator.clipboard.writeText(text)}catch{const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();document.execCommand('copy');t.remove()}b.textContent='Copiado ✓'};
    const copyLink=button('Copiar enlace para historia',()=>copyText(linkField.value,copyLink),true);
