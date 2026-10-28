@@ -69,6 +69,21 @@ function open(raw){
  const style=select('Estilo',[['0','Directo'],['1','Asesoría'],['2','Descubrimiento']]);
  const fields=document.createElement('div');ui.panel.append(controls,fields);
  const render=()=>{fields.replaceChildren();const d=generate(raw,objective.value,style.value);field(fields,'Nombre + marca + precio',d.titulo,2);field(fields,'Descripción + hashtags',d.descripcion,8);field(fields,'Texto alternativo',d.alt,3)};
+ const prompts=document.createElement('div');prompts.style.cssText='margin-top:16px;border-top:1px solid #eee;padding-top:14px';
+ const heading=document.createElement('strong');heading.textContent='Prompts para @Estados';heading.style.cssText='display:block;font-size:14px;margin-bottom:9px';
+ const explanation=document.createElement('p');explanation.textContent='Copia el prompt y úsalo con @Estados junto con la imagen original del producto.';explanation.style.cssText='font-size:12px;color:#666;margin:0 0 10px';
+ prompts.append(heading,explanation);
+ const promptText=(mode)=>{
+  const p=product(raw);
+  const name=[p.nombre,p.marca].filter(Boolean).join(' · ');
+  const dimensions=mode==='publicacion'?'publicación de Instagram, formato vertical 4:5 (1080 × 1350 px)':'estado de WhatsApp / historia de Instagram, formato vertical 9:16 (1080 × 1920 px)';
+  return '@Estados: Crea una imagen de '+dimensions+' para '+name+'. Utiliza la programación y el estilo visual que ya tenemos definidos para @Estados. Conserva fielmente el envase, etiqueta, marca, colores y sabor de la fotografía original que adjunto. Diseño profesional, limpio, con poco texto, producto protagonista, sin logos inventados ni afirmaciones no verificadas. Producto: '+p.nombre+'. Marca: '+(p.marca||'no especificada')+'. Sabor: '+(p.sabor||'no especificado')+'. Precio: '+(formatPrice(p.precio)||'no mostrar precio')+'. No agregues información nutricional que no sea visible o esté confirmada. Entrega una sola imagen lista para publicar.';
+ };
+ for(const [mode,label] of [['publicacion','Copiar prompt · Publicación 4:5'],['estado','Copiar prompt · Estado 9:16']]){
+  const btn=button(label,async()=>{const text=promptText(mode);try{await navigator.clipboard.writeText(text);btn.textContent='Copiado ✓'}catch{const area=document.createElement('textarea');area.value=text;document.body.append(area);area.select();document.execCommand('copy');area.remove();btn.textContent='Copiado ✓'}},mode==='publicacion');
+  btn.style.margin='4px 7px 4px 0';prompts.append(btn);
+ }
+ ui.panel.append(prompts);
  objective.onchange=render;style.onchange=render;render();
 }
 async function openSelector(){
