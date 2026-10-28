@@ -273,12 +273,12 @@ def build(row):
  promotion=active_offer(row)
  try: amount=float(price); valid_price=amount>0
  except (ValueError,TypeError):valid_price=False;amount=0
- title=str(embedded.get("title") or seo_data.get("titulo_seo") or (name+" | Supgo"))[:140]
- seo_description=seo_plain(embedded.get("html") or seo_data.get("descripcion_larga_html"))
+ title=str(seo_data.get("titulo_seo") or embedded.get("title") or (name+" | Supgo"))[:140]
+ seo_description=seo_plain(seo_data.get("descripcion_larga_html") or embedded.get("html"))
  # Meta única por ficha: prioridad a nombre y marca, con enfoque local real.
  # No reutilizar textos heredados de WordPress ni descripciones genéricas.
  product_label=name if not brand or brand.casefold() in name.casefold() else f"{name} de {brand}"
- meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y Colombia."
+ meta=f"Compra {product_label} en Medellín con SUPGO. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y Colombia."
  if len(meta)>160:
   meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precios y disponibilidad. Envíos a toda Colombia."
  if len(meta)>160:
@@ -307,7 +307,7 @@ def build(row):
   if value: product_schema[target]=str(value).strip()
  if promotion:amount=promotion[1]
  if valid_price:
-  offer={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"seller":{"@type":"Organization","name":"Lift Nutrientes","url":BASE}}
+  offer={"@type":"Offer","url":canonical,"priceCurrency":"COP","price":int(amount) if amount.is_integer() else amount,"seller":{"@type":"Organization","name":"SUPGO","url":BASE}}
   availability=seo_availability(row)
   if availability:offer["availability"]=availability
   if promotion:
