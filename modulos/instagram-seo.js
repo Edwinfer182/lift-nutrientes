@@ -1,4 +1,4 @@
-/* Lift Nutrientes | Instagram SEO
+/* SUPGO | Instagram SEO
    Integración: window.LiftInstagramSEO.open(producto)
    Producto: {id,nombre,marca,categoria,imagen,slug,product}
    No publica en Instagram ni inventa precios o existencias.
@@ -19,26 +19,26 @@
     const candidates=[p.url_producto,p.product_url,p.url,p.enlace,p.product?.url_producto,p.product?.url,p.product?.enlace];
     const url=candidates.find(u=>{try{const x=new URL(u);return x.protocol==='https:' && /(^|\.)supgo\.co$/i.test(x.hostname) && x.pathname!=='/'}catch{return false}})||'https://supgo.co';
     const intros={
-      ventas:['¿Buscas '+nombre+' en Medellín?','Encuentra información de '+nombre+' en Lift Nutrientes.','Tu próximo suplemento puede estar en nuestro catálogo: '+nombre+'.'],
+      ventas:['¿Buscas '+nombre+' en Medellín?','Encuentra información de '+nombre+' en SUPGO.','Tu próximo suplemento puede estar en nuestro catálogo: '+nombre+'.'],
       educativo:['¿Qué debes revisar antes de elegir '+nombre+'?','Conoce mejor '+nombre+' antes de comprar.','Hoy te mostramos '+nombre+' y cómo consultar sus características.'],
       alcance:['¿Ya conocías '+nombre+'?','Si buscas '+nombre+' en Medellín, esta publicación es para ti.','Una opción para explorar en suplementos deportivos: '+nombre+'.']
     };
     const index=((Number(variant)||0)%3+3)%3;
     const intro=(intros[objective]||intros.ventas)[index];
     const bodies=[
-      'Consulta la presentación, características y detalles de '+nombre+' directamente con Lift Nutrientes.',
-      'Antes de elegir tu suplemento, revisa su presentación y composición. En Lift Nutrientes te ayudamos a consultar la información de '+nombre+'.',
+      'Consulta la presentación, características y detalles de '+nombre+' directamente con SUPGO.',
+      'Antes de elegir tu suplemento, revisa su presentación y composición. En SUPGO te ayudamos a consultar la información de '+nombre+'.',
       'Si estás comparando opciones para tu entrenamiento, conoce los detalles de '+nombre+' en nuestro catálogo.'
     ];
     const endings=[
       '📍 Atención en Medellín y envíos a Colombia.\n📲 Escríbenos para confirmar precio y disponibilidad.',
       '📦 Consulta opciones de envío desde Medellín.\n💬 Pide información y cotización por mensaje.',
-      '🛒 Explora Lift Nutrientes y consulta las condiciones de compra.\n📩 Escríbenos para verificar disponibilidad.'
+      '🛒 Explora SUPGO y consulta las condiciones de compra.\n📩 Escríbenos para verificar disponibilidad.'
     ];
     const descripcion=[intro,bodies[index],endings[index],'🔗 '+url].join('\n\n');
-    const hashtags=[nombre,marca,categoria,'SuplementosMedellin','LiftNutrientes'].filter(Boolean).map(x=>'#'+hashtag(x)).filter((x,i,a)=>x.length>1&&a.indexOf(x)===i).slice(0,8).join(' ');
-    const alt='Imagen de '+nombre+(marca?' de '+marca:'')+', suplemento del catálogo Lift Nutrientes en Medellín.';
-    const reel=['0–3 s: Muestra el producto y escribe '+nombre+'.','3–9 s: Enfoca la presentación y los datos reales de su etiqueta.','9–15 s: Explica una característica comprobable, sin prometer resultados.','15–20 s: Invita a consultar precio y disponibilidad en Lift Nutrientes.'].join('\n');
+    const hashtags=[nombre,marca,categoria,'SuplementosMedellin','SUPGO'].filter(Boolean).map(x=>'#'+hashtag(x)).filter((x,i,a)=>x.length>1&&a.indexOf(x)===i).slice(0,8).join(' ');
+    const alt='Imagen de '+nombre+(marca?' de '+marca:'')+', suplemento del catálogo SUPGO en Medellín.';
+    const reel=['0–3 s: Muestra el producto y escribe '+nombre+'.','3–9 s: Enfoca la presentación y los datos reales de su etiqueta.','9–15 s: Explica una característica comprobable, sin prometer resultados.','15–20 s: Invita a consultar precio y disponibilidad en SUPGO.'].join('\n');
     return {titulo,clave,relacionadas:[nombre,marca?marca+' Colombia':'Suplementos Colombia',categoria+' Medellín','Comprar '+nombre].filter(Boolean),descripcion,hashtags,alt,reel,url};
   }
   function open(producto) {
