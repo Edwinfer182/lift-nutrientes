@@ -75,8 +75,12 @@ def template(kind, title, url_slug, count, image_url=''):
     plural = "categorias" if kind == "categoria" else "laboratorios"
     heading = escape(title)
     description = (f"Compra suplementos de {title} en Medellín con Lift Nutrientes. Consulta productos, precios y disponibilidad. Envíos a Bogotá, Cali y Colombia." if kind == "laboratorio" else f"Compra {title} en Medellín con Lift Nutrientes. Encuentra suplementos, precios y presentaciones. Envíos a Bogotá, Cali y toda Colombia.")[:160]
+    if kind == "laboratorio" and url_slug == "nutramerican-pharma":
+        description = "Compra suplementos Nutramerican Pharma en Medellín. Explora el catálogo, compara presentaciones y consulta precios y disponibilidad en SUPGO."
     canonical = f"https://supgo.co/{plural}/{url_slug}/"
     safe_title = escape(f"{title} en Medellín | SUPGO" if kind == "laboratorio" else f"{title} | SUPGO", quote=True)
+    if kind == "laboratorio" and url_slug == "nutramerican-pharma":
+        safe_title = escape("Nutramerican Pharma en Medellín | Suplementos SUPGO", quote=True)
     safe_description = escape(description, quote=True)
     social = f"""<meta property="og:type" content="website">
 <meta property="og:site_name" content="SUPGO">
@@ -92,16 +96,30 @@ def template(kind, title, url_slug, count, image_url=''):
         social += f'\n<meta property="og:image" content="{url}"><meta name="twitter:image" content="{url}">'
     data = json.dumps({"@context": "https://schema.org", "@type": "CollectionPage", "name": title, "url": canonical, "description": description}, ensure_ascii=False)
     safe_json = data.replace("<", "\\u003c")
+    extra_content = ""
+    h1 = heading
+    if kind == "laboratorio" and url_slug == "nutramerican-pharma":
+        h1 = "Suplementos Nutramerican Pharma en Medellín"
+        extra_content = """<section class="seo-laboratorio" aria-label="Información sobre Nutramerican Pharma" style="margin:22px 0 28px;line-height:1.75">
+<h2>Comprar Nutramerican Pharma en Medellín</h2>
+<p>Explora el catálogo de suplementos deportivos Nutramerican Pharma en SUPGO. Desde Medellín puedes consultar las referencias publicadas, revisar sus presentaciones y comparar los precios mostrados en cada ficha. La disponibilidad se confirma al realizar el pedido, porque el inventario puede cambiar.</p>
+<h2>Suplementos deportivos y presentaciones</h2>
+<p>Si buscas productos Nutramerican Pharma, revisa la información de cada referencia antes de comprar: nombre, presentación, ingredientes y condiciones de uso indicadas por el fabricante. Entre las búsquedas habituales de la marca están los ganadores de masa como Mass Gainer; comprueba las opciones efectivamente listadas en el catálogo, sin asumir que todas las presentaciones estén disponibles.</p>
+<h2>Pedidos desde Medellín y otras ciudades de Colombia</h2>
+<p>Medellín es nuestra ubicación principal de atención. También puedes consultar opciones de compra y envío hacia Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y Pereira. El costo y la cobertura se determinan al confirmar tu pedido.</p>
+<h2>Encuentra el suplemento que buscas</h2>
+<p>Explora <a href="/laboratorios/">otras marcas de suplementos</a>, compara <a href="/categorias/">categorías de productos</a>, utiliza el <a href="/buscar/">buscador de suplementos</a> o consulta las <a href="/ofertas/">ofertas disponibles</a>. Estos cuatro accesos te permiten navegar por el catálogo sin perder la página del laboratorio.</p>
+</section>"""
     return f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{heading} | SUPGO</title><meta name="description" content="{escape(description, quote=True)}">
+<title>{safe_title}</title><meta name="description" content="{escape(description, quote=True)}">
 <link rel="canonical" href="{canonical}">\n{social}
 <script type="application/ld+json">{safe_json}</script>
 <link rel="stylesheet" href="/paginas/supgo-pages.css"></head>
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
 <nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mis-pedidos/">Mis pedidos</a></nav></div></header>
-<main class="site"><h1>{heading}</h1><p class="muted">{escape(description)}</p>
+<main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}
 <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
 <div id="content"><p class="loading">Cargando {count} productos…</p></div></main>
 <script defer src="/paginas/supgo-pages.js"></script></body></html>"""
