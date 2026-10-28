@@ -143,43 +143,62 @@ async function openSelector(){
    if(!verified){const warning=document.createElement('small');warning.textContent='Falta la URL de la ficha de este producto. No se generará un enlace inventado.';warning.style.cssText='display:block;color:#a55;margin-top:8px';linkBox.append(warning)}
    editor.append(linkBox);
    const plan=document.createElement('section');plan.style.cssText='margin-top:16px;border:1px solid #e8e8e8;border-radius:12px;padding:14px';
-   const planTitle=document.createElement('h3');planTitle.textContent='Calendario de contenido · 7 días';planTitle.style.cssText='font-size:15px;margin:0 0 5px;font-weight:600';
-   const help=document.createElement('p');help.textContent='Tres ideas por día: educar, mostrar y conversar. Copia el prompt de cualquier horario para @Estados. El precio solo aparece cuando sea necesario.';help.style.cssText='color:#666;font-size:12px;line-height:1.6;margin:0 0 10px';
-   const daySelect=document.createElement('select');daySelect.style.cssText='width:100%;padding:10px;border:1px solid #ddd;border-radius:9px;background:#fff;font:inherit;margin-bottom:9px';
-   const days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
-   days.forEach((day,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=day;daySelect.append(opt)});
-   daySelect.value=String((new Date().getDay()+6)%7);
-   const slotList=document.createElement('div');
-   const topics=[
-    [['Creatina: cuándo tomarla','Qué revisar en una creatina','¿Qué duda tienes sobre creatina?'],['Aislada o concentrada: diferencias','Presentaciones de proteína','¿Cuál proteína usas?'],['Errores al elegir preentreno','Conoce un preentreno sin promesas exageradas','¿Entrenas temprano o de noche?']],
-    [['Cómo leer una etiqueta nutricional','Ingredientes y presentación del producto','¿Lees la etiqueta antes de comprar?'],['¿Cuánta proteína aportan los alimentos?','Suplementos como complemento, no sustituto','¿Prefieres batido o comida?'],['Diferencias entre EAA y BCAA','Presentación y usos generales de EAA','¿Qué tema de aminoácidos te interesa?']],
-    [['Mitos sobre la creatina','Tres cosas verificables del producto','¿Qué mito has escuchado?'],['Hidratación y entrenamiento','Presentación de un producto para entrenar','¿Cuánta agua llevas al gimnasio?'],['Descanso y recuperación','Rutina + producto sin prometer resultados','¿Cuántos días descansas?']],
-    [['Qué es proteína aislada','Producto destacado y sus características','¿Qué sabor elegirías?'],['Cómo elegir una presentación','Comparación de tamaños sin inventar datos','¿Compras por porción o por tamaño?'],['Qué significa porción en la etiqueta','Producto en primer plano sin precio','¿Te confunden las etiquetas?']],
-    [['¿La creatina causa retención de agua?','Ficha visual del producto sin precio','¿Quieres más mitos explicados?'],['¿Más sudor significa más progreso?','Producto sin claims milagrosos','¿Qué consejo de gimnasio te dijeron?'],['Qué revisar en un preentreno','Ingredientes visibles y advertencias generales','¿Usas preentreno?']],
-    [['Disciplina cuando entrenas solo','Producto en contexto de rutina','¿Entrenas solo o acompañado?'],['Una hora bien aprovechada','Fotografía limpia de suplemento','¿Cuánto dura tu sesión?'],['Constancia antes que motivación','Producto + mensaje de disciplina','¿Cuál es tu hábito más constante?']],
-    [['Cómo comparar suplementos antes de comprar','Guía visual del producto seleccionado','¿Qué producto quieres comparar?'],['Planifica tu semana de entrenamiento','Producto sin precio con enfoque informativo','¿Qué entrenas mañana?'],['Preguntas frecuentes sobre suplementos','Resumen del producto sin inventar beneficios','Déjanos tu pregunta para la próxima semana']]
+   const title=document.createElement('h3');title.textContent='Planificador creativo · @Estados';title.style.cssText='font-size:15px;font-weight:600;margin:0 0 6px';
+   const hint=document.createElement('p');hint.textContent='Combina el tipo de contenido con el tema. Cambia cualquiera de los dos y el prompt se actualiza sin repetir la misma idea.';hint.style.cssText='font-size:12px;color:#666;line-height:1.6;margin:0 0 12px';
+   const layout=document.createElement('div');layout.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px';
+   const types=[
+    ['Educativo','Explica un concepto con lenguaje claro, una sola idea útil y datos verificables.'],
+    ['Mitos y realidades','Contrasta un mito frecuente con una explicación rigurosa y sin exageraciones.'],
+    ['Comparación','Compara dos opciones mediante criterios prácticos y sin declarar ganadores universales.'],
+    ['Errores comunes','Presenta un error frecuente, por qué importa y una alternativa razonable.'],
+    ['Preguntas frecuentes','Responde una pregunta concreta de forma sencilla y precisa.'],
+    ['Consejo práctico','Ofrece un consejo aplicable con pasos breves y prudentes.'],
+    ['Disciplina y motivación','Usa un mensaje breve de constancia y entrenamiento sin prometer resultados.'],
+    ['Interacción','Plantea una pregunta o encuesta breve para generar respuestas.'],
+    ['Producto protagonista','Presenta el producto seleccionado, sin inventar propiedades ni mostrar precio salvo que se solicite.'],
+    ['Guía de compra','Explica criterios para elegir una opción según necesidades personales.']
    ];
-   function renderPlan(){
-    slotList.replaceChildren();
-    const d=Number(daySelect.value);
-    const slots=[['Mañana · Educar','09:00','educativo'],['Tarde · Mostrar','14:00','producto'],['Noche · Interactuar','19:00','interaccion']];
-    slots.forEach(([label,hour,type],i)=>{
-     const row=document.createElement('div');row.style.cssText='border-top:1px solid #eee;padding:11px 0;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap';
-     const info=document.createElement('div');info.style.cssText='flex:1;min-width:180px';
-     const top=document.createElement('strong');top.textContent=label;top.style.cssText='font-size:12px;font-weight:500';
-     const topic=document.createElement('div');topic.textContent=topics[d][i][0];topic.style.cssText='font-size:13px;margin-top:4px';
-     info.append(top,topic);
-     const btn=button('Copiar prompt',async()=>{
-      const subject=topics[d][i][0];
-      const name=[selected.nombre,selected.marca].filter(Boolean).join(' · ');
-      const context=type==='producto'?'Usa como protagonista el producto de la fotografía original: '+name+'. Conserva exactamente su envase, marca, etiqueta y sabor. ':'El tema es general. No fuerces la aparición de un producto ni del precio. ';
-      const instruction='@Estados: Crea una imagen original para '+(type==='interaccion'?'historia de Instagram y estado de WhatsApp en 9:16 (1080 × 1920 px)':'publicación de Instagram en 4:5 (1080 × 1350 px)')+'. Tema: '+subject+'. '+context+'Utiliza la programación y estilo visual que ya tenemos definidos. Diseña un contenido limpio y visualmente atractivo, con un gancho breve, texto mínimo y jerarquía clara. '+(type==='interaccion'?'Termina con una pregunta breve para invitar respuestas. ':'Explica una sola idea útil con rigor, sin promesas exageradas. ')+'No inventes datos, beneficios, cifras, testimonios, logos ni información nutricional. No incluyas precios salvo que yo lo pida. Entrega una sola imagen lista para publicar.';
-      try{await navigator.clipboard.writeText(instruction)}catch{const t=document.createElement('textarea');t.value=instruction;document.body.append(t);t.select();document.execCommand('copy');t.remove()}btn.textContent='Copiado ✓';
-     },i===0);
-     row.append(info,btn);slotList.append(row);
-    });
+   const themes=[
+    'Creatina','Proteína whey','Proteína aislada vs concentrada','Preentrenos','EAA y BCAA','Hidratación','Recuperación y descanso','Lectura de etiquetas','Sabores y presentaciones','Entrenar solo','Constancia en el gimnasio','Nutrición deportiva','Errores de principiantes','Suplementos y alimentación','Preguntas de la comunidad'
+   ];
+   const makeColumn=(heading,values)=>{const col=document.createElement('div');const label=document.createElement('strong');label.textContent=heading;label.style.cssText='display:block;font-size:13px;margin-bottom:8px';const sel=document.createElement('select');sel.style.cssText='width:100%;padding:10px;border:1px solid #ddd;border-radius:9px;background:white;font:inherit';values.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=Array.isArray(v)?v[0]:v;sel.append(o)});col.append(label,sel);layout.append(col);return sel};
+   const typeSelect=makeColumn('Tipo de contenido',types);
+   const themeSelect=makeColumn('Tema',themes);
+   const extra=document.createElement('input');extra.placeholder='O escribe otro tema…';extra.setAttribute('aria-label','Tema personalizado');extra.style.cssText='width:100%;box-sizing:border-box;margin-top:9px;padding:10px;border:1px solid #ddd;border-radius:9px;font:inherit';
+   themeSelect.parentNode.append(extra);
+   const dayRow=document.createElement('div');dayRow.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin:12px 0';
+   const days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+   const day=document.createElement('select');day.style.cssText='flex:1;min-width:130px;padding:9px;border:1px solid #ddd;border-radius:9px;background:white';
+   days.forEach((d,i)=>{const o=document.createElement('option');o.value=i;o.textContent=d;day.append(o)});
+   day.value=String((new Date().getDay()+6)%7);
+   const moment=document.createElement('select');moment.style.cssText=day.style.cssText;
+   [['mañana','Mañana · 4:5'],['tarde','Tarde · 4:5'],['noche','Noche · 9:16']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;moment.append(o)});
+   dayRow.append(day,moment);
+   const promptLabel=document.createElement('strong');promptLabel.textContent='Prompt listo para copiar';promptLabel.style.cssText='display:block;font-size:13px;margin:12px 0 7px';
+   const prompt=document.createElement('textarea');prompt.rows=7;prompt.setAttribute('aria-label','Prompt generado');prompt.style.cssText='width:100%;box-sizing:border-box;padding:11px;border:1px solid #ddd;border-radius:9px;background:#fafafa;font:400 12px/1.6 Poppins,Arial,sans-serif;resize:vertical';
+   const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:9px';
+   const copy=button('Copiar prompt',async()=>{try{await navigator.clipboard.writeText(prompt.value)}catch{prompt.select();document.execCommand('copy')}copy.textContent='Copiado ✓'},true);
+   const random=button('Variar combinación',()=>{typeSelect.selectedIndex=(typeSelect.selectedIndex+3)%types.length;themeSelect.selectedIndex=(themeSelect.selectedIndex+5)%themes.length;extra.value='';update()});
+   actions.append(copy,random);
+   const schedule=document.createElement('div');schedule.style.cssText='border-top:1px solid #eee;margin-top:15px;padding-top:12px';
+   const scheduleTitle=document.createElement('strong');scheduleTitle.textContent='Ideas para el día';scheduleTitle.style.cssText='display:block;margin-bottom:8px;font-size:13px';
+   const slotList=document.createElement('div');
+   schedule.append(scheduleTitle,slotList);
+   function buildPrompt(typeIndex,themeIndex,period){
+    const t=types[typeIndex],subject=extra.value.trim()||themes[themeIndex],productName=[selected.nombre,selected.marca].filter(Boolean).join(' · ');
+    const showProduct=t[0]==='Producto protagonista';
+    const dimensions=period==='noche'?'historia de Instagram o estado de WhatsApp, formato 9:16 (1080 × 1920 px)':'publicación de Instagram, formato 4:5 (1080 × 1350 px)';
+    return '@Estados: Crea una imagen para '+dimensions+'. Tipo de contenido: '+t[0]+'. Tema: '+subject+'. Enfoque: '+t[1]+' '+(showProduct?'Usa la fotografía original del producto '+productName+'; respeta fielmente envase, marca, etiqueta y sabor. ':'No fuerces la inclusión del producto; prioriza el tema.')+' Utiliza la programación y estilo visual que ya tenemos definidos. Una sola idea principal, composición limpia, gancho breve y poco texto. No inventes datos, testimonios, afirmaciones nutricionales ni logos. No incluyas precios salvo que se soliciten. Entrega una sola imagen lista para publicar.';
    }
-   daySelect.onchange=renderPlan;plan.append(planTitle,help,daySelect,slotList);editor.append(plan);renderPlan();
+   function update(){prompt.value=buildPrompt(Number(typeSelect.value),Number(themeSelect.value),moment.value);copy.textContent='Copiar prompt'}
+   function renderSlots(){
+    slotList.replaceChildren();
+    const d=Number(day.value);
+    const combinations=[[d%types.length,(d*2)%themes.length,'mañana'],[(d+8)%types.length,(d*2+4)%themes.length,'tarde'],[(d+7)%types.length,(d*2+8)%themes.length,'noche']];
+    combinations.forEach(([ti,th,period])=>{const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;padding:8px 0';const info=document.createElement('span');info.style.cssText='font-size:12px;flex:1';info.textContent=(period==='mañana'?'Mañana':period==='tarde'?'Tarde':'Noche')+' · '+types[ti][0]+' / '+themes[th];const choose=button('Usar',()=>{typeSelect.value=String(ti);themeSelect.value=String(th);extra.value='';moment.value=period;update()});row.append(info,choose);slotList.append(row)})
+   }
+   typeSelect.onchange=update;themeSelect.onchange=()=>{extra.value='';update()};extra.oninput=update;moment.onchange=update;day.onchange=renderSlots;
+   plan.append(title,hint,layout,dayRow,promptLabel,prompt,actions,schedule);editor.append(plan);renderSlots();update();
   }
   renderEditor();
   if(variants.length){const s=document.createElement('select');s.style.cssText='width:100%;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px';[p,...variants].forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.sabor||v.nombre+' · '+(i+1);s.append(o)});s.onchange=()=>{selected=[p,...variants][Number(s.value)];if(selected.imagen)photo.src=selected.imagen;meta.textContent=[selected.marca,formatPrice(selected.precio)].filter(Boolean).join(' · ');renderEditor()};card.append(s)}
