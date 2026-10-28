@@ -87,61 +87,29 @@ function open(raw){
  objective.onchange=render;style.onchange=render;render();
 }
 async function openSelector(){
- const ui=modal('Instagram SEO · Productos');
+ const ui=modal('Contenido para Instagram');
+ const nav=document.createElement('nav');nav.style.cssText='display:flex;gap:8px;border-bottom:1px solid #e8e8e8;padding-bottom:12px;margin-bottom:14px';
+ const productTab=button('Productos · Imagen y SEO',()=>activate('productos'),true);
+ const educationTab=button('Educación · Calendario',()=>activate('educacion'));
+ const productPanel=document.createElement('div');
+ const educationPanel=document.createElement('div');educationPanel.hidden=true;
+ educationPanel.style.cssText='display:none';
+ nav.append(productTab,educationTab);ui.panel.append(nav,productPanel,educationPanel);
+ function activate(which){
+  const showProducts=which==='productos';
+  productPanel.style.display=showProducts?'block':'none';
+  educationPanel.style.display=showProducts?'none':'block';
+  productTab.style.background=showProducts?'#151515':'#fff';productTab.style.color=showProducts?'#fff':'#222';
+  educationTab.style.background=showProducts?'#fff':'#151515';educationTab.style.color=showProducts?'#222':'#fff';
+  ui.panel.scrollTop=0;
+ }
  const search=document.createElement('input');search.placeholder='Buscar por nombre o marca';search.setAttribute('aria-label','Buscar producto');search.style.cssText='width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:10px;padding:12px;font:inherit';
  const preview=document.createElement('div');preview.style.cssText='margin:14px 0';
  const editor=document.createElement('div');editor.style.cssText='margin-top:14px;border-top:1px solid #e8e8e8;padding-top:14px';
  const results=document.createElement('div');results.style.cssText='max-height:210px;overflow:auto';
- ui.panel.append(search,results,preview,editor);
- const items=await loadCatalog();if(!ui.root.isConnected)return;
- function selectProduct(p){
-  preview.replaceChildren();editor.replaceChildren();
-  const card=document.createElement('div');card.style.cssText='background:#fafafa;border:1px solid #eee;border-radius:12px;padding:12px';
-  const row=document.createElement('div');row.style.cssText='display:flex;gap:14px;align-items:center';
-  const photo=document.createElement('img');photo.alt=p.nombre;photo.style.cssText='width:95px;height:115px;object-fit:contain;background:white;border-radius:8px';
-  if(p.imagen){photo.src=p.imagen;row.append(photo)}
-  const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
-  const name=document.createElement('strong');name.textContent=p.nombre;
-  const meta=document.createElement('div');meta.textContent=[p.marca,formatPrice(p.precio)].filter(Boolean).join(' · ');meta.style.cssText='color:#666;margin-top:5px';
-  info.append(name,meta);row.append(info);card.append(row);
-  const variants=items.filter(x=>x.id!==p.id&&norm(x.nombre)===norm(p.nombre)&&x.id);
-  let selected=p;
-  function renderEditor(){
-   editor.replaceChildren();
-   const heading=document.createElement('h3');heading.textContent='Contenido listo para copiar';heading.style.cssText='font-size:15px;font-weight:600;margin:0 0 10px';editor.append(heading);
-   const controls=document.createElement('div');controls.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
-   const makeSelect=(label,opts)=>{const wrap=document.createElement('label');wrap.textContent=label;wrap.style.cssText='flex:1;min-width:120px;font-size:12px';const select=document.createElement('select');select.style.cssText='display:block;width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;background:#fff';opts.forEach(([v,t])=>{const op=document.createElement('option');op.value=v;op.textContent=t;select.append(op)});wrap.append(select);controls.append(wrap);return select};
-   const objective=makeSelect('Objetivo',[["ventas","Ventas"],["educativo","Educativo"],["alcance","Alcance"]]);
-   const style=makeSelect('Estilo',[["0","Directo"],["1","Asesoría"],["2","Descubrimiento"]]);
-   const fields=document.createElement('div');editor.append(controls,fields);
-   const draw=()=>{fields.replaceChildren();const d=generate(selected,objective.value,style.value);field(fields,'Nombre + marca + precio',d.titulo,2);field(fields,'Descripción + hashtags',d.descripcion,6);field(fields,'Texto alternativo',d.alt,2)};
-   objective.onchange=draw;style.onchange=draw;draw();
-   const prompts=document.createElement('div');prompts.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:12px';
-   for(const [mode,label,dimensions] of [["publicacion","Copiar prompt · Publicación 4:5","1080 × 1350 px"],["estado","Copiar prompt · Estado 9:16","1080 × 1920 px"]]){
-    const b=button(label,async()=>{const text="@Estados: Haz esta imagen con la programación visual que tenemos para "+(mode==='publicacion'?'publicaciones de Instagram':'estados e historias')+", tamaño "+dimensions+". Producto: "+selected.nombre+". Marca: "+selected.marca+". Sabor: "+(selected.sabor||'no especificado')+". Precio: "+(formatPrice(selected.precio)||'no mostrar')+". Conserva fielmente la fotografía y la etiqueta original. Diseño limpio, producto protagonista, sin saturar de texto ni inventar información.";try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();document.execCommand('copy');ta.remove()}b.textContent='Copiado ✓'},mode==='publicacion');prompts.append(b)
-   }
-   editor.append(prompts);
-   const linkBox=document.createElement('div');linkBox.style.cssText='margin-top:14px;border:1px solid #e7e7e7;border-radius:12px;padding:12px';
-   const linkTitle=document.createElement('strong');linkTitle.textContent='Enlace para historia de Instagram';linkTitle.style.cssText='display:block;margin-bottom:8px;font-weight:500';
-   const linkField=document.createElement('input');linkField.readOnly=true;linkField.setAttribute('aria-label','Enlace del producto');linkField.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font:inherit';
-   const sticker=document.createElement('input');sticker.setAttribute('aria-label','Texto del sticker de Instagram');sticker.value='Ver precio y sabores';sticker.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font:inherit;margin-top:8px';
-   const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:9px';
-   const rawUrl=value(selected,'url_producto','product_url','url','enlace');
-   let verified='';
-   const candidates=[rawUrl,typeof window.liftStaticProductUrl==='function'?window.liftStaticProductUrl(selected):'',typeof window.liftPublicProductUrl==='function'?window.liftPublicProductUrl(selected):''];
-   for(const candidate of candidates){if(!candidate)continue;try{const u=new URL(String(candidate),'https://supgo.co');if((u.hostname==='supgo.co'||u.hostname==='www.supgo.co')&&u.pathname.startsWith('/productos/')){verified=u.toString();break}}catch{}}
-   if(!verified&&selected.id&&selected.nombre&&typeof window.seoSlug==='function'){
-    const slug=window.seoSlug(selected.nombre);if(slug)verified='https://supgo.co/productos/'+slug+'-'+encodeURIComponent(String(selected.id))+'.html';
-   }
-   linkField.value=verified||'Este producto no tiene una URL individual confirmada';
-   const copyText=async(text,b)=>{try{await navigator.clipboard.writeText(text)}catch{const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();document.execCommand('copy');t.remove()}b.textContent='Copiado ✓'};
-   const copyLink=button('Copiar enlace para historia',()=>copyText(linkField.value,copyLink),true);
-   copyLink.disabled=!verified;
-   const copySticker=button('Copiar texto del sticker',()=>copyText(sticker.value,copySticker));
-   actions.append(copyLink,copySticker);
-   linkBox.append(linkTitle,linkField,sticker,actions);
-   if(!verified){const warning=document.createElement('small');warning.textContent='Falta la URL de la ficha de este producto. No se generará un enlace inventado.';warning.style.cssText='display:block;color:#a55;margin-top:8px';linkBox.append(warning)}
-   editor.append(linkBox);
+ productPanel.append(search,results,preview,editor);
+ const educationalProduct={nombre:'',marca:'',precio:'',sabor:''};
+ function renderEducation(){educationPanel.replaceChildren();const selected=educationalProduct;
    const plan=document.createElement('section');plan.style.cssText='margin-top:16px;border:1px solid #e8e8e8;border-radius:12px;padding:14px';
    const title=document.createElement('h3');title.textContent='Planificador creativo · @Estados';title.style.cssText='font-size:15px;font-weight:600;margin:0 0 6px';
    const hint=document.createElement('p');hint.textContent='Combina el tipo de contenido con el tema. Cambia cualquiera de los dos y el prompt se actualiza sin repetir la misma idea.';hint.style.cssText='font-size:12px;color:#666;line-height:1.6;margin:0 0 12px';
@@ -199,6 +167,58 @@ async function openSelector(){
    }
    typeSelect.onchange=update;themeSelect.onchange=()=>{extra.value='';update()};extra.oninput=update;moment.onchange=update;day.onchange=renderSlots;
    plan.append(title,hint,layout,dayRow,promptLabel,prompt,actions,schedule);editor.append(plan);renderSlots();update();
+
+ }
+ renderEducation();
+ const items=await loadCatalog();if(!ui.root.isConnected)return;
+ function selectProduct(p){
+  preview.replaceChildren();editor.replaceChildren();
+  const card=document.createElement('div');card.style.cssText='background:#fafafa;border:1px solid #eee;border-radius:12px;padding:12px';
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:14px;align-items:center';
+  const photo=document.createElement('img');photo.alt=p.nombre;photo.style.cssText='width:95px;height:115px;object-fit:contain;background:white;border-radius:8px';
+  if(p.imagen){photo.src=p.imagen;row.append(photo)}
+  const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+  const name=document.createElement('strong');name.textContent=p.nombre;
+  const meta=document.createElement('div');meta.textContent=[p.marca,formatPrice(p.precio)].filter(Boolean).join(' · ');meta.style.cssText='color:#666;margin-top:5px';
+  info.append(name,meta);row.append(info);card.append(row);
+  const variants=items.filter(x=>x.id!==p.id&&norm(x.nombre)===norm(p.nombre)&&x.id);
+  let selected=p;
+  function renderEditor(){
+   editor.replaceChildren();
+   const heading=document.createElement('h3');heading.textContent='Contenido listo para copiar';heading.style.cssText='font-size:15px;font-weight:600;margin:0 0 10px';editor.append(heading);
+   const controls=document.createElement('div');controls.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+   const makeSelect=(label,opts)=>{const wrap=document.createElement('label');wrap.textContent=label;wrap.style.cssText='flex:1;min-width:120px;font-size:12px';const select=document.createElement('select');select.style.cssText='display:block;width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;background:#fff';opts.forEach(([v,t])=>{const op=document.createElement('option');op.value=v;op.textContent=t;select.append(op)});wrap.append(select);controls.append(wrap);return select};
+   const objective=makeSelect('Objetivo',[["ventas","Ventas"],["educativo","Educativo"],["alcance","Alcance"]]);
+   const style=makeSelect('Estilo',[["0","Directo"],["1","Asesoría"],["2","Descubrimiento"]]);
+   const fields=document.createElement('div');editor.append(controls,fields);
+   const draw=()=>{fields.replaceChildren();const d=generate(selected,objective.value,style.value);field(fields,'Nombre + marca + precio',d.titulo,2);field(fields,'Descripción + hashtags',d.descripcion,6);field(fields,'Texto alternativo',d.alt,2)};
+   objective.onchange=draw;style.onchange=draw;draw();
+   const prompts=document.createElement('div');prompts.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:12px';
+   for(const [mode,label,dimensions] of [["publicacion","Copiar prompt · Publicación 4:5","1080 × 1350 px"],["estado","Copiar prompt · Estado 9:16","1080 × 1920 px"]]){
+    const b=button(label,async()=>{const text="@Estados: Haz esta imagen con la programación visual que tenemos para "+(mode==='publicacion'?'publicaciones de Instagram':'estados e historias')+", tamaño "+dimensions+". Producto: "+selected.nombre+". Marca: "+selected.marca+". Sabor: "+(selected.sabor||'no especificado')+". Precio: "+(formatPrice(selected.precio)||'no mostrar')+". Conserva fielmente la fotografía y la etiqueta original. Diseño limpio, producto protagonista, sin saturar de texto ni inventar información.";try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();document.execCommand('copy');ta.remove()}b.textContent='Copiado ✓'},mode==='publicacion');prompts.append(b)
+   }
+   editor.append(prompts);
+   const linkBox=document.createElement('div');linkBox.style.cssText='margin-top:14px;border:1px solid #e7e7e7;border-radius:12px;padding:12px';
+   const linkTitle=document.createElement('strong');linkTitle.textContent='Enlace para historia de Instagram';linkTitle.style.cssText='display:block;margin-bottom:8px;font-weight:500';
+   const linkField=document.createElement('input');linkField.readOnly=true;linkField.setAttribute('aria-label','Enlace del producto');linkField.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font:inherit';
+   const sticker=document.createElement('input');sticker.setAttribute('aria-label','Texto del sticker de Instagram');sticker.value='Ver precio y sabores';sticker.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font:inherit;margin-top:8px';
+   const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:9px';
+   const rawUrl=value(selected,'url_producto','product_url','url','enlace');
+   let verified='';
+   const candidates=[rawUrl,typeof window.liftStaticProductUrl==='function'?window.liftStaticProductUrl(selected):'',typeof window.liftPublicProductUrl==='function'?window.liftPublicProductUrl(selected):''];
+   for(const candidate of candidates){if(!candidate)continue;try{const u=new URL(String(candidate),'https://supgo.co');if((u.hostname==='supgo.co'||u.hostname==='www.supgo.co')&&u.pathname.startsWith('/productos/')){verified=u.toString();break}}catch{}}
+   if(!verified&&selected.id&&selected.nombre&&typeof window.seoSlug==='function'){
+    const slug=window.seoSlug(selected.nombre);if(slug)verified='https://supgo.co/productos/'+slug+'-'+encodeURIComponent(String(selected.id))+'.html';
+   }
+   linkField.value=verified||'Este producto no tiene una URL individual confirmada';
+   const copyText=async(text,b)=>{try{await navigator.clipboard.writeText(text)}catch{const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();document.execCommand('copy');t.remove()}b.textContent='Copiado ✓'};
+   const copyLink=button('Copiar enlace para historia',()=>copyText(linkField.value,copyLink),true);
+   copyLink.disabled=!verified;
+   const copySticker=button('Copiar texto del sticker',()=>copyText(sticker.value,copySticker));
+   actions.append(copyLink,copySticker);
+   linkBox.append(linkTitle,linkField,sticker,actions);
+   if(!verified){const warning=document.createElement('small');warning.textContent='Falta la URL de la ficha de este producto. No se generará un enlace inventado.';warning.style.cssText='display:block;color:#a55;margin-top:8px';linkBox.append(warning)}
+   editor.append(linkBox);
   }
   renderEditor();
   if(variants.length){const s=document.createElement('select');s.style.cssText='width:100%;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px';[p,...variants].forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.sabor||v.nombre+' · '+(i+1);s.append(o)});s.onchange=()=>{selected=[p,...variants][Number(s.value)];if(selected.imagen)photo.src=selected.imagen;meta.textContent=[selected.marca,formatPrice(selected.precio)].filter(Boolean).join(' · ');renderEditor()};card.append(s)}
