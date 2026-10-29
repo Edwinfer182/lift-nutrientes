@@ -158,7 +158,7 @@ function mountAdminHub(){
  #supgoAdminHub .hub-close{background:#1e2938;color:white;border:1px solid #334155}
  #supgoAdminHub .hub-status{margin-top:22px;color:#a5ff53;font-size:12px}
  #supgoAdminHub .hub-menu-toggle{display:none}
- #supgoAdminLaunch{position:fixed;left:15px;bottom:18px;z-index:2147481999;border:1px solid #a5ff53;border-radius:12px;background:#111b18;color:#a5ff53;padding:12px 16px;font:700 13px system-ui;cursor:pointer;box-shadow:0 6px 25px #0005}
+ #supgoAdminLaunch{position:fixed;right:18px;bottom:18px;z-index:2147481999;width:46px;height:46px;display:grid;place-items:center;border:1px solid #a5ff53;border-radius:50%;background:#111b18;color:#a5ff53;padding:0;font:700 21px system-ui;cursor:pointer;box-shadow:0 6px 25px #0005}body.liftAdminUnlocked #liftAdminToolsDock{display:none!important}
  @media(max-width:720px){#supgoAdminHub .hub-sidebar{width:70px;padding:18px 7px}#supgoAdminHub .hub-logo{font-size:10px;margin:10px 2px 22px;letter-spacing:0}#supgoAdminHub .hub-nav{font-size:10px;padding:12px 5px;text-align:center}#supgoAdminHub .hub-main{padding:24px 15px}#supgoAdminHub .hub-grid{grid-template-columns:1fr}}
  `;
  document.head.append(style);
@@ -173,7 +173,7 @@ function mountAdminHub(){
  ];
  root.innerHTML='<aside class="hub-sidebar"><div class="hub-logo">SUPGO<span style="color:#a5ff53">.CONTROL</span></div><button class="hub-nav active" data-hub-home>⌂ Inicio</button>'+tools.map((t,i)=>'<button class="hub-nav" data-hub-tool="'+i+'">'+t[0]+'</button>').join('')+'<div style="margin-top:auto;color:#74849a;font-size:11px;padding:10px">Solo administración</div></aside><main class="hub-main"><div class="hub-top"><span class="hub-eyebrow">TU CENTRO DE OPERACIONES</span><button class="hub-close" id="hubClose">✕ Cerrar</button></div><h1>Dashboard comercial</h1><p class="hub-muted">Tus herramientas internas en un solo lugar, sin alterar el catálogo público.</p><div class="hub-grid">'+tools.map((t,i)=>'<section class="hub-card"><h3>'+t[0]+'</h3><p>'+t[1]+'</p><button data-hub-tool="'+i+'">Abrir herramienta ↗</button></section>').join('')+'</div><p class="hub-status" id="hubStatus">Selecciona una herramienta para trabajar.</p></main>';
  document.body.append(root);
- const launcher=document.createElement('button');launcher.id='supgoAdminLaunch';launcher.textContent='▦ SUPGO Control';document.body.append(launcher);
+ const launcher=document.createElement('button');launcher.id='supgoAdminLaunch';launcher.textContent='⚙';launcher.title='Abrir SUPGO Control';launcher.setAttribute('aria-label','Abrir SUPGO Control');document.body.append(launcher);
  const close=()=>{root.classList.remove('open');document.body.style.overflow=''};
  const open=()=>{root.classList.add('open');document.body.style.overflow='hidden'};
  launcher.onclick=open;root.querySelector('#hubClose').onclick=close;
