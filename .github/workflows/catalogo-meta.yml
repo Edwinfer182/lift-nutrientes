@@ -1,0 +1,50 @@
+name: Actualizar catalogo Meta SUPGO
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 10 * * *'
+  push:
+    paths:
+      - 'scripts/generar_catalogo_meta.py'
+      - '.github/workflows/catalogo-meta.yml'
+permissions:
+  contents: write
+concurrency:
+  group: catalogo-meta
+  cancel-in-progress: false
+jobs:
+  catalogo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generar feed desde Supabase
+        env:
+          SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python scripts/generar_catalogo_meta.py
+      - name: Validar CSV
+        run: |
+          python - <<'PY'
+          import csv
+          with open("catalogo-meta.csv", encoding="utf-8", newline="") as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)>=100, "Feed incompleto"
+          assert len({r["id"] for r in rows})==len(rows), "IDs duplicados"
+          assert all(r["price"].endswith(" COP") and r["image_link"].startswith("https://") for r in rows)
+          print("Feed validado:",len(rows))
+          PY
+      - name: Publicar feed en GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalogo-meta.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Catalogo Meta: sincronizar feed desde Supabase"
+            git pull --rebase -X theirs origin main
+            git push origin main
+          fi
