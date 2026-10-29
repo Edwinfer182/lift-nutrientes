@@ -36,7 +36,7 @@ jobs:
       - name: Generar páginas desde Supabase
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
-          SEO_OVERWRITE_EXISTING: '1'
+          SEO_OVERWRITE_EXISTING: '0'
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
