@@ -235,7 +235,7 @@ def applied_local_seo(row, name, brand, description):
  a=lambda url,label:'<a href="'+esc(url)+'">'+esc(label)+'</a>'
  detail=('<p>'+esc(clean[:650])+'</p>') if clean else ''
  return ('<section class="seo-local-applied"><h2>'+esc(name)+' en Medellín y Colombia</h2>'
-  '<p>¿Buscas '+esc(name)+' de Applied Nutrition en Medellín? En Lift Nutrientes puedes consultar la presentación disponible, el precio vigente y las opciones de compra. Este producto forma parte del catálogo de la marca y su ficha muestra los datos publicados para ayudarte a comparar alternativas antes de realizar un pedido.</p>'
+  '<p>¿Buscas '+esc(name)+' de Applied Nutrition en Medellín? En SUPGO puedes consultar la presentación disponible, el precio vigente y las opciones de compra. Este producto forma parte del catálogo de la marca y su ficha muestra los datos publicados para ayudarte a comparar alternativas antes de realizar un pedido.</p>'
   +detail+
   '<h3>Comprar Applied Nutrition en Medellín</h3><p>Atendemos consultas de clientes de '+esc(cities)+'. La disponibilidad, el costo del envío y los tiempos de entrega se confirman según el destino y el pedido. Para elegir correctamente, revisa el nombre, el tamaño, el sabor cuando aplique y las características que aparecen en la etiqueta del fabricante. No todas las presentaciones son equivalentes.</p>'
   '<h3>Cómo elegir tu presentación</h3><p>Antes de comprar, compara el contenido neto, las porciones indicadas, los ingredientes y las recomendaciones de uso que figuren en el envase. Si buscas proteínas, creatina, snacks o productos para el entrenamiento, comprueba que la referencia sea la adecuada para tus preferencias y objetivos. Evita asumir que dos versiones de una misma línea tienen exactamente la misma composición.</p>'
@@ -917,6 +917,7 @@ def main():
     patched=patched.replace('<a href="/laboratorios/">Laboratorios</a>','<a href="/productos/">Productos</a>')
     head,sep,body=patched.partition("</head>")
     head=head.replace("Lift Nutrientes","SUPGO")
+    body=body.replace("Lift Nutrientes","SUPGO")
     patched=head+sep+body if sep else patched
     if patched!=existing:destination.write_text(patched,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
