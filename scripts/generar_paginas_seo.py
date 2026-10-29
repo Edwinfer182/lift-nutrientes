@@ -723,7 +723,7 @@ def patch_offer_only(existing, generated):
  if not new_price or not old_price:
   raise RuntimeError("No se pudo localizar el bloque comercial; se conserva la ficha")
  updated=existing[:old_price.start()]+new_price.group(0)+existing[old_price.end():]
- schema_pattern=r'<script type="application/ld\+json">(.*?)</script>'
+ schema_pattern=r'<script type="application/ld[+]json">(.*?)</script>'
  new_schemas=list(re.finditer(schema_pattern,generated,re.S))
  old_schemas=list(re.finditer(schema_pattern,updated,re.S))
  new_product=next((json.loads(m.group(1)) for m in new_schemas if json.loads(m.group(1)).get("@type")=="Product"),None)
