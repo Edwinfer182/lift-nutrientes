@@ -969,6 +969,15 @@ def main():
   modern_html=modern_html.replace(BASE+"/productos/"+modern_name,BASE+"/productos/"+legacy_file.name)
   legacy_file.write_text(modern_html,encoding="utf-8")
   migrated_from_legacy+=1
+ # Limpiar la marca heredada de todas las fichas, incluso fuera del filtro actual.
+ renamed=0
+ for html_file in OUT.glob("*.html"):
+  original=html_file.read_text(encoding="utf-8",errors="replace")
+  updated=original.replace("Lift Nutrientes","SUPGO")
+  if updated!=original:
+   html_file.write_text(updated,encoding="utf-8")
+   renamed+=1
+ print("Fichas limpiadas de marca antigua:",renamed)
  print("Fichas antiguas migradas directamente a la plantilla moderna:",migrated_from_legacy)
  print("Fichas antiguas sin datos suficientes:",len(unmatched_legacy))
  if unmatched_legacy:
