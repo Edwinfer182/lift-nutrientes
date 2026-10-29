@@ -88,6 +88,52 @@ load().then(items=>{catalog=items;status.textContent=items.length?'Buscador list
 window.SupgoCalculoOfertas={open};
 
 /* SUPGO private operations shell: existing tools remain responsible for their own logic. */
+
+function installAdminToolTheme(){
+ if(document.getElementById('supgoAdminToolTheme'))return;
+ const style=document.createElement('style');style.id='supgoAdminToolTheme';
+ style.textContent=`
+ /* Private administrative interfaces only. Customer pages remain untouched. */
+ body.liftAdminUnlocked #supgoOffersOverlay,
+ body.liftAdminUnlocked #lift-instagram-seo-modal,
+ body.liftAdminUnlocked #liftCrmPanel,
+ body.liftAdminUnlocked #liftCalcPanel,
+ body.liftAdminUnlocked #liftPaymentsAdminPanel{color:#edf5ff!important;background:#090e16!important;font-family:system-ui,Arial,sans-serif!important}
+ body.liftAdminUnlocked #supgoOffersOverlay header,
+ body.liftAdminUnlocked #supgoOffersOverlay .co-footer{background:#111925!important;border-color:#29374a!important;color:#f2f7ff!important}
+ body.liftAdminUnlocked #supgoOffersOverlay h2{color:#a5ff53!important;font-weight:800!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-scroll{background:#090e16!important}
+ body.liftAdminUnlocked #supgoOffersOverlay table{border-spacing:0 5px!important}
+ body.liftAdminUnlocked #supgoOffersOverlay th{background:#141e2b!important;color:#a5ff53!important;border-color:#29374a!important}
+ body.liftAdminUnlocked #supgoOffersOverlay td{background:#111a26!important;border-color:#29374a!important;padding:10px!important}
+ body.liftAdminUnlocked #supgoOffersOverlay input,
+ body.liftAdminUnlocked #supgoOffersOverlay textarea,
+ body.liftAdminUnlocked #supgoOffersOverlay select{background:#182333!important;color:#edf5ff!important;border:1px solid #33445a!important;outline-color:#a5ff53!important}
+ body.liftAdminUnlocked #supgoOffersOverlay input::placeholder,
+ body.liftAdminUnlocked #supgoOffersOverlay textarea::placeholder{color:#8c9cb3!important}
+ body.liftAdminUnlocked #supgoOffersOverlay button{background:#1a2838!important;color:#e9f2ff!important;border-color:#35465a!important}
+ body.liftAdminUnlocked #supgoOffersOverlay button:hover{border-color:#a5ff53!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-primary{background:#a5ff53!important;color:#101711!important;border-color:#a5ff53!important;font-weight:800!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-final{background:#1c3025!important;color:#a5ff53!important;font-weight:800!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-price-source{color:#a5ff53!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-search-results{background:#131d2b!important;border-color:#344459!important;box-shadow:0 16px 35px #0008!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-search-results button{background:#131d2b!important;color:#f2f7ff!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-search-results button:hover{background:#243728!important;color:#a5ff53!important}
+ body.liftAdminUnlocked #supgoOffersOverlay .co-add-row{background:#14231a!important;border:1px dashed #a5ff53!important;color:#a5ff53!important}
+ body.liftAdminUnlocked #lift-instagram-seo-modal{background:#080c12ee!important}
+ body.liftAdminUnlocked #lift-instagram-seo-modal section[role="dialog"]{background:#111a26!important;color:#edf5ff!important;border:1px solid #33445a!important;border-radius:18px!important;box-shadow:0 20px 60px #0009!important}
+ body.liftAdminUnlocked #lift-instagram-seo-modal h2,
+ body.liftAdminUnlocked #lift-instagram-seo-modal h3{color:#a5ff53!important}
+ body.liftAdminUnlocked #lift-instagram-seo-modal input,
+ body.liftAdminUnlocked #lift-instagram-seo-modal textarea,
+ body.liftAdminUnlocked #lift-instagram-seo-modal select{background:#1a2737!important;color:#edf5ff!important;border:1px solid #3a4c62!important;border-radius:9px!important}
+ body.liftAdminUnlocked #lift-instagram-seo-modal button{border-radius:9px!important;border:1px solid #3d5067!important;background:#233347!important;color:#edf5ff!important}
+ body.liftAdminUnlocked #lift-instagram-seo-modal button:hover{border-color:#a5ff53!important;color:#a5ff53!important}
+ body.liftAdminUnlocked #liftCalcPanel{border:1px solid #35475b!important;border-radius:14px!important;box-shadow:0 18px 50px #0008!important}
+ @media(max-width:700px){body.liftAdminUnlocked #supgoOffersOverlay table{min-width:1050px!important}body.liftAdminUnlocked #supgoOffersOverlay td{padding:7px!important}}
+ `;
+ document.head.append(style);
+}
 function mountAdminHub(){
  if(!document.body.classList.contains('liftAdminUnlocked')||document.getElementById('supgoAdminHub'))return;
  const style=document.createElement('style');style.id='supgoAdminHubStyles';
@@ -142,6 +188,7 @@ function mountAdminHub(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('open'))close()});
 }
 function initializeHub(){
+ installAdminToolTheme();
  if(document.body.classList.contains('liftAdminUnlocked'))mountAdminHub();
  const observer=new MutationObserver(()=>{if(document.body.classList.contains('liftAdminUnlocked'))mountAdminHub();else{document.getElementById('supgoAdminHub')?.remove();document.getElementById('supgoAdminLaunch')?.remove();}});
  observer.observe(document.body,{attributes:true,attributeFilter:['class']});
