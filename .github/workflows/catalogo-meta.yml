@@ -25,7 +25,6 @@ jobs:
       - name: Generar feed desde Supabase
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: python scripts/generar_catalogo_meta.py
       - name: Validar CSV
         run: |
