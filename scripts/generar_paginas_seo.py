@@ -280,10 +280,10 @@ def build(row):
  product_label=name if not brand or brand.casefold() in name.casefold() else f"{name} de {brand}"
  meta=f"Compra {product_label} en Medellín con SUPGO. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y Colombia."
  if len(meta)>160:
-  meta=f"Compra {product_label} en Medellín con Lift Nutrientes. Consulta precios y disponibilidad. Envíos a toda Colombia."
+  meta=f"Compra {product_label} en Medellín con SUPGO. Consulta precios y disponibilidad. Envíos a toda Colombia."
  if len(meta)>160:
   prefix="Compra "
-  suffix=" en Medellín con Lift Nutrientes. Envíos a Colombia."
+  suffix=" en Medellín con SUPGO. Envíos a Colombia."
   meta=prefix+product_label[:160-len(prefix)-len(suffix)].rstrip()+suffix
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(embedded.get("sku") or p.get("sku") or pid)}
  settings=row.get("_merchant_settings") or {}
@@ -315,7 +315,7 @@ def build(row):
    offer["priceSpecification"]={"@type":"UnitPriceSpecification","price":int(original_price) if original_price.is_integer() else original_price,"priceCurrency":"COP","priceType":"https://schema.org/StrikethroughPrice"}
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
- breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SUPGO","item":BASE+"/"},{"@type":"ListItem","position":2,"name":"Laboratorios","item":BASE+"/laboratorios/"},{"@type":"ListItem","position":3,"name":name,"item":canonical}]}
+ breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SUPGO","item":BASE+"/"},{"@type":"ListItem","position":2,"name":"Productos","item":BASE+"/productos/"},{"@type":"ListItem","position":3,"name":name,"item":canonical}]}
  breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
@@ -606,7 +606,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <script defer src="/componentes/header-loader.js?v=20261022-oculto-inicial6"></script>
 
 <main class="product-page">
-<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/laboratorios/">Laboratorios</a>{f'<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/{slug(brand)}/">{esc(brand)}</a>' if brand else ''}<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">{esc(name)}</span></nav>
+<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/productos/">Productos</a>{f'<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/{slug(brand)}/">{esc(brand)}</a>' if brand else ''}<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">{esc(name)}</span></nav>
 <article class="product-card">
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<section class="related related-under-image"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="related-grid">{related_html}</div></section>' if related_html else ''}</section>
 <section class="product-info">
@@ -618,7 +618,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <section class="seo-buy-assurance" aria-label="Compra, envíos y pagos"><details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">✓</span><strong>Compra con confianza</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">Confirma disponibilidad y presentación antes de pagar.</div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">🚚</span><strong>Envíos en Medellín y Colombia</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">El costo se calcula por unidades del pedido.<div class="seo-shipping-table-wrap"><table class="seo-shipping-table"><thead><tr><th>Unidades</th><th>Medellín</th><th>Otras ciudades</th></tr></thead><tbody><tr><td>1</td><td>$11.000</td><td>$15.000</td></tr><tr><td>2</td><td>$7.000</td><td>$12.000</td></tr><tr><td>3</td><td>Gratis</td><td>$10.000</td></tr><tr><td>4+</td><td>Gratis</td><td>Gratis</td></tr></tbody></table></div><p>Medellín: pedidos confirmados antes de las 2:00 p. m. pueden salir en ruta el mismo día hábil. Ciudades principales: aproximadamente 1 día hábil desde la guía; otras zonas: 2 a 3 días hábiles, según cobertura.</p></div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">🔒</span><strong>Pago seguro</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">Selecciona el medio de pago durante el proceso de compra.</div></details>
-<details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">💳</span><strong>Medios de pago disponibles</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body seo-payment-image-wrap"><a href="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ampliar medios de pago"><img src="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" alt="Medios de pago Lift Nutrientes: Bold, Apple Pay, tarjetas, Bre-B, Bancolombia, Nequi y PSE" loading="lazy" decoding="async"></a></div></details></section>
+<details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">💳</span><strong>Medios de pago disponibles</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body seo-payment-image-wrap"><a href="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ampliar medios de pago"><img src="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" alt="Medios de pago SUPGO: Bold, Apple Pay, tarjetas, Bre-B, Bancolombia, Nequi y PSE" loading="lazy" decoding="async"></a></div></details></section>
 </section></article>
 
 </main>
@@ -908,6 +908,17 @@ def main():
    is_legacy=target_name in legacy_by_id.get(str(row["id"]),[])
    if is_legacy or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
     destination.write_text(target_content,encoding="utf-8")
+   else:
+    # Conserva títulos, textos SEO, precios y contenido existentes.
+    # Corrige únicamente rutas de navegación y marcas antiguas en el head.
+    existing=destination.read_text(encoding="utf-8")
+    patched=existing.replace('"name": "Laboratorios", "item": "https://supgo.co/laboratorios/"','"name": "Productos", "item": "https://supgo.co/productos/"')
+    patched=patched.replace('"name":"Laboratorios","item":"https://supgo.co/laboratorios/"','"name":"Productos","item":"https://supgo.co/productos/"')
+    patched=patched.replace('<a href="/laboratorios/">Laboratorios</a>','<a href="/productos/">Productos</a>')
+    head,sep,body=patched.partition("</head>")
+    head=head.replace("Lift Nutrientes","SUPGO")
+    patched=head+sep+body if sep else patched
+    if patched!=existing:destination.write_text(patched,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
   if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
  # Sustituir las fichas históricas restantes con la MISMA plantilla moderna.
