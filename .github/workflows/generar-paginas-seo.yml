@@ -57,6 +57,23 @@ jobs:
           assert any(s.get("@type") == "BreadcrumbList" for s in schemas), "Falta BreadcrumbList JSON-LD"
           print("SEO verificado: descripción larga, metadescripción, Product/Offer y BreadcrumbList")
           PY
+      - name: Auditar marca antigua y metadatos de fichas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          files = list(Path("productos").glob("*.html"))
+          assert files, "No hay fichas HTML para auditar"
+          stale = [str(p) for p in files if "Lift Nutrientes" in p.read_text(encoding="utf-8", errors="replace")]
+          assert not stale, f"Marca anterior en {len(stale)} fichas: {stale[:12]}"
+          sample = Path("productos/100-whey-gold-standard-2-lb-chocolate-30191.html")
+          assert sample.exists(), "No existe la ficha de control 30191"
+          html = sample.read_text(encoding="utf-8")
+          assert re.search(r"<title>[^<]+</title>", html), "Sin meta titulo"
+          assert '<meta name="robots" content="index, follow">' in html, "Ficha de control no indexable"
+          assert 'rel="canonical" href="https://supgo.co/productos/100-whey-gold-standard-2-lb-chocolate-30191.html"' in html, "Canonical inesperado"
+          print(f"Auditoria SEO aprobada para {len(files)} fichas")
+          PY
       - name: Verificar botón WhatsApp en fichas generadas
         run: |
           python - <<'PY'
