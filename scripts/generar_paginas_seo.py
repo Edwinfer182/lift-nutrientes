@@ -723,7 +723,7 @@ def patch_offer_only(existing, generated):
  if not new_price or not old_price:
   raise RuntimeError("No se pudo localizar el bloque comercial; se conserva la ficha")
  updated=existing[:old_price.start()]+new_price.group(0)+existing[old_price.end():]
- schema_pattern=r'<script type="application/ld\\+json">(.*?)</script>'
+ schema_pattern=r'<script type="application/ld\+json">(.*?)</script>'
  new_schemas=list(re.finditer(schema_pattern,generated,re.S))
  old_schemas=list(re.finditer(schema_pattern,updated,re.S))
  new_product=next((json.loads(m.group(1)) for m in new_schemas if json.loads(m.group(1)).get("@type")=="Product"),None)
@@ -732,19 +732,19 @@ def patch_offer_only(existing, generated):
  if not old_product_match:raise RuntimeError("No hay schema Product existente")
  old_product=json.loads(old_product_match.group(1))
  old_product["offers"]=new_product.get("offers")
- replacement=json.dumps(old_product,ensure_ascii=False).replace("<","\\u003c")
+ replacement=json.dumps(old_product,ensure_ascii=False).replace("<","\u003c")
  updated=updated[:old_product_match.start(1)]+replacement+updated[old_product_match.end(1):]
  meta_pattern=r'<meta property="product:price:amount" content="[^"]*">'
  new_meta=re.search(meta_pattern,generated)
  old_meta=re.search(meta_pattern,updated)
  if new_meta and old_meta:updated=updated[:old_meta.start()]+new_meta.group(0)+updated[old_meta.end():]
- js_pattern=r'const p=(\\{[^;]*\\});const f='
+ js_pattern=r'const p=(\{[^;]*\});const f='
  new_js=re.search(js_pattern,generated)
  old_js=re.search(js_pattern,updated)
  if new_js and old_js:
   current=json.loads(old_js.group(1)); fresh=json.loads(new_js.group(1))
   for key in ("price","on_offer","promoUntil"):current[key]=fresh.get(key)
-  updated=updated[:old_js.start(1)]+json.dumps(current,ensure_ascii=False).replace("<","\\u003c")+updated[old_js.end(1):]
+  updated=updated[:old_js.start(1)]+json.dumps(current,ensure_ascii=False).replace("<","\u003c")+updated[old_js.end(1):]
  return updated
 
 def main():
