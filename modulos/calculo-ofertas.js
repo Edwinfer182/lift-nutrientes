@@ -86,4 +86,66 @@ const now=new Date();const localDate=new Date(now.getTime()-now.getTimezoneOffse
 load().then(items=>{catalog=items;status.textContent=items.length?'Buscador listo: '+items.length+' productos con precio de SUPGO.':'No se encontraron productos.';}).catch(e=>{status.textContent='Error cargando productos: '+e.message;console.error('Calculadora ofertas:',e);});
 }
 window.SupgoCalculoOfertas={open};
+
+/* SUPGO private operations shell: existing tools remain responsible for their own logic. */
+function mountAdminHub(){
+ if(!document.body.classList.contains('liftAdminUnlocked')||document.getElementById('supgoAdminHub'))return;
+ const style=document.createElement('style');style.id='supgoAdminHubStyles';
+ style.textContent=`
+ #supgoAdminHub{position:fixed;inset:0;z-index:2147482000;display:none;background:#080c12;color:#f3f7fc;font:400 14px system-ui,Arial,sans-serif}
+ #supgoAdminHub.open{display:flex}
+ #supgoAdminHub *{box-sizing:border-box}
+ #supgoAdminHub .hub-sidebar{width:235px;flex-shrink:0;background:#0e141d;border-right:1px solid #263143;padding:24px 13px;display:flex;flex-direction:column;gap:8px}
+ #supgoAdminHub .hub-logo{font-size:21px;font-weight:850;letter-spacing:-.8px;margin:4px 9px 27px}
+ #supgoAdminHub .hub-nav{background:transparent;border:0;color:#a5b7d3;text-align:left;padding:13px 15px;border-radius:11px;cursor:pointer;font:600 13px system-ui}
+ #supgoAdminHub .hub-nav:hover,#supgoAdminHub .hub-nav.active{background:#203127;color:#a5ff53}
+ #supgoAdminHub .hub-main{flex:1;overflow:auto;padding:35px clamp(16px,4vw,54px)}
+ #supgoAdminHub .hub-eyebrow{font-size:11px;letter-spacing:2px;font-weight:800;color:#a5ff53}
+ #supgoAdminHub h1{font-size:clamp(27px,3vw,39px);margin:12px 0 8px;letter-spacing:-1.3px}
+ #supgoAdminHub .hub-muted{color:#8da3c2}
+ #supgoAdminHub .hub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:15px;margin-top:27px}
+ #supgoAdminHub .hub-card{background:#121a26;border:1px solid #2a3648;border-radius:15px;padding:21px;min-height:158px}
+ #supgoAdminHub .hub-card h3{margin:0 0 10px;font-size:17px}
+ #supgoAdminHub .hub-card p{font-size:13px;line-height:1.5;color:#9bb0ca}
+ #supgoAdminHub .hub-card button,#supgoAdminHub .hub-close{background:#a5ff53;color:#111;border:0;border-radius:9px;padding:11px 15px;font-weight:750;cursor:pointer}
+ #supgoAdminHub .hub-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+ #supgoAdminHub .hub-close{background:#1e2938;color:white;border:1px solid #334155}
+ #supgoAdminHub .hub-status{margin-top:22px;color:#a5ff53;font-size:12px}
+ #supgoAdminHub .hub-menu-toggle{display:none}
+ #supgoAdminLaunch{position:fixed;left:15px;bottom:18px;z-index:2147481999;border:1px solid #a5ff53;border-radius:12px;background:#111b18;color:#a5ff53;padding:12px 16px;font:700 13px system-ui;cursor:pointer;box-shadow:0 6px 25px #0005}
+ @media(max-width:720px){#supgoAdminHub .hub-sidebar{width:70px;padding:18px 7px}#supgoAdminHub .hub-logo{font-size:10px;margin:10px 2px 22px;letter-spacing:0}#supgoAdminHub .hub-nav{font-size:10px;padding:12px 5px;text-align:center}#supgoAdminHub .hub-main{padding:24px 15px}#supgoAdminHub .hub-grid{grid-template-columns:1fr}}
+ `;
+ document.head.append(style);
+ const root=document.createElement('div');root.id='supgoAdminHub';root.setAttribute('role','dialog');root.setAttribute('aria-label','Panel administrativo SUPGO');
+ const tools=[
+ ['Ofertas','Calcula precios mayoristas, regalos y promociones.','offers'],
+ ['CRM','Consulta y administra tus clientes.','liftCrmFloatingBtn'],
+ ['Pagos','Abre las herramientas internas de pagos.','liftPaymentsAdminBtn'],
+ ['Calculadora','Utiliza tu calculadora administrativa.','liftCalcToggle'],
+ ['Instagram SEO','Prepara contenido y publicaciones.','lift-ig-seo-launcher'],
+ ['Herramientas','Accede a las funciones adicionales del catálogo.','liftAdminToolsMain']
+ ];
+ root.innerHTML='<aside class="hub-sidebar"><div class="hub-logo">SUPGO<span style="color:#a5ff53">.CONTROL</span></div><button class="hub-nav active" data-hub-home>⌂ Inicio</button>'+tools.map((t,i)=>'<button class="hub-nav" data-hub-tool="'+i+'">'+t[0]+'</button>').join('')+'<div style="margin-top:auto;color:#74849a;font-size:11px;padding:10px">Solo administración</div></aside><main class="hub-main"><div class="hub-top"><span class="hub-eyebrow">TU CENTRO DE OPERACIONES</span><button class="hub-close" id="hubClose">✕ Cerrar</button></div><h1>Dashboard comercial</h1><p class="hub-muted">Tus herramientas internas en un solo lugar, sin alterar el catálogo público.</p><div class="hub-grid">'+tools.map((t,i)=>'<section class="hub-card"><h3>'+t[0]+'</h3><p>'+t[1]+'</p><button data-hub-tool="'+i+'">Abrir herramienta ↗</button></section>').join('')+'</div><p class="hub-status" id="hubStatus">Selecciona una herramienta para trabajar.</p></main>';
+ document.body.append(root);
+ const launcher=document.createElement('button');launcher.id='supgoAdminLaunch';launcher.textContent='▦ SUPGO Control';document.body.append(launcher);
+ const close=()=>{root.classList.remove('open');document.body.style.overflow=''};
+ const open=()=>{root.classList.add('open');document.body.style.overflow='hidden'};
+ launcher.onclick=open;root.querySelector('#hubClose').onclick=close;
+ root.querySelectorAll('[data-hub-home]').forEach(b=>b.onclick=()=>{root.querySelector('#hubStatus').textContent='Selecciona una herramienta para trabajar.'});
+ root.querySelectorAll('[data-hub-tool]').forEach(b=>b.onclick=()=>{
+  const item=tools[Number(b.dataset.hubTool)];
+  if(item[2]==='offers'){close();window.SupgoCalculoOfertas.open();return}
+  const target=document.getElementById(item[2]);
+  if(!target){root.querySelector('#hubStatus').textContent='La herramienta '+item[0]+' no está disponible en esta vista.';return}
+  close();target.click();
+ });
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('open'))close()});
+}
+function initializeHub(){
+ if(document.body.classList.contains('liftAdminUnlocked'))mountAdminHub();
+ const observer=new MutationObserver(()=>{if(document.body.classList.contains('liftAdminUnlocked'))mountAdminHub();else{document.getElementById('supgoAdminHub')?.remove();document.getElementById('supgoAdminLaunch')?.remove();}});
+ observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializeHub);else initializeHub();
+
 })();
