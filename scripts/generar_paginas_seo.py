@@ -712,6 +712,41 @@ def shared_template():
   return '<script src="/productos-assets/'+name+'"></script>'
  return re.sub(r'(<script\b[^>]*>)(.*?)(</script>)',externalize_js,source,flags=re.S|re.I)
 
+
+def patch_offer_only(existing, generated):
+ """Sync only commercial offer fields; preserve SEO copy, title, canonical and layout."""
+ import copy
+ boundary=r'(?=<div class="variant-panel"|<div class="product-rule">)'
+ price_pattern=r'<div class="product-price">.*?'+boundary
+ new_price=re.search(price_pattern,generated,re.S)
+ old_price=re.search(price_pattern,existing,re.S)
+ if not new_price or not old_price:
+  raise RuntimeError("No se pudo localizar el bloque comercial; se conserva la ficha")
+ updated=existing[:old_price.start()]+new_price.group(0)+existing[old_price.end():]
+ schema_pattern=r'<script type="application/ld\\+json">(.*?)</script>'
+ new_schemas=list(re.finditer(schema_pattern,generated,re.S))
+ old_schemas=list(re.finditer(schema_pattern,updated,re.S))
+ new_product=next((json.loads(m.group(1)) for m in new_schemas if json.loads(m.group(1)).get("@type")=="Product"),None)
+ if not new_product:raise RuntimeError("No hay schema Product generado")
+ old_product_match=next((m for m in old_schemas if json.loads(m.group(1)).get("@type")=="Product"),None)
+ if not old_product_match:raise RuntimeError("No hay schema Product existente")
+ old_product=json.loads(old_product_match.group(1))
+ old_product["offers"]=new_product.get("offers")
+ replacement=json.dumps(old_product,ensure_ascii=False).replace("<","\\u003c")
+ updated=updated[:old_product_match.start(1)]+replacement+updated[old_product_match.end(1):]
+ meta_pattern=r'<meta property="product:price:amount" content="[^"]*">'
+ new_meta=re.search(meta_pattern,generated)
+ old_meta=re.search(meta_pattern,updated)
+ if new_meta and old_meta:updated=updated[:old_meta.start()]+new_meta.group(0)+updated[old_meta.end():]
+ js_pattern=r'const p=(\\{[^;]*\\});const f='
+ new_js=re.search(js_pattern,generated)
+ old_js=re.search(js_pattern,updated)
+ if new_js and old_js:
+  current=json.loads(old_js.group(1)); fresh=json.loads(new_js.group(1))
+  for key in ("price","on_offer","promoUntil"):current[key]=fresh.get(key)
+  updated=updated[:old_js.start(1)]+json.dumps(current,ensure_ascii=False).replace("<","\\u003c")+updated[old_js.end(1):]
+ return updated
+
 def main():
  rows=fetch()
  seo_rows=fetch_seo()
@@ -919,6 +954,7 @@ def main():
     head=head.replace("Lift Nutrientes","SUPGO")
     body=body.replace("Lift Nutrientes","SUPGO")
     patched=head+sep+body if sep else patched
+    patched=patch_offer_only(patched,target_content)
     if patched!=existing:destination.write_text(patched,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
   if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
