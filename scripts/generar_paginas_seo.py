@@ -781,6 +781,10 @@ def main():
   choices=[r for r in bsn_rows if str(r["id"])!=str(row["id"])]
   choices.sort(key=lambda other:(slug(other["product"].get("name") or other["product"].get("nombre"))==slug(row["product"].get("name") or row["product"].get("nombre")),str(other["id"])))
   row["_bsn_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/productos/"+(slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"-"+str(r["id"])+".html"} for r in choices[:3]]
+ offer_ids={x.strip() for x in os.getenv("SEO_OFFER_IDS_ONLY","").split(",") if x.strip()}
+ if offer_ids:
+  valid=[r for r in valid if str(r["id"]) in offer_ids]
+  if {str(r["id"]) for r in valid}!=offer_ids:raise RuntimeError("Faltan IDs de ofertas habilitados: "+str(offer_ids-{str(r["id"]) for r in valid}))
  preview_id=os.getenv("SEO_PREVIEW_ID","").strip()
  if preview_id:
   valid=[r for r in valid if str(r["id"])==preview_id]
@@ -923,7 +927,7 @@ def main():
  # Las URL antiguas no pueden quedar fuera por cambios en los filtros de generación.
  # Solo se recuperan registros públicos y activos; nunca publicar productos privados.
  selected_ids={str(r["id"]) for r in valid}
- if not brand_only and not preview_id:
+ if not brand_only and not preview_id and not offer_ids:
   restored=[r for r in rows if str(r["id"]) in legacy_by_id and str(r["id"]) not in selected_ids and allowed(r)]
   for restored_row in restored:
    restored_row["_indexable"]=False
@@ -962,7 +966,7 @@ def main():
  # Conservar datos explícitos de su propio HTML, nunca usar otro producto.
  migrated_from_legacy=0
  unmatched_legacy=[]
- for legacy_file in OUT.glob("*.html"):
+ for legacy_file in ([] if offer_ids else OUT.glob("*.html")):
   old_html=legacy_file.read_text(encoding="utf-8",errors="replace")
   if "/catalogo/assets/producto.css" not in old_html and "/catalogo/assets/producto.js" not in old_html:
    continue
@@ -1034,7 +1038,7 @@ def main():
    print("Ejemplos pendientes:",", ".join(remaining[:20]))
    (ROOT/"productos-legacy-pendientes.txt").write_text("\\n".join(sorted(set(remaining)))+"\\n",encoding="utf-8")
  sitemap=('<?xml version="1.0" encoding="UTF-8"?>' + chr(10) + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + chr(10) + ''.join("<url><loc>"+esc(u)+"</loc></url>"+chr(10) for u in urls) + "</urlset>" + chr(10))
- if not preview_id and not brand_only: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
+ if not preview_id and not brand_only and not offer_ids: (ROOT/"sitemap-productos.xml").write_text(sitemap,encoding="utf-8")
  print("Generadas",len(urls),"fichas SEO independientes sin skin.")
 if __name__=="__main__": main()
 
