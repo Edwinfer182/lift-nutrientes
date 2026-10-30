@@ -4,6 +4,13 @@
   'use strict';
   if(window.__supgoHeaderMountPromise)return;
   const path='/componentes/';
+  const VERSION='20261030-header-v3';
+  // Reserva el alto del header desde el primer pintado: evita que la página "salte".
+  if(!document.querySelector('header.top,#supgo-global-header,#supgo-header-placeholder')&&document.body){
+    const holder=document.createElement('div');holder.id='supgo-header-placeholder';holder.setAttribute('aria-hidden','true');
+    holder.style.cssText='background:#111315;border-bottom:1px solid #171717;height:'+(window.matchMedia('(max-width:760px)').matches?'102px':'71px');
+    document.body.insertBefore(holder,document.body.firstChild);
+  }
   function loadScript(src){
     return new Promise(function(resolve,reject){
       var script=document.createElement('script');
@@ -36,25 +43,25 @@
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.
     if(document.querySelector('header.top,#supgo-global-header')){attachOrderButtonToExistingHeader();return;}
-    const response=await fetch(path+'header.html?v=20261027-pedido-return-v2',{credentials:'same-origin',cache:'no-store'});
-    if(!response.ok)throw new Error('No se encontró el header compartido: '+response.status);
-    const html=await response.text();
+    let earlyStyles=document.querySelector('link[data-supgo-header-style]');
+    if(!earlyStyles){earlyStyles=document.createElement('link');earlyStyles.rel='stylesheet';earlyStyles.dataset.supgoHeaderStyle='1';earlyStyles.href=path+'header-public.css?v='+VERSION;document.head.appendChild(earlyStyles);}
+    // HTML, CSS y JS del header se piden a la vez (antes uno tras otro y sin caché).
+    const htmlPromise=fetch(path+'header.html?v='+VERSION,{credentials:'same-origin'}).then(function(r){if(!r.ok)throw new Error('No se encontró el header compartido: '+r.status);return r.text();});
+    if(!document.querySelector('link[data-supgo-header-js]')){const pre=document.createElement('link');pre.rel='preload';pre.as='script';pre.href=path+'header.js?v='+VERSION;pre.dataset.supgoHeaderJs='1';document.head.appendChild(pre);}
+    const html=await htmlPromise;
     if(document.querySelector('header.top,#supgo-global-header')){attachOrderButtonToExistingHeader();return;}
     let styles=document.querySelector('link[data-supgo-header-style]');
-    if(!styles){
-      styles=document.createElement('link');
-      styles.rel='stylesheet';styles.dataset.supgoHeaderStyle='1';document.head.appendChild(styles);
-    }
     // Reemplazar también la URL de un link previamente insertado en caché.
-    const cssUrl=path+'header-public.css?v=20261027-pedido-return-v2';
+    const cssUrl=path+'header-public.css?v='+VERSION;
     if(styles.getAttribute('href')!==cssUrl)styles.href=cssUrl;
     await new Promise(resolve=>{if(styles.sheet){resolve();return;}styles.addEventListener('load',resolve,{once:true});styles.addEventListener('error',resolve,{once:true});});
     const host=document.createElement('div');
     host.id='supgo-global-header';
     host.innerHTML=html;
-    document.body.insertBefore(host,document.body.firstChild);
+    const holder=document.getElementById('supgo-header-placeholder');
+    if(holder)holder.replaceWith(host);else document.body.insertBefore(host,document.body.firstChild);
     try{
-      await loadScript(path+'header.js?v=20261027-pedido-return-v2');
+      await loadScript(path+'header.js?v='+VERSION);
       // Refuerzo para fichas que conservan en caché el marcado antiguo.
       function ensureCheckoutButton(){
         const drawer=document.querySelector('.supgo-cart-drawer');
@@ -90,6 +97,7 @@
       // El botón del header recién montado ya existe y usa el seguimiento compartido.
       document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
     }catch(error){host.remove();throw error;}
+    finally{document.getElementById('supgo-header-placeholder')?.remove();}
   }
   window.__supgoHeaderMountPromise=new Promise(function(resolve){
     function start(){mount().catch(function(error){console.error('[SUPGO] No se pudo montar /componentes/header.html',error);}).finally(resolve);}
@@ -101,4 +109,4 @@
    Eliminada la consulta simplificada que se registraba antes del componente. */
 
 /* Permite al checkout abrir el seguimiento en la misma URL tras crear el pedido. */
-window.addEventListener('supgo:pedido-generado',function(e){location.assign('/?mi-pedido=1');});
+window.addEventListener('supgo:pedido-generado',function(e){location.assign('/mi-pedido/');});

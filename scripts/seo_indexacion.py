@@ -187,6 +187,12 @@ def externalize_shared_css():
     print(f"CSS compartido: {len(shared)} bloques externalizados en {changed} fichas")
 
 
+# Reserva el alto del header compartido desde el primer pintado (evita saltos).
+HEADER_RESERVE_CSS = (
+    'body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::before'
+    '{content:"";display:block;height:71px;background:#111315;border-bottom:1px solid #171717}'
+    '@media(max-width:760px){body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::before{height:102px}}'
+)
 LINK_RUN_RE = re.compile(
     r'(?:<link rel="stylesheet"(?: id="[\w-]+")? href="/productos-assets/ficha-[0-9a-f]{16}\.css">\s*){2,}')
 LINK_HREF_RE = re.compile(r'href="/productos-assets/(ficha-[0-9a-f]{16}\.css)"')
@@ -216,7 +222,7 @@ def bundle_ficha_css():
                 return match.group(0)
             key = hashlib.sha256("|".join(names).encode()).hexdigest()[:16]
             if key not in bundles:
-                css = "\n".join(minify_css((ASSETS / n).read_text(encoding="utf-8")) for n in names)
+                css = "\n".join(minify_css((ASSETS / n).read_text(encoding="utf-8")) for n in names) + "\n" + HEADER_RESERVE_CSS
                 (ASSETS / f"fichas-{key}.css").write_text(css + "\n", encoding="utf-8")
                 bundles[key] = True
             return f'<link rel="stylesheet" href="/productos-assets/fichas-{key}.css">\n'
@@ -227,6 +233,14 @@ def bundle_ficha_css():
             changed += 1
     if changed:
         print(f"CSS agrupado: {len(bundles)} paquete(s) en {changed} fichas")
+
+
+def ensure_bundle_extras():
+    """Añade a cada paquete CSS de fichas la reserva de alto del header (idempotente)."""
+    for path in sorted(ASSETS.glob("fichas-*.css")):
+        css = path.read_text(encoding="utf-8")
+        if HEADER_RESERVE_CSS not in css:
+            path.write_text(css.rstrip("\n") + "\n" + HEADER_RESERVE_CSS + "\n", encoding="utf-8")
 
 
 def visible_text(html):
@@ -280,6 +294,7 @@ def main():
     clean_duplicates(approved)
     externalize_shared_css()
     bundle_ficha_css()
+    ensure_bundle_extras()
 
     OUT_DIR.mkdir(exist_ok=True)
     try:
