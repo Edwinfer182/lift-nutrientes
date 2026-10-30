@@ -27,20 +27,13 @@ async function liftSecondaryEditorLoad(productId){
 }
 async function liftSecondarySaveUrls(productId,text){
  const urls=[...new Set(String(text||'').split(/\n+/).map(x=>x.trim()).filter(Boolean))];
- const base=LIFT_SECONDARY_BASE+'/rest/v1/lift_producto_imagenes';
- let r=await fetch(base+'?producto_id=eq.'+encodeURIComponent(productId),{
-   method:'DELETE',
-   headers:{apikey:LIFT_SECONDARY_KEY,Authorization:'Bearer '+LIFT_SECONDARY_KEY,Prefer:'return=minimal'}
+ // Guardado protegido con la clave de administración (función lift_producto_imagenes_guardar).
+ const r=await fetch(LIFT_SECONDARY_BASE+'/rest/v1/rpc/lift_producto_imagenes_guardar',{
+   method:'POST',
+   headers:{apikey:LIFT_SECONDARY_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_password:sessionStorage.getItem('liftAdminCloudPasswordV1')||'',p_producto_id:Number(productId),p_urls:urls})
  });
- if(!r.ok)throw new Error('No se pudieron reemplazar las imágenes anteriores.');
- if(urls.length){
-   r=await fetch(base,{
-     method:'POST',
-     headers:{apikey:LIFT_SECONDARY_KEY,Authorization:'Bearer '+LIFT_SECONDARY_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-     body:JSON.stringify(urls.map((imagen_url,i)=>({producto_id:Number(productId),imagen_url,orden:i+1})))
-   });
-   if(!r.ok)throw new Error('No se pudieron guardar las imágenes secundarias.');
- }
+ if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.message||'No se pudieron guardar las imágenes secundarias.')}
  liftSecondaryCache.delete(String(productId));
  return urls;
 }
