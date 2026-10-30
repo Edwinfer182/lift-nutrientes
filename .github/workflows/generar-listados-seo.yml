@@ -1,6 +1,7 @@
 name: Generar páginas SEO de categorías y laboratorios
 on:
   push:
+    branches: [main]
     paths:
       - 'scripts/generar_listados_seo.py'
       - 'scripts/seo_indexacion.py'

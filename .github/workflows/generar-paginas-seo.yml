@@ -1,6 +1,7 @@
 name: Generar páginas SEO de productos
 on:
   push:
+    branches: [main]
     paths:
       - '.github/workflows/generar-paginas-seo.yml'
       - 'scripts/generar_paginas_seo.py'

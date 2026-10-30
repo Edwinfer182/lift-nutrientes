@@ -3,14 +3,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Los commits que hacen los workflows con GITHUB_TOKEN no disparan "push":
-  # publicar también cuando terminan las regeneraciones SEO diarias.
-  workflow_run:
-    workflows:
-      - "Generar páginas SEO de productos"
-      - "Generar páginas SEO de categorías y laboratorios"
-    types: [completed]
-    branches: [main]
 permissions:
   contents: read
   pages: write
