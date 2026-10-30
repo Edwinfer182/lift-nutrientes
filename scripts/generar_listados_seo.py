@@ -218,6 +218,33 @@ def write_all_products(items):
     (ROOT / "productos" / "index.html").write_text(html, encoding="utf-8")
 
 
+LAB_ALIAS = {"basic-supplements": "basic", "insane-labz": "insane", "optimum-nutrition": "on", "hi-tech-pharmaceuticals": "hitech"}
+
+
+def write_hub(plural, groups, logos):
+    """Lista inicial de /categorias/ y /laboratorios/ en el HTML: se ve al instante
+    y Google la lee. supgo-pages.js la reemplaza con datos frescos al cargar."""
+    path = ROOT / plural / "index.html"
+    if not path.exists() or not groups:
+        return
+    html = path.read_text(encoding="utf-8")
+    cards = []
+    for name in sorted(groups, key=lambda x: x.casefold()):
+        key = slug(name)
+        label = escape(name)
+        count = f"<small>{groups[name]} productos</small>"
+        if plural == "laboratorios":
+            logo = logos.get(key) or logos.get(LAB_ALIAS.get(key, ""), "")
+            img = (f'<img class="labLogo" src="{escape(logo, quote=True)}" alt="Logo de {label}" loading="lazy" decoding="async" onerror="this.remove()">' if logo else "")
+            cards.append(f'<a class="labLogoCard" href="/{plural}/{key}/">{img}{label}<span class="labViewButton">Ver productos →</span>{count}</a>')
+        else:
+            cards.append(f'<a href="/{plural}/{key}/">{label}{count}</a>')
+    block = '<div id="content"><div class="links">' + "".join(cards) + "</div></div>"
+    updated, n = re.subn(r'<div id="content">.*?</div>(?=</main>)', lambda m: block, html, count=1, flags=re.S)
+    if n and updated != html:
+        path.write_text(updated, encoding="utf-8")
+
+
 HOME_START = "<!-- SEO-EXPLORA:INICIO (generado por scripts/generar_listados_seo.py) -->"
 HOME_END = "<!-- SEO-EXPLORA:FIN -->"
 
@@ -290,6 +317,7 @@ def main():
             if name and not (kind == "laboratorio" and slug(name) == "venom-pharma"):
                 groups.setdefault(name, 0)
                 groups[name] += 1
+        write_hub(plural, {k: v for k, v in groups.items() if slug(k) not in NOINDEX_SLUGS}, logos)
         index = 3 if kind == "categoria" else 2
         for name, count in groups.items():
             dest = ROOT / plural / slug(name) / "index.html"
