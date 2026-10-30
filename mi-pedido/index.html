@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mi pedido | SUPGO</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=supgo-rounded-2">
+<link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=supgo-rounded-2">
+<link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://vdxkknftyssjyfbdieqa.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZL00MPW16"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<style>
+:root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--green:#15803d;--green-soft:#eaf7ee;--amber:#9a6700;--amber-soft:#fff8e5;--red:#b42318;--red-soft:#fff4f2;--radius:14px}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px}
+.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top .wrap{max-width:1120px;display:flex;align-items:center;gap:14px;min-height:60px}
+.logo{font-weight:700;font-size:20px;letter-spacing:-.04em;text-decoration:none}
+.back{margin-left:auto;font-size:13px;font-weight:500;text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff}
+main{padding:26px 0 60px}
+h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 20px;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px;letter-spacing:-.01em}
+.field{display:block;margin-bottom:12px}
+.label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.input{width:100%;height:48px;border:1px solid #d6d6d6;border-radius:10px;padding:0 14px;background:#fff;font-size:16px}
+.input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,17,17,.08)}
+.cta{width:100%;min-height:52px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;text-decoration:none}
+.cta:disabled{opacity:.55;cursor:default}
+.cta.light{background:#fff;color:var(--ink);border:1px solid var(--ink)}
+.cta.green{background:#128c4a}
+.msg{font-size:13px;margin-top:10px}
+.msg.bad{color:var(--red)}
+.loading{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px;padding:30px 0;justify-content:center}
+.spin{width:20px;height:20px;border:2px solid #ddd;border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Encabezado del pedido */
+.success{background:var(--green-soft);border:1px solid #bfe5cb;color:#14532d;border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-start}
+.success b{display:block;font-size:16px}
+.success span{font-size:13px}
+.orderHead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:14px}
+.orderHead small{color:var(--muted);font-size:13px}
+/* Estado */
+.status h2{font-size:18px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.status p{margin:0;color:var(--muted);font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--amber);flex:none}
+.status.ok .dot{background:var(--green)}
+.status.bad .dot{background:var(--red)}
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:16px 0 8px}
+.steps span{height:6px;border-radius:99px;background:#e9e9e9}
+.steps span.done{background:var(--green)}
+.steps span.current{background:var(--ink)}
+.stepNames{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;font-size:10.5px;color:var(--muted);text-align:center}
+.stepNames .on{color:var(--ink);font-weight:600}
+/* Pago */
+.pay{border:2px solid var(--ink)}
+.pay .total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.pay .total b{font-size:24px;letter-spacing:-.02em}
+.methods{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+.alt{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.alt summary{cursor:pointer;font-size:14px;font-weight:500}
+.copyRow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--soft);border-radius:10px;padding:10px 12px;margin-top:10px}
+.copyRow small{display:block;color:var(--muted);font-size:11px}
+.copyRow strong{font-size:15px}
+.copyRow button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.file{display:block;margin-top:12px;font-size:13px}
+.notice{border-radius:10px;padding:12px 14px;font-size:13px;margin-top:4px}
+.notice.ok{background:var(--green-soft);color:#14532d}
+.notice.warn{background:var(--amber-soft);color:#6b4a00}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.choices button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;text-align:left}
+/* Productos y totales */
+.item{display:grid;grid-template-columns:56px 1fr auto;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}
+.item:last-child{border-bottom:0}
+.thumb{width:56px;height:56px;border-radius:10px;background:var(--soft);object-fit:contain;border:1px solid var(--line)}
+.iname{font-size:13px;font-weight:500;margin:0;line-height:1.35}
+.imeta{font-size:12px;color:var(--muted)}
+.iprice{font-size:13px;font-weight:600;white-space:nowrap}
+.totals{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-size:14px}
+.totals div{display:flex;justify-content:space-between;padding:3px 0}
+.totals .grand{font-size:17px;font-weight:700;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+.free{color:var(--green);font-weight:600}
+.data{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:13px}
+.data small{display:block;color:var(--muted);font-size:11px}
+.data div{min-width:0;overflow-wrap:anywhere}
+.link{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.link code{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ghost{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.evidence img{width:100%;border-radius:10px;margin-top:12px}
+.other{display:block;text-align:center;font-size:13px;color:var(--muted);margin-top:18px}
+@media (max-width:560px){.data{grid-template-columns:1fr}.choices{grid-template-columns:1fr}.stepNames{font-size:9px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="/home/">SUPGO</a>
+  <a class="back" href="/home/">← Seguir comprando</a>
+</div></header>
+<main class="wrap" id="app">
+  <div class="loading" id="loading"><span class="spin"></span>Cargando tu pedido…</div>
+
+  <section id="lookup" hidden>
+    <h1>Mi pedido</h1>
+    <p class="lead">Consulta el estado de tu compra con el número de pedido y el celular que usaste.</p>
+    <form class="card" id="lookupForm" novalidate>
+      <label class="field"><span class="label">Número de pedido</span><input class="input" id="ref" inputmode="numeric" autocomplete="off" placeholder="Ej: 132"></label>
+      <label class="field"><span class="label">Celular usado en la compra</span><input class="input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></label>
+      <button class="cta" type="submit" id="lookupBtn">Consultar pedido</button>
+      <div class="msg bad" id="lookupMsg" role="alert"></div>
+    </form>
+    <p class="lead" style="text-align:center;font-size:13px">El número de pedido está en el correo de confirmación.</p>
+  </section>
+
+  <section id="order" hidden></section>
+</main>
+<script>
+(function(){
+'use strict';
+var SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',WA='573137380766';
+var STEPS=['Pedido','Disponible','Pago','Preparación','En ruta','Entregado'];
+var $=function(id){return document.getElementById(id)};
+var money=function(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Math.round(Number(n)||0))};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var norm=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()};
+var q=new URLSearchParams(location.search);
+var current=null;
+function stored(){try{return JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}')||{}}catch(e){return {}}}
+function fn(name,payload,isForm){return fetch(SB+'/functions/v1/'+name,{method:'POST',headers:isForm?{apikey:KEY}:{apikey:KEY,'Content-Type':'application/json'},body:isForm?payload:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'No se pudo completar la operación');return j})})}
+function orderUrl(id,token){return 'https://supgo.co/mi-pedido/?pedido='+encodeURIComponent(id)+(token?'&token='+encodeURIComponent(token):'')}
+function wa(text){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(text)}
+function copy(text,btn,label){var done=function(){if(btn){var o=btn.textContent;btn.textContent='✓ Copiado';setTimeout(function(){btn.textContent=label||o},1600)}};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(done,function(){prompt('Copia:',text)});else{prompt('Copia:',text)}}
+
+/* ---------- Estado ---------- */
+function stage(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
+  if(s==='entregado')return 5;if(s==='en_ruta')return 4;if(s==='preparando'||s==='programado')return 3;
+  if(s==='pendiente_pago'||['por_verificar','contraentrega','aprobado'].indexOf(ps)>=0)return 2;
+  if(s==='verificando_disponibilidad'||s==='sin_disponibilidad')return 1;return 0}
+function info(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
+  if(s==='sin_disponibilidad')return {t:'Un producto no está disponible',d:'No realices el pago todavía. Puedes esperar reposición, cambiar el producto o quitarlo.',k:'bad'};
+  if(s==='verificando_disponibilidad')return {t:'Verificando tus productos',d:'Estamos confirmando la disponibilidad. Te avisaremos por correo cuando puedas pagar desde esta página.'};
+  if(s==='pendiente_pago'&&ps==='aprobado')return {t:'Pago aprobado',d:'Estamos alistando tu pedido.',k:'ok'};
+  if(s==='pendiente_pago'&&ps==='por_verificar')return {t:'Verificando tu pago',d:'Recibimos tu comprobante y lo estamos revisando.'};
+  if(s==='pendiente_pago'&&ps==='contraentrega')return {t:'Pago contraentrega',d:'Pagarás en efectivo al recibir tu pedido.',k:'ok'};
+  if(s==='pendiente_pago')return {t:'Tus productos están disponibles',d:'Completa el pago para que preparemos tu pedido.'};
+  if(s==='preparando'||s==='programado')return {t:'Estamos preparando tu pedido',d:'Tu pago fue aprobado. El siguiente paso es el envío.',k:'ok'};
+  if(s==='en_ruta')return {t:'Tu pedido está en camino',d:'Ya salió hacia la dirección registrada.',k:'ok'};
+  if(s==='entregado')return {t:'Pedido entregado',d:'¡Gracias por comprar en SUPGO!',k:'ok'};
+  return {t:'Pedido recibido',d:'El siguiente paso es confirmar la disponibilidad de tus productos.'}}
+
+/* ---------- Carga ---------- */
+function show(id){['loading','lookup','order'].forEach(function(x){$(x).hidden=x!==id});window.scrollTo(0,0)}
+function load(ref,phone,token){
+  show('loading');
+  return fn('lift-clientes',{action:'public-track-order',referencia:String(ref),celular:phone||'',token:token||''}).then(function(r){
+    var p=r.pedido,id=String(p.referencia||ref).replace(/\D/g,'').replace(/^0+/,'')||String(ref);
+    current={p:p,id:id,token:p.token||token||'',phone:p.celular||phone||''};
+    try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:id,pedido_id:id,phone:current.phone,token:current.token}))}catch(e){}
+    if(current.token&&(q.get('token')!==current.token||q.get('pedido')!==id)){var u=new URL(location.href);u.search='?pedido='+encodeURIComponent(id)+'&token='+encodeURIComponent(current.token)+(q.get('nuevo')?'&nuevo=1':'');history.replaceState(null,'',u)}
+    return Promise.all([images(p.items||[]),dispatch(id,current.token)]).then(function(x){render(x[0],x[1])});
+  });
+}
+function images(items){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!ids.length)return Promise.resolve({});
+  return fetch(SB+'/rest/v1/lift_productos?select=id,imagen,product&id=in.('+ids.join(',')+')',{headers:{apikey:KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(rows){var m={};rows.forEach(function(x){var i=x.imagen||(x.product&&(x.product.image||x.product.imagen));if(/^https?:/.test(String(i||'')))m[String(x.id)]=i});return m}).catch(function(){return {}})}
+function dispatch(id,token){if(!token)return Promise.resolve({});
+  return fetch(SB+'/rest/v1/rpc/lift_consultar_despacho',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:token})}).then(function(r){return r.ok?r.json():{}}).then(function(d){return d||{}}).catch(function(){return {}})}
+
+/* ---------- Pintar ---------- */
+function render(img,disp){
+  var c=current,p=c.p,at=stage(p),inf=info(p),s=String(p.estado||''),ps=String(p.pago_estado||''),h='';
+  if(q.get('nuevo'))h+='<div class="success"><span style="font-size:22px">✓</span><div><b>¡Recibimos tu pedido!</b><span>Te enviamos la confirmación por correo. Guarda esta página para seguir tu pedido.</span></div></div>';
+  h+='<div class="orderHead"><div><h1>Pedido #'+esc(c.id)+'</h1><small>'+(p.fecha?new Date(p.fecha).toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}):'')+'</small></div></div>';
+  h+='<div class="card status '+(inf.k||'')+'"><h2><span class="dot"></span>'+esc(inf.t)+'</h2><p>'+esc(inf.d)+'</p>'+
+     '<div class="steps" aria-label="Etapa '+(at+1)+' de 6">'+STEPS.map(function(x,i){return '<span class="'+(i<at?'done':i===at?'current':'')+'"></span>'}).join('')+'</div>'+
+     '<div class="stepNames">'+STEPS.map(function(x,i){return '<span class="'+(i===at?'on':'')+'">'+x+'</span>'}).join('')+'</div></div>';
+  if(disp&&disp.tipo==='guia'&&disp.guia)h+='<div class="card"><h2>🚚 Seguimiento del envío</h2><div class="copyRow"><span><small>'+esc(disp.transportadora||'Transportadora')+'</small><strong>'+esc(disp.guia)+'</strong></span><button type="button" data-copy="'+esc(disp.guia)+'">Copiar guía</button></div></div>';
+  else if(disp&&disp.tipo==='local'&&s==='en_ruta')h+='<div class="card"><h2>🛵 Tu pedido salió a ruta</h2><p class="lead" style="margin:0">El mensajero hace varias entregas; no manejamos una hora exacta de llegada.</p></div>';
+  if(s==='pendiente_pago'&&!ps||s==='pendiente_pago'&&['sin_pago','pendiente_comprobante','pendiente_transferencia','rechazado'].indexOf(ps)>=0)h+=payCard();
+  if(s==='sin_disponibilidad')h+='<div class="card"><h2>¿Qué prefieres hacer?</h2><div class="choices">'+[['esperar','Esperar reposición'],['cambiar','Cambiar el producto'],['quitar','Quitar el producto'],['ayuda','Hablar con SUPGO']].map(function(x){return '<button type="button" data-help="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
+  var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
+    return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
+  h+='<div class="card"><h2>Productos</h2>'+items+'<div class="totals">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span class="'+(Number(p.envio)?'':'free')+'">'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span class="free">− '+money(p.descuento)+'</span></div>':'')+'<div class="grand"><span>Total</span><span>'+money(p.total)+'</span></div></div></div>';
+  h+='<div class="card"><h2>Entrega</h2><div class="data"><div><small>Nombre</small>'+esc(p.nombre||'—')+'</div><div><small>Celular</small>'+esc(p.celular||'—')+'</div><div><small>Ciudad</small>'+esc(p.ciudad||'—')+'</div><div><small>Dirección</small>'+esc(p.direccion||'—')+'</div>'+(p.notas?'<div style="grid-column:1/-1"><small>Indicaciones</small>'+esc(p.notas)+'</div>':'')+'</div></div>';
+  if(p.tiene_evidencia_entrega)h+='<div class="card evidence"><div class="link"><h2 style="margin:0">📷 Foto de la entrega</h2><button class="ghost" type="button" id="evidenceBtn">Ver foto</button></div><div id="evidenceBox"></div></div>';
+  if(c.token)h+='<div class="card"><h2>Enlace de tu pedido</h2><div class="link"><code>'+esc(orderUrl(c.id,c.token))+'</code><button class="ghost" type="button" data-copy="'+esc(orderUrl(c.id,c.token))+'">Copiar</button></div><p class="lead" style="margin:8px 0 0;font-size:12px">Guárdalo para volver a consultar tu pedido.</p></div>';
+  h+='<a class="other" href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a><a class="other" href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a>';
+  $('order').innerHTML=h;show('order');
+}
+function payCard(){
+  var c=current,p=c.p,ps=String(p.pago_estado||''),transfer=p.medio_pago_cliente==='transferencia';
+  return '<div class="card pay"><h2>Paga tu pedido</h2><div class="total"><span>Total a pagar</span><b>'+money(p.total)+'</b></div>'+
+    (ps==='rechazado'?'<div class="notice warn" style="margin-bottom:12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
+    '<button class="cta" type="button" id="boldBtn">Pagar en línea</button><div class="methods">Tarjeta, PSE, Nequi, Bancolombia y Bre-B · pago seguro con Bold</div><div class="msg bad" id="payMsg"></div>'+
+    '<details class="alt" id="altPay"'+(transfer?' open':'')+'><summary>Prefiero pagar por transferencia</summary>'+
+      '<div class="copyRow"><span><small>Valor</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
+      '<div class="copyRow"><span><small>Llave Bre-B · Titular: Edwin Fernando Muñoz Tobon</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
+      '<label class="file"><span class="label" style="margin-top:12px">Sube tu comprobante (imagen o PDF, máx. 5 MB)</span><input type="file" id="proof" accept="image/jpeg,image/png,image/webp,application/pdf"></label>'+
+      '<button class="cta light" type="button" id="proofBtn" style="margin-top:10px">Enviar comprobante</button><div class="msg" id="proofMsg"></div>'+
+      '<a class="cta green" style="margin-top:10px" target="_blank" rel="noopener" href="'+wa('Hola, realicé la transferencia por Bre-B para el pedido #'+c.id+'. Te comparto el comprobante.')+'">Enviar comprobante por WhatsApp</a>'+
+    '</details></div>';
+}
+
+/* ---------- Acciones ---------- */
+function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando pago seguro…';$('payMsg').textContent='';
+  fn('lift-bold-pagos',{pedido_id:Number(c.id),token:c.token,accion:'crear',ambiente:'production'}).then(function(j){
+    if(!j.url||!/^https:\/\/checkout\.bold\.co\//.test(j.url))throw new Error('Enlace de pago no válido');
+    try{gtag('event','add_payment_info',{payment_type:'bold',currency:'COP',value:Number(c.p.total)})}catch(e){}
+    location.assign(j.url);
+  }).catch(function(e){btn.disabled=false;btn.textContent='Pagar en línea';$('payMsg').textContent='No pudimos abrir el pago en línea ('+e.message+'). Puedes pagar por transferencia aquí abajo.';$('altPay').open=true});
+}
+function uploadProof(btn){var c=current,f=$('proof').files[0],m=$('proofMsg');
+  if(!f){m.textContent='Selecciona la imagen o PDF del comprobante.';m.className='msg bad';return}
+  if(f.size>5*1024*1024){m.textContent='El archivo supera 5 MB.';m.className='msg bad';return}
+  btn.disabled=true;m.textContent='Subiendo comprobante…';m.className='msg';
+  var pre=c.p.medio_pago_cliente==='transferencia'?Promise.resolve():fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(c.id),token:c.token,medio:'transferencia'});
+  pre.then(function(){var fd=new FormData();fd.append('pedido_id',c.id);fd.append('token',c.token);fd.append('comprobante',f);return fn('lift-pagos',fd,true)})
+   .then(function(){m.textContent='✓ Comprobante recibido. Lo revisaremos pronto.';m.className='msg';setTimeout(function(){load(c.id,'',c.token)},900)})
+   .catch(function(e){btn.disabled=false;m.textContent=e.message;m.className='msg bad'});
+}
+function evidence(btn){var c=current,box=$('evidenceBox');if(box.innerHTML){box.innerHTML='';btn.textContent='Ver foto';return}
+  btn.disabled=true;fn('lift-clientes',{action:'public-delivery-evidence-url',referencia:c.id,token:c.token,celular:c.phone}).then(function(j){box.innerHTML=j.url?'<img src="'+esc(j.url)+'" alt="Foto de la entrega">':'<p class="lead">La foto todavía no está disponible.</p>';btn.textContent='Ocultar foto'}).catch(function(e){box.innerHTML='<p class="msg bad">'+esc(e.message)+'</p>'}).then(function(){btn.disabled=false})}
+var HELP={esperar:'Quiero esperar reposición',cambiar:'Quiero cambiar el producto que no está disponible',quitar:'Quiero quitar del pedido el producto que no está disponible',ayuda:'Necesito ayuda con un producto sin disponibilidad'};
+document.addEventListener('click',function(e){var t=e.target.closest('button,a');if(!t)return;
+  if(t.id==='boldBtn')bold(t);else if(t.id==='proofBtn')uploadProof(t);else if(t.id==='evidenceBtn')evidence(t);
+  else if(t.hasAttribute('data-copy'))copy(t.getAttribute('data-copy'),t);
+  else if(t.hasAttribute('data-help'))window.open(wa('Hola, sobre mi pedido #'+current.id+': '+HELP[t.getAttribute('data-help')]+'.\n\n'+orderUrl(current.id,current.token)),'_blank');
+  else if(t.id==='otherOrder'){e.preventDefault();history.pushState(null,'','/mi-pedido/');q=new URLSearchParams('');$('ref').value='';$('phone').value='';$('lookupMsg').textContent='';show('lookup')}
+});
+$('lookupForm').addEventListener('submit',function(e){e.preventDefault();var ref=$('ref').value.replace(/\D/g,''),phone=$('phone').value.trim(),msg=$('lookupMsg');
+  if(!ref||phone.replace(/\D/g,'').length<7){msg.textContent='Escribe el número de pedido y tu celular.';return}
+  msg.textContent='';var x=stored(),tok=String(x.ref||'').replace(/\D/g,'')===ref?x.token:'';
+  load(ref,phone,tok).catch(function(err){show('lookup');msg.textContent=/encontr/i.test(err.message)?'No encontramos un pedido con ese número y celular. Revisa los datos.':err.message})});
+
+/* ---------- Inicio ---------- */
+var ref=(q.get('pedido')||'').replace(/\D/g,''),token=q.get('token')||'',x=stored();
+if(ref&&!token&&String(x.ref||x.pedido_id||'').replace(/\D/g,'')===ref&&x.token)token=x.token;
+if(ref&&token){load(ref,'',token).catch(function(e){$('ref').value=ref;$('lookupMsg').textContent='No pudimos abrir el pedido con este enlace. Consulta con tu celular.';show('lookup')})}
+else{$('ref').value=ref||String(x.ref||'').replace(/\D/g,'');$('phone').value=x.phone||'';show('lookup')}
+})();
+</script>
+</body>
+</html>

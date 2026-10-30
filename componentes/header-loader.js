@@ -31,7 +31,7 @@
     }
     btn.removeAttribute('hidden');
     btn.style.cssText='display:inline-flex!important;align-items:center;justify-content:center;gap:5px;flex-shrink:0;padding:10px 12px;background:#1c1d20;color:#fff;border:1px solid #424348;border-radius:11px;font:500 12px Poppins,Arial,sans-serif;cursor:pointer';
-    btn.onclick=function(e){e.preventDefault();if(typeof window.supgoOpenPedidoCompartido==='function')window.supgoOpenPedidoCompartido();else location.assign('/?mi-pedido=1&volver='+encodeURIComponent(location.pathname+location.search+location.hash));};
+    btn.onclick=function(e){e.preventDefault();if(typeof window.supgoOpenPedidoCompartido==='function')window.supgoOpenPedidoCompartido();else location.assign('/mi-pedido/');};
   }
   async function mount(){
     // Un index con header propio nunca debe recibir uno duplicado.

@@ -431,7 +431,7 @@ function submit(ev){
       localStorage.removeItem(CART);localStorage.removeItem(META);
     }catch(e){}
     window.dispatchEvent(new Event('supgo-cart-change'));
-    location.assign(id?'/?pedido='+encodeURIComponent(id)+(r.token?'&token='+encodeURIComponent(r.token):''):'https://supgo.co/?mi-pedido=1');
+    location.assign(id?'/mi-pedido/?pedido='+encodeURIComponent(id)+(r.token?'&token='+encodeURIComponent(r.token):'')+'&nuevo=1':'https://supgo.co/?mi-pedido=1');
   }).catch(function(e){busy(false);showError(e.message||'No pudimos crear el pedido. Revisa tu conexión e inténtalo de nuevo.')});
 }
 
