@@ -216,7 +216,7 @@ window.addEventListener('supgo-cart-change',()=>{updateCount();if(!drawer.hidden
 updateCount();
 // Mi pedido se consulta exclusivamente en el index principal.
 // No montar offcanvas ni iframe en las páginas independientes.
-window.supgoOpenPedidoCompartido=function(){const origin=location.pathname+location.search+location.hash;try{sessionStorage.setItem('supgoPedidoReturnUrl',location.href)}catch(e){}location.assign('/?mi-pedido=1&volver='+encodeURIComponent(origin))};
+window.supgoOpenPedidoCompartido=function(){const origin=location.pathname+location.search+location.hash;try{sessionStorage.setItem('supgoPedidoReturnUrl',location.href)}catch(e){}location.assign('/mi-pedido/')};
 
 // Integración con las fichas HTML: las acciones de producto alimentan el
 // mismo estado del index (liftCartV2 / liftCartMetaV1 / liftFavoritesV1).

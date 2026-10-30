@@ -20,6 +20,7 @@
   // Antes se perdían al redirigir a /home/ y "Mi pedido" no abría nada.
   ['fbclid','gclid','gbraid','wbraid','msclkid','ttclid','igshid','_ga'].forEach(function(k){q.delete(k);});
   Array.from(q.keys()).forEach(function(k){if(/^utm_/i.test(k))q.delete(k);});
+  if(q.has('pedido')||q.has('mi-pedido')){location.replace('/mi-pedido/'+location.search+location.hash);return;}
   if(Array.from(q.keys()).length){location.replace('/admin.html'+location.search+location.hash);return;}
   location.replace('/home/'+location.hash);
 })();
