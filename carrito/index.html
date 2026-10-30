@@ -1,35 +1,214 @@
-<!doctype html><html lang="es"><head><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=supgo-rounded-2"><link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=supgo-rounded-2"><link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Carrito de compra | SUPGO</title><meta name="description" content="Revisa tus suplementos, cantidades y subtotal."><link rel="canonical" href="https://supgo.co/carrito/"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/paginas/supgo-pages.css"><style id="supgo-cart-desktop-remove-fix">@media(min-width:701px){body[data-page="carrito"] .cartrow{grid-template-columns:65px minmax(0,1fr) auto auto auto;gap:12px}body[data-page="carrito"] .cartrow .remove{width:auto;min-width:0;max-width:90px;padding:7px 12px;min-height:32px;justify-self:end;white-space:nowrap;font-size:12px}}</style><style id="supgo-cart-mobile-spacing-fix">@media(max-width:700px){body[data-page="carrito"] .cartrow{grid-template-columns:55px minmax(0,1fr)!important;grid-template-areas:"image name" "price price" "qty remove"!important;gap:10px 12px!important;padding:14px 0 18px!important;align-items:center!important}body[data-page="carrito"] .cartrow>img{grid-area:image}body[data-page="carrito"] .cartrow>.name{grid-area:name;min-width:0}body[data-page="carrito"] .cartrow>strong{grid-area:price;min-width:0;white-space:normal;font-size:17px;line-height:1.35}body[data-page="carrito"] .cartrow>.qty{grid-area:qty;grid-column:auto!important;justify-self:start;min-width:0;gap:8px}body[data-page="carrito"] .cartrow>.qty button{width:38px;height:38px;display:grid;place-items:center;padding:0;font-size:17px;cursor:pointer}body[data-page="carrito"] .cartrow>.remove{grid-area:remove;position:static!important;justify-self:end;align-self:center;width:auto!important;min-width:0!important;max-width:none!important;padding:8px 12px!important;min-height:38px!important;font-size:12px!important;white-space:nowrap!important}}</style>
-
-
-
-
-
-<!-- LIFT-STORE-IDENTITY:START -->
-<script type="application/ld+json">{"@context":"https://schema.org","@type":["Organization","OnlineStore"],"@id":"https://supgo.co/#organization","name":"Lift Nutrientes","alternateName":"SUPGO","url":"https://supgo.co/","description":"Tienda en línea de suplementos deportivos, proteínas, creatinas y vitaminas. Atiende pedidos en Medellín y realiza envíos a otras ciudades de Colombia.","areaServed":[{"@type":"City","name":"Medellín"},{"@type":"Country","name":"Colombia"}],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Catálogo de suplementos deportivos","url":"https://supgo.co/"}}</script>
-<!-- LIFT-STORE-IDENTITY:END -->
-</head><body data-page="carrito"><main class="site"><h1>Carrito de compra</h1><p class="muted">Revisa tus suplementos, cantidades y subtotal.</p><div id="content"><p class="loading">Cargando…</p></div></main><script defer src="/paginas/supgo-pages.js?v=20261021-sincronizar-ofertas3"></script><script defer src="/componentes/header-loader.js?v=20261022-carrito-directo6"></script><script>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carrito de compra | SUPGO</title>
+<meta name="description" content="Revisa tus suplementos, cantidades y el costo de envío antes de hacer tu pedido.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://supgo.co/carrito/">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=supgo-rounded-2">
+<link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=supgo-rounded-2">
+<link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://vdxkknftyssjyfbdieqa.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZL00MPW16"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<style>
+:root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--green:#15803d;--green-soft:#eaf7ee;--red:#b42318;--radius:14px}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.cartPage a{color:inherit}
+.cartPage button{font:inherit;color:inherit}
+.cartPage{max-width:1120px;margin:0 auto;padding:22px 18px 60px}
+.cartPage h1{font-size:clamp(24px,3.4vw,32px);line-height:1.15;letter-spacing:-.035em;margin:0 0 4px}
+.cartPage .lead{color:var(--muted);margin:0 0 20px;font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:6px 20px}
+.item{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.thumb{width:84px;height:84px;border-radius:12px;background:var(--soft);object-fit:contain;border:1px solid var(--line);display:block}
+.iname{font-size:14px;font-weight:500;line-height:1.35;margin:0 0 2px;text-decoration:none;display:block}
+.iname:hover{text-decoration:underline}
+.imeta{font-size:12px;color:var(--muted)}
+.tag{display:inline-block;font-size:10px;font-weight:600;background:#fde8e8;color:var(--red);border-radius:4px;padding:1px 6px;margin-top:4px}
+.unit{font-size:12px;color:var(--muted);margin-top:4px}
+.controls{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.qty{display:inline-flex;align-items:center;border:1px solid #d6d6d6;border-radius:999px;height:36px;background:#fff}
+.qty button{width:36px;height:34px;border:0;background:none;cursor:pointer;font-size:18px;line-height:1}
+.qty button:disabled{opacity:.3;cursor:default}
+.qty span{min-width:26px;text-align:center;font-size:14px;font-weight:600}
+.remove{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;padding:6px 0}
+.remove:hover{color:var(--red)}
+.price{text-align:right;white-space:nowrap}
+.price b{font-size:15px}
+.price del{display:block;color:var(--muted);font-size:12px}
+.unavailable{opacity:.55}
+.sum{position:sticky;top:90px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.sum h2{font-size:16px;margin:0 0 12px}
+.line{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}
+.line.save{color:var(--green)}
+.line.total{font-size:18px;font-weight:700;border-top:1px solid var(--line);margin-top:8px;padding-top:12px}
+.ship{background:var(--soft);border-radius:12px;padding:12px 14px;margin:12px 0;font-size:13px}
+.ship b{font-weight:600}
+.ship table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.ship td{padding:3px 0}
+.ship td:last-child{text-align:right;font-weight:600}
+.free{color:var(--green)}
+.progress{height:6px;background:#e4e4e4;border-radius:99px;overflow:hidden;margin-top:8px}
+.progress span{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
+.cta{width:100%;height:54px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.cartPage a.cta{color:#fff}
+.keep{display:block;text-align:center;font-size:13px;margin-top:12px;color:var(--muted)}
+.trust{list-style:none;margin:14px 0 0;padding:0;font-size:12px;color:var(--muted);display:grid;gap:6px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;font-size:14px;display:flex;gap:14px;align-items:center;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
+.toast button{background:none;border:0;color:#fff;font-weight:600;text-decoration:underline;cursor:pointer}
+.empty{text-align:center;padding:50px 20px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.empty .icon{font-size:42px}
+.empty h2{margin:6px 0}
+.links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.links a{padding:12px 18px;border-radius:12px;border:1px solid var(--line);text-decoration:none;font-weight:500;background:#fff}
+.links a.main{background:var(--ink);color:#fff;border-color:var(--ink)}
+.skeleton{background:linear-gradient(90deg,#f0f0f0,#f8f8f8,#f0f0f0);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:10px;height:84px;margin:18px 0}
+@keyframes sh{to{background-position:-200% 0}}
+.stickyBar{display:none}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .sum{position:static}
+  .sum .cta{display:none}
+  .stickyBar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));gap:12px;align-items:center;box-shadow:0 -8px 24px rgba(0,0,0,.06)}
+  .stickyBar .t{flex:none;line-height:1.2}
+  .stickyBar .t small{display:block;font-size:11px;color:var(--muted)}
+  .stickyBar .t b{font-size:17px}
+  .stickyBar .cta{height:50px}
+  body{padding-bottom:84px}
+}
+@media (max-width:520px){
+  .card{padding:4px 14px}
+  .item{grid-template-columns:72px minmax(0,1fr);gap:12px}
+  .thumb{width:72px;height:72px}
+  .price{grid-column:2;text-align:left;display:flex;gap:8px;align-items:baseline}
+  .price del{display:inline}
+}
+</style>
+</head>
+<body data-page="carrito">
+<main class="cartPage">
+  <h1>Tu carrito</h1>
+  <p class="lead" id="lead">Revisa tus productos antes de hacer el pedido.</p>
+  <div class="grid" id="grid">
+    <section class="card" id="items" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></section>
+    <aside class="sum" id="summary">
+      <h2>Resumen</h2>
+      <div id="totals"></div>
+      <div class="ship" id="ship"></div>
+      <a class="cta" href="/checkout/" id="go">Continuar con el pedido</a>
+      <a class="keep" href="/home/">← Seguir comprando</a>
+      <ul class="trust">
+        <li>🔒 No se cobra nada hasta confirmar disponibilidad.</li>
+        <li>💳 Paga en línea, por transferencia o contraentrega en Medellín.</li>
+      </ul>
+    </aside>
+  </div>
+</main>
+<div class="stickyBar" id="sticky"><div class="t"><small>Subtotal</small><b id="stickyTotal">—</b></div><a class="cta" href="/checkout/">Continuar</a></div>
+<script>
 (function(){
- function showOrderButton(){
-   const bar=document.querySelector('#supgo-global-header .bar,header.top .bar');
-   if(!bar)return;
-   let button=bar.querySelector('[data-supgo-order-access],.myOrder');
-   if(!button){
-     button=document.createElement('button');
-     button.type='button';
-     button.dataset.supgoOrderAccess='1';
-     button.className='iconbtn myOrder';
-     button.textContent='▤ Mi pedido';
-     button.setAttribute('aria-label','Mi pedido');
-     const cart=bar.querySelector('.cartDesktop');
-     if(cart)cart.before(button);else bar.append(button);
-   }
-   button.style.cssText='display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center;justify-content:center;flex-shrink:0;padding:11px 13px;background:#1c1d20;color:#fff;border:1px solid #424348;border-radius:10px;font:600 12px Poppins,Arial,sans-serif;cursor:pointer';
-   button.onclick=function(e){e.preventDefault();if(typeof window.supgoOpenPedidoCompartido==='function')window.supgoOpenPedidoCompartido();else alert('El panel de seguimiento no cargó. Actualiza la página.')};
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showOrderButton);
- else showOrderButton();
- document.addEventListener('supgo:header-ready',showOrderButton);
- const observer=new MutationObserver(()=>{if(document.querySelector('#supgo-global-header .bar,header.top .bar')){showOrderButton();observer.disconnect()}});
- observer.observe(document.documentElement,{childList:true,subtree:true});
+'use strict';
+var SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',CART='liftCartV2',META='liftCartMetaV1';
+var $=function(id){return document.getElementById(id)};
+var money=function(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Math.round(Number(n)||0))};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var slug=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')};
+function json(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v&&typeof v==='object'?v:f}catch(e){return f}}
+function qtyOf(v){return Math.max(0,Math.floor(Number(v&&typeof v==='object'?(v.quantity!=null?v.quantity:v.qty):v)||0))}
+function field(p){for(var i=1;i<arguments.length;i++){var v=p&&p[arguments[i]];if(v!==undefined&&v!==null&&v!=='')return v}return ''}
+var state={products:{},offers:{},loaded:false,lines:[],undo:null};
+
+function api(path){return fetch(SB+path,{headers:{apikey:KEY}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
+function load(ids){
+  var nums=ids.filter(function(x){return /^\d+$/.test(x)});
+  return Promise.all([
+    nums.length?api('/rest/v1/lift_productos?select=id,product,activo&id=in.('+nums.join(',')+')').then(function(rows){rows.forEach(function(r){state.products[String(r.id)]=r});state.loaded=true}).catch(function(){}):Promise.resolve(state.loaded=true),
+    api('/rest/v1/lift_catalog_config?select=valor&clave=eq.weekly_offers&limit=1').then(function(rows){var v=rows[0]&&rows[0].valor||{};if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v={}}}state.offers=v||{}}).catch(function(){})
+  ]);
+}
+/* Mismo cálculo de precio que el checkout: precio del catálogo y oferta semanal vigente. */
+function offerFor(id,regular){var o=state.offers[String(id)];if(!o||typeof o!=='object')return null;var sale=Number(o.price);if(!(sale>0)||!(sale<regular))return null;if(o.promoUntil){var t=Date.parse(o.promoUntil);if(isFinite(t)&&Date.now()>t)return null}return sale}
+function build(){
+  var cart=json(CART,{}),meta=json(META,{});
+  state.lines=Object.keys(cart).map(function(key){
+    var q=qtyOf(cart[key]);if(q<=0)return null;
+    var id=String(key).split('::')[0],flavor=String(key).split('::').slice(1).join('::')||(meta[key]&&meta[key].flavor)||'';
+    var row=state.products[id],p=(row&&row.product)||{},m=meta[key]||{};
+    var regular=Number(field(p,'price','precio'))||(row?0:Number(field(m,'price','precio')))||0,sale=offerFor(id,regular);
+    var name=String(field(p,'name','nombre')||field(m,'name','nombre')||('Producto '+id)),img=field(m,'image')||field(p,'image','imagen','image_url');
+    return {key:key,id:id,flavor:flavor,qty:q,name:name,brand:String(field(p,'brand','marca')),image:/^https?:\/\//.test(String(img))?String(img):'',
+      url:/^\d+$/.test(id)?'/productos/'+(slug(name)||'producto')+'-'+id+'.html':'',regular:regular,price:sale||regular,offer:!!sale,
+      available:state.loaded?!!(row&&row.activo!==false&&regular>0):regular>0};
+  }).filter(Boolean);
+}
+function ok(){return state.lines.filter(function(l){return l.available})}
+function units(){return ok().reduce(function(n,l){return n+l.qty},0)}
+function subtotal(){return ok().reduce(function(n,l){return n+l.price*l.qty},0)}
+function savings(){return ok().reduce(function(n,l){return n+(l.offer?(l.regular-l.price)*l.qty:0)},0)}
+function shipLocal(q){return q===1?11000:q===2?7000:0}
+function shipNational(q){return q===1?15000:q===2?12000:q===3?10000:0}
+
+function setQty(key,q,silent){
+  var cart=json(CART,{}),meta=json(META,{});
+  if(q<=0){state.undo={key:key,value:cart[key],meta:meta[key]};delete cart[key];delete meta[key]}
+  else{var old=cart[key];cart[key]=(old&&typeof old==='object')?Object.assign({},old,{quantity:q}):q}
+  try{localStorage.setItem(CART,JSON.stringify(cart));localStorage.setItem(META,JSON.stringify(meta))}catch(e){}
+  window.dispatchEvent(new Event('supgo-cart-change'));
+  build();render();if(q<=0&&!silent)toast();
+}
+function toast(){
+  var old=document.querySelector('.toast');if(old)old.remove();
+  var u=state.undo;if(!u)return;
+  var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.innerHTML='<span>Producto eliminado</span><button type="button">Deshacer</button>';
+  t.querySelector('button').onclick=function(){var cart=json(CART,{}),meta=json(META,{});cart[u.key]=u.value;if(u.meta)meta[u.key]=u.meta;try{localStorage.setItem(CART,JSON.stringify(cart));localStorage.setItem(META,JSON.stringify(meta))}catch(e){}window.dispatchEvent(new Event('supgo-cart-change'));state.undo=null;t.remove();build();render()};
+  document.body.appendChild(t);setTimeout(function(){t.remove()},6000);
+}
+
+function render(){
+  if(!state.lines.length){
+    $('lead').hidden=true;
+    $('grid').outerHTML='<div class="empty" id="grid"><div class="icon">🛒</div><h2>Tu carrito está vacío</h2><p class="lead" style="margin:0">Encuentra proteínas, creatinas y más con envío a toda Colombia.</p><div class="links"><a class="main" href="/home/">Ver productos</a><a href="/ofertas/">Ofertas</a><a href="/categorias/">Categorías</a></div></div>';
+    $('sticky').hidden=true;return;
+  }
+  var q=units(),s=subtotal(),sv=savings();
+  $('lead').textContent=q+' '+(q===1?'producto':'productos')+' en tu carrito.';
+  $('items').innerHTML=state.lines.map(function(l){
+    var name=l.url?'<a class="iname" href="'+esc(l.url)+'">'+esc(l.name)+'</a>':'<p class="iname">'+esc(l.name)+'</p>';
+    return '<div class="item'+(l.available?'':' unavailable')+'">'+
+      (l.image?'<img class="thumb" src="'+esc(l.image)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+
+      '<div>'+name+'<div class="imeta">'+esc([l.flavor?'Sabor: '+l.flavor:'',l.brand].filter(Boolean).join(' · '))+'</div>'+
+        (l.offer?'<span class="tag">OFERTA · ahorras '+money(l.regular-l.price)+'</span>':'')+
+        (l.available?'<div class="unit">'+money(l.price)+' c/u</div><div class="controls"><span class="qty"><button type="button" data-k="'+esc(l.key)+'" data-q="'+(l.qty-1)+'" aria-label="Quitar una unidad"'+(l.qty<=1?' disabled':'')+'>−</button><span>'+l.qty+'</span><button type="button" data-k="'+esc(l.key)+'" data-q="'+(l.qty+1)+'" aria-label="Agregar una unidad"'+(l.qty>=99?' disabled':'')+'>+</button></span><button type="button" class="remove" data-k="'+esc(l.key)+'" data-q="0">Eliminar</button></div>'
+          :'<div class="unit" style="color:var(--red)">Ya no está disponible. No se incluirá en el pedido.</div><div class="controls"><button type="button" class="remove" data-k="'+esc(l.key)+'" data-q="0">Quitar</button></div>')+
+      '</div><div class="price">'+(l.available?(l.offer?'<del>'+money(l.regular*l.qty)+'</del>':'')+'<b>'+money(l.price*l.qty)+'</b>':'')+'</div></div>';
+  }).join('');
+  $('totals').innerHTML='<div class="line"><span>Productos ('+q+')</span><span>'+money(s+sv)+'</span></div>'+(sv>0?'<div class="line save"><span>Ahorro en ofertas</span><span>− '+money(sv)+'</span></div>':'')+
+    '<div class="line"><span>Envío</span><span style="color:var(--muted);font-size:13px">Se calcula con tu ciudad</span></div><div class="line total"><span>Subtotal</span><span>'+money(s)+'</span></div>';
+  var loc=shipLocal(q),nat=shipNational(q),toFree=Math.max(0,3-q),pct=Math.min(100,q/3*100),msg;
+  msg=toFree>0?'Te '+(toFree===1?'falta <b>1 producto</b>':'faltan <b>'+toFree+' productos</b>')+' para el <b>envío gratis</b> en Medellín y su área metropolitana.':'<b class="free">✓ Tienes envío gratis</b> en Medellín y su área metropolitana.';
+  $('ship').innerHTML=msg+'<div class="progress" aria-hidden="true"><span style="width:'+pct+'%"></span></div><table><tr><td>Medellín y área metropolitana</td><td class="'+(loc?'':'free')+'">'+(loc?money(loc):'Gratis')+'</td></tr><tr><td>Resto de Colombia</td><td class="'+(nat?'':'free')+'">'+(nat?money(nat):'Gratis')+'</td></tr></table>';
+  $('stickyTotal').textContent=money(s);
+  var none=!ok().length;['go'].forEach(function(id){$(id).style.pointerEvents=none?'none':'';$(id).style.opacity=none?'.5':''});
+}
+document.addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;setQty(b.getAttribute('data-k'),Number(b.getAttribute('data-q')))});
+window.addEventListener('storage',function(e){if(e.key===CART){build();render()}});
+window.addEventListener('supgo-cart-change',function(){});
+
+var cart=json(CART,{}),ids=Object.keys(cart).filter(function(k){return qtyOf(cart[k])>0}).map(function(k){return String(k).split('::')[0]});
+if(!ids.length){build();render()}
+else load(ids).then(function(){build();render();try{gtag('event','view_cart',{currency:'COP',value:subtotal(),items:ok().map(function(l){return {item_id:l.id,item_name:l.name,price:l.price,quantity:l.qty}})})}catch(e){}});
 })();
-</script></body></html>
+</script>
+<script defer src="/componentes/header-loader.js?v=20261030-carrito-nuevo"></script>
+</body>
+</html>
