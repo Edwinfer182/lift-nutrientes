@@ -9,9 +9,9 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/favicon.png">
 <link rel="canonical" href="https://supgo.co/home/">
-<meta http-equiv="refresh" content="0;url=/home/">
+
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"SUPGO","url":"https://supgo.co/"}</script>
-<script>location.replace('/home/');</script>
+<script>location.replace(new URLSearchParams(location.search).get('admin') === 'lift' ? '/admin.html?admin=lift' : '/home/');</script>
 </head>
 <body><p>Visita <a href="/home/">SUPGO</a>.</p></body>
 </html>
