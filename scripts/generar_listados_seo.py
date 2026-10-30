@@ -129,7 +129,7 @@ def product_list(items, show_brand=True):
 def template(kind, title, url_slug, count, image_url='', items=()):
     plural = "categorias" if kind == "categoria" else "laboratorios"
     heading = escape(title)
-    description = (f"Compra suplementos de {title} en Medellín con Lift Nutrientes. Consulta productos, precios y disponibilidad. Envíos a Bogotá, Cali y Colombia." if kind == "laboratorio" else f"Compra {title} en Medellín con Lift Nutrientes. Encuentra suplementos, precios y presentaciones. Envíos a Bogotá, Cali y toda Colombia.")[:160]
+    description = (f"Compra suplementos de {title} en Medellín en SUPGO. Consulta productos, precios y disponibilidad. Envíos a Bogotá, Cali y Colombia." if kind == "laboratorio" else f"Compra {title} en Medellín en SUPGO. Encuentra suplementos, precios y presentaciones. Envíos a Bogotá, Cali y toda Colombia.")[:160]
     if kind == "laboratorio" and url_slug == "nutramerican-pharma":
         description = "Compra suplementos Nutramerican Pharma en Medellín. Explora el catálogo, compara presentaciones y consulta precios y disponibilidad en SUPGO."
     canonical = f"https://supgo.co/{plural}/{url_slug}/"

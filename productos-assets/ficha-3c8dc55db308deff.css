@@ -1,0 +1,8 @@
+
+#seo-wa-float{position:fixed;right:16px;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:2147482000;font-family:Poppins,Arial,sans-serif}
+#seo-wa-toggle{width:54px;height:54px;border:0;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 5px 16px #0003;display:grid;place-items:center;cursor:pointer}
+#seo-wa-panel{position:absolute;right:0;bottom:64px;width:min(315px,calc(100vw - 32px));box-sizing:border-box;padding:13px;background:#fff;border:1px solid #e2e2e2;border-radius:13px;box-shadow:0 8px 28px #0003}
+#seo-wa-panel[hidden]{display:none!important}
+#seo-wa-message{box-sizing:border-box;width:100%;min-height:80px;padding:11px;border:1px solid #ddd;border-radius:8px;font:14px/1.5 Poppins,Arial,sans-serif;color:#222;background:#fff;resize:vertical}
+#seo-wa-send{margin-top:9px;width:100%;padding:11px;background:#25d366;color:white;border:0;border-radius:8px;font:600 14px Poppins,Arial,sans-serif}
+@media(min-width:768px){#seo-wa-float{bottom:26px;right:24px}}
