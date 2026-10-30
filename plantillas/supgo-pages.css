@@ -62,26 +62,50 @@ body[data-page="laboratorios"] .labLogo{height:58px}
 }
 
 /* Componente de tarjeta SUPGO reconstruido desde cero */
-.grid .product{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border:1px solid #e9e9e9;border-radius:6px;background:#fff;font-family:Poppins,Arial,sans-serifbackground:#fff}
-.grid .product .product-photo{box-sizing:border-box;display:block;position:relative;width:100%;height:0!important;padding:100% 0 0!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;overflow:hidden;flex:nonebackground:#fff!important}
-.grid .product .product-photo>img{box-sizing:border-box;position:absolute!important;top:10px!important;left:10px!important;right:auto!important;bottom:auto!important;width:calc(100% - 20px)!important;height:calc(100% - 20px)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;display:block;object-fit:contain!important;object-position:center;transition:transform .32s ease,opacity .25s ease}
+/* Tarjeta de producto v2 — cuadrículas de categorías, laboratorios, ofertas, buscar y favoritos */
+.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.grid .product{--accent:#0f8a47;position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #ebebeb;border-radius:12px;background:#fff;font-family:Poppins,Arial,sans-serif;transition:box-shadow .22s ease,border-color .22s ease,transform .22s ease}
+.grid .product .product-media{position:relative;background:#f7f7f7}
+.grid .product .product-photo{display:block;position:relative;width:100%;aspect-ratio:1/1;overflow:hidden}
+.grid .product .product-photo>img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain;mix-blend-mode:multiply;transition:transform .32s ease,opacity .25s ease}
 .grid .product .product-photo .secondary-photo{opacity:0;pointer-events:none}
-@media(hover:hover){.grid .product:hover{box-shadow:0 6px 22px rgba(0,0,0,.09);transform:translateY(-3px);transition:transform .25s ease,box-shadow .25s ease}.grid .product .product-photo:hover .primary-photo{transform:scale(1.045)}.grid .product .product-photo:has(.secondary-photo):hover .primary-photo{opacity:0;transform:scale(1)}.grid .product .product-photo:hover .secondary-photo{opacity:1;transform:scale(1.045)}}
-@media(prefers-reduced-motion:reduce){.grid .product,.grid .product .product-photo>img{transition:none!important}}
-.grid .product .product-details{display:flex;flex-direction:column;flex:1;padding:11px 12px 12px;gap:5px}
-.grid .product .brand{display:block;color:#858585;font-size:10px;font-weight:400}
-.grid .product .name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#222;font-size:13px;line-height:1.4;font-weight:400;letter-spacing:0}
-.grid .product .price{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;color:#111;font-size:17px;font-weight:400}
-.grid .product .price strong{font-size:17px;font-weight:400;line-height:1.25}
-.grid .product .old-price{color:#888;font-size:11px;font-weight:400}
-.grid .product .discount{color:#fff;background:#00a34a;font-size:10px;font-weight:500;padding:1px 3px;border-radius:2px}
-.grid .product .actions{display:flex;gap:6px;align-items:center;margin-top:auto;padding-top:5px}
-.grid .product .actions button{display:inline-flex;align-items:center;justify-content:center;flex:none;width:29px;height:29px;min-height:29px;padding:0;border:0;border-radius:5px;cursor:pointer}
-.grid .product .actions .buy{background:#181818;color:#fff}
-.grid .product .actions .buy svg{width:15px;height:15px}
-.grid .product .actions .buy.added{background:#287b48}
-.grid .product .actions .fav{background:#f1f1f1;color:#222;font-size:16px}
-@media(max-width:700px){.grid .product .product-details{padding:8px 9px 10px}.grid .product .name{font-size:12px}.grid .product .price,.grid .product .price strong{font-size:16px}}
+.grid .product .product-photo.no-photo::after{content:"SUPGO";position:absolute;inset:0;display:grid;place-items:center;color:#c9c9c9;font:700 15px/1 Poppins,Arial,sans-serif;letter-spacing:.2em}
+.grid .product .badge-off{position:absolute;top:9px;left:9px;z-index:2;padding:4px 8px;border-radius:999px;background:#e11d48;color:#fff;font:700 11px/1 Poppins,Arial,sans-serif;letter-spacing:.01em;box-shadow:0 2px 6px rgba(225,29,72,.3)}
+.grid .product .badge-ship{background:var(--accent);box-shadow:none}
+.grid .product .fav{position:absolute;top:7px;right:7px;z-index:2;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:#333;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12);transition:transform .15s ease,color .15s ease}
+.grid .product .fav svg{width:18px;height:18px;fill:none}
+.grid .product .fav.on{color:#e11d48}
+.grid .product .fav.on svg{fill:currentColor}
+.grid .product .fav.pop{animation:supgoPop .32s ease}
+.grid .product .fav:focus-visible,.grid .product .buy:focus-visible,.grid .product .name:focus-visible{outline:2px solid #111;outline-offset:2px}
+.grid .product .product-details{display:flex;flex-direction:column;flex:1;min-width:0;padding:11px 12px 12px;gap:4px}
+.grid .product .brand{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#7a7a7a;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;line-height:1.3}
+.grid .product .name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:2.8em;color:#1b1b1b;font-size:13.5px;line-height:1.4;font-weight:500;text-decoration:none}
+.grid .product .name:hover{text-decoration:underline;text-underline-offset:2px}
+.grid .product .price{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;margin-top:3px;color:#111}
+.grid .product .price strong{font-size:18px;font-weight:700;line-height:1.2;letter-spacing:-.01em}
+.grid .product.on-offer .price strong{color:#e11d48}
+.grid .product .price strong.ask{font-size:14px;font-weight:600;color:#555}
+.grid .product .old-price{color:#8a8a8a;font-size:12px;font-weight:400}
+.grid .product .card-meta{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:11px;line-height:1.3}
+.grid .product .saving{color:var(--accent);font-weight:600}
+.grid .product .flavors{color:#666}
+.grid .product .actions{display:flex;margin-top:auto;padding-top:8px}
+.grid .product .buy{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:40px;padding:0 10px;border:0;border-radius:9px;background:#151515;color:#fff;font:600 13px/1 Poppins,Arial,sans-serif;cursor:pointer;text-decoration:none;transition:background .18s ease,transform .1s ease}
+.grid .product .buy svg{width:16px;height:16px;flex:none}
+.grid .product .buy:hover{background:#000}
+.grid .product .buy:active{transform:scale(.97)}
+.grid .product .buy.added{background:var(--accent)}
+.grid .product .buy .in-cart{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-left:2px;border-radius:999px;background:#fff;color:#151515;font:700 11px/1 Poppins,Arial,sans-serif;font-style:normal;box-sizing:border-box}
+.grid .product .ask-btn{background:#fff;color:#151515;box-shadow:inset 0 0 0 1.5px #151515}
+.grid .product .ask-btn:hover{background:#f3f3f3}
+@media(hover:hover){.grid .product:hover{border-color:#dcdcdc;box-shadow:0 10px 26px rgba(0,0,0,.08);transform:translateY(-2px)}.grid .product .product-photo:hover .primary-photo{transform:scale(1.05)}.grid .product .product-photo:has(.secondary-photo):hover .primary-photo{opacity:0;transform:scale(1)}.grid .product .product-photo:hover .secondary-photo{opacity:1;transform:scale(1.05)}.grid .product .fav:hover{transform:scale(1.08)}}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.grid .product{border-radius:10px}.grid .product .product-details{padding:9px 9px 10px;gap:3px}.grid .product .brand{font-size:9.5px}.grid .product .name{font-size:12.5px}.grid .product .price strong{font-size:16px}.grid .product .old-price{font-size:11px}.grid .product .card-meta{font-size:10.5px}.grid .product .buy{min-height:40px;font-size:12.5px;border-radius:8px}.grid .product .fav{width:34px;height:34px;top:5px;right:5px}.grid .product .badge-off{top:7px;left:7px;font-size:10.5px;padding:4px 7px}}
+@media(max-width:340px){.grid .product .buy svg{display:none}}
+@keyframes supgoPop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+#cartcount.supgo-bump,#supgo-global-header #count.supgo-bump{animation:supgoPop .4s ease}
+@media(prefers-reduced-motion:reduce){.grid .product,.grid .product *{transition:none!important;animation:none!important}}
 
 /* Boton visible en tactil y animado en escritorio */
 body[data-page="laboratorios"] .labLogoCard .labViewButton{display:inline-flex;align-items:center;justify-content:center;background:#181818;color:#fff;border-radius:5px;padding:7px 12px;font:500 11px/1.3 Poppins,Arial,sans-serif;white-space:nowrap;transition:transform .25s ease,opacity .25s ease;order:3}
@@ -89,3 +113,24 @@ body[data-page="laboratorios"] .labLogoCard small{order:2}
 @media(hover:hover){body[data-page="laboratorios"] .labLogoCard .labViewButton{opacity:0;transform:translateY(8px)}body[data-page="laboratorios"] .labLogoCard:hover .labViewButton,body[data-page="laboratorios"] .labLogoCard:focus-visible .labViewButton{opacity:1;transform:translateY(0)}}
 @media(hover:none){body[data-page="laboratorios"] .labLogoCard .labViewButton{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){body[data-page="laboratorios"] .labLogoCard .labViewButton{transition:none!important}}
+
+/* Logo de marca en fichas de laboratorio: misma URL que el catálogo de laboratorios. */
+body[data-page="laboratorio"] .supgo-lab-heading-logo{display:block;width:auto;max-width:min(240px,65vw);height:76px;object-fit:contain;object-position:left center;margin:12px 0 7px}
+body[data-page="laboratorio"] .site>h1{margin-top:5px}
+@media(max-width:760px){body[data-page="laboratorio"] .supgo-lab-heading-logo{height:58px;max-width:190px}}
+
+/* Ordenar compacto en categorías y laboratorios, sin afectar buscadores. */
+body[data-page="categoria"] .toolbar,body[data-page="laboratorio"] .toolbar{justify-content:flex-start;gap:10px;margin:15px 0 19px}
+body[data-page="categoria"] .toolbar select,body[data-page="laboratorio"] .toolbar select{flex:0 0 auto;width:190px;max-width:calc(100vw - 115px);min-width:0;padding:9px 30px 9px 12px;font-size:12px;min-height:37px}
+body[data-page="categoria"] .toolbar label,body[data-page="laboratorio"] .toolbar label{font-size:12px;white-space:nowrap}
+
+/* Datos de promociones en tarjetas de /ofertas/ */
+body[data-page="ofertas"] .grid .product .offer-card-extras{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin:3px 0 0;min-width:0}
+body[data-page="ofertas"] .offer-card-saving{font-size:11px;line-height:1.3;font-weight:600;color:#18824a}
+body[data-page="ofertas"] .offer-card-date{font-size:10px;line-height:1.35;color:#626a70;font-weight:400}
+body[data-page="ofertas"] .offer-card-gift{display:flex;align-items:center;gap:7px;width:100%;min-width:0;padding:6px;border:1px solid #e1efe6;border-radius:7px;background:#f7fbf8;box-sizing:border-box}
+body[data-page="ofertas"] .offer-card-gift img{width:38px;height:38px;flex:none;object-fit:contain;background:#fff;border-radius:5px}
+body[data-page="ofertas"] .offer-card-gift span{font-size:10px;line-height:1.35;color:#2b4032;font-weight:400;overflow-wrap:anywhere}
+@media(max-width:700px){body[data-page="ofertas"] .offer-card-gift{gap:5px;padding:5px}body[data-page="ofertas"] .offer-card-gift img{width:30px;height:30px}body[data-page="ofertas"] .offer-card-gift span{font-size:9px}}
+/* Reserva el alto del header compartido desde el primer pintado */
+body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::before{content:"";display:block;height:71px;background:#111315;border-bottom:1px solid #171717}@media(max-width:760px){body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::before{height:102px}}
