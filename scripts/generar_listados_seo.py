@@ -178,7 +178,7 @@ def template(kind, title, url_slug, count, image_url='', items=()):
 <link rel="stylesheet" href="/paginas/supgo-pages.css?v={ASSET_V}"><style>{LIST_STYLE}</style></head>
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
-<nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mis-pedidos/">Mis pedidos</a></nav></div></header>
+<nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mi-pedido/">Mi pedido</a></nav></div></header>
 <main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}
 <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
 <div id="content"><p class="loading">Cargando {count} productos…</p>{product_list(items, kind == "categoria")}</div></main>
@@ -278,11 +278,12 @@ def write_home_block(categories, labs):
         + ".seo-explora{margin:46px 0 10px}.seo-explora h2{font-size:clamp(21px,3vw,28px);letter-spacing:-.04em;margin:0 0 6px}"
         + ".seo-explora h3{font-size:15px;margin:22px 0 10px}.seo-explora nav{display:flex;flex-wrap:wrap;gap:8px}"
         + ".seo-explora nav a{border:1px solid #e5e5e5;border-radius:30px;padding:7px 13px;font-size:12.5px}.seo-explora nav a:hover{border-color:#16a34a;color:#16a34a}"
+        + ".seo-explora details{margin-top:22px}.seo-explora summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;gap:8px}.seo-explora summary::-webkit-details-marker{display:none}.seo-explora summary::after{content:'⌄';color:#16a34a}.seo-explora details[open] summary::after{content:'⌃'}.seo-explora details nav{margin-top:10px}"
         + '</style><h2 id="seo-explora-titulo">Explora el catálogo</h2>'
         + '<p>Encuentra suplementos por categoría, marca o guía de compra. <a href="/productos/"><b>Ver todos los productos →</b></a></p>'
-        + f'<h3>Categorías</h3><nav aria-label="Categorías">{links(categories)}</nav>'
-        + f'<h3>Marcas</h3><nav aria-label="Marcas">{links(labs)}</nav>'
-        + f'<h3>Guías de compra</h3><nav aria-label="Guías">{links(guide_links())}</nav>'
+        + f'<details><summary>Categorías ({len(categories)})</summary><nav aria-label="Categorías">{links(categories)}</nav></details>'
+        + f'<details><summary>Marcas ({len(labs)})</summary><nav aria-label="Marcas">{links(labs)}</nav></details>'
+        + f'<details open><summary>Guías de compra</summary><nav aria-label="Guías">{links(guide_links())}</nav></details>'
         + "</section>" + HOME_END)
     html = home.read_text(encoding="utf-8")
     if HOME_START in html and HOME_END in html:
