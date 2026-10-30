@@ -12882,7 +12882,7 @@ window.liftVariantMoney=function(value){
 @media(max-width:760px){.liftTrackBtn{height:40px;padding:0 10px;font-size:0}.liftTrackBtn:before{content:'📦';font-size:17px}.liftOrderActions{grid-template-columns:1fr}.liftTrackSteps{grid-template-columns:1fr 1fr}.liftOrderModal{padding:8px}.liftOrderCard{width:100%;border-radius:15px}}
 </style>
 <div id="liftOrderSuccessModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><h2>Pedido generado</h2><div class="liftOrderSub">Guarda este número para consultar el estado de tu compra.</div><div class="liftOrderRef"><small>NÚMERO DE PEDIDO</small><b id="liftPublicOrderRef">LIFT-00000</b></div><div id="liftPublicOrderTotal" style="text-align:center;font-size:14px;font-weight:600"></div><div class="liftPayOptions"><div class="liftPayOption"><b>💳 MEDIOS DE PAGO</b><p><strong>⚡ Llave Bre-B</strong> · <strong>💳 Tarjeta de crédito:</strong> solicita tu link de pago Bold. <strong>El pago con tarjeta tiene un valor adicional correspondiente a la comisión cobrada por la pasarela Bold.</strong> · <strong>🏪 Corresponsal bancario:</strong> confirma primero con nosotros el número de cuenta.</p><p>⚠️ No nos hacemos responsables por pagos enviados a cuentas o números no suministrados oficialmente para tu pedido.</p><p><strong>No manejamos Addi ni Sistecrédito.</strong></p><div class="liftPayData"><div class="liftPayLine"><span>Llave Bre-B · @edwin4518</span><button type="button" onclick="liftCopyPay('@edwin4518')">Copiar</button></div></div></div></div><div class="liftOrderActions"><button class="primary" type="button" onclick="liftOrderWhatsApp()">WhatsApp</button><button class="dark" type="button" onclick="liftOpenTrackFromLast()">Ver mi pedido</button></div><button class="liftOrderClose" type="button" onclick="liftCloseOrderSuccess()">Cerrar</button></div></div>
-<div id="liftTrackModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><button type="button" class="liftTrackX" onclick="liftCloseTrack()" aria-label="Atrás">← Atrás</button><h2>Mi pedido</h2><div class="liftOrderSub">Consulta con el número de pedido y el celular usado en la compra.</div><div class="liftTrackForm"><input id="liftTrackRef" placeholder="Ej: 132"><input id="liftTrackPhone" inputmode="tel" placeholder="Celular"><button class="checkoutSend" style="margin:0" type="button" onclick="liftTrackOrder()">Consultar pedido</button></div><div id="liftTrackResult" class="liftTrackResult"></div></div></div>
+<div id="liftTrackModal" class="liftOrderModal" aria-hidden="true"><div class="liftOrderCard"><button type="button" class="liftTrackX" onclick="liftCloseTrack()" aria-label="Atrás">← Atrás</button><h2>Mi pedido</h2><div class="liftOrderSub">Consulta con el número de pedido y el celular usado en la compra.</div><div class="liftTrackForm"><input id="liftTrackRef" inputmode="numeric" placeholder="Número de pedido (ej: 132)" aria-label="Número de pedido"><input id="liftTrackPhone" inputmode="tel" placeholder="Celular usado en la compra" aria-label="Celular"><button class="checkoutSend" style="margin:0" type="button" onclick="liftTrackOrder()">Consultar pedido</button></div><div id="liftTrackResult" class="liftTrackResult"></div></div></div>
 <script id="lift-public-order-stage1-script">
 (function(){
  const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
@@ -15043,6 +15043,16 @@ document.addEventListener('DOMContentLoaded',function(){
  sync();
 })();
 </script>
+<style id="supgo-mi-pedido-formulario-v1">
+/* Formulario "Mi pedido": título visible y botón Atrás sin tapar el campo. */
+#liftTrackModal .liftOrderCard:has(#liftTrackResult:empty)>h2,
+#liftTrackModal .liftOrderCard:has(#liftTrackResult:empty)>.liftOrderSub{display:block!important}
+#liftTrackModal .liftOrderCard>h2{margin:4px 110px 6px 0!important;font:600 22px/1.25 Poppins,Arial,sans-serif!important;color:#111!important}
+#liftTrackModal .liftOrderCard>.liftOrderSub{margin:0 0 16px!important;color:#666!important;font:400 13px/1.5 Poppins,Arial,sans-serif!important}
+#liftTrackModal .liftOrderCard:has(#liftTrackResult:empty) .liftTrackX{position:absolute!important;top:14px!important;right:14px!important;margin:0!important}
+#liftTrackModal .liftTrackForm{display:grid!important;gap:10px!important;width:100%!important}
+#liftTrackModal .liftTrackForm input{width:100%!important;box-sizing:border-box!important}
+</style>
 </body>
 </html>
 
