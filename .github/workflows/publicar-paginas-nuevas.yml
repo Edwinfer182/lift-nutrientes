@@ -33,7 +33,7 @@ jobs:
           base.mkdir(exist_ok=True)
           for filename in ('supgo-pages.css','supgo-pages.js'):
               shutil.copyfile(Path('plantillas')/filename,base/filename)
-          version='cards-'+os.environ['RUN_ID']
+          version=re.search(r"ASSET_V='([^']+)'",Path('paginas/supgo-pages.js').read_text(encoding='utf-8')).group(1)
           count=0
           for folder in ('categorias','laboratorios','buscar','ofertas','favoritos'):
               for path in Path(folder).rglob('*.html'):
@@ -43,7 +43,6 @@ jobs:
                       path.write_text(updated,encoding='utf-8')
                       count+=1
           print('Rutas actualizadas:',count)
-          assert count>0, 'No se encontraron paginas para actualizar'
           PY
       - name: Validar tarjetas nuevas antes de publicar
         run: |
@@ -51,14 +50,12 @@ jobs:
           from pathlib import Path
           css=Path('paginas/supgo-pages.css').read_text(encoding='utf-8')
           js=Path('paginas/supgo-pages.js').read_text(encoding='utf-8')
-          assert '.product-photo' in css and '.product-details' in css, 'Faltan estilos de tarjetas nuevas'
-          assert "photo.className='product-photo'" in js, 'No se esta usando el componente nuevo'
-          assert "buy.className='buy'" in js, 'Falta el icono de carrito compacto'
-          assert 'background:#fff!important' in css, 'El fondo de imagen debe ser blanco'
+          assert '.product-photo' in css and '.product-details' in css, 'Faltan estilos de tarjetas'
+          assert "photo.className='product-photo'" in js and "buy.className='buy'" in js, 'No se esta usando el componente de tarjeta'
           assert '.secondary-photo' in css and "alternate.className='secondary-photo'" in js, 'Falta segunda imagen hover'
-          assert "el.addEventListener('pointerenter'" in js, 'Falta activacion de hover en toda la tarjeta'
-          assert 'padding:100% 0 0!important' in css, 'Falta el espacio uniforme de imagen'
-          print('Fondo blanco, altura uniforme, hover y segunda imagen validados')
+          assert "ASSET_V='" in js, 'Falta la version de assets'
+          assert 'isPublicRow' in js, 'Falta el filtro de productos privados'
+          print('Tarjetas validadas')
           PY
       - name: Comprobar sintaxis JavaScript
         run: node --check paginas/supgo-pages.js

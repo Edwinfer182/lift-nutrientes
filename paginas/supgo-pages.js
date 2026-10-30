@@ -1,4 +1,7 @@
 (()=>{'use strict';
+const ASSET_V='20261030-tarjetas2';
+/* Garantiza que el CSS cargado corresponda a esta versión del JS (evita tarjetas rotas por caché). */
+(()=>{const links=[...document.querySelectorAll('link[rel="stylesheet"][href*="/paginas/supgo-pages.css"]')];if(links.some(l=>l.href.includes('v='+ASSET_V)))return;const l=document.createElement('link');l.rel='stylesheet';l.href='/paginas/supgo-pages.css?v='+ASSET_V;l.onload=()=>links.forEach(x=>x.remove());document.head.append(l)})();
 const config={url:'https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos',key:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'};
 const $=q=>document.querySelector(q),get=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const state={rows:[],offers:get('supgoActiveOffersV1',{})};async function loadOffers(){const u=new URL(config.url.replace('/lift_productos','/lift_catalog_config'));u.searchParams.set('select','valor');u.searchParams.set('clave','eq.weekly_offers');u.searchParams.set('limit','1');const res=await fetch(u,{headers:{apikey:config.key}});if(!res.ok)throw Error('Error al cargar ofertas');const data=await res.json();let offers=data[0]?.valor||{};if(typeof offers==='string')offers=JSON.parse(offers);state.offers=offers&&typeof offers==='object'&&!Array.isArray(offers)?offers:{};save('supgoActiveOffersV1',state.offers);}const pval=(p,...k)=>{for(const x of k)if(p?.[x]!==undefined&&p[x]!==null&&p[x]!=='')return p[x];return ''};

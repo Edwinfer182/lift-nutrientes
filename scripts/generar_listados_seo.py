@@ -10,6 +10,9 @@ import urllib.parse
 import urllib.request
 from html import escape
 
+# Versión de los assets de cuadrícula: se lee del JS para que HTML, CSS y JS siempre coincidan.
+ASSET_V = (re.search(r"ASSET_V='([^']+)'", (pathlib.Path(__file__).resolve().parent.parent / 'paginas' / 'supgo-pages.js').read_text(encoding='utf-8')) or [None, 'v1'])[1]
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 API = os.getenv("SUPABASE_URL", "https://vdxkknftyssjyfbdieqa.supabase.co").rstrip("/") + "/rest/v1/lift_productos"
 KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh")
@@ -172,14 +175,14 @@ def template(kind, title, url_slug, count, image_url='', items=()):
 <title>{safe_title}</title><meta name="description" content="{escape(description, quote=True)}">
 {robots}<link rel="canonical" href="{canonical}">\n{social}
 <script type="application/ld+json">{safe_json}</script>
-<link rel="stylesheet" href="/paginas/supgo-pages.css"><style>{LIST_STYLE}</style></head>
+<link rel="stylesheet" href="/paginas/supgo-pages.css?v={ASSET_V}"><style>{LIST_STYLE}</style></head>
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
 <nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mis-pedidos/">Mis pedidos</a></nav></div></header>
 <main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}
 <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
 <div id="content"><p class="loading">Cargando {count} productos…</p>{product_list(items, kind == "categoria")}</div></main>
-<script defer src="/paginas/supgo-pages.js"></script></body></html>"""
+<script defer src="/paginas/supgo-pages.js?v={ASSET_V}"></script></body></html>"""
 
 
 def page_shell(title, description, canonical, body):
@@ -193,7 +196,7 @@ def page_shell(title, description, canonical, body):
 <meta property="og:type" content="website"><meta property="og:site_name" content="SUPGO"><meta property="og:locale" content="es_CO">
 <meta property="og:title" content="{safe_title}"><meta property="og:description" content="{safe_description}"><meta property="og:url" content="{canonical}">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="stylesheet" href="/paginas/supgo-pages.css"><style>{LIST_STYLE}</style></head>
+<link rel="stylesheet" href="/paginas/supgo-pages.css?v={ASSET_V}"><style>{LIST_STYLE}</style></head>
 <body data-page="listado-estatico">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
 <nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/ofertas/">Ofertas</a><a href="/carrito/">🛒 Carrito</a></nav></div></header>
