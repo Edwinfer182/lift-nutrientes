@@ -5,4 +5,4 @@ Allow: /
 User-agent: OAI-SearchBot
 Allow: /
 
-Sitemap: https://supgo.co/sitemap-productos.xml
+Sitemap: https://supgo.co/sitemap.xml

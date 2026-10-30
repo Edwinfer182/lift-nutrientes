@@ -942,7 +942,9 @@ def main():
   names=list(dict.fromkeys([filename]+legacy_by_id.get(str(row["id"]),[])))
   for target_name in names:
    destination=OUT/target_name
-   target_content=content.replace(generated_url,BASE+"/productos/"+target_name) if target_name!=filename else content
+   # Las URL heredadas conservan el canonical de la ficha vigente para no competir
+   # con ella en Google (antes cada copia se declaraba canónica a sí misma).
+   target_content=content
    # Las heredadas rotas se reparan incluso sin SEO_OVERWRITE_EXISTING.
    is_legacy=target_name in legacy_by_id.get(str(row["id"]),[])
    if is_legacy or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
@@ -959,6 +961,9 @@ def main():
     body=body.replace("Lift Nutrientes","SUPGO")
     patched=head+sep+body if sep else patched
     patched=patch_offer_only(patched,target_content)
+    # Una ficha que entra al sitemap no puede conservar un noindex antiguo.
+    if row.get("_indexable",True) and target_name==filename:
+     patched=re.sub(r'<meta name="robots" content="noindex[^"]*">','<meta name="robots" content="index, follow">',patched,count=1)
     if patched!=existing:destination.write_text(patched,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
   if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)

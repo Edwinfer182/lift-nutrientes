@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'scripts/generar_listados_seo.py'
+      - 'scripts/seo_indexacion.py'
       - '.github/workflows/generar-listados-seo.yml'
   workflow_dispatch:
   schedule:
@@ -23,14 +24,16 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verificar sintaxis
-        run: python -m py_compile scripts/generar_listados_seo.py
+        run: python -m py_compile scripts/generar_listados_seo.py scripts/seo_indexacion.py
       - name: Generar páginas
         run: python scripts/generar_listados_seo.py
+      - name: Limpiar duplicados y generar sitemap índice
+        run: python scripts/seo_indexacion.py
       - name: Publicar páginas
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add categorias/ laboratorios/
+          git add categorias/ laboratorios/ productos/ home/index.html sitemap.xml sitemaps/ robots.txt
           if ! git diff --cached --quiet; then
             git commit -m "SEO: generar páginas de categorías y laboratorios"
             git pull --rebase origin main
