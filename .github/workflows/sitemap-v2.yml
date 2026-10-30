@@ -1,8 +1,6 @@
 name: Sitemap SUPGO v2 verificado
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '15 10 * * *'
   push:
     paths:
       - 'scripts/generar_sitemap_v2.py'
