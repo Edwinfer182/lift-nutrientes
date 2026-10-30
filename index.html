@@ -11,7 +11,19 @@
 <link rel="canonical" href="https://supgo.co/home/">
 
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"SUPGO","url":"https://supgo.co/"}</script>
-<script>location.replace(new URLSearchParams(location.search).get('admin') === 'lift' ? '/admin.html?admin=lift' : '/home/');</script>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search);
+  if((q.get('admin')||'').toLowerCase()==='lift'){location.replace('/admin.html?admin=lift');return;}
+  // Consultas de pedido, enlaces de correos, regreso de Bold y enlaces antiguos
+  // (?mi-pedido=1, ?pedido=, categoria, marca, producto...) los atiende la aplicación completa.
+  // Antes se perdían al redirigir a /home/ y "Mi pedido" no abría nada.
+  ['fbclid','gclid','gbraid','wbraid','msclkid','ttclid','igshid','_ga'].forEach(function(k){q.delete(k);});
+  Array.from(q.keys()).forEach(function(k){if(/^utm_/i.test(k))q.delete(k);});
+  if(Array.from(q.keys()).length){location.replace('/admin.html'+location.search+location.hash);return;}
+  location.replace('/home/'+location.hash);
+})();
+</script>
 </head>
 <body><p>Visita <a href="/home/">SUPGO</a>.</p></body>
 </html>
