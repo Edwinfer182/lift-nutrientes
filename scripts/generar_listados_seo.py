@@ -20,7 +20,20 @@ def slug(value):
     return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", raw))
 
 
+BASE = "https://supgo.co"
+HIDDEN_BRANDS = {"venom-pharma"}
+NOINDEX_SLUGS = {"pruebas"}
+LIST_STYLE = (".seo-productos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}"
+              ".seo-productos a{display:block;border:1px solid #e7e7e7;border-radius:9px;padding:12px 14px;font-weight:500;line-height:1.35}"
+              ".seo-productos a:hover{border-color:#16a34a}.seo-productos small{display:block;color:#777;font-size:11px;font-weight:400}"
+              ".seo-grupo{margin:28px 0 10px;font-size:19px}")
+
+
 def load():
+    """Lee el catálogo activo. SUPGO_ROWS_FILE permite probar sin red con un JSON local."""
+    local = os.getenv("SUPGO_ROWS_FILE")
+    if local:
+        return json.loads(pathlib.Path(local).read_text(encoding="utf-8"))
     records = []
     for offset in range(0, 5000, 500):
         query = urllib.parse.urlencode({"select": "id,product,activo", "activo": "eq.true", "limit": 500, "offset": offset})
@@ -71,7 +84,49 @@ def read(record, *keys):
     return ""
 
 
-def template(kind, title, url_slug, count, image_url=''):
+def approved_urls():
+    """URLs de fichas indexables según el sitemap que publica generar_paginas_seo.py."""
+    path = ROOT / "sitemap-productos.xml"
+    if not path.exists():
+        return set()
+    return set(re.findall(r"<loc>\s*(https://supgo\.co/productos/[^<\s]+)\s*</loc>", path.read_text(encoding="utf-8")))
+
+
+def product_path(row):
+    name = read(row, "name", "nombre")
+    return f"/productos/{slug(name) or 'producto'}-{row.get('id')}.html"
+
+
+def linkable(rows, approved):
+    """Productos con ficha publicada e indexable: (nombre, ruta, marca, categoría)."""
+    items = []
+    seen = set()
+    for row in rows:
+        if slug(read(row, "brand", "marca")) in HIDDEN_BRANDS:
+            continue
+        path = product_path(row)
+        if BASE + path not in approved or path in seen or not (ROOT / path.lstrip("/")).exists():
+            continue
+        seen.add(path)
+        items.append((read(row, "name", "nombre"), path, read(row, "brand", "marca"), read(row, "category", "categoria")))
+    return sorted(items, key=lambda x: x[0].casefold())
+
+
+def product_list(items, show_brand=True):
+    """Lista estática de enlaces: Google la ve sin ejecutar JavaScript.
+    supgo-pages.js la sustituye por la cuadrícula interactiva al cargar."""
+    if not items:
+        return ""
+    lis = "".join(
+        f'<li><a href="{escape(path, quote=True)}">{escape(name)}'
+        + (f"<small>{escape(brand)}</small>" if show_brand and brand else "")
+        + "</a></li>"
+        for name, path, brand, _ in items
+    )
+    return f'<ul class="seo-productos">{lis}</ul>'
+
+
+def template(kind, title, url_slug, count, image_url='', items=()):
     plural = "categorias" if kind == "categoria" else "laboratorios"
     heading = escape(title)
     description = (f"Compra suplementos de {title} en Medellín con Lift Nutrientes. Consulta productos, precios y disponibilidad. Envíos a Bogotá, Cali y Colombia." if kind == "laboratorio" else f"Compra {title} en Medellín con Lift Nutrientes. Encuentra suplementos, precios y presentaciones. Envíos a Bogotá, Cali y toda Colombia.")[:160]
@@ -110,24 +165,120 @@ def template(kind, title, url_slug, count, image_url=''):
 <h2>Encuentra el suplemento que buscas</h2>
 <p>Explora <a href="/laboratorios/">otras marcas de suplementos</a>, compara <a href="/categorias/">categorías de productos</a>, utiliza el <a href="/buscar/">buscador de suplementos</a> o consulta las <a href="/ofertas/">ofertas disponibles</a>. Estos cuatro accesos te permiten navegar por el catálogo sin perder la página del laboratorio.</p>
 </section>"""
+    indexable = url_slug not in NOINDEX_SLUGS
+    robots = '<meta name="robots" content="index, follow">\n' if indexable else '<meta name="robots" content="noindex, follow">\n'
     return f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{safe_title}</title><meta name="description" content="{escape(description, quote=True)}">
-<link rel="canonical" href="{canonical}">\n{social}
+{robots}<link rel="canonical" href="{canonical}">\n{social}
 <script type="application/ld+json">{safe_json}</script>
-<link rel="stylesheet" href="/paginas/supgo-pages.css"></head>
+<link rel="stylesheet" href="/paginas/supgo-pages.css"><style>{LIST_STYLE}</style></head>
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
 <nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mis-pedidos/">Mis pedidos</a></nav></div></header>
 <main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}
 <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
-<div id="content"><p class="loading">Cargando {count} productos…</p></div></main>
+<div id="content"><p class="loading">Cargando {count} productos…</p>{product_list(items, kind == "categoria")}</div></main>
 <script defer src="/paginas/supgo-pages.js"></script></body></html>"""
+
+
+def page_shell(title, description, canonical, body):
+    safe_title = escape(title, quote=True)
+    safe_description = escape(description, quote=True)
+    return f"""<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{safe_title}</title><meta name="description" content="{safe_description}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{canonical}">
+<meta property="og:type" content="website"><meta property="og:site_name" content="SUPGO"><meta property="og:locale" content="es_CO">
+<meta property="og:title" content="{safe_title}"><meta property="og:description" content="{safe_description}"><meta property="og:url" content="{canonical}">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/paginas/supgo-pages.css"><style>{LIST_STYLE}</style></head>
+<body data-page="listado-estatico">
+<header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
+<nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/ofertas/">Ofertas</a><a href="/carrito/">🛒 Carrito</a></nav></div></header>
+<main class="site">{body}</main></body></html>
+"""
+
+
+def write_all_products(items):
+    """/productos/ es la miga de pan de todas las fichas; antes devolvía 404."""
+    groups = {}
+    for item in items:
+        groups.setdefault(item[3] or "Otros", []).append(item)
+    sections = []
+    for category in sorted(groups, key=str.casefold):
+        cat_slug = slug(category)
+        heading = f'<a href="/categorias/{cat_slug}/">{escape(category)}</a>' if (ROOT / "categorias" / cat_slug / "index.html").exists() else escape(category)
+        sections.append(f'<h2 class="seo-grupo">{heading}</h2>{product_list(groups[category])}')
+    body = ("<h1>Todos los productos</h1><p class=\"muted\">Catálogo completo de suplementos SUPGO: proteínas, creatinas, "
+            "preentrenos, vitaminas y más, con envíos en Medellín y toda Colombia.</p>" + "".join(sections))
+    html = page_shell("Todos los productos | SUPGO", "Catálogo completo de suplementos deportivos SUPGO. Envíos en Medellín y toda Colombia.",
+                      BASE + "/productos/", body)
+    (ROOT / "productos" / "index.html").write_text(html, encoding="utf-8")
+
+
+HOME_START = "<!-- SEO-EXPLORA:INICIO (generado por scripts/generar_listados_seo.py) -->"
+HOME_END = "<!-- SEO-EXPLORA:FIN -->"
+
+
+def guide_links():
+    links = []
+    for path in sorted((ROOT / "guias").glob("*.html")):
+        if path.name == "index.html":
+            continue
+        html = path.read_text(encoding="utf-8", errors="replace")
+        match = re.search(r"<title[^>]*>(.*?)</title>", html, re.I | re.S)
+        if not match or re.search(r'<meta[^>]+robots[^>]+noindex', html, re.I):
+            continue
+        title = re.sub(r"\s*\|.*$", "", re.sub(r"<[^>]+>", "", match.group(1))).strip()
+        links.append((title, f"/guias/{path.name}"))
+    return links
+
+
+def write_home_block(categories, labs):
+    """Enlaces rastreables desde la portada hacia categorías, marcas y guías."""
+    home = ROOT / "home" / "index.html"
+    if not home.exists():
+        return
+    def links(pairs):
+        return "".join(f'<a href="{escape(url, quote=True)}">{escape(text)}</a>' for text, url in pairs)
+    block = (HOME_START
+        + '<section class="seo-explora" aria-labelledby="seo-explora-titulo"><style>'
+        + ".seo-explora{margin:46px 0 10px}.seo-explora h2{font-size:clamp(21px,3vw,28px);letter-spacing:-.04em;margin:0 0 6px}"
+        + ".seo-explora h3{font-size:15px;margin:22px 0 10px}.seo-explora nav{display:flex;flex-wrap:wrap;gap:8px}"
+        + ".seo-explora nav a{border:1px solid #e5e5e5;border-radius:30px;padding:7px 13px;font-size:12.5px}.seo-explora nav a:hover{border-color:#16a34a;color:#16a34a}"
+        + '</style><h2 id="seo-explora-titulo">Explora el catálogo</h2>'
+        + '<p>Encuentra suplementos por categoría, marca o guía de compra. <a href="/productos/"><b>Ver todos los productos →</b></a></p>'
+        + f'<h3>Categorías</h3><nav aria-label="Categorías">{links(categories)}</nav>'
+        + f'<h3>Marcas</h3><nav aria-label="Marcas">{links(labs)}</nav>'
+        + f'<h3>Guías de compra</h3><nav aria-label="Guías">{links(guide_links())}</nav>'
+        + "</section>" + HOME_END)
+    html = home.read_text(encoding="utf-8")
+    if HOME_START in html and HOME_END in html:
+        start = html.index(HOME_START)
+        end = html.index(HOME_END) + len(HOME_END)
+        updated = html[:start] + block + html[end:]
+    elif '<footer class="footer">' in html:
+        updated = html.replace('<footer class="footer">', block + '\n<footer class="footer">', 1)
+    elif "</main>" in html:
+        updated = html.replace("</main>", block + "\n</main>", 1)
+    else:
+        print("ADVERTENCIA: no se encontró dónde insertar enlaces en home/index.html")
+        return
+    if updated != html:
+        home.write_text(updated, encoding="utf-8")
 
 
 def main():
     rows = load()
     logos = load_logos()
+    approved = approved_urls()
+    items = linkable(rows, approved)
+    print(f"Fichas indexables enlazables: {len(items)} de {len(approved)} en sitemap-productos.xml")
+    if approved and len(items) < len(approved) * 0.5:
+        raise SystemExit("ERROR: menos de la mitad de las fichas del sitemap coinciden con el catálogo; no se publica")
+    hub = {"categoria": [], "laboratorio": []}
     total = 0
     for kind, plural, keys in [
         ("categoria", "categorias", ("category", "categoria")),
@@ -139,12 +290,21 @@ def main():
             if name and not (kind == "laboratorio" and slug(name) == "venom-pharma"):
                 groups.setdefault(name, 0)
                 groups[name] += 1
+        index = 3 if kind == "categoria" else 2
         for name, count in groups.items():
             dest = ROOT / plural / slug(name) / "index.html"
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(template(kind, name, slug(name), count, logos.get(slug(name), "") if kind == "laboratorio" else ""), encoding="utf-8")
+            own = [item for item in items if slug(item[index]) == slug(name)]
+            dest.write_text(template(kind, name, slug(name), count, logos.get(slug(name), "") if kind == "laboratorio" else "", own), encoding="utf-8")
+            if slug(name) not in NOINDEX_SLUGS:
+                hub[kind].append((name, f"/{plural}/{slug(name)}/"))
             total += 1
     print(f"Generadas {total} páginas individuales de categorías y laboratorios.")
+    if items:
+        write_all_products(items)
+        write_home_block(sorted(hub["categoria"], key=lambda x: x[0].casefold()),
+                         sorted(hub["laboratorio"], key=lambda x: x[0].casefold()))
+        print("Generados /productos/ y bloque de enlaces de la portada.")
 
 
 if __name__ == "__main__":
