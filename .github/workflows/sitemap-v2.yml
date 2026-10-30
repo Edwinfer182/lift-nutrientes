@@ -1,0 +1,35 @@
+name: Sitemap SUPGO v2 verificado
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 10 * * *'
+  push:
+    paths:
+      - 'scripts/generar_sitemap_v2.py'
+permissions:
+  contents: write
+concurrency:
+  group: sitemap-v2
+  cancel-in-progress: false
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validar y generar sitemap
+        run: python scripts/generar_sitemap_v2.py
+      - name: Publicar sitemap e informe
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sitemap-v2.xml sitemap-v2-reporte.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "SEO: publicar sitemap v2 validado"
+            git pull --rebase origin main
+            git push origin main
+          fi
