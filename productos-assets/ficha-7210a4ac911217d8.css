@@ -1,0 +1,7 @@
+
+.product-page .seo-breadcrumb{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;white-space:nowrap;padding:2px 0 11px;margin:0;font:400 11px/1.35 Poppins,Arial,sans-serif;color:#848991}
+.product-page .seo-breadcrumb a{color:#666e79;text-decoration:none;flex-shrink:0}
+.product-page .seo-breadcrumb a:hover{color:#111;text-decoration:underline}
+.product-page .seo-breadcrumb-brand{flex-shrink:0;color:#6c7480}
+.product-page .seo-breadcrumb-current{overflow:hidden;text-overflow:ellipsis;min-width:0;color:#30353b}
+@media(max-width:600px){.product-page .seo-breadcrumb{font-size:10px;gap:5px;padding-bottom:8px}.product-page .seo-breadcrumb-brand{max-width:90px;overflow:hidden;text-overflow:ellipsis}}

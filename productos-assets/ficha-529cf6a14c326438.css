@@ -1,0 +1,9 @@
+
+.product-page .seo-offer-extras{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;width:100%;margin:-4px 0 12px;font-size:11px}
+.product-page .seo-offer-until{font-size:11px;color:#5c626a}
+.product-page .seo-offer-gift{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid #dbeee0;border-radius:10px;background:#f6fbf7;max-width:100%}
+.product-page .seo-offer-gift img{width:48px;height:48px;object-fit:contain;border-radius:6px;background:#fff;flex:none}
+.product-page .seo-offer-gift>div{display:flex;flex-direction:column;gap:2px}
+.product-page .seo-gift-tag{font-size:9px;font-weight:650;color:#17804a}
+.product-page .seo-offer-gift strong{font-size:11px;font-weight:500;color:#252b27}
+@media(max-width:600px){.product-page .seo-offer-extras{margin:-2px 0 9px}}

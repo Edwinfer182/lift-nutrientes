@@ -139,6 +139,54 @@ def clean_duplicates(approved):
     print(f"Fichas duplicadas con canonical a la vigente: {redirected}; fichas sin vigente marcadas noindex: {noindexed}")
 
 
+STYLE_RE = re.compile(r"<style\b([^>]*)>(.*?)</style>", re.S | re.I)
+ASSETS = ROOT / "productos-assets"
+
+
+def externalize_shared_css():
+    """Los bloques <style> idénticos en casi todas las fichas pasan a archivos
+    compartidos que el navegador guarda en caché (antes ~41 KB repetidos por ficha).
+    Se conserva la posición de cada bloque para no alterar la cascada."""
+    pages = [p for p in sorted(PRODUCTS.glob("*.html")) if p.name != "index.html"]
+    if not pages:
+        return
+    counts = {}
+    for path in pages:
+        html = path.read_text(encoding="utf-8", errors="replace")
+        for attrs, css in STYLE_RE.findall(html):
+            if len(css) < 300:
+                continue
+            key = hashlib.sha256(css.encode("utf-8")).hexdigest()[:16]
+            counts[key] = counts.get(key, 0) + 1
+    shared = {k for k, n in counts.items() if n >= max(20, len(pages) * 0.5)}
+    if not shared:
+        return
+    ASSETS.mkdir(exist_ok=True)
+    changed = 0
+    for path in pages:
+        html = path.read_text(encoding="utf-8", errors="replace")
+
+        def swap(match):
+            attrs, css = match.group(1), match.group(2)
+            if attrs.strip() and not re.fullmatch(r'\s*id="[\w-]+"\s*', attrs):
+                return match.group(0)
+            key = hashlib.sha256(css.encode("utf-8")).hexdigest()[:16]
+            if key not in shared:
+                return match.group(0)
+            target = ASSETS / f"ficha-{key}.css"
+            if not target.exists():
+                target.write_text(css, encoding="utf-8")
+            ident = re.search(r'id="([\w-]+)"', attrs)
+            id_attr = f' id="{ident.group(1)}"' if ident else ""
+            return f'<link rel="stylesheet"{id_attr} href="/productos-assets/ficha-{key}.css">'
+
+        updated = STYLE_RE.sub(swap, html)
+        if updated != html:
+            path.write_text(updated, encoding="utf-8")
+            changed += 1
+    print(f"CSS compartido: {len(shared)} bloques externalizados en {changed} fichas")
+
+
 def visible_text(html):
     body = html.split("<body", 1)[-1]
     body = re.sub(r"<(script|style|noscript)\b.*?</\1>", " ", body, flags=re.S | re.I)
@@ -188,6 +236,7 @@ def main():
         sys.exit("ERROR: sitemap-productos.xml sin URLs")
 
     clean_duplicates(approved)
+    externalize_shared_css()
 
     OUT_DIR.mkdir(exist_ok=True)
     try:
