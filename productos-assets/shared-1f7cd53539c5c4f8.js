@@ -52,7 +52,7 @@
    try{
      if(btn){btn.dataset.saving='1';btn.disabled=true;btn.textContent='Guardando…'}
      st.textContent='Guardando en Supabase…';
-     const j=await api('lift_seguimientos_clientes',{method:'POST',body:JSON.stringify(row)});
+     const j=await (async()=>{const r=await fetch('https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-clientes',{method:'POST',headers:{apikey:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh','Content-Type':'application/json'},body:JSON.stringify({action:'crm-save',password:sessionStorage.getItem('liftAdminCloudPasswordV1')||'',cliente_id:row.cliente_id,estado:row.estado,interes:row.interes,valor_cotizado:row.valor_cotizado,nota:row.nota,proximo_seguimiento:row.proximo_seguimiento}),cache:'no-store'});const x=await r.json().catch(()=>({}));if(!r.ok||!x.ok)throw new Error(x.error||x.message||'Supabase rechazó el seguimiento');return [x.seguimiento]})();
      if(!Array.isArray(j)||!j[0]?.id)throw new Error('Supabase no confirmó el seguimiento.');
      await load();
      const saved=followups.find(x=>Number(x.id)===Number(j[0].id));
