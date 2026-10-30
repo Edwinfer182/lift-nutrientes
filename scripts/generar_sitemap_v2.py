@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sitemap verificado SUPGO v2. No altera las fichas ni URLs."""
+"""Sitemap verificado SUPGO v2. No altera fichas, precios ni URLs."""
 from pathlib import Path
 from collections import Counter
 import re
