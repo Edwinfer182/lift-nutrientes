@@ -23,6 +23,14 @@ def head_tag(html, tagname, key, value):
 def main():
     good=[]
     rejected=[]
+    # Seguridad: el sitemap vigente es la lista de URLs aprobadas.
+    # No reintroducir HTML historicos aunque indiquen index,follow.
+    current = ROOT / "sitemap-productos.xml"
+    if not current.exists():
+        sys.exit("ERROR: falta sitemap-productos.xml; no publicar URLs sin validar")
+    approved = set(re.findall(r"<loc>\s*(https://supgo\.co/productos/[^<]+)\s*</loc>", current.read_text(encoding="utf-8")))
+    if not approved:
+        sys.exit("ERROR: sitemap vigente sin URLs")
     for page in sorted(PAGES.glob("*.html")):
         html=page.read_text(encoding="utf-8", errors="replace")
         head=html.split("</head>",1)[0]
@@ -31,6 +39,9 @@ def main():
         canonical_tag=head_tag(head,"link","rel","canonical")
         canonical=attr(canonical_tag,"href")
         expected=BASE+"/productos/"+page.name
+        if expected not in approved:
+            rejected.append((page.name, "fuera_del_sitemap_vigente"))
+            continue
         title=re.search(r"<title\b[^>]*>(.*?)</title>",head,re.I|re.S)
         reasons=[]
         if not title or not re.sub(r"<[^>]+>","",title.group(1)).strip():
