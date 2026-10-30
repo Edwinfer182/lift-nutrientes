@@ -8,7 +8,7 @@ BASE = "https://supgo.co"
 URL = os.environ.get("SUPABASE_URL", "https://vdxkknftyssjyfbdieqa.supabase.co").rstrip("/")
 KEY = os.environ.get("SUPABASE_ANON_KEY", "sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh")
 OUTPUT = ROOT / "catalogo-meta.csv"
-FIELDS = ["id", "title", "description", "availability", "condition", "price", "link", "image_link", "brand"]
+FIELDS = ["id", "title", "description", "availability", "condition", "price", "link", "image_link", "brand", "product_type", "custom_label_0"]
 # Excluir medicamentos, SARMs y otros productos con riesgo de incumplir políticas de Meta.
 RESTRICTED = re.compile(r"\b(?:oxandrolona|stanozolol|sustanon|primobolan|masteron|proviron|testolone|ligandrol|yk[ -]?11|sarm[s]?|esteroide[s]?|anabolizante[s]?|tadalafil|sildenafil|semaglutida|tirzepatida|yohimbina|syneburn|sinefrina|efedrina|clenbuterol|prohormon[a-z]*|testosterona|trenbolona|nandrolona|boldenona|winstrol|dianabol)\b", re.I)
 
@@ -78,7 +78,7 @@ def main():
         desc = text(p.get("description") or p.get("descripcion")) or f"{name} de {brand}. Consulta presentación y disponibilidad en SUPGO."
         items.append({"id":rid, "title":name[:150], "description":desc[:5000], "availability":availability,
             "condition":"new", "price":f"{price} COP",
-            "link":f"{BASE}/productos/{slug(name)}-{rid}.html", "image_link":image, "brand":brand[:100]})
+            "link":f"{BASE}/productos/{slug(name)}-{rid}.html", "image_link":image, "brand":brand[:100], "product_type":brand[:100], "custom_label_0":brand[:100]})
     if len(items) < 100:
         raise RuntimeError(f"Solo {len(items)} productos válidos; se cancela la publicación para evitar un feed incompleto")
     # csv.DictWriter usa finales de línea estándar y comillas para descripciones con comas.
