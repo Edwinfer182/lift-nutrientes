@@ -108,3 +108,5 @@ body[data-page="ofertas"] .offer-card-gift{display:flex;align-items:center;gap:7
 body[data-page="ofertas"] .offer-card-gift img{width:38px;height:38px;flex:none;object-fit:contain;background:#fff;border-radius:5px}
 body[data-page="ofertas"] .offer-card-gift span{font-size:10px;line-height:1.35;color:#2b4032;font-weight:400;overflow-wrap:anywhere}
 @media(max-width:700px){body[data-page="ofertas"] .offer-card-gift{gap:5px;padding:5px}body[data-page="ofertas"] .offer-card-gift img{width:30px;height:30px}body[data-page="ofertas"] .offer-card-gift span{font-size:9px}}
+/* Reserva el alto del header compartido desde el primer pintado */
+body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::before{content:"";display:block;height:71px;background:#111315;border-bottom:1px solid #171717}@media(max-width:760px){body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::before{height:102px}}
