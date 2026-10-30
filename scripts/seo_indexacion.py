@@ -187,6 +187,48 @@ def externalize_shared_css():
     print(f"CSS compartido: {len(shared)} bloques externalizados en {changed} fichas")
 
 
+LINK_RUN_RE = re.compile(
+    r'(?:<link rel="stylesheet"(?: id="[\w-]+")? href="/productos-assets/ficha-[0-9a-f]{16}\.css">\s*){2,}')
+LINK_HREF_RE = re.compile(r'href="/productos-assets/(ficha-[0-9a-f]{16}\.css)"')
+
+
+def minify_css(css):
+    """Minificación conservadora: quita comentarios y espacios sobrantes,
+    sin tocar selectores ni valores."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    lines = (line.strip() for line in css.splitlines())
+    css = " ".join(line for line in lines if line)
+    return re.sub(r"\s*([{};])\s*", r"\1", css)
+
+
+def bundle_ficha_css():
+    """Une los CSS compartidos que van seguidos en el <head> en un solo archivo
+    minificado (mismo orden, misma cascada): 1 petición en lugar de 8."""
+    pages = [p for p in sorted(PRODUCTS.glob("*.html")) if p.name != "index.html"]
+    bundles = {}
+    changed = 0
+    for path in pages:
+        html = path.read_text(encoding="utf-8", errors="replace")
+
+        def swap(match):
+            names = LINK_HREF_RE.findall(match.group(0))
+            if any(not (ASSETS / n).exists() for n in names):
+                return match.group(0)
+            key = hashlib.sha256("|".join(names).encode()).hexdigest()[:16]
+            if key not in bundles:
+                css = "\n".join(minify_css((ASSETS / n).read_text(encoding="utf-8")) for n in names)
+                (ASSETS / f"fichas-{key}.css").write_text(css + "\n", encoding="utf-8")
+                bundles[key] = True
+            return f'<link rel="stylesheet" href="/productos-assets/fichas-{key}.css">\n'
+
+        updated = LINK_RUN_RE.sub(swap, html)
+        if updated != html:
+            path.write_text(updated, encoding="utf-8")
+            changed += 1
+    if changed:
+        print(f"CSS agrupado: {len(bundles)} paquete(s) en {changed} fichas")
+
+
 def visible_text(html):
     body = html.split("<body", 1)[-1]
     body = re.sub(r"<(script|style|noscript)\b.*?</\1>", " ", body, flags=re.S | re.I)
@@ -237,6 +279,7 @@ def main():
 
     clean_duplicates(approved)
     externalize_shared_css()
+    bundle_ficha_css()
 
     OUT_DIR.mkdir(exist_ok=True)
     try:
