@@ -1,0 +1,25 @@
+{
+ "cambiadas": 1212,
+ "total": 2178,
+ "con_v2": 1212,
+ "diferencias": {
+  "title": 0,
+  "desc": 0,
+  "canon": 0,
+  "robots": 0,
+  "price": 0,
+  "name": 0,
+  "h1": 0,
+  "cuerpo": 0
+ },
+ "ejemplos": {
+  "title": [],
+  "desc": [],
+  "canon": [],
+  "robots": [],
+  "price": [],
+  "name": [],
+  "h1": [],
+  "cuerpo": []
+ }
+}
