@@ -72,34 +72,71 @@ if(search){search.setAttribute('enterkeyhint','search');search.setAttribute('rol
  if(e.key==='Enter'){e.preventDefault();if(selectedSuggestion>=0&&items[selectedSuggestion])location.assign(items[selectedSuggestion].href);else{const term=search.value.trim();if(term)go('buscar',term);}}
 });}
 if(results){results.hidden=true;results.setAttribute('role','listbox');}
+/* Búsqueda: sin tildes, plural/singular, sinónimos comunes y orden por relevancia. */
+const SEARCH_SYN={proteina:['whey','isolate','iso'],whey:['proteina'],creatina:['creatine','crea'],creatine:['creatina'],preentreno:['pre','pre-workout','preworkout','pre entreno'],pre:['preentreno'],quemador:['quemadores','fat','burner','lipo'],ganador:['gainer','mass','masa'],gainer:['ganador','masa'],masa:['mass','gainer'],vitamina:['vitamin','multivitaminico'],colageno:['collagen'],aminoacido:['bcaa','eaa','amino'],glutamina:['glutamine'],cafeina:['caffeine'],omega:['omega 3']};
+const stem=w=>w.length>4&&w.endsWith('es')&&!w.endsWith('ces')?w.slice(0,-2):w.length>3&&w.endsWith('s')?w.slice(0,-1):w;
+function searchTokens(term){return normalizeSearch(term).replace(/[^a-z0-9]+/g,' ').split(' ').filter(Boolean).map(stem)}
+function matchScore(text,tokens,full){
+ const n=normalizeSearch(text);if(!n)return -1;
+ const words=n.replace(/[^a-z0-9]+/g,' ').split(' ').filter(Boolean).map(stem);
+ let score=0;
+ for(const t of tokens){
+  const alts=[t,...(SEARCH_SYN[t]||[]).map(stem)];
+  let best=0;
+  for(const a of alts){const w=alts.indexOf(a)?0.7:1;
+   if(words.includes(a))best=Math.max(best,3*w);
+   else if(words.some(x=>x.startsWith(a)))best=Math.max(best,2*w);
+   else if(a.length>=3&&n.includes(a))best=Math.max(best,1*w);}
+  if(!best)return -1;score+=best;
+ }
+ if(n.startsWith(full))score+=3;if(n===full)score+=5;
+ return score;
+}
+function isPublicItem(item){const p=item?.product||{};return item&&item.activo!==false&&!p.__deleted&&!p.__private&&!p.adminOnly&&!p.hidden&&!p.oculto&&p.visibility!=='admin'&&!!field(p,'name','nombre')&&seoSlug(field(p,'brand','marca'))!=='venom-pharma'}
+function searchCatalog(raw,limit){
+ const tokens=searchTokens(raw),full=normalizeSearch(raw);if(!tokens.length)return{products:[],groups:[],total:0};
+ const products=[],brands=new Map(),cats=new Map();
+ for(const item of catalog){if(!isPublicItem(item))continue;const p=item.product||{};
+  const name=escText(field(p,'name','nombre')),brand=escText(field(p,'brand','marca')).trim(),cat=escText(field(p,'category','categoria')).trim();
+  if(brand)brands.set(brand,(brands.get(brand)||0)+1);if(cat)cats.set(cat,(cats.get(cat)||0)+1);
+  const sName=matchScore(name+' '+brand,tokens,full);
+  const sAll=sName>=0?sName:matchScore(name+' '+brand+' '+cat,tokens,full);
+  if(sAll>=0)products.push({item,name,score:sAll+(sName>=0?1:0)+(Number(field(p,'price','precio'))>0?0.5:0)+(field(p,'image','imagen')?0.3:0)});
+ }
+ products.sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'es'));
+ const groups=[];
+ for(const [label,count] of brands){const sc=matchScore(label,tokens,full);if(sc>=0)groups.push({label,count,type:'Laboratorio',href:'/laboratorios/'+seoSlug(label)+'/',score:sc+2})}
+ for(const [label,count] of cats){const sc=matchScore(label,tokens,full);if(sc>=0)groups.push({label,count,type:'Categoría',href:'/categorias/'+seoSlug(label)+'/',score:sc+2})}
+ groups.sort((a,b)=>b.score-a.score||b.count-a.count);
+ return{products:products.slice(0,limit),groups:groups.slice(0,3),total:products.length};
+}
+window.supgoSearch=searchCatalog;
 function suggest(){
  if(!search||!results)return;
- const term=normalizeSearch(search.value);results.replaceChildren();selectedSuggestion=-1;
+ const raw=search.value.trim(),term=normalizeSearch(raw);results.replaceChildren();selectedSuggestion=-1;
  if(term.length<2){results.hidden=true;search.setAttribute('aria-expanded','false');return;}
- const tokens=term.split(/\s+/).filter(Boolean);
- const scored=[];
- function add(label,type,href,product){
-  const n=normalizeSearch(label);if(!n)return;
-  const words=n.split(/[^a-z0-9]+/);
-  const all=tokens.every(t=>n.includes(t)||words.some(w=>w.startsWith(t)));if(!all)return;
-  const score=(n===term?0:n.startsWith(term)?1:tokens.every(t=>words.some(w=>w.startsWith(t)))?2:3)+(type==='producto'?0.1:0);
-  scored.push({label,type,href,product,score});
- }
- const brands=new Set(),categories=new Set();
- for(const item of catalog){const p=item.product||{};const label=field(p,'name','nombre');add(label,'producto','/productos/'+seoSlug(label)+'-'+item.id+'.html',item);const b=escText(field(p,'brand','marca')).trim(),c=escText(field(p,'category','categoria')).trim();if(b)brands.add(b);if(c)categories.add(c);}
- for(const b of brands)add(b,'Laboratorio','/laboratorios/'+seoSlug(b)+'/');
- for(const c of categories)add(c,'Categoría','/categorias/'+seoSlug(c)+'/');
- scored.sort((a,b)=>a.score-b.score||a.label.localeCompare(b.label,'es'));
- for(const match of scored.slice(0,9)){
-  const a=document.createElement('a');a.className='supgo-search-item';a.href=match.href;a.setAttribute('role','option');
-  if(match.product){const p=match.product.product||{};const src=field(p,'image','imagen','image_url','imagen_url','foto','url_imagen');if(typeof src==='string'&&/^https?:\/\//i.test(src)){const photo=document.createElement('img');photo.className='supgo-search-photo';photo.src=src;photo.alt='';photo.loading='lazy';photo.onerror=()=>photo.remove();a.append(photo);}}
+ ensureCatalog();
+ const note=(text,cls)=>{const d=document.createElement('div');d.className='supgo-search-note '+(cls||'');d.textContent=text;results.append(d);return d};
+ if(!catalogReady&&!catalog.length){note('Buscando…','is-loading');results.hidden=false;results.style.setProperty('--supgo-sr-top',Math.round(search.getBoundingClientRect().bottom+6)+'px');search.setAttribute('aria-expanded','true');return;}
+ const {products,groups,total}=searchCatalog(raw,6);
+ for(const g of groups){const a=document.createElement('a');a.className='supgo-search-item supgo-search-group';a.href=g.href;a.setAttribute('role','option');const ic=document.createElement('span');ic.className='supgo-search-icon';ic.textContent=g.type==='Laboratorio'?'🏷️':'📂';const c=document.createElement('span');c.className='supgo-search-content';const t=document.createElement('span');t.className='supgo-search-title';t.textContent=g.label;const sm=document.createElement('small');sm.className='supgo-search-type';sm.textContent=g.type+' · '+g.count+' productos';c.append(t,sm);a.append(ic,c);results.append(a)}
+ for(const {item,name} of products){
+  const p=item.product||{};const a=document.createElement('a');a.className='supgo-search-item';a.href='/productos/'+seoSlug(name)+'-'+item.id+'.html';a.setAttribute('role','option');
+  const src=field(p,'image','imagen','image_url','imagen_url','foto','url_imagen');const photo=document.createElement('img');photo.className='supgo-search-photo';photo.alt='';photo.loading='lazy';if(typeof src==='string'&&/^https?:\/\//i.test(src))photo.src=src;else photo.style.visibility='hidden';photo.onerror=()=>{photo.style.visibility='hidden'};a.append(photo);
   const content=document.createElement('span');content.className='supgo-search-content';
-  const title=document.createElement('span');title.className='supgo-search-title';title.textContent=match.label;content.append(title);
-  if(match.product){const p=match.product.product||{};const regular=Number(field(p,'price','precio'))||0;const offer=activeSearchOffers[String(match.product.id)];const sale=Number(offer?.price);const expiry=offer?.promoUntil?Date.parse(offer.promoUntil):NaN;const active=regular>0&&sale>0&&sale<regular&&(!Number.isFinite(expiry)||Date.now()<=expiry);if(regular>0){const price=document.createElement('span');price.className='supgo-search-price';if(active){const old=document.createElement('del');old.textContent=money(regular);const now=document.createElement('strong');now.textContent=money(sale);price.append(old,now);}else price.textContent=money(regular);content.append(price);}}
-  else{const type=document.createElement('small');type.className='supgo-search-type';type.textContent=match.type;content.append(type);}
-  a.append(content);results.append(a);
+  const title=document.createElement('span');title.className='supgo-search-title';title.textContent=name;content.append(title);
+  const brand=escText(field(p,'brand','marca')).trim();
+  const regular=Number(field(p,'price','precio'))||0;const offer=activeSearchOffers[String(item.id)];const sale=Number(offer?.price);const expiry=offer?.promoUntil?Date.parse(offer.promoUntil):NaN;const active=regular>0&&sale>0&&sale<regular&&(!Number.isFinite(expiry)||Date.now()<=expiry);
+  const price=document.createElement('span');price.className='supgo-search-price';
+  if(brand){const b=document.createElement('small');b.className='supgo-search-type';b.textContent=brand;price.append(b)}
+  if(active){const now=document.createElement('strong');now.textContent=money(sale);const old=document.createElement('del');old.textContent=money(regular);const off=document.createElement('em');off.className='supgo-search-off';off.textContent='-'+Math.round((1-sale/regular)*100)+'%';price.append(now,old,off)}
+  else if(regular>0){const now=document.createElement('strong');now.className='is-regular';now.textContent=money(regular);price.append(now)}
+  content.append(price);a.append(content);results.append(a);
  }
+ if(total){const all=document.createElement('a');all.className='supgo-search-item supgo-search-all';all.href='/buscar/?q='+encodeURIComponent(raw);all.setAttribute('role','option');all.textContent=total>products.length?'Ver los '+total+' resultados para “'+raw+'” →':'Ver resultados para “'+raw+'” →';results.append(all)}
+ else if(!groups.length){const d=note('No encontramos “'+raw+'”.','is-empty');const wa=document.createElement('a');wa.className='supgo-search-wa';wa.href='https://wa.me/573137380766?text='+encodeURIComponent('Hola, ¿tienen '+raw+'?');wa.target='_blank';wa.rel='noopener';wa.textContent='Pregúntanos por WhatsApp';d.append(document.createElement('br'),wa)}
  results.hidden=!results.childElementCount;search.setAttribute('aria-expanded',String(!results.hidden));
+ if(!results.hidden)results.style.setProperty('--supgo-sr-top',Math.round(search.getBoundingClientRect().bottom+6)+'px');
 }
 let activeSearchOffers={};
 async function loadSearchOffers(){try{const u=new URL('https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_catalog_config');u.searchParams.set('select','valor');u.searchParams.set('clave','eq.weekly_offers');u.searchParams.set('limit','1');const response=await fetch(u,{headers:{apikey:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'}});if(!response.ok)return;const rows=await response.json();let value=rows[0]?.valor||{};if(typeof value==='string')value=JSON.parse(value);activeSearchOffers=value&&typeof value==='object'?value:{};if(search?.value.trim().length>=2)suggest();}catch(error){console.warn('Ofertas no disponibles en el buscador',error);}}
@@ -271,14 +308,20 @@ window.supgoOpenPedidoCompartido=function(){const origin=location.pathname+locat
 })();
 const url='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos';
 const apiKey='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
-async function load(){
-for(let offset=0;offset<5000;offset+=500){
-const u=new URL(url);u.searchParams.set('select','id,product,activo');u.searchParams.set('activo','eq.true');u.searchParams.set('limit','500');u.searchParams.set('offset',String(offset));
-const res=await fetch(u.href,{headers:{apikey:apiKey}});if(!res.ok)throw Error('Supabase '+res.status);
-const rows=await res.json();catalog.push(...rows);if(rows.length<500)break;
+/* Índice liviano: solo los campos que usa el header (antes descargaba todo el catálogo con SEO). */
+const INDEX_KEY='supgoSearchIndexV1',INDEX_TTL=30*60*1000;
+const LIGHT='id,activo,name:product->>name,brand:product->>brand,category:product->>category,price:product->>price,image:product->>image,del:product->>__deleted,priv:product->>__private,adm:product->>adminOnly,hid:product->>hidden,vis:product->>visibility';
+const lightRow=r=>({id:r.id,activo:r.activo,product:{name:r.name,brand:r.brand,category:r.category,price:Number(r.price)||0,image:r.image,__deleted:r.del==='true',__private:r.priv==='true',adminOnly:r.adm==='true',hidden:r.hid==='true',visibility:r.vis}});
+let catalogReady=false,catalogPromise=null;
+function setCatalog(rows){catalog.length=0;catalog.push(...rows.filter(isPublicItem));catalogReady=true;if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);if(search&&document.activeElement===search&&search.value.trim().length>=2)suggest();}
+function ensureCatalog(){
+ if(catalogPromise)return catalogPromise;
+ try{const c=JSON.parse(localStorage.getItem(INDEX_KEY)||'null');if(c&&Array.isArray(c.rows)&&Date.now()-c.t<INDEX_TTL){setCatalog(c.rows);return catalogPromise=Promise.resolve()}}catch{}
+ try{const full=JSON.parse(localStorage.getItem('supgoCatalogV1')||'null');if(full&&Array.isArray(full.rows)&&full.rows.length)setCatalog(full.rows)}catch{}
+ const page=offset=>{const u=new URL(url);u.searchParams.set('select',LIGHT);u.searchParams.set('activo','eq.true');u.searchParams.set('order','id.asc');u.searchParams.set('limit','1000');u.searchParams.set('offset',String(offset));return fetch(u.href,{headers:{apikey:apiKey}}).then(r=>{if(!r.ok)throw Error('Supabase '+r.status);return r.json()})};
+ return catalogPromise=(async()=>{const first=await Promise.all([0,1000,2000].map(page));const rows=first.flat();if(first[2].length===1000){for(let o=3000;o<8000;o+=1000){const more=await page(o);rows.push(...more);if(more.length<1000)break}}
+  const light=rows.map(lightRow);setCatalog(light);try{localStorage.setItem(INDEX_KEY,JSON.stringify({t:Date.now(),rows:light}))}catch{}})().catch(err=>{catalogPromise=null;catalogReady=true;console.warn('SUPGO componentes: no se pudo cargar el catálogo',err)});
 }
-if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);
-
-}
-load().catch(err=>console.warn('SUPGO componentes: no se pudo cargar el catálogo',err));
+if(search)search.addEventListener('focus',()=>ensureCatalog(),{once:true});
+(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>ensureCatalog());
 })();
