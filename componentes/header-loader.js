@@ -4,7 +4,7 @@
   'use strict';
   if(window.__supgoHeaderMountPromise)return;
   const path='/componentes/';
-  const VERSION='20261030-header-v3';
+  const VERSION='20261030-header-v4';
   // Reserva el alto del header desde el primer pintado: evita que la página "salte".
   if(!document.querySelector('header.top,#supgo-global-header,#supgo-header-placeholder')&&document.body){
     const holder=document.createElement('div');holder.id='supgo-header-placeholder';holder.setAttribute('aria-hidden','true');

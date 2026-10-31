@@ -133,3 +133,18 @@ body .supgo-menu .supgo-brand-logo{display:block;width:100%;height:54px;max-widt
 /* SUPGO: fondo negro uniforme para integrar visualmente el logo Wix */
 #supgo-global-header,#supgo-global-header .top,#supgo-global-header .bar{background:#050505!important}
 #supgo-global-header .top{border-bottom-color:#171717!important}
+
+/* Buscador v2: grupos, precio con descuento, ver todos y sin resultados */
+#supgo-global-header .searchResults .supgo-search-group{min-height:46px}
+.supgo-search-icon{width:44px;flex:0 0 44px;display:grid;place-items:center;font-size:18px;background:#f4f6f5;border-radius:8px;height:36px}
+#supgo-global-header .supgo-search-price{gap:6px}
+#supgo-global-header .supgo-search-price .supgo-search-type{font-size:10.5px;color:#7a7a7a;margin-right:2px}
+#supgo-global-header .supgo-search-price strong.is-regular{color:#161616}
+#supgo-global-header .supgo-search-price strong{color:#e11d48}
+.supgo-search-off{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:#e11d48;border-radius:999px;padding:1px 6px}
+#supgo-global-header .searchResults a.supgo-search-all{justify-content:center;min-height:44px;font-weight:600;font-size:13px;color:#15803d;background:#f6fbf8;border-bottom:0}
+.supgo-search-note{padding:16px 14px;font-size:13px;color:#555;background:#fff;line-height:1.6}
+.supgo-search-note.is-loading{color:#888}
+.supgo-search-wa{color:#15803d;font-weight:600;text-decoration:underline}
+#supgo-global-header #q::-webkit-search-cancel-button,#supgo-global-header #q::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+@media(max-width:760px){#supgo-global-header .searchResults{position:fixed!important;top:var(--supgo-sr-top,112px)!important;bottom:auto!important;left:8px!important;right:8px!important;width:auto!important;max-width:none!important;max-height:calc(100dvh - 130px)!important;overflow-y:auto!important;box-shadow:0 14px 34px rgba(0,0,0,.25)!important}}
