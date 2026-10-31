@@ -97,7 +97,7 @@
       // El botón del header recién montado ya existe y usa el seguimiento compartido.
       document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
       // Cuenta del cliente: ícono, favoritos sincronizados y referidos.
-      if(!window.SupgoCuenta)loadScript(path+'cuenta.js?v=20261031-cuentas-1').catch(function(){});
+      if(!window.SupgoCuenta)loadScript(path+'cuenta.js?v=20261031-cuentas-2').catch(function(){});
     }catch(error){host.remove();throw error;}
     finally{document.getElementById('supgo-header-placeholder')?.remove();}
   }

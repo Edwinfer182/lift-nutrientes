@@ -186,7 +186,7 @@ textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
 </div></div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="/componentes/cuenta.js?v=20261031-cuentas-1"></script>
+<script src="/componentes/cuenta.js?v=20261031-cuentas-2"></script>
 <script>
 (function(){
 'use strict';
@@ -251,6 +251,7 @@ function tab(name){
   if(name==='cupones'&&!couponsLoaded)loadCoupons();
   try{history.replaceState(null,'','#'+name)}catch(e){}
 }
+window.supgoCuentaTab=tab;
 document.querySelector('.tabs').addEventListener('click',function(e){var b=e.target.closest('button[data-tab]');if(b)tab(b.dataset.tab)});
 $('logout').onclick=function(){C.logout();data={pedidos:[],direcciones:[],favoritos:[],cuenta:{}};couponsLoaded=false;try{history.replaceState(null,'','/cuenta/')}catch(e){}showLogin();toast('Cerraste sesión')};
 window.addEventListener('supgo-favorites-change',renderFavs);

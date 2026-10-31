@@ -92,6 +92,16 @@ function waitHeader(){
   var n=0,iv=setInterval(function(){if(mountIcon()||++n>40)clearInterval(iv)},250);
 }
 
+/* ---------- "Mi pedido" del menú ----------
+   Con sesión abierta lleva a la lista de pedidos de la cuenta; sin sesión sigue la consulta normal. */
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest&&e.target.closest('.myOrder');
+  if(!b||!get())return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(location.pathname.indexOf('/cuenta/')===0&&typeof window.supgoCuentaTab==='function'){window.supgoCuentaTab('pedidos');window.scrollTo(0,0);return}
+  location.assign('/cuenta/#pedidos');
+},true);
+
 window.SupgoCuenta={get:get,set:setSession,api:api,logout:logout,syncFavs:syncFavs,refCode:refCode,clearRef:function(){del(REF)},toast:toast};
 captureRef();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){waitHeader();syncFavs()});else{waitHeader();syncFavs()}
