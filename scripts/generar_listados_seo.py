@@ -230,6 +230,9 @@ def write_hub(plural, groups, logos):
     path = ROOT / plural / "index.html"
     if not path.exists() or not groups:
         return
+    if plural == "laboratorios":
+        # Lista de páginas de laboratorio existentes: el home la usa para enlazar los logos.
+        (ROOT / plural / "slugs.json").write_text(json.dumps(sorted(slug(n) for n in groups)), encoding="utf-8")
     html = path.read_text(encoding="utf-8")
     cards = []
     for name in sorted(groups, key=lambda x: x.casefold()):
