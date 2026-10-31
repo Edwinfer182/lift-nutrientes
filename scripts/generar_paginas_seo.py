@@ -11,6 +11,17 @@ def slug(s):
  s=unicodedata.normalize("NFKD",str(s or "")).encode("ascii","ignore").decode().lower()
  return re.sub(r"(^-|-$)","",re.sub(r"[^a-z0-9]+","-",s))[:110]
 def esc(v): return html.escape(str(v or ""),quote=True)
+def load_guides():
+ """Registro de guías (scripts/generar_guias.py) para enlazar cada ficha con sus guías de compra."""
+ try:return json.loads((ROOT/"guias"/"guias.json").read_text(encoding="utf-8"))
+ except Exception:return []
+GUIDES=load_guides()
+def guides_html(pid,category):
+ cat=slug(category);own=[g for g in GUIDES if pid in (g.get("productos") or [])]
+ own+=[g for g in GUIDES if cat and cat in (g.get("categorias") or []) and g not in own]
+ if not own:return ""
+ links="".join('<a href="'+esc(g["url"])+'" style="border:1px solid #e2e2e2;border-radius:30px;padding:7px 13px;font-size:13px;text-decoration:none;color:inherit">'+esc(g["titulo"])+'</a>' for g in own[:3])
+ return '<section class="pi-guides" aria-label="Guías de compra" style="margin:22px 0 0;padding-top:16px;border-top:1px solid #ececec"><h2 style="margin:0 0 10px;font:600 17px/1.3 Poppins,Arial,sans-serif">Guías de compra</h2><nav style="display:flex;flex-wrap:wrap;gap:8px">'+links+'</nav></section>'
 def seo_plain(v):
  return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]*>', ' ', str(v or '')))).strip()
 def fetch():
@@ -822,7 +833,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">🔒</span><strong>Pago seguro</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">Selecciona el medio de pago durante el proceso de compra.</div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">💳</span><strong>Medios de pago disponibles</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body seo-payment-image-wrap"><a href="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ampliar medios de pago"><img src="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" alt="Medios de pago SUPGO: Bold, Apple Pay, tarjetas, Bre-B, Bancolombia, Nequi y PSE" loading="lazy" decoding="async"></a></div></details></section>
 </section></article>
-<!--relacionados-->{f'<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">{related_html}</div></section>' if related_html else ''}<!--/relacionados-->
+<!--relacionados-->{f'<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">{related_html}</div></section>' if related_html else ''}{guides_html(pid,p.get('category') or p.get('categoria') or '')}<!--/relacionados-->
 </main>
 <div id="pi-toast" class="pi-toast" role="status" aria-live="polite"><span class="pi-toast-text"><b>✓ Agregado</b><small></small><em class="pi-toast-ship"></em><span class="pi-toast-bar" aria-hidden="true"><i></i></span></span><button type="button" id="pi-toast-cart">Ver carrito</button></div>
 <style>
