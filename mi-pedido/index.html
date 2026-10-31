@@ -78,6 +78,15 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .notice{border-radius:10px;padding:12px 14px;font-size:13px;margin-top:4px}
 .notice.ok{background:var(--green-soft);color:#14532d}
 .notice.warn{background:var(--amber-soft);color:#6b4a00}
+.pick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border:1.5px dashed #bdbdbd;border-radius:12px;background:#fff;font-size:14px;font-weight:500;cursor:pointer;padding:10px 12px;text-align:center;margin-top:12px}
+.pick.has{border-style:solid;border-color:var(--ink);background:var(--soft)}
+.pick input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.paySteps{margin:12px 0 0;padding-left:18px;font-size:13px;color:#333}
+.paySteps li{margin-bottom:4px}
+.holder{font-size:12px;color:var(--muted);margin-top:8px}
+.waLink{display:block;text-align:center;font-size:13px;margin-top:12px;color:var(--ink)}
+.confirming{display:flex;gap:12px;align-items:flex-start}
+.confirming .spin{flex:0 0 auto;margin-top:3px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .choices button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;text-align:left}
 /* Productos y totales */
@@ -135,6 +144,14 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){r
 var norm=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()};
 var q=new URLSearchParams(location.search);
 var current=null;
+/* ---------- Regreso desde Bold ----------
+   Bold devuelve al cliente a ?pedido=..&token=..&pago=bold (y puede agregar bold-tx-status).
+   Mientras el webhook confirma, no mostramos de nuevo el botón de pagar. */
+var BOLD_KEY='supgoBoldPendingV1',confirmTimer=null,confirmTries=0,CONFIRM_MAX=24;
+var boldTx=String(q.get('bold-tx-status')||'').toLowerCase();
+function boldPending(id){try{var x=JSON.parse(localStorage.getItem(BOLD_KEY)||'null');return !!(x&&String(x.id)===String(id)&&Date.now()-Number(x.t)<45*60*1000)}catch(e){return false}}
+function clearBoldPending(){try{localStorage.removeItem(BOLD_KEY)}catch(e){}}
+var boldReturn=q.get('pago')==='bold'||!!boldTx;
 function stored(){try{return JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}')||{}}catch(e){return {}}}
 function fn(name,payload,isForm){return fetch(SB+'/functions/v1/'+name,{method:'POST',headers:isForm?{apikey:KEY}:{apikey:KEY,'Content-Type':'application/json'},body:isForm?payload:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'No se pudo completar la operación');return j})})}
 function orderUrl(id,token){return 'https://supgo.co/mi-pedido/?pedido='+encodeURIComponent(id)+(token?'&token='+encodeURIComponent(token):'')}
@@ -160,9 +177,9 @@ function info(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
   return {t:'Pedido recibido',d:'El siguiente paso es confirmar la disponibilidad de tus productos.'}}
 
 /* ---------- Carga ---------- */
-function show(id){['loading','lookup','order'].forEach(function(x){$(x).hidden=x!==id});window.scrollTo(0,0)}
-function load(ref,phone,token){
-  show('loading');
+function show(id){var was=$(id).hidden;['loading','lookup','order'].forEach(function(x){$(x).hidden=x!==id});if(was)window.scrollTo(0,0)}
+function load(ref,phone,token,silent){
+  if(!silent)show('loading');
   return fn('lift-clientes',{action:'public-track-order',referencia:String(ref),celular:phone||'',token:token||''}).then(function(r){
     var p=r.pedido,id=String(p.referencia||ref).replace(/\D/g,'').replace(/^0+/,'')||String(ref);
     current={p:p,id:id,token:p.token||token||'',phone:p.celular||phone||''};
@@ -186,7 +203,13 @@ function render(img,disp){
      '<div class="stepNames">'+STEPS.map(function(x,i){return '<span class="'+(i===at?'on':'')+'">'+x+'</span>'}).join('')+'</div></div>';
   if(disp&&disp.tipo==='guia'&&disp.guia)h+='<div class="card"><h2>🚚 Seguimiento del envío</h2><div class="copyRow"><span><small>'+esc(disp.transportadora||'Transportadora')+'</small><strong>'+esc(disp.guia)+'</strong></span><button type="button" data-copy="'+esc(disp.guia)+'">Copiar guía</button></div></div>';
   else if(disp&&disp.tipo==='local'&&s==='en_ruta')h+='<div class="card"><h2>🛵 Tu pedido salió a ruta</h2><p class="lead" style="margin:0">El mensajero hace varias entregas; no manejamos una hora exacta de llegada.</p></div>';
-  if(s==='pendiente_pago'&&!ps||s==='pendiente_pago'&&['sin_pago','pendiente_comprobante','pendiente_transferencia','rechazado'].indexOf(ps)>=0)h+=payCard();
+  var canPay=s==='pendiente_pago'&&(!ps||['sin_pago','pendiente_comprobante','pendiente_transferencia','rechazado'].indexOf(ps)>=0);
+  var rejected=/reject|fail|declin|cancel/.test(boldTx);
+  if(!canPay){clearBoldPending();if(confirmTimer){clearTimeout(confirmTimer);confirmTimer=null}}
+  if(canPay&&rejected){clearBoldPending();h+='<div class="notice warn" style="margin-bottom:12px">Tu pago en línea no fue aprobado. No se hizo ningún cobro. Puedes intentarlo de nuevo o pagar por transferencia.</div>'+payCard()}
+  else if(canPay&&(boldReturn||boldPending(c.id))&&confirmTries<CONFIRM_MAX)h+=confirmingCard(false);
+  else if(canPay&&(boldReturn||boldPending(c.id)))h+=confirmingCard(true);
+  else if(canPay)h+=payCard();
   if(s==='sin_disponibilidad')h+='<div class="card"><h2>¿Qué prefieres hacer?</h2><div class="choices">'+[['esperar','Esperar reposición'],['cambiar','Cambiar el producto'],['quitar','Quitar el producto'],['ayuda','Hablar con SUPGO']].map(function(x){return '<button type="button" data-help="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
   var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
     return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
@@ -197,17 +220,30 @@ function render(img,disp){
   h+='<a class="other" href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a><a class="other" href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a>';
   $('order').innerHTML=h;show('order');
 }
+function confirmingCard(timedOut){
+  if(!timedOut){
+    clearTimeout(confirmTimer);
+    confirmTimer=setTimeout(function(){confirmTries++;load(current.id,'',current.token,true).catch(function(){confirmTries++})},5000);
+    return '<div class="card pay"><div class="confirming"><span class="spin"></span><div><h2 style="margin:0 0 4px">Estamos confirmando tu pago</h2><p class="lead" style="margin:0">Bold nos está avisando del pago. Esto suele tardar unos segundos; esta página se actualiza sola. <b>No vuelvas a pagar.</b></p></div></div></div>';
+  }
+  return '<div class="card pay"><h2>Aún no recibimos la confirmación del pago</h2><p class="lead" style="margin:0 0 12px">Si ya pagaste, <b>no vuelvas a pagar</b>: a veces Bold tarda unos minutos. Escríbenos y lo revisamos.</p>'+
+    '<a class="cta green" target="_blank" rel="noopener" href="'+wa('Hola, pagué en línea el pedido #'+current.id+' y aún no aparece confirmado.')+'">Escribir por WhatsApp</a>'+
+    '<button class="cta light" type="button" id="retryPay" style="margin-top:10px">No alcancé a pagar, quiero intentarlo de nuevo</button></div>';
+}
 function payCard(){
   var c=current,p=c.p,ps=String(p.pago_estado||''),transfer=p.medio_pago_cliente==='transferencia';
   return '<div class="card pay"><h2>Paga tu pedido</h2><div class="total"><span>Total a pagar</span><b>'+money(p.total)+'</b></div>'+
     (ps==='rechazado'?'<div class="notice warn" style="margin-bottom:12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<button class="cta" type="button" id="boldBtn">Pagar en línea</button><div class="methods">Tarjeta, PSE, Nequi, Bancolombia y Bre-B · pago seguro con Bold</div><div class="msg bad" id="payMsg"></div>'+
-    '<details class="alt" id="altPay"'+(transfer?' open':'')+'><summary>Prefiero pagar por transferencia</summary>'+
-      '<div class="copyRow"><span><small>Valor</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
-      '<div class="copyRow"><span><small>Llave Bre-B · Titular: Edwin Fernando Muñoz Tobon</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
-      '<label class="file"><span class="label" style="margin-top:12px">Sube tu comprobante (imagen o PDF, máx. 5 MB)</span><input type="file" id="proof" accept="image/jpeg,image/png,image/webp,application/pdf"></label>'+
-      '<button class="cta light" type="button" id="proofBtn" style="margin-top:10px">Enviar comprobante</button><div class="msg" id="proofMsg"></div>'+
-      '<a class="cta green" style="margin-top:10px" target="_blank" rel="noopener" href="'+wa('Hola, realicé la transferencia por Bre-B para el pedido #'+c.id+'. Te comparto el comprobante.')+'">Enviar comprobante por WhatsApp</a>'+
+    '<details class="alt" id="altPay"'+(transfer||ps==='pendiente_comprobante'?' open':'')+'><summary>Pagar por transferencia (Bre-B o Bancolombia)</summary>'+
+      '<ol class="paySteps"><li>Transfiere el <b>valor exacto</b> a la llave Bre-B o a la cuenta Bancolombia.</li><li>Adjunta aquí la foto o captura del comprobante.</li></ol>'+
+      '<div class="copyRow"><span><small>Valor a transferir</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
+      '<div class="copyRow"><span><small>Llave Bre-B (desde cualquier banco o Nequi)</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
+      '<div class="copyRow"><span><small>Bancolombia · Cuenta de ahorros</small><strong>366 550 234 31</strong></span><button type="button" data-copy="36655023431">Copiar cuenta</button></div>'+
+      '<div class="holder">Titular: Edwin Fernando Muñoz Tobon</div>'+
+      '<label class="pick" id="pickLabel"><input type="file" id="proof" accept="image/*,application/pdf"><span id="pickText">📎 Adjuntar comprobante</span></label>'+
+      '<button class="cta" type="button" id="proofBtn" style="margin-top:10px" disabled>Enviar comprobante</button><div class="msg" id="proofMsg"></div>'+
+      '<a class="waLink" target="_blank" rel="noopener" href="'+wa('Hola, realicé la transferencia para el pedido #'+c.id+' por '+money(p.total)+'. Te comparto el comprobante.')+'">¿No puedes adjuntarlo? Envíalo por WhatsApp</a>'+
     '</details></div>';
 }
 
@@ -216,6 +252,7 @@ function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando p
   fn('lift-bold-pagos',{pedido_id:Number(c.id),token:c.token,accion:'crear',ambiente:'production'}).then(function(j){
     if(!j.url||!/^https:\/\/checkout\.bold\.co\//.test(j.url))throw new Error('Enlace de pago no válido');
     try{gtag('event','add_payment_info',{payment_type:'bold',currency:'COP',value:Number(c.p.total)})}catch(e){}
+    try{localStorage.setItem(BOLD_KEY,JSON.stringify({id:String(c.id),t:Date.now()}))}catch(e){}
     location.assign(j.url);
   }).catch(function(e){btn.disabled=false;btn.textContent='Pagar en línea';$('payMsg').textContent='No pudimos abrir el pago en línea ('+e.message+'). Puedes pagar por transferencia aquí abajo.';$('altPay').open=true});
 }
@@ -231,7 +268,13 @@ function uploadProof(btn){var c=current,f=$('proof').files[0],m=$('proofMsg');
 function evidence(btn){var c=current,box=$('evidenceBox');if(box.innerHTML){box.innerHTML='';btn.textContent='Ver foto';return}
   btn.disabled=true;fn('lift-clientes',{action:'public-delivery-evidence-url',referencia:c.id,token:c.token,celular:c.phone}).then(function(j){box.innerHTML=j.url?'<img src="'+esc(j.url)+'" alt="Foto de la entrega">':'<p class="lead">La foto todavía no está disponible.</p>';btn.textContent='Ocultar foto'}).catch(function(e){box.innerHTML='<p class="msg bad">'+esc(e.message)+'</p>'}).then(function(){btn.disabled=false})}
 var HELP={esperar:'Quiero esperar reposición',cambiar:'Quiero cambiar el producto que no está disponible',quitar:'Quiero quitar del pedido el producto que no está disponible',ayuda:'Necesito ayuda con un producto sin disponibilidad'};
+document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='proof'){var f=e.target.files[0],l=$('pickLabel'),b=$('proofBtn');
+    if(f){l.classList.add('has');$('pickText').textContent='✓ '+(f.name.length>34?f.name.slice(0,31)+'…':f.name)+' · cambiar';b.disabled=false;$('proofMsg').textContent=''}
+    else{l.classList.remove('has');$('pickText').textContent='📎 Adjuntar comprobante';b.disabled=true}}
+});
 document.addEventListener('click',function(e){var t=e.target.closest('button,a');if(!t)return;
+  if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;load(current.id,'',current.token).catch(function(){});return}
   if(t.id==='boldBtn')bold(t);else if(t.id==='proofBtn')uploadProof(t);else if(t.id==='evidenceBtn')evidence(t);
   else if(t.hasAttribute('data-copy'))copy(t.getAttribute('data-copy'),t);
   else if(t.hasAttribute('data-help'))window.open(wa('Hola, sobre mi pedido #'+current.id+': '+HELP[t.getAttribute('data-help')]+'.\n\n'+orderUrl(current.id,current.token)),'_blank');
