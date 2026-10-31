@@ -10,6 +10,30 @@ import urllib.parse
 import urllib.request
 from html import escape
 
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from seo_listados_textos import TEXTOS  # noqa: E402
+
+# Norma sanitaria (Decreto 3249 de 2006): los textos propios no pueden prometer efectos.
+PALABRAS_PROHIBIDAS = re.compile(
+    r"\b(beneficio\w*|mejora\w*|aumenta\w*|quema\w*|adelgaz\w*|fortalec\w*|previen\w*|prevenir|cura\w*|"
+    r"rendimiento|masa muscular|definici[oó]n muscular|inmun\w*|antioxidante\w*|desinflama\w*|"
+    r"recuperaci[oó]n muscular|resultados garantizados|el mejor|la mejor|los mejores|las mejores|milagro\w*)\b", re.I)
+# Nombres propios de categorías que contienen palabras de la lista y sí pueden aparecer.
+NOMBRES_PERMITIDOS = re.compile(r"\bquemadores\b|categor[ií]a quemadores", re.I)
+
+
+def revisar_textos():
+    for key, t in TEXTOS.items():
+        partes = [t.get("title", ""), t.get("meta", ""), t.get("h1", ""), t.get("intro", "")]
+        partes += [h + " " + b for h, b in t.get("secciones", [])] + [q + " " + a for q, a in t.get("faq", [])]
+        plano = NOMBRES_PERMITIDOS.sub(" ", re.sub(r"<[^>]+>", " ", " ".join(partes)))
+        hit = PALABRAS_PROHIBIDAS.search(plano)
+        if hit:
+            raise SystemExit(f"ERROR: el texto SEO de {key} usa «{hit.group(0)}», que puede leerse como promesa de efectos")
+        if len(t.get("meta", "")) > 160:
+            raise SystemExit(f"ERROR: la meta descripción de {key} supera 160 caracteres")
+
 # Versión de los assets de cuadrícula: se lee del JS para que HTML, CSS y JS siempre coincidan.
 ASSET_V = (re.search(r"ASSET_V='([^']+)'", (pathlib.Path(__file__).resolve().parent.parent / 'paginas' / 'supgo-pages.js').read_text(encoding='utf-8')) or [None, 'v1'])[1]
 
@@ -31,7 +55,12 @@ LIST_STYLE = (".seo-productos{list-style:none;margin:0;padding:0;display:grid;gr
               ".seo-productos a:hover{border-color:#16a34a}.seo-productos small{display:block;color:#777;font-size:11px;font-weight:400}"
               ".seo-grupo{margin:28px 0 10px;font-size:19px}"
               ".seo-guias{margin:4px 0 18px}.seo-guias h2{font-size:15px;margin:0 0 8px}.seo-guias nav{display:flex;flex-wrap:wrap;gap:8px}"
-              ".seo-guias a{border:1px solid #e2e2e2;border-radius:30px;padding:7px 13px;font-size:13px}.seo-guias a:hover{border-color:#16a34a;color:#16a34a}")
+              ".seo-guias a{border:1px solid #e2e2e2;border-radius:30px;padding:7px 13px;font-size:13px}.seo-guias a:hover{border-color:#16a34a;color:#16a34a}"
+              ".seo-rel{margin:4px 0 16px}.seo-rel h2{font-size:15px;margin:0 0 8px}.seo-rel nav{display:flex;flex-wrap:wrap;gap:8px}"
+              ".seo-rel a,.seo-rel span{border:1px solid #e2e2e2;border-radius:30px;padding:7px 13px;font-size:13px}.seo-rel a:hover{border-color:#16a34a;color:#16a34a}.seo-rel small{color:#888;margin-left:4px}"
+              ".seo-texto{margin:36px 0 10px;padding-top:22px;border-top:1px solid #ececec;line-height:1.7;max-width:820px}.seo-texto h2{font-size:20px;margin:22px 0 8px}"
+              ".seo-texto ul{padding-left:20px}.seo-texto li{margin:4px 0}.seo-texto a{color:#15803d;text-decoration:underline}"
+              ".seo-faq details{border:1px solid #e7e7e7;border-radius:10px;padding:12px 14px;margin:8px 0}.seo-faq summary{font-weight:600;cursor:pointer}.seo-faq p{margin:8px 0 0}")
 
 
 def load():
@@ -151,7 +180,7 @@ def guides_block(kind, url_slug):
     return f'<section class="seo-guias" aria-label="Guías de compra"><h2>Guías de compra</h2><nav>{links}</nav></section>'
 
 
-def template(kind, title, url_slug, count, image_url='', items=()):
+def template(kind, title, url_slug, count, image_url='', items=(), related=()):
     plural = "categorias" if kind == "categoria" else "laboratorios"
     heading = escape(title)
     description = (f"Compra suplementos de {title} en Medellín en SUPGO. Consulta productos, precios y disponibilidad. Envíos a Bogotá, Cali y Colombia." if kind == "laboratorio" else f"Compra {title} en Medellín en SUPGO. Encuentra suplementos, precios y presentaciones. Envíos a Bogotá, Cali y toda Colombia.")[:160]
@@ -190,6 +219,30 @@ def template(kind, title, url_slug, count, image_url='', items=()):
 <h2>Encuentra el suplemento que buscas</h2>
 <p>Explora <a href="/laboratorios/">otras marcas de suplementos</a>, compara <a href="/categorias/">categorías de productos</a>, utiliza el <a href="/buscar/">buscador de suplementos</a> o consulta las <a href="/ofertas/">ofertas disponibles</a>. Estos cuatro accesos te permiten navegar por el catálogo sin perder la página del laboratorio.</p>
 </section>"""
+    texto = TEXTOS.get((kind, url_slug))
+    after_content = ""
+    intro = description
+    if texto:
+        description = texto["meta"]
+        safe_title = escape(texto["title"], quote=True)
+        safe_description = escape(description, quote=True)
+        h1 = escape(texto["h1"])
+        intro = texto["intro"]
+        extra_content = ""
+        social = re.sub(r'(og:title|twitter:title)" content="[^"]*"', lambda m: m.group(1) + '" content="' + safe_title + '"', social)
+        social = re.sub(r'(og:description|twitter:description)" content="[^"]*"', lambda m: m.group(1) + '" content="' + safe_description + '"', social)
+        data = json.dumps({"@context": "https://schema.org", "@type": "CollectionPage", "name": texto["h1"], "url": canonical, "description": description}, ensure_ascii=False)
+        safe_json = data.replace("<", "\\u003c")
+        secciones = "".join(f"<h2>{escape(h)}</h2>{body}" for h, body in texto.get("secciones", []))
+        faq = "".join(f"<details><summary>{escape(q)}</summary><p>{escape(a)}</p></details>" for q, a in texto.get("faq", []))
+        after_content = (f'<section class="seo-texto" aria-label="Información de compra">{secciones}'
+                         + (f'<div class="seo-faq"><h2>Preguntas frecuentes</h2>{faq}</div>' if faq else "")
+                         + '<p style="color:#888;font-size:12px;margin-top:18px">La información describe presentaciones, datos de etiqueta y condiciones de compra; no constituye una recomendación de uso. Lee siempre el rótulo del producto.</p></section>')
+    related_html = ""
+    if related:
+        label = "Marcas en esta categoría" if kind == "categoria" else "Categorías de esta marca"
+        chips = "".join((f'<a href="{escape(url, quote=True)}">{escape(name)}<small>{n}</small></a>' if url else f'<span>{escape(name)}<small>{n}</small></span>') for name, url, n in related[:12])
+        related_html = f'<section class="seo-rel" aria-label="{label}"><h2>{label}</h2><nav>{chips}</nav></section>'
     indexable = url_slug not in NOINDEX_SLUGS
     robots = '<meta name="robots" content="index, follow">\n' if indexable else '<meta name="robots" content="noindex, follow">\n'
     return f"""<!doctype html>
@@ -201,9 +254,9 @@ def template(kind, title, url_slug, count, image_url='', items=()):
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
 <nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mi-pedido/">Mi pedido</a></nav></div></header>
-<main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}{guides_block(kind, url_slug)}
+<main class="site"><h1>{h1}</h1><p class="muted">{escape(intro)}</p>\n{extra_content}{related_html}{guides_block(kind, url_slug)}
 <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
-<div id="content"><p class="loading">Cargando {count} productos…</p>{product_list(items, kind == "categoria")}</div></main>
+<div id="content"><p class="loading">Cargando {count} productos…</p>{product_list(items, kind == "categoria")}</div>{after_content}</main>
 <script defer src="/paginas/supgo-pages.js?v={ASSET_V}"></script></body></html>"""
 
 
@@ -326,7 +379,29 @@ def write_home_block(categories, labs):
         home.write_text(updated, encoding="utf-8")
 
 
+def related_groups(rows, kind):
+    """Para cada categoría: sus marcas; para cada marca: sus categorías (nombre, URL o '', productos)."""
+    own_keys, other_keys = (("category", "categoria"), ("brand", "marca")) if kind == "categoria" else (("brand", "marca"), ("category", "categoria"))
+    other_plural = "laboratorios" if kind == "categoria" else "categorias"
+    counts = {}
+    for row in rows:
+        a, b = read(row, *own_keys), read(row, *other_keys)
+        if not a or not b or slug(b) in HIDDEN_BRANDS or slug(b) in NOINDEX_SLUGS or slug(a) in HIDDEN_BRANDS:
+            continue
+        counts.setdefault(slug(a), {}).setdefault(b, 0)
+        counts[slug(a)][b] += 1
+    out = {}
+    for key, others in counts.items():
+        lst = []
+        for name, n in sorted(others.items(), key=lambda x: (-x[1], x[0].casefold())):
+            url = f"/{other_plural}/{slug(name)}/"
+            lst.append((name, url if (ROOT / other_plural / slug(name) / "index.html").exists() else "", n))
+        out[key] = lst
+    return out
+
+
 def main():
+    revisar_textos()
     rows = load()
     logos = load_logos()
     approved = approved_urls()
@@ -348,11 +423,12 @@ def main():
                 groups[name] += 1
         write_hub(plural, {k: v for k, v in groups.items() if slug(k) not in NOINDEX_SLUGS}, logos)
         index = 3 if kind == "categoria" else 2
+        rel = related_groups(rows, kind)
         for name, count in groups.items():
             dest = ROOT / plural / slug(name) / "index.html"
             dest.parent.mkdir(parents=True, exist_ok=True)
             own = [item for item in items if slug(item[index]) == slug(name)]
-            dest.write_text(template(kind, name, slug(name), count, logos.get(slug(name), "") if kind == "laboratorio" else "", own), encoding="utf-8")
+            dest.write_text(template(kind, name, slug(name), count, logos.get(slug(name), "") if kind == "laboratorio" else "", own, rel.get(slug(name), [])), encoding="utf-8")
             if slug(name) not in NOINDEX_SLUGS:
                 hub[kind].append((name, f"/{plural}/{slug(name)}/"))
             total += 1

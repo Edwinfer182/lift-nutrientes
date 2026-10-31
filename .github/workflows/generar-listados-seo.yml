@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/generar_listados_seo.py'
+      - 'scripts/seo_listados_textos.py'
       - 'scripts/seo_indexacion.py'
       - '.github/workflows/generar-listados-seo.yml'
   workflow_dispatch:
