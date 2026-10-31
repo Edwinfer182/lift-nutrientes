@@ -29,7 +29,9 @@ NOINDEX_SLUGS = {"pruebas"}
 LIST_STYLE = (".seo-productos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}"
               ".seo-productos a{display:block;border:1px solid #e7e7e7;border-radius:9px;padding:12px 14px;font-weight:500;line-height:1.35}"
               ".seo-productos a:hover{border-color:#16a34a}.seo-productos small{display:block;color:#777;font-size:11px;font-weight:400}"
-              ".seo-grupo{margin:28px 0 10px;font-size:19px}")
+              ".seo-grupo{margin:28px 0 10px;font-size:19px}"
+              ".seo-guias{margin:4px 0 18px}.seo-guias h2{font-size:15px;margin:0 0 8px}.seo-guias nav{display:flex;flex-wrap:wrap;gap:8px}"
+              ".seo-guias a{border:1px solid #e2e2e2;border-radius:30px;padding:7px 13px;font-size:13px}.seo-guias a:hover{border-color:#16a34a;color:#16a34a}")
 
 
 def load():
@@ -129,6 +131,26 @@ def product_list(items, show_brand=True):
     return f'<ul class="seo-productos">{lis}</ul>'
 
 
+def load_guides():
+    """Registro de guías que escribe scripts/generar_guias.py."""
+    try:
+        return json.loads((ROOT / "guias" / "guias.json").read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+
+GUIDES = load_guides()
+
+
+def guides_block(kind, url_slug):
+    field = "categorias" if kind == "categoria" else "marcas"
+    own = [g for g in GUIDES if url_slug in (g.get(field) or [])]
+    if not own:
+        return ""
+    links = "".join(f'<a href="{escape(g["url"], quote=True)}">{escape(g["titulo"])}</a>' for g in own[:6])
+    return f'<section class="seo-guias" aria-label="Guías de compra"><h2>Guías de compra</h2><nav>{links}</nav></section>'
+
+
 def template(kind, title, url_slug, count, image_url='', items=()):
     plural = "categorias" if kind == "categoria" else "laboratorios"
     heading = escape(title)
@@ -179,7 +201,7 @@ def template(kind, title, url_slug, count, image_url='', items=()):
 <body data-page="{kind}" data-slug="{escape(url_slug, quote=True)}">
 <header class="topbar"><div class="topinner"><a class="logo" href="/">SUPGO</a>
 <nav class="nav"><a href="/categorias/">Categorías</a><a href="/laboratorios/">Laboratorios</a><a href="/buscar/">Buscar</a><a href="/favoritos/">♡ Favoritos</a><a href="/carrito/">🛒 <span id="cartcount">0</span></a><a href="/mi-pedido/">Mi pedido</a></nav></div></header>
-<main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}
+<main class="site"><h1>{h1}</h1><p class="muted">{escape(description)}</p>\n{extra_content}{guides_block(kind, url_slug)}
 <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
 <div id="content"><p class="loading">Cargando {count} productos…</p>{product_list(items, kind == "categoria")}</div></main>
 <script defer src="/paginas/supgo-pages.js?v={ASSET_V}"></script></body></html>"""
