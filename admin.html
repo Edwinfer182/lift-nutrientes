@@ -3519,7 +3519,7 @@ function providerCheckoutText(){
   return lines.join('\n');
 }
 const LIFT_PROVIDERS=[
-  {name:'Daniel',phone:'573116026548'},
+  {name:'Daniel',phone:'573116026548',formato:'simple'},
   {name:'Andrés',phone:'573007700020'},
   {name:'Golem Nutrition',phone:'573137129643'},
   {name:'Mutantes',phone:'573135415970'},
@@ -10966,7 +10966,19 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`,'_blank');
  };
  // Enviar el pedido a un proveedor por WhatsApp desde la lista de pedidos (sin volver al checkout).
- function providerOrderText(p){
+ function providerOrderText(p,prov){
+  if(prov&&prov.formato==='simple'){
+   // Formato corto: sin etiquetas, marca · producto (pedido por Daniel).
+   const S=[];
+   if(p.nombre)S.push(p.nombre);
+   if(p.celular)S.push(p.celular);
+   const dir=[p.direccion,p.notas].map(v=>String(v||'').trim()).filter(Boolean).join(', ');
+   if(dir)S.push(dir);
+   if(p.ciudad)S.push(p.ciudad);
+   S.push('');
+   (Array.isArray(p.items)?p.items:[]).forEach(x=>{const q=Number(x.cantidad||1);S.push(`${q>1?q+' x ':''}${x.marca?x.marca+' · ':''}${x.nombre||'Producto'}`)});
+   return S.join('\n');
+  }
   const L=[];
   if(p.nombre)L.push(`Nombre: ${p.nombre}`);
   if(p.celular)L.push(`Celular: ${p.celular}`);
@@ -10990,7 +11002,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
    if(e.target===m||e.target.hasAttribute('data-close')){m.remove();return}
    const b=e.target.closest('button[data-i]');if(!b)return;
    const prov=provs[Number(b.dataset.i)];if(!prov)return;
-   const t=providerOrderText(p);
+   const t=providerOrderText(p,prov);
    const url=`https://wa.me/${String(prov.phone).replace(/\D/g,'')}?text=${encodeURIComponent(t)}`;
    try{navigator.clipboard?.writeText(t).catch(()=>{})}catch(er){}
    m.remove();
