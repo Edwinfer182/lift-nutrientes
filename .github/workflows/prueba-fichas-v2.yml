@@ -54,8 +54,8 @@ jobs:
           sin_v2=[p.name for p in all_pages if 'data-ficha="v2' not in p.read_text(encoding="utf-8",errors="replace")]
           pathlib.Path("informe/sin_v2.txt").write_text("\n".join(sorted(sin_v2)),encoding="utf-8")
           PY
-      - name: Externalizar CSS
-        if: always() como en la corrida de listados
+      - name: Externalizar CSS como en la corrida de listados
+        if: always()
         run: python scripts/seo_indexacion.py || true
       - name: Muestras
         if: always()
