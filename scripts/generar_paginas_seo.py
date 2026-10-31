@@ -820,13 +820,15 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 </main>
 <div id="pi-toast" class="pi-toast" role="status" aria-live="polite"><span class="pi-toast-text"><b>✓ Agregado</b><small></small></span><button type="button" id="pi-toast-cart">Ver carrito</button></div>
 <style>
-#seo-wa-float{{position:fixed;right:14px;bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:900;font-family:Poppins,Arial,sans-serif}}
+#seo-wa-float{{position:fixed;right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:900;font-family:Poppins,Arial,sans-serif}}
 #seo-wa-toggle{{width:54px;height:54px;border:0;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 5px 16px #0003;display:grid;place-items:center;cursor:pointer}}
 #seo-wa-panel{{position:absolute;right:0;bottom:64px;width:min(315px,calc(100vw - 32px));box-sizing:border-box;padding:13px;background:#fff;border:1px solid #e2e2e2;border-radius:13px;box-shadow:0 8px 28px #0003}}
 #seo-wa-panel[hidden]{{display:none!important}}
 #seo-wa-message{{box-sizing:border-box;width:100%;min-height:80px;padding:11px;border:1px solid #ddd;border-radius:8px;font:14px/1.5 Poppins,Arial,sans-serif;color:#222;background:#fff;resize:vertical}}
 #seo-wa-send{{margin-top:9px;width:100%;padding:11px;background:#25d366;color:white;border:0;border-radius:8px;font:600 14px Poppins,Arial,sans-serif}}
-@media(max-width:767px){{#seo-wa-toggle{{width:48px;height:48px}}#seo-wa-toggle svg{{width:25px;height:25px}}#seo-wa-panel{{bottom:56px}}}}
+/* Celular: WhatsApp se integra a la barra de compra fija para no tapar contenido. */
+@media(max-width:760px){{#seo-wa-float{{right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:960}}#seo-wa-toggle{{width:46px;height:46px;box-shadow:none}}#seo-wa-toggle svg{{width:24px;height:24px}}#seo-wa-panel{{bottom:58px}}body .product-page .product-info .actions{{padding-right:68px!important;gap:8px!important}}}}
+@media(max-width:380px){{body .product-page .product-info .actions .add{{font-size:12px!important;padding:10px 6px!important}}}}
 @media(min-width:768px){{#seo-wa-float{{bottom:26px;right:24px}}}}
 </style>
 <div id="seo-wa-float"><div id="seo-wa-panel" hidden><textarea id="seo-wa-message" aria-label="Mensaje para WhatsApp"></textarea><button id="seo-wa-send" type="button">Enviar por WhatsApp</button></div><button id="seo-wa-toggle" type="button" aria-label="Consultar por WhatsApp" aria-expanded="false" aria-controls="seo-wa-panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="29" height="29" fill="currentColor" aria-hidden="true"><path d="M16 .8A15.1 15.1 0 0 0 3 23.5L.8 31.2l7.9-2.1A15.2 15.2 0 1 0 16 .8Zm0 27.6a12.2 12.2 0 0 1-6.2-1.7l-.4-.2-4.7 1.2L6 23.1l-.3-.4A12.3 12.3 0 1 1 16 28.4Zm6.8-9.2c-.4-.2-2.2-1.1-2.6-1.2-.3-.1-.6-.2-.8.2-.3.4-1 1.2-1.2 1.4-.2.3-.4.3-.8.1-.4-.2-1.6-.6-3-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8l.6-.6c.2-.2.3-.4.4-.6.1-.3 0-.5 0-.7-.1-.2-.8-2-1.2-2.8-.3-.7-.6-.6-.8-.6h-.7c-.3 0-.7.1-1 .5s-1.3 1.3-1.3 3.1 1.4 3.6 1.6 3.9c.2.2 2.6 4 6.3 5.6.9.4 1.6.6 2.1.8.9.3 1.7.2 2.4.1.7-.1 2.2-.9 2.5-1.8.3-.9.3-1.6.2-1.8-.1-.1-.3-.2-.7-.4Z"/></svg></button></div>
