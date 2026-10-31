@@ -24,6 +24,56 @@ def guides_html(pid,category):
  return '<section class="pi-guides" aria-label="Guías de compra" style="margin:22px 0 0;padding-top:16px;border-top:1px solid #ececec"><h2 style="margin:0 0 10px;font:600 17px/1.3 Poppins,Arial,sans-serif">Guías de compra</h2><nav style="display:flex;flex-wrap:wrap;gap:8px">'+links+'</nav></section>'
 def seo_plain(v):
  return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]*>', ' ', str(v or '')))).strip()
+def fetch_reviews():
+ """Reseñas aprobadas y autorizadas por el cliente (lift-resenas). Si falla, la ficha sale sin reseñas."""
+ try:
+  req=urllib.request.Request(URL+"/rest/v1/rpc/lift_resenas_publicas",data=b"{}",method="POST",headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Content-Type":"application/json","Accept":"application/json"})
+  with urllib.request.urlopen(req,timeout=40) as res:rows=json.load(res)
+ except Exception as e:
+  print("Reseñas no disponibles:",e);return {}
+ out={}
+ for r in rows or []:
+  try:stars=int(r.get("estrellas") or 0)
+  except (TypeError,ValueError):continue
+  if r.get("producto_id") is None or not 1<=stars<=5:continue
+  out.setdefault(str(r["producto_id"]),[]).append({"estrellas":stars,"comentario":str(r.get("comentario") or "").strip(),"sabor":str(r.get("sabor") or "").strip(),"nombre":str(r.get("nombre_publico") or "Cliente").strip(),"ciudad":str(r.get("ciudad") or "").strip(),"fecha":str(r.get("fecha") or "")[:10]})
+ return out
+REVIEWS={}
+def product_reviews(row):
+ """Reseñas del producto y de sus otros sabores en la misma presentación (misma familia)."""
+ ids=[str(row["id"])]+[str(v.get("id")) for v in row.get("_variants",[]) if str(v.get("id"))!=str(row["id"])]
+ items=[]
+ for i in dict.fromkeys(ids):items+=REVIEWS.get(i,[])
+ return sorted(items,key=lambda r:r["fecha"],reverse=True)
+MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
+def review_date(d):
+ try:y,m,dd=(int(x) for x in d.split("-"));return f"{dd} de {MESES[m-1]} de {y}"
+ except Exception:return ""
+def stars_html(n,size=16):
+ return '<span role="img" aria-label="'+str(n)+' de 5 estrellas" style="color:#f5b301;font-size:'+str(size)+'px;letter-spacing:1px">'+"★"*n+'<span style="color:#d9d9d9">'+"★"*(5-n)+'</span></span>'
+def reviews_html(row):
+ items=product_reviews(row)
+ if not items:return ""
+ avg=sum(r["estrellas"] for r in items)/len(items)
+ shown=items[:6]
+ cards="".join('<li style="list-style:none;border:1px solid #ececec;border-radius:14px;padding:12px 14px">'+stars_html(r["estrellas"],15)+(('<p style="margin:6px 0 4px;line-height:1.45">'+esc(r["comentario"])+'</p>') if r["comentario"] else '')+'<small style="color:#6b7280;font-size:12px;display:block;margin-top:4px">'+esc(r["nombre"])+(' · '+esc(r["ciudad"]) if r["ciudad"] else '')+(' · Sabor: '+esc(r["sabor"]) if r["sabor"] else '')+(' · '+review_date(r["fecha"]) if review_date(r["fecha"]) else '')+' · Compra verificada</small></li>' for r in shown)
+ more=f'<p style="color:#6b7280;font-size:13px;margin:10px 0 0">Mostramos las {len(shown)} más recientes de {len(items)} opiniones.</p>' if len(items)>len(shown) else ''
+ return ('<section class="pi-reviews" id="opiniones" aria-label="Opiniones de clientes" style="margin:26px 0 0;padding-top:18px;border-top:1px solid #ececec">'
+  '<h2 style="margin:0 0 6px;font:600 19px/1.3 Poppins,Arial,sans-serif">Opiniones de clientes</h2>'
+  '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px"><b style="font-size:28px;line-height:1">'+(f"{avg:.1f}".replace(".",","))+'</b>'+stars_html(round(avg),20)+'<span style="color:#6b7280;font-size:13px">'+str(len(items))+(' opinión' if len(items)==1 else ' opiniones')+' de clientes que compraron en SUPGO</span></div>'
+  '<ul style="display:grid;gap:10px;margin:0;padding:0;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">'+cards+'</ul>'+more+
+  '<p style="color:#9ca3af;font-size:11.5px;margin:10px 0 0">Opiniones de clientes con compra verificada, revisadas antes de publicarse. Reflejan experiencias de compra (sabor, presentación, envío); no son indicaciones de uso.</p></section>')
+def rating_line(row):
+ items=product_reviews(row)
+ if not items:return ""
+ avg=sum(r["estrellas"] for r in items)/len(items)
+ return '<a class="pi-rating" href="#opiniones" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#374151;font-size:13px;margin:0 0 6px">'+stars_html(round(avg),15)+'<span>'+(f"{avg:.1f}".replace(".",","))+' · '+str(len(items))+(' opinión' if len(items)==1 else ' opiniones')+'</span></a>'
+def reviews_schema(row,product_schema):
+ items=product_reviews(row)
+ if not items:return
+ avg=sum(r["estrellas"] for r in items)/len(items)
+ product_schema["aggregateRating"]={"@type":"AggregateRating","ratingValue":round(avg,1),"reviewCount":len(items),"bestRating":5,"worstRating":1}
+ product_schema["review"]=[{"@type":"Review","author":{"@type":"Person","name":r["nombre"]},**({"datePublished":r["fecha"]} if r["fecha"] else {}),"reviewRating":{"@type":"Rating","ratingValue":r["estrellas"],"bestRating":5,"worstRating":1},**({"reviewBody":r["comentario"]} if r["comentario"] else {})} for r in items[:5]]
 def fetch():
  rows=[]
  for offset in range(0,100000,500):
@@ -507,6 +557,7 @@ def build(row):
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
  breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SUPGO","item":BASE+"/"},{"@type":"ListItem","position":2,"name":"Productos","item":BASE+"/productos/"},{"@type":"ListItem","position":3,"name":name,"item":canonical}]}
+ reviews_schema(row,product_schema)
  breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
@@ -822,7 +873,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div></section>
 <section class="product-info">
 {brand_html}<h1>{esc(name)}</h1>{tags_html}
-<!--precio--><div class="product-price">{price_html}</div>{offer_extra_html}<!--/precio-->
+<!--precio-->{rating_line(row)}<div class="product-price">{price_html}</div>{offer_extra_html}<!--/precio-->
 <div class="pi-ship"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div><strong>Envío gratis en Medellín llevando 3 unidades</strong><span>Pide antes de las 2 p. m. y llega hoy <small>(Medellín, días hábiles)</small></span></div></div>
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
 <div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="pi-add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" class="pi-sr" aria-live="polite"></p>
@@ -833,7 +884,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">🔒</span><strong>Pago seguro</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">Selecciona el medio de pago durante el proceso de compra.</div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">💳</span><strong>Medios de pago disponibles</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body seo-payment-image-wrap"><a href="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ampliar medios de pago"><img src="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" alt="Medios de pago SUPGO: Bold, Apple Pay, tarjetas, Bre-B, Bancolombia, Nequi y PSE" loading="lazy" decoding="async"></a></div></details></section>
 </section></article>
-<!--relacionados-->{f'<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">{related_html}</div></section>' if related_html else ''}{guides_html(pid,p.get('category') or p.get('categoria') or '')}<!--/relacionados-->
+<!--relacionados-->{reviews_html(row)}{f'<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">{related_html}</div></section>' if related_html else ''}{guides_html(pid,p.get('category') or p.get('categoria') or '')}<!--/relacionados-->
 </main>
 <div id="pi-toast" class="pi-toast" role="status" aria-live="polite"><span class="pi-toast-text"><b>✓ Agregado</b><small></small><em class="pi-toast-ship"></em><span class="pi-toast-bar" aria-hidden="true"><i></i></span></span><button type="button" id="pi-toast-cart">Ver carrito</button></div>
 <style>
@@ -947,6 +998,10 @@ def patch_offer_only(existing, generated):
  if not old_product_match:raise RuntimeError("No hay schema Product existente")
  old_product=json.loads(old_product_match.group(1))
  old_product["offers"]=new_product.get("offers")
+ # Reseñas aprobadas: se actualizan a diario igual que el precio.
+ for key in ("aggregateRating","review"):
+  if key in new_product:old_product[key]=new_product[key]
+  else:old_product.pop(key,None)
  replacement=json.dumps(old_product,ensure_ascii=False).replace("<","\\u003c")
  updated=updated[:old_product_match.start(1)]+replacement+updated[old_product_match.end(1):]
  meta_pattern=r'<meta property="product:price:amount" content="[^"]*">'
@@ -967,6 +1022,9 @@ def main():
  seo_rows=fetch_seo()
  images_by_product=fetch_product_images()
  offers=fetch_offers()
+ global REVIEWS
+ REVIEWS=fetch_reviews()
+ print("Productos con reseñas:",len(REVIEWS))
  merchant_settings=fetch_merchant_settings()
  for row in rows:
   row["_images"]=images_by_product.get(str(row["id"]),[])

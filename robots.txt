@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /panel/
 Disallow: /e/
+Disallow: /resena/
 
 # ChatGPT Search - OpenAI
 User-agent: OAI-SearchBot
