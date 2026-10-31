@@ -15058,6 +15058,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <style id="supgo-panel-bridge-style">
 #supgoBackToPanel{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:2147483000;display:none;align-items:center;gap:6px;height:42px;padding:0 15px;border:0;border-radius:999px;background:#111;color:#fff;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.28);text-decoration:none}
 body.liftAdminUnlocked #supgoBackToPanel{display:inline-flex}
+@media(max-width:760px){#supgoBackToPanel{height:36px;padding:0 12px;font-size:12px;left:10px;bottom:calc(10px + env(safe-area-inset-bottom));opacity:.92}}
 </style>
 <a id="supgoBackToPanel" href="/panel/">← Panel</a>
 <script id="supgo-panel-bridge">
@@ -15086,6 +15087,55 @@ body.liftAdminUnlocked #supgoBackToPanel{display:inline-flex}
   if(document.body.classList.contains('liftAdminUnlocked')){var ok=false;try{ok=fn()}catch(e){console.warn('Panel:',e)}if(ok||tries>40){clearInterval(timer);try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}}
   else if(tries>40){clearInterval(timer);if(typeof window.openLiftAdminAccess==='function')window.openLiftAdminAccess()}
  },300);
+})();
+</script>
+
+<!-- Lectura más fácil en las herramientas del administrador (solo con sesión de administrador). -->
+<style id="supgo-admin-legible-style">
+body.liftAdminUnlocked .supgo-legible input:not([type=checkbox]):not([type=radio]):not([type=range]),
+body.liftAdminUnlocked .supgo-legible select,body.liftAdminUnlocked .supgo-legible textarea{min-height:42px;border-radius:10px}
+body.liftAdminUnlocked .supgo-legible button{min-height:36px}
+body.liftAdminUnlocked .supgo-legible table td,body.liftAdminUnlocked .supgo-legible table th{padding-top:7px;padding-bottom:7px}
+@media(max-width:760px){
+ body.liftAdminUnlocked .supgo-legible input:not([type=checkbox]):not([type=radio]):not([type=range]),
+ body.liftAdminUnlocked .supgo-legible select,body.liftAdminUnlocked .supgo-legible textarea{font-size:16px!important}
+ body.liftAdminUnlocked .supgo-legible button{min-height:40px}
+}
+</style>
+<script id="supgo-admin-legible">
+(function(){
+ /* Las herramientas del panel anterior usan textos de 9-11 px y grises muy claros.
+    Este ajuste sube el tamaño mínimo y el contraste solo dentro de las ventanas del
+    administrador, sin tocar la tienda pública ni el diseño de cada herramienta. */
+ var MIN_D=13,MIN_M=14,ROOTS='#lafPanel,#liftCarteraModal,#liftProviderWalletModal,#liftCrmModal,#liftClientDirectoryModal,#liftPaymentsAdminModal,#checkoutModal,#liftQuickListModal,#liftAbandonModal,#liftOrdersModal,[id^="lift-trainer"],[id^="liftCardVariant"],[id^="lvg"],[id^="liftLab"],[id^="liftCategory"],#liftOrderSummaryModal,[id^="liftGiftOffer"],[id^="liftCalc"],[id^="supgoOffers"],[id^="liftMono"],[id^="lift-ig"],[id^="liftProviderShare"],#liftTrackModal,.liftOrderModal,.liftAdminModal';
+ function admin(){return document.body.classList.contains('liftAdminUnlocked')}
+ function rgb(c){var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(c||'');return m?[+m[1],+m[2],+m[3],m[4]==null?1:+m[4]]:null}
+ function bgOf(el){while(el&&el!==document.documentElement){var c=rgb(getComputedStyle(el).backgroundColor);if(c&&c[3]>0.5)return c;el=el.parentElement}return [255,255,255,1]}
+ function fix(root){
+  if(!admin()||!root||!root.getBoundingClientRect().width)return;
+  root.classList.add('supgo-legible');
+  var min=innerWidth<=760?MIN_M:MIN_D;
+  root.querySelectorAll('*').forEach(function(el){
+   if(el.dataset.supgoLegible==='1')return;
+   var tag=el.tagName;if(tag==='SVG'||tag==='PATH'||tag==='IMG'||tag==='STYLE'||tag==='SCRIPT')return;
+   var hasText=false;for(var i=0;i<el.childNodes.length;i++){var n=el.childNodes[i];if(n.nodeType===3&&n.textContent.trim()){hasText=true;break}}
+   if(!hasText&&!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(tag))return;
+   var cs=getComputedStyle(el),fs=parseFloat(cs.fontSize),r=el.getBoundingClientRect();
+   if(!r.width)return;
+   el.dataset.supgoLegible='1';
+   /* Insignias y contadores pequeños conservan su tamaño para no deformarse. */
+   var tiny=r.width<30&&r.height<24;
+   if(fs<min&&!tiny){el.style.setProperty('font-size',(fs<10?min-1:min)+'px','important');if(parseFloat(cs.lineHeight)<fs*1.3)el.style.setProperty('line-height','1.4','important')}
+   var c=rgb(cs.color);
+   if(c&&Math.abs(c[0]-c[1])<14&&Math.abs(c[1]-c[2])<14&&c[0]>=130&&c[0]<=205){var bg=bgOf(el);if(bg[0]+bg[1]+bg[2]>600)el.style.setProperty('color','#4b5260','important')}
+  });
+ }
+ var t=0;
+ function run(){clearTimeout(t);t=setTimeout(function(){if(!admin())return;document.querySelectorAll(ROOTS).forEach(fix)},120)}
+ new MutationObserver(function(list){for(var i=0;i<list.length;i++){var m=list[i];if(m.type==='childList'&&m.addedNodes.length){run();return}if(m.type==='attributes'){run();return}}})
+  .observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','style','open','aria-hidden']});
+ addEventListener('resize',function(){document.querySelectorAll('[data-supgo-legible]').forEach(function(e){e.removeAttribute('data-supgo-legible')});run()});
+ run();
 })();
 </script>
 </body>
