@@ -292,6 +292,11 @@ def main():
         sys.exit("ERROR: sitemap-productos.xml sin URLs")
 
     clean_duplicates(approved)
+    # Fichas que solo cambian de sabor: una principal por grupo (scripts/seo_variantes.py).
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import seo_variantes
+    seo_variantes.consolidate()
+    merged = seo_variantes.merged_urls()
     externalize_shared_css()
     bundle_ficha_css()
     ensure_bundle_extras()
@@ -309,7 +314,7 @@ def main():
     guides = collect(expand(GUIDE_GLOBS), state, problems)
     product_paths = [PRODUCTS / u.rsplit("/", 1)[1] for u in sorted(approved) if (PRODUCTS / u.rsplit("/", 1)[1]).exists()]
     products = collect(product_paths, state, problems)
-    if len(products) < len(approved) * 0.9:
+    if len(products) < len(approved - merged) * 0.9:
         sys.exit(f"ERROR: solo {len(products)} de {len(approved)} fichas son válidas; se conserva el sitemap anterior")
 
     published = {u for u, _ in pages + guides + products}

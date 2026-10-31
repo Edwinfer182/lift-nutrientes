@@ -42,6 +42,8 @@ jobs:
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
+      - name: Unir en Google las fichas que solo cambian de sabor
+        run: python scripts/seo_variantes.py
       - name: Verificar HTML SEO y Schema del producto
         run: |
           python - <<'PY'
