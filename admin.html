@@ -10984,7 +10984,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
   if(!provs.length){alert('No hay proveedores configurados.');return}
   document.getElementById('liftProvPick')?.remove();
   const m=document.createElement('div');m.id='liftProvPick';
-  m.style.cssText='position:fixed;inset:0;background:#0009;z-index:99999;display:grid;place-items:center;padding:15px';
+  m.style.cssText='position:fixed;inset:0;background:#0009;z-index:2147483600;display:grid;place-items:center;padding:15px';
   m.innerHTML=`<div style="background:#fff;width:min(94vw,420px);max-height:88vh;overflow:auto;border-radius:16px;padding:18px;font:13px Poppins,sans-serif"><h3 style="margin:0 0 4px;font-size:15px">Enviar pedido #${p.id} a proveedor</h3><small style="color:#777;display:block;margin-bottom:12px">${esc(p.nombre||'')} · ${esc(p.ciudad||'')}</small><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${provs.map((x,i)=>`<button type="button" data-i="${i}" style="min-height:44px;border:1px solid #d7d7d7;border-radius:11px;background:#fff;color:#111;font:500 12px Poppins,sans-serif;cursor:pointer;padding:8px">${esc(x.name)}</button>`).join('')}</div><button type="button" data-close style="margin-top:12px;width:100%;height:40px;border:0;border-radius:10px;background:#111;color:#fff;font:600 12px Poppins,sans-serif;cursor:pointer">Cancelar</button></div>`;
   m.onclick=e=>{
    if(e.target===m||e.target.hasAttribute('data-close')){m.remove();return}
