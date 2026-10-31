@@ -99,6 +99,11 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .mini{display:flex;gap:6px;border-top:1px solid var(--soft);padding-top:9px}
 .mini button{flex:1;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--ink2)}
 .mini button svg{width:16px;height:16px}
+.mini button[data-act="open"]{flex:0 0 40px}
+.mini .shMini{color:#111;border-color:#d9f99d;background:#f7fee7}
+.mini button{min-width:0;white-space:nowrap}
+.mini .ic{flex:0 0 40px}.mini .ic span{display:none}
+.card{min-width:0}
 .mini .waMini{color:#128c4b;border-color:#bbf7d0;background:#f0fdf4}
 .empty{background:#fff;border:1px dashed #d4d6da;border-radius:var(--r);padding:34px 18px;text-align:center;color:var(--muted)}
 .skel{height:132px;border-radius:var(--r);background:linear-gradient(90deg,#eceef1,#f6f7f8,#eceef1);background-size:200% 100%;animation:sh 1.2s infinite}
@@ -384,6 +389,7 @@ const I={
   more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
 };
 
@@ -520,9 +526,10 @@ function cardHtml(p){
     ${na?'<div class="next">'+na+'</div>':''}
     <div class="mini">
       <button class="waMini" data-act="wa" data-id="${p.id}">${I.wa} WhatsApp</button>
-      <button data-act="copy-client" data-id="${p.id}">${I.link} Enlace</button>
-      <button data-act="courier" data-id="${p.id}">${I.moto} Mensajero</button>
-      <button data-act="open" data-id="${p.id}" aria-label="Más opciones del pedido ${p.id}">${I.more}</button>
+      <button class="shMini" data-act="share" data-id="${p.id}" aria-label="Compartir pedido ${p.id} con datos">${I.share} Compartir</button>
+      <button class="ic" data-act="copy-client" data-id="${p.id}" title="Copiar enlace del pedido" aria-label="Copiar enlace del pedido ${p.id}">${I.link}<span> Enlace</span></button>
+      <button class="ic" data-act="courier" data-id="${p.id}" title="Enlace del mensajero" aria-label="Enlace del mensajero ${p.id}">${I.moto}<span> Mensajero</span></button>
+      <button class="ic" data-act="open" data-id="${p.id}" title="Más opciones" aria-label="Más opciones del pedido ${p.id}">${I.more}</button>
     </div>
   </article>`;
 }
@@ -582,6 +589,7 @@ async function act(a,id,btn){
     busy(true);
     if(a==='open')return openDetail(id);
     if(a==='wa')return openWa(p,false);
+    if(a==='share')return shareOrder(orderForShare(p),btn);
     if(a==='wa-follow')return openWa(p,true);
     if(a==='copy-client'){const u=orderUrl(p.id,p.token_publico);toast(await copy(u)?'Enlace del pedido copiado':'Copia el enlace: '+u);return}
     if(a==='courier'){const j=await fn({action:'courier-link',pedido_id:p.id});const u='https://supgo.co/admin.html?entrega='+encodeURIComponent(j.token);toast(await copy(u)?'Enlace del mensajero copiado':'Enlace: '+u);return}
@@ -617,6 +625,152 @@ async function act(a,id,btn){
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||!b.dataset.id)return;act(b.dataset.act,Number(b.dataset.id),b.tagName==='BUTTON'?b:null)});
 
+/* ===== Compartir pedido con datos (imagen) ===== */
+const SHARE_BADGE={nuevo:'RECIBIDO',verificando_disponibilidad:'RECIBIDO',sin_disponibilidad:'EN REVISIÓN',pendiente_pago:'PAGO PENDIENTE',preparando:'PREPARANDO',programado:'PROGRAMADO',en_ruta:'EN RUTA',entregado:'ENTREGADO',cancelado:'CANCELADO'};
+function deliveryEstimate(cityName,now=new Date()){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now);
+  const v=k=>Number(parts.find(p=>p.type===k)?.value||0);
+  const date=new Date(Date.UTC(v('year'),v('month')-1,v('day'))),day=date.getUTCDay(),hour=v('hour');
+  const add=(d,n)=>new Date(d.getTime()+n*86400000),key=d=>d.toISOString().slice(0,10),monday=d=>add(d,(8-d.getUTCDay())%7);
+  const easter=y=>{const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k+7)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114;return new Date(Date.UTC(y,Math.floor(n/31)-1,n%31+1))};
+  const holidays=y=>{const s=new Set();[[1,1],[5,1],[7,20],[8,7],[12,8],[12,25]].forEach(([m,d])=>s.add(key(new Date(Date.UTC(y,m-1,d)))));[[1,6],[3,19],[6,29],[8,15],[10,12],[11,1],[11,11]].forEach(([m,d])=>s.add(key(monday(new Date(Date.UTC(y,m-1,d))))));const e=easter(y);[-3,-2].forEach(n=>s.add(key(add(e,n))));[39,60,68].forEach(n=>s.add(key(monday(add(e,n)))));return s};
+  const isOp=d=>d.getUTCDay()!==0&&!holidays(d.getUTCFullYear()).has(key(d));
+  const nextOp=d=>{let x=add(d,1);while(!isOp(x))x=add(x,1);return x};
+  const fmtD=d=>new Intl.DateTimeFormat('es-CO',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}).format(d);
+  if(norm(cityName)!=='medellin')return 'Entrega estimada: 1 a 3 días hábiles (según destino).';
+  if(!isOp(date))return 'Entrega estimada: '+fmtD(nextOp(date))+' (sujeta a confirmación).';
+  if(hour<13)return 'Entrega estimada: de 3 a 8 horas.';
+  if(day===6||!isOp(add(date,1)))return 'Entrega estimada: '+fmtD(nextOp(date))+'.';
+  return 'Entrega estimada: dentro de las próximas 24 horas.';
+}
+async function loadShareImg(url){
+  const raw=String(url||'').trim();if(!raw)return null;
+  const c=[],add=u=>{if(u&&!c.includes(u))c.push(u)};
+  let m=raw.match(/[?&]id=([^&]+)/i)||raw.match(/\/d\/([^/]+)/i);
+  if(m){add('https://lh3.googleusercontent.com/d/'+m[1]+'=w400');add('https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400')}
+  add(raw);add(SB+'/functions/v1/share-product-image?url='+encodeURIComponent(raw));
+  for(const u of c){
+    try{
+      const img=new Image();img.crossOrigin='anonymous';img.referrerPolicy='no-referrer';
+      await new Promise((ok,ko)=>{const t=setTimeout(()=>ko(new Error('timeout')),8000);img.onload=()=>{clearTimeout(t);ok()};img.onerror=()=>{clearTimeout(t);ko(new Error('img'))};img.src=u});
+      if(!img.naturalWidth)continue;
+      const tc=document.createElement('canvas');tc.width=tc.height=1;const tx=tc.getContext('2d');tx.drawImage(img,0,0,1,1);tx.getImageData(0,0,1,1);
+      return img;
+    }catch(e){}
+  }
+  return null;
+}
+async function shareImages(o){
+  const map={};
+  (o.items||[]).forEach(x=>{if(x.image)map[x.producto_id]=x.image});
+  if((o.items||[]).some(x=>!map[x.producto_id]&&x.producto_id)){
+    try{const cat=await Promise.race([loadCatalog(),new Promise((_,ko)=>setTimeout(()=>ko(new Error('t')),7000))]);(cat||[]).forEach(p=>{if(p.image&&!map[p.id])map[p.id]=p.image})}catch(e){}
+  }
+  return Promise.all((o.items||[]).map(x=>map[x.producto_id]?loadShareImg(map[x.producto_id]).catch(()=>null):null));
+}
+function wrapText(ctx,text,max,maxLines=3){
+  const words=String(text||'').split(/\s+/).filter(Boolean),out=[];let line='';
+  for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){out.push(line);line=w;}else line=t}
+  if(line)out.push(line);
+  if(out.length>maxLines){const k=out.slice(0,maxLines);k[maxLines-1]=k[maxLines-1].replace(/\s*\S*$/,'')+'…';return k}
+  return out;
+}
+async function drawOrderCanvas(o){
+  if(document.fonts){await Promise.all([400,500,700].map(w=>document.fonts.load(w+' 18px Poppins').catch(()=>[])));await document.fonts.ready}
+  const imgs=await shareImages(o);
+  const items=o.items||[],sub=items.reduce((a,x)=>a+Number(x.total_linea||0),0);
+  const ship=Number(o.envio||0),desc=Number(o.descuento||0),total=Number(o.total||0);
+  const W=720,pad=22,ins=18,ink='#111111',gray='#333333',green='#C8F34B',S=2;
+  const c=document.createElement('canvas'),ctx=c.getContext('2d');
+  c.width=W*S;ctx.scale(S,S);
+  const font=(sz,wt)=>{ctx.font=wt+' '+sz+'px Poppins,Arial'};
+  font(17,400);
+  const inner=W-2*(pad+ins);
+  const addr=wrapText(ctx,o.direccion||'',inner);
+  const notes=o.notas?wrapText(ctx,'Notas: '+o.notas,inner):[];
+  font(18,500);
+  const nameLines=items.map(x=>wrapText(ctx,x.nombre||'Producto',W-290,3));
+  const rowsH=nameLines.map(l=>Math.max(84,44+l.length*23));
+  const city=[o.ciudad,o.departamento].filter(Boolean).join(', ');
+  const custH=82+addr.length*23+(city?23:0)+notes.length*23;
+  const extra=(desc>0?23:0)+(o.payLabel?23:0);
+  const prodH=45+rowsH.reduce((a,b)=>a+b,0)+15+54+extra;
+  const active=!['entregado','cancelado'].includes(o.estado);
+  const totH=active?95:70;
+  const H=90+7+custH+7+prodH+7+totH+38;
+  c.height=H*S;ctx.setTransform(S,0,0,S,0,0);
+  const round=(x,y,w,h,r,col)=>{ctx.fillStyle=col;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill()};
+  const txt=(s,x,y,sz=19,col=ink,wt=400)=>{ctx.fillStyle=col;font(sz,wt);ctx.fillText(String(s),x,y)};
+  const right=(s,x,y,sz=19,col=ink,wt=400)=>{font(sz,wt);txt(s,x-ctx.measureText(String(s)).width,y,sz,col,wt)};
+  ctx.fillStyle='#F2F3F2';ctx.fillRect(0,0,W,H);
+  round(pad,0,W-pad*2,90,12,ink);
+  txt('SUPGO',pad+ins,40,36,'#FFFFFF',700);
+  const badge=o.badge||SHARE_BADGE[o.estado]||'RECIBIDO';font(14,700);const bw=ctx.measureText(badge).width+28;
+  round(W-pad-ins-bw,12,bw,26,13,o.estado==='cancelado'?'#fca5a5':green);txt(badge,W-pad-ins-bw+14,30,14,ink,700);
+  txt('Pedido #'+o.id,pad+ins,72,17,'#F0F0F0',500);
+  const d=o.fecha?new Date(o.fecha):new Date();
+  right(new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(isNaN(d)?new Date():d),W-pad-ins,72,16,'#F0F0F0',500);
+  let y=97;round(pad,y,W-pad*2,custH,12,'#FFFFFF');
+  let cy=y+28;txt('DATOS DEL CLIENTE',pad+ins,cy,18,ink,500);cy+=25;
+  txt([o.nombre,o.celular].filter(Boolean).join(' · '),pad+ins,cy,18,ink,500);cy+=24;
+  addr.forEach(l=>{txt(l,pad+ins,cy,17,gray);cy+=23});
+  if(city){txt(city,pad+ins,cy,17,gray);cy+=23}
+  notes.forEach(l=>{txt(l,pad+ins,cy,16,gray);cy+=23});
+  y+=custH+7;round(pad,y,W-pad*2,prodH,12,'#FFFFFF');
+  let py=y+28;txt('PRODUCTOS',pad+ins,py,18,ink,500);py+=13;
+  items.forEach((x,i)=>{
+    const img=imgs[i];
+    if(img){const s=55,k=Math.min(s/img.width,s/img.height);ctx.drawImage(img,pad+ins+(s-img.width*k)/2,py+11+(s-img.height*k)/2,img.width*k,img.height*k)}
+    else{round(pad+ins,py+11,55,55,10,'#F2F3F2')}
+    const ix=pad+ins+70;
+    nameLines[i].forEach((l,j)=>txt(l,ix,py+27+j*23,18,ink,500));
+    txt('Cant. '+Number(x.cantidad||1)+(x.marca?' · '+x.marca:''),ix,py+27+nameLines[i].length*23,15,gray,500);
+    right(money(x.total_linea),W-pad-ins,py+27,18,ink,500);
+    py+=rowsH[i];
+  });
+  ctx.strokeStyle='#E7E7E7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad+ins,py);ctx.lineTo(W-pad-ins,py);ctx.stroke();py+=24;
+  txt('Subtotal',pad+ins,py,17,gray);right(money(sub),W-pad-ins,py,17);py+=23;
+  if(desc>0){txt('Descuento',pad+ins,py,17,gray);right('-'+money(desc),W-pad-ins,py,17);py+=23}
+  txt('Envío',pad+ins,py,17,gray);right(ship>0?money(ship):'GRATIS',W-pad-ins,py,17);py+=23;
+  if(o.payLabel){txt('Pago',pad+ins,py,17,gray);right(o.payLabel,W-pad-ins,py,17,ink,500)}
+  y+=prodH+7;round(pad,y,W-pad*2,totH,12,ink);
+  txt('TOTAL',pad+ins,y+37,22,'#FFFFFF',700);right(money(total),W-pad-ins,y+40,30,green,700);
+  if(active)txt(deliveryEstimate(o.ciudad),pad+ins,y+73,16,'#FFFFFF',500);
+  y+=totH+8;font(16,400);const ft='Gracias por tu compra · supgo.co';txt(ft,(W-ctx.measureText(ft).width)/2,y+16,16,gray);
+  return c;
+}
+function orderForShare(p){
+  const pay=payInfo(p);
+  return {id:p.id,fecha:p.fecha,nombre:p.nombre,celular:p.celular,ciudad:p.ciudad,departamento:p.departamento,direccion:p.direccion,notas:p.notas,envio:p.envio,descuento:p.descuento,total:p.total,estado:st(p),payLabel:pay.l,items:p.items||[]};
+}
+function shareReady(blob,file,o){
+  const url=URL.createObjectURL(blob);
+  const el=sheet(`<div class="sheetHead"><h2>Pedido #${o.id}</h2><button class="iconBtn" style="background:#fff;color:#111;border-color:var(--line)" data-close aria-label="Cerrar">${I.x}</button></div>
+    <div class="sec"><img src="${url}" alt="Imagen del pedido #${o.id}" style="display:block;width:100%;max-width:420px;margin:0 auto;border-radius:12px;border:1px solid var(--line)"></div>
+    <div class="sec"><div class="grid2">${navigator.share?'<button class="btn dark" id="shGo">'+I.share+' Compartir</button>':''}<a class="btn" href="${url}" download="${file.name}">Descargar</a></div>
+    <p class="hint">Compártela por WhatsApp o guárdala en la galería.</p></div>`);
+  const b=el.querySelector('#shGo');
+  if(b)b.onclick=async()=>{try{await navigator.share({files:[file],title:'Pedido SUPGO #'+o.id})}catch(e){if(e&&e.name!=='AbortError')toast('Este navegador no deja compartir la imagen. Usa Descargar.',{err:true})}};
+}
+let sharing=false;
+async function shareOrder(o,btn){
+  if(sharing)return;sharing=true;if(btn)btn.disabled=true;
+  toast('Creando imagen del pedido…');
+  try{
+    const c=await drawOrderCanvas(o);
+    const blob=await new Promise(r=>c.toBlob(r,'image/png',.94));if(!blob)throw new Error('img');
+    const file=new File([blob],'supgo-pedido-'+o.id+'.png',{type:'image/png'});
+    document.querySelectorAll('.toast').forEach(x=>x.remove());
+    const can=navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}));
+    if(can){
+      try{await navigator.share({files:[file],title:'Pedido SUPGO #'+o.id});return}
+      catch(e){if(e&&e.name==='AbortError')return}
+    }
+    shareReady(blob,file,o);
+  }catch(e){console.error(e);toast('No se pudo generar la imagen del pedido',{err:true})}
+  finally{sharing=false;if(btn)btn.disabled=false}
+}
+
 /* ===== Detalle ===== */
 let openId=0;
 function closeSheet(){document.querySelectorAll('.shade,.sheet').forEach(x=>x.remove());openId=0;document.body.style.overflow=''}
@@ -640,6 +794,7 @@ function openDetail(id){
     <div class="sec"><h3>Cliente</h3>
       <div class="kv"><span>Nombre</span><b>${esc(p.nombre||'')}</b><span>Celular</span><a href="tel:${esc(digits(p.celular))}">${esc(p.celular||'')}</a><span>Ciudad</span><span style="color:var(--ink)">${esc(p.ciudad||'')}</span><span>Dirección</span><span style="color:var(--ink)">${esc(p.direccion||'')}</span>${p.notas?'<span>Notas</span><span style="color:var(--ink)">'+esc(p.notas)+'</span>':''}</div>
       <div class="grid2" style="margin-top:10px"><button class="btn wa" data-act="wa" data-id="${p.id}">${I.wa} WhatsApp</button><button class="btn" data-act="copy-client" data-id="${p.id}">${I.link} Enlace cliente</button></div>
+      <button class="btn dark block" style="margin-top:8px" data-act="share" data-id="${p.id}">${I.share} Compartir pedido con datos</button>
     </div>
     <div class="sec"><h3>Productos</h3><div class="lines">${items||'<span style="color:var(--muted)">Sin detalle</span>'}
       ${Number(p.descuento)>0?'<div class="line"><span>Descuento</span><b>− '+money(p.descuento)+'</b></div>':''}
@@ -846,7 +1001,8 @@ async function saveOrder(){
   try{
     const r=await fn({action:'save-order',request_key:'panel-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),nombre:c.nombre.trim(),celular:digits(c.celular),direccion:c.direccion.trim(),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),notas:(c.notas||'').trim(),subtotal:t.sub,envio:t.ship,descuento:t.desc,total:t.total,origen,items});
     const id=Number(r.pedido_id);if(!id)throw new Error('No se recibió el número del pedido.');
-    const saved={id,token:r.token,nombre:c.nombre.trim(),celular:digits(c.celular),total:t.total,items};
+    const imgs={};draft.lines.forEach(l=>{if(l.image&&l.id)imgs[l.id]=l.image});
+    const saved={id,token:r.token,nombre:c.nombre.trim(),celular:digits(c.celular),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),direccion:c.direccion.trim(),notas:(c.notas||'').trim(),envio:t.ship,descuento:t.desc,total:t.total,fecha:new Date().toISOString(),estado:'nuevo',badge:draft.pay==='pagado'?'PAGADO':'RECIBIDO',payLabel:draft.pay==='pagado'?'Pagado':draft.pay==='abono'?'Abono · debe '+money(Math.max(0,t.total-abono)):'Crédito',items:items.map(x=>Object.assign({image:imgs[x.producto_id]||''},x))};
     draft=blank();saveDraft();fillClient();
     showDone(saved);loadOrders();
   }catch(e){toast('No se guardó: '+e.message,{err:true});b.disabled=false;b.textContent='Guardar pedido'}
@@ -857,9 +1013,11 @@ function showDone(o){
   const text=`Hola ${name}, este es el resumen de tu pedido #${o.id} en SUPGO:\n\n${o.items.map(x=>x.cantidad+' × '+x.nombre).join('\n')}\n\nTotal: ${money(o.total)}\n\nPuedes consultarlo aquí:\n${url}`;
   d.innerHTML=`<div class="ok">${I.check}</div><h2>Pedido #${o.id} guardado</h2><p>${esc(o.nombre)} · ${money(o.total)}</p>
     <div class="btns"><a class="btn wa block" href="https://wa.me/${phoneWa(o.celular)}?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">${I.wa} Enviar por WhatsApp</a>
+    <button class="btn dark block" id="dShare">${I.share} Compartir pedido con datos</button>
     <button class="btn block" id="dCopy">${I.link} Copiar enlace del pedido</button>
-    <button class="btn dark block" id="dView">Ver en pedidos</button>
+    <button class="btn block" id="dView">Ver en pedidos</button>
     <button class="btn block" id="dNew">${I.plus} Crear otro pedido</button></div>`;
+  $('dShare').onclick=e=>shareOrder(o,e.currentTarget);
   $('dCopy').onclick=async()=>toast(await copy(url)?'Enlace copiado':'Enlace: '+url);
   $('dView').onclick=()=>{go('pedidos');filter='activos';$('q').value='#'+o.id;renderOrders()};
   $('dNew').onclick=()=>renderNew();
