@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Genera fichas SEO estáticas desde Supabase. No elimina páginas existentes."""
 import os, json, re, html, urllib.request, urllib.parse, pathlib, unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 OUT=ROOT/"productos"
 BASE="https://supgo.co"
@@ -112,14 +112,50 @@ def active_offer(row):
    if expiry.tzinfo is None:expiry=expiry.replace(tzinfo=timezone.utc)
    if datetime.now(timezone.utc)>expiry:return None
   except ValueError:pass
+ # Regla de precios SUPGO: se cobra el precio del catálogo, o el de weekly_offers
+ # solo si es menor que el del catálogo y no ha vencido. El precio "antes" es el
+ # del catálogo (lo que pagaría el cliente sin la oferta), igual que en el carrito.
  try:
   catalog_price=float(row["product"].get("price") or row["product"].get("precio") or 0)
   sale=float(o.get("price"))
-  configured_original=o.get("originalPrice")
-  original=float(configured_original) if configured_original not in (None,"") else catalog_price
-  if sale<=0 or original<=sale:return None
+  if catalog_price<=0 or sale<=0 or sale>=catalog_price:return None
  except (TypeError,ValueError):return None
- return original,sale
+ return catalog_price,sale
+
+BOGOTA=timezone(timedelta(hours=-5))
+MESES=("enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre")
+def offer_deadline(row):
+ """Fecha de fin de la oferta en hora de Colombia, o None."""
+ until=(row.get("_offer") or {}).get("promoUntil")
+ if not until:return None
+ try:
+  deadline=datetime.fromisoformat(str(until).replace("Z","+00:00"))
+ except (ValueError,TypeError):return None
+ if deadline.tzinfo is None:deadline=deadline.replace(tzinfo=timezone.utc)
+ deadline=deadline.astimezone(BOGOTA)
+ # Las fechas "abiertas" (p. ej. 2099) no se muestran como fecha de fin.
+ if deadline.year>datetime.now(BOGOTA).year+2:return None
+ return deadline
+def cop(n):
+ return ("$ {:,.0f}".format(float(n or 0))).replace(",",".")
+
+ICON_CART='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>'
+def related_card(v):
+ """Tarjeta de 'Más de esta categoría' con precio y botón Agregar (como paginas/supgo-pages.js)."""
+ regular=float(v.get("price") or 0); sale=v.get("sale")
+ photo=('<img src="'+esc(v["image"])+'" alt="'+esc(v["name"])+'" loading="lazy" decoding="async" width="160" height="160">') if v.get("image") else ''
+ badge=('<span class="rel-badge">-'+str(v["pct"])+'%</span>') if sale else ''
+ if sale:price='<strong>'+cop(sale)+'</strong><del>'+cop(regular)+'</del>'
+ elif regular>0:price='<strong>'+cop(regular)+'</strong>'
+ else:price='<strong class="rel-ask">Consultar precio</strong>'
+ if regular>0:
+  button=('<button type="button" class="rel-add" data-id="'+esc(v["id"])+'" data-name="'+esc(v["name"])+'" data-image="'+esc(v.get("image") or "")+'" data-regular="'+str(int(regular))+'"'
+   +((' data-sale="'+str(int(sale))+'" data-until="'+esc(v.get("until") or "")+'"') if sale else '')+'>'+ICON_CART+'<span>Agregar</span></button>')
+ else:
+  button='<a class="rel-add rel-ask-btn" href="https://wa.me/573137380766?text='+esc(urllib.parse.quote("Hola, quiero saber el precio de "+v["name"]))+'" target="_blank" rel="noopener">Consultar</a>'
+ return ('<article class="rel-card"><a class="rel-photo" href="'+esc(v["url"])+'" tabindex="-1" aria-hidden="true">'+photo+badge+'</a>'
+  +('<small class="rel-brand">'+esc(v["brand"])+'</small>' if v.get("brand") else '')
+  +'<a class="rel-name" href="'+esc(v["url"])+'" title="'+esc(v["name"])+'">'+esc(v["name"])+'</a><div class="rel-price">'+price+'</div>'+button+'</article>')
 
 def fetch_allowed_brands():
  """La selección de marcas se administra en Supabase."""
@@ -170,6 +206,141 @@ body .supgo-menu .supgo-links.is-brands{display:grid!important;grid-template-col
 body .supgo-menu .supgo-brand-card{background:#fff!important}
 body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 """
+
+# Versión de la plantilla de ficha. Si una ficha existente no la tiene, se
+# regenera completa una vez; después solo se sincronizan precio y relacionados.
+FICHA_VERSION="v2-20261030"
+PAYMENT_HTML='<div class="pi-pay"><span class="pi-pay-label">Paga con</span><ul aria-label="Medios de pago"><li class="pi-breb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Bre-B</span></li><li class="pi-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg><span>Tarjeta con Bold</span></li><li class="pi-bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 12 4l9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><span>Transferencia</span></li></ul></div>'
+FICHA_V2_CSS=r'''
+/* ===== Ficha v2: jerarquía, precio, envío, pagos, relacionados y escritorio ===== */
+.product-page .product-info .pi-brand{display:inline-block;align-self:flex-start;margin:0 0 6px;font:600 12px/1.3 Poppins,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;text-decoration:none;border-bottom:1px solid transparent}
+.product-page .product-info a.pi-brand:hover{color:#111;border-bottom-color:currentColor}
+.product-page .product-info h1{margin:0 0 10px!important}
+.product-page .pi-tags{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0 0 14px}
+.product-page .pi-tags li:not(.pi-tag){margin:0;padding:0}
+.product-page .pi-tag{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid #e5e7eb;border-radius:999px;background:#f7f7f8;color:#1f2937;font:500 12px/1.3 Poppins,Arial,sans-serif;text-decoration:none}
+.product-page li.pi-tag{list-style:none}
+.product-page .pi-tag b{font-weight:400;color:#6b7280}
+.product-page a.pi-tag:hover{border-color:#9ca3af;background:#fff}
+body .product-page .product-info .product-price{margin:0 0 12px!important}
+body .product-page .product-info .seo-offer-price{display:flex!important;flex-flow:row wrap!important;align-items:center!important;gap:6px 12px!important;padding:0!important;background:none!important;border:0!important;border-radius:0!important}
+body .product-page .product-info .seo-offer-label{order:0!important;background:#dc2626!important;color:#fff!important;font:700 14px/1 Poppins,Arial,sans-serif!important;padding:6px 9px!important;border-radius:7px!important;letter-spacing:0!important}
+body .product-page .product-info .seo-offer-price strong{order:1!important;color:#b91c1c!important;font-size:clamp(27px,2.6vw,34px)!important;font-weight:700!important;line-height:1.1!important}
+body .product-page .product-info .seo-offer-price del{order:2!important;font-size:15px!important;color:#6b7280!important;font-weight:400!important}
+.product-page .pi-offer-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:8px 0 0;font:400 12.5px/1.4 Poppins,Arial,sans-serif;letter-spacing:0}
+body .product-page .pi-offer-meta .seo-offer-saving{order:0!important;display:inline-block;padding:3px 8px;border-radius:6px;background:#fef2f2;color:#b91c1c!important;font-size:12.5px!important;font-weight:600!important}
+body .product-page .pi-offer-meta .seo-offer-until{order:1;color:#4b5563;font-size:12.5px}
+.product-page .seo-offer-extras{margin:0 0 12px!important}
+.product-page .pi-ship{display:flex;align-items:center;gap:11px;margin:0 0 16px;padding:10px 13px;border:1px solid #d1fae5;border-radius:12px;background:#f0fdf4;color:#14532d;font:400 12.5px/1.45 Poppins,Arial,sans-serif}
+.product-page .pi-ship svg{width:24px;height:24px;flex:none;color:#15803d}
+.product-page .pi-ship strong{display:block;font-weight:600;font-size:13px}
+.product-page .pi-ship span{display:block;color:#166534}
+.product-page .pi-ship small{color:#4d7c5f;font-size:11px}
+.product-page .actions .add.added{background:#15803d}
+.product-page .pi-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0}
+.product-page .pi-pay{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:12px 0 18px;font:400 12px/1.3 Poppins,Arial,sans-serif;color:#4b5563}
+.product-page .pi-pay ul{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.product-page .pi-pay li{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff;color:#111827;font-weight:500}
+.product-page .pi-pay li svg{width:17px;height:17px;flex:none}
+.product-page .pi-pay .pi-breb{color:#6d28d9}.product-page .pi-pay .pi-card{color:#d97706}.product-page .pi-pay .pi-bank{color:#0369a1}
+.product-page .seo-description{margin:0 0 6px!important}
+.product-page .seo-description .product-description{font-size:14px;line-height:1.75}
+/* Foto con alto fijo: reserva el espacio desde el primer pintado. */
+body .product-page .product-card .product-gallery .product-media{height:clamp(400px,40vw,540px)!important;min-height:0!important;aspect-ratio:auto!important;padding:28px!important}
+body .product-page .product-card .product-gallery .zoom-image{width:100%;height:100%!important;min-height:0!important}
+body .product-page .product-card .product-gallery .zoom-image img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain}
+/* Más de esta categoría: tarjetas con precio y botón Agregar. */
+.product-page .pi-related{margin:36px 0 0;padding-top:20px;border-top:1px solid #ececec}
+.product-page .pi-related .related-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.product-page .pi-related .related-heading h2{margin:0;font:600 17px/1.3 Poppins,Arial,sans-serif}
+.product-page .pi-related .related-controls{display:flex;gap:6px}
+.product-page .pi-related .related-controls button{width:34px;height:34px;padding:0;border:1px solid #e2e4e8;border-radius:50%;background:#fff;color:#222;font-size:21px;line-height:1}
+.product-page .pi-rel-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:2px 2px 10px}
+.product-page .pi-rel-track::-webkit-scrollbar{display:none}
+.product-page .rel-card{flex:0 0 200px;min-width:0;scroll-snap-align:start;display:flex;flex-direction:column;gap:5px;padding:10px;border:1px solid #e6e8eb;border-radius:14px;background:#fff;font-family:Poppins,Arial,sans-serif}
+.product-page .rel-photo{position:relative;display:block;height:150px;border-radius:10px;background:#fafafa}
+.product-page .rel-photo img{display:block;width:100%;height:100%;object-fit:contain}
+.product-page .rel-badge{position:absolute;top:6px;left:6px;padding:3px 7px;border-radius:6px;background:#dc2626;color:#fff;font-size:11px;font-weight:700}
+.product-page .rel-brand{margin-top:3px;font-size:10.5px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-page .rel-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em;font-size:12.5px;line-height:1.35;color:#111;text-decoration:none}
+.product-page .rel-name:hover{text-decoration:underline}
+.product-page .rel-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;margin-top:auto}
+.product-page .rel-price strong{font-size:15px;font-weight:700;color:#111}
+.product-page .rel-card:has(.rel-badge) .rel-price strong{color:#b91c1c}
+.product-page .rel-price del{font-size:11px;color:#9ca3af}
+.product-page .rel-price .rel-ask{font-size:13px;font-weight:500;color:#555}
+.product-page .rel-add{display:flex;align-items:center;justify-content:center;gap:6px;height:38px;margin-top:4px;border:0;border-radius:10px;background:#111;color:#fff;font:600 13px Poppins,Arial,sans-serif;text-decoration:none;cursor:pointer}
+.product-page .rel-add svg{width:16px;height:16px}
+.product-page .rel-add.added{background:#15803d}
+.product-page .rel-ask-btn{background:#25d366}
+/* Aviso "Agregado" con acceso al carrito, sin abrir el panel. */
+.pi-toast{position:fixed;left:50%;bottom:24px;z-index:1000;display:flex;align-items:center;gap:14px;max-width:min(440px,calc(100vw - 24px));padding:10px 10px 10px 16px;border-radius:14px;background:#111;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:400 13px/1.35 Poppins,Arial,sans-serif;opacity:0;pointer-events:none;transform:translate(-50%,16px);transition:opacity .2s,transform .2s}
+.pi-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.pi-toast-text{flex:1;display:flex;flex-direction:column;min-width:0}
+.pi-toast-text b{font-weight:600;font-size:14px;color:#4ade80}
+.pi-toast-text small{font-size:12px;color:#d1d5db;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-toast button{flex:none;padding:10px 14px;border:0;border-radius:10px;background:#fff;color:#111;font:600 13px Poppins,Arial,sans-serif;cursor:pointer}
+/* Escritorio: foto fija a la izquierda, información completa a la derecha. */
+@media(min-width:901px){
+ body .product-page{max-width:1320px}
+ body .product-page .product-card{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:clamp(28px,4vw,56px)!important}
+ .product-page .product-gallery{position:sticky;top:88px;align-self:start}
+ .product-page .product-info{padding-top:4px}
+}
+@media(min-width:1200px){.product-page .rel-card{flex-basis:calc((100% - 60px)/6)}}
+@media(max-width:760px){
+ body .product-page .product-card .product-gallery .product-media{height:min(80vw,340px)!important;padding:12px!important}
+ body .product-page .product-card .product-info{padding:6px 2px 10px!important}
+ .product-page .product-info .pi-brand{font-size:11px}
+ .product-page .pi-tag{font-size:11.5px;padding:4px 9px}
+ .product-page .pi-ship{font-size:12px;padding:9px 11px}
+ .product-page .pi-pay{margin:4px 0 14px;gap:6px 8px;font-size:11px}
+ .product-page .pi-pay ul{gap:5px}
+ .product-page .pi-pay li{padding:5px 7px;gap:4px;font-size:11px}
+ .product-page .pi-pay li svg{width:14px;height:14px}
+ .product-page .pi-related{margin-top:22px}
+ .product-page .rel-card{flex-basis:156px}
+ .product-page .rel-photo{height:118px}
+ .pi-toast{left:12px;right:12px;max-width:none;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateY(16px)}
+ .pi-toast.show{transform:none}
+}
+'''
+FICHA_V2_JS=r'''
+(function(){
+var p=window.__supgoFicha||{},$=function(id){return document.getElementById(id)};
+var note=$('notice'),fav=$('fav'),toastBox=$('pi-toast'),toastTimer=0;
+function get(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?f:v}catch(e){return f}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function money(n){return '$ '+String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+function expired(u){if(!u)return false;var t=Date.parse(u);return isFinite(t)&&Date.now()>t}
+/* Si la oferta venció después de generar la página, volver al precio del catálogo. */
+if(p.on_offer&&expired(p.promoUntil)&&p.regular>0){p.on_offer=false;p.price=p.regular;p.promoUntil=null;var box=document.querySelector('.product-price');if(box)box.innerHTML='<p class="price">'+money(p.regular)+'</p>';document.querySelectorAll('.seo-offer-extras').forEach(function(e){e.remove()})}
+document.querySelectorAll('.rel-add[data-until]').forEach(function(b){if(!expired(b.dataset.until))return;b.removeAttribute('data-sale');var card=b.closest('.rel-card'),badge=card.querySelector('.rel-badge'),pr=card.querySelector('.rel-price');if(badge)badge.remove();if(pr)pr.innerHTML='<strong>'+money(b.dataset.regular)+'</strong>'});
+function favs(){var a=get('supgo_seo_favorites',[]);return Array.isArray(a)?a:[]}
+function paint(){if(fav)fav.textContent=favs().some(function(x){return x.id===p.id})?'♥':'♡'}
+if(fav)fav.onclick=function(){var a=favs();a=a.some(function(x){return x.id===p.id})?a.filter(function(x){return x.id!==p.id}):a.concat([p]);save('supgo_seo_favorites',a);paint();note.textContent='Favoritos actualizados'};
+paint();
+function toast(name,qty){if(!toastBox)return;toastBox.querySelector('small').textContent=(qty>1?qty+' × ':'')+name;toastBox.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toastBox.classList.remove('show')},5000)}
+if(toastBox){toastBox.addEventListener('mouseenter',function(){clearTimeout(toastTimer)});toastBox.addEventListener('mouseleave',function(){toastTimer=setTimeout(function(){toastBox.classList.remove('show')},2500)})}
+var toCart=$('pi-toast-cart');if(toCart)toCart.onclick=function(){location.href='/carrito/'};
+function addToCart(item,qty){
+ var key=String(item.id),cart=get('liftCartV2',{}),meta=get('liftCartMetaV1',{});
+ if(!cart||typeof cart!=='object'||Array.isArray(cart))cart={};if(!meta||typeof meta!=='object'||Array.isArray(meta))meta={};
+ var prev=cart[key],n=Number(prev&&typeof prev==='object'?(prev.quantity!=null?prev.quantity:prev.qty):prev)||0;
+ cart[key]=n+qty;meta[key]=Object.assign({},meta[key]||{},{name:item.name,image:item.image,price:item.price,on_offer:!!item.on_offer,promoUntil:item.on_offer?(item.promoUntil||null):null});
+ save('liftCartV2',cart);save('liftCartMetaV1',meta);window.dispatchEvent(new Event('supgo-cart-change'));
+ var c=document.querySelector('#supgo-global-header #count');if(c){c.classList.remove('supgo-bump');void c.offsetWidth;c.classList.add('supgo-bump')}
+ note.textContent=qty+' unidad(es) agregada(s) al carrito';toast(item.name,qty);
+}
+var q=1,qv=$('qtyValue');function show(){qv.textContent=String(q)}
+$('qtyMinus').onclick=function(){q=Math.max(1,q-1);show()};$('qtyPlus').onclick=function(){q=Math.min(99,q+1);show()};
+/* id propio: el header compartido intercepta #add y abriría el panel del carrito. */
+var add=$('pi-add'),addTimer=0;
+add.onclick=function(){addToCart(p,q);q=1;show();add.classList.add('added');add.textContent='✓ Agregado';clearTimeout(addTimer);addTimer=setTimeout(function(){add.classList.remove('added');add.textContent='Agregar al carrito'},1600)};
+document.querySelectorAll('button.rel-add[data-id]').forEach(function(b){var t=0;b.onclick=function(){var sale=Number(b.dataset.sale),reg=Number(b.dataset.regular),on=sale>0&&sale<reg&&!expired(b.dataset.until);addToCart({id:b.dataset.id,name:b.dataset.name,image:b.dataset.image,price:on?sale:reg,on_offer:on,promoUntil:on?b.dataset.until:null},1);b.classList.add('added');b.querySelector('span').textContent='Agregado';clearTimeout(t);t=setTimeout(function(){b.classList.remove('added');b.querySelector('span').textContent='Agregar'},1400)}});
+document.querySelectorAll('.pi-related').forEach(function(s){var tr=s.querySelector('.pi-rel-track');s.querySelector('.related-prev').onclick=function(){tr.scrollBy({left:-tr.clientWidth*.8,behavior:'smooth'})};s.querySelector('.related-next').onclick=function(){tr.scrollBy({left:tr.clientWidth*.8,behavior:'smooth'})}});
+})();
+'''
 
 def fetch_lab_logos():
  """Copia los logos públicos a nuestro dominio para evitar bloqueos de hotlink en Safari."""
@@ -313,30 +484,30 @@ def build(row):
   if promotion:
    original_price=promotion[0]
    offer["priceSpecification"]={"@type":"UnitPriceSpecification","price":int(original_price) if original_price.is_integer() else original_price,"priceCurrency":"COP","priceType":"https://schema.org/StrikethroughPrice"}
+   # Oferta vigente: Google debe saber hasta cuándo aplica el precio rebajado.
+   deadline=offer_deadline(row)
+   if deadline:offer["priceValidUntil"]=deadline.date().isoformat()
   merchant_policy(offer,settings)
   product_schema["offers"]=offer
  breadcrumb={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SUPGO","item":BASE+"/"},{"@type":"ListItem","position":2,"name":"Productos","item":BASE+"/productos/"},{"@type":"ListItem","position":3,"name":name,"item":canonical}]}
  breadcrumb_json=json.dumps(breadcrumb,ensure_ascii=False).replace("<","\\u003c")
  schema=json.dumps(product_schema,ensure_ascii=False).replace("<","\\u003c")
  # SEO legible incluso si falla JavaScript. La experiencia interactiva se abre en el catálogo.
- img=f'<img src="{esc(image)}" alt="{esc(embedded.get("alt1") or name)}" loading="eager" width="420" style="width:100%;max-height:430px;object-fit:contain">' if image else ""
- price_html=f'<p class="price">$ {int(amount):,}</p>'.replace(",","\u002e") if valid_price else "<p>Consultar precio</p>"
- if promotion:
-  original=("$ {:,.0f}".format(promotion[0])).replace(",",".")
-  discounted=("$ {:,.0f}".format(promotion[1])).replace(",",".")
-  price_html='<div class="seo-offer-price"><span class="seo-offer-label">OFERTA</span><del>'+original+'</del><strong>'+discounted+'</strong><span class="seo-offer-saving">Ahorras '+("$ {:,.0f}".format(max(0,promotion[0]-promotion[1]))).replace(",",".")+'</span></div>'
- # Información adicional de la oferta: vencimiento y regalo asociado en Lift.
+ # Alto fijo y dimensiones explícitas: la página no salta al cargar la foto.
+ img=f'<img src="{esc(image)}" alt="{esc(embedded.get("alt1") or name)}" loading="eager" fetchpriority="high" decoding="async" width="600" height="600">' if image else ""
+ price_html=f'<p class="price">{cop(amount)}</p>' if valid_price else '<p class="price price-ask">Consultar precio</p>'
  offer_extra_html=""
  if promotion:
+  pct=round((1-promotion[1]/promotion[0])*100)
+  price_html=('<div class="seo-offer-price"><span class="seo-offer-label">-'+str(pct)+'%</span><strong>'+cop(promotion[1])+'</strong>'
+   '<del aria-label="Precio anterior '+cop(promotion[0])+'">'+cop(promotion[0])+'</del></div>')
+  meta_bits='<span class="seo-offer-saving">Ahorras '+cop(max(0,promotion[0]-promotion[1]))+'</span>'
+  deadline=offer_deadline(row)
+  if deadline:
+   meta_bits+='<span class="seo-offer-until">Oferta válida hasta el '+str(deadline.day)+' de '+MESES[deadline.month-1]+'</span>'
+  price_html+='<div class="pi-offer-meta">'+meta_bits+'</div>'
+  # Regalo asociado a la oferta en Lift.
   offer_data=row.get("_offer") or {}
-  until=offer_data.get("promoUntil")
-  if until:
-   try:
-    deadline=datetime.fromisoformat(str(until).replace("Z","+00:00"))
-    if deadline.tzinfo is None:deadline=deadline.replace(tzinfo=timezone.utc)
-    date_label=deadline.strftime("%d/%m/%Y")
-    offer_extra_html+='<span class="seo-offer-until">Válida hasta el '+esc(date_label)+'</span>'
-   except (ValueError,TypeError):pass
   if offer_data.get("gift"):
    gift_id=str(offer_data.get("giftProductId") or "").strip()
    gift_product=(row.get("_products_by_id") or {}).get(gift_id) or {}
@@ -354,12 +525,12 @@ def build(row):
  # Mostrar la descripción larga como HTML real dentro de un acordeón nativo.
  # El contenido viene del editor SEO; se eliminan scripts y eventos inline.
  long_html=str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
- long_html=re.sub(r"(?is)<(script|iframe|object|embed|form|style|svg)\\b[^>]*>.*?</\\1\\s*>","",long_html)
- long_html=re.sub(r"(?is)<(script|iframe|object|embed|form|style|svg)\\b[^>]*/?>","",long_html)
- long_html=re.sub(r"(?i)\\s+on[a-z]+\\s*=\\s*(?:\\\"[^\\\"]*\\\"|'[^']*'|[^\\s>]+)","",long_html)
- long_html=re.sub(r"(?i)javascript\\s*:","",long_html)
- long_html=re.sub(r"(?i)<\\s*/?details\\b[^>]*>","",long_html)
- long_html=re.sub(r"(?i)<\\s*/?summary\\b[^>]*>","",long_html)
+ long_html=re.sub(r"(?is)<(script|iframe|object|embed|form|style|svg)\b[^>]*>.*?</\1\s*>","",long_html)
+ long_html=re.sub(r"(?is)<(script|iframe|object|embed|form|style|svg)\b[^>]*/?>","",long_html)
+ long_html=re.sub(r"""(?i)\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)""","",long_html)
+ long_html=re.sub(r"(?i)javascript\s*:","",long_html)
+ long_html=re.sub(r"(?i)<\s*/?details\b[^>]*>","",long_html)
+ long_html=re.sub(r"(?i)<\s*/?summary\b[^>]*>","",long_html)
  description_body=long_html if long_html else '<p>'+esc(description or "Consulta presentaciones, sabores y disponibilidad de este producto.")+'</p>'
  if brand.strip().casefold()=="applied nutrition":
   description_body=applied_local_seo(row,name,brand,description)
@@ -368,14 +539,36 @@ def build(row):
  gallery=[]
  for url in [image]+row.get("_images",[]):
   if url and url not in gallery:gallery.append(url)
- gallery_html=''.join('<button type="button" class="gallery-thumb'+(' active' if index==0 else '')+'" data-index="'+str(index)+'" aria-label="Ver imagen '+str(index+1)+'"><img src="'+esc(url)+'" alt="'+esc(name)+' - imagen '+str(index+1)+'" loading="lazy"></button>' for index,url in enumerate(gallery))
+ gallery_html=''.join('<button type="button" class="gallery-thumb'+(' active' if index==0 else '')+'" data-index="'+str(index)+'" aria-label="Ver imagen '+str(index+1)+'"><img src="'+esc(url)+'" alt="'+esc(name)+' - imagen '+str(index+1)+'" loading="lazy" width="48" height="48"></button>' for index,url in enumerate(gallery))
  gallery_json=json.dumps(gallery,ensure_ascii=False).replace("<","\\u003c")
  variants=row.get("_variants",[])
  related=row.get("_related",[])
- variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'" title="'+esc(v["label"])+'">'+('<span class="option-photo"><img src="'+esc(v["image"])+'" alt="'+esc(v["label"])+'" loading="lazy"></span>' if v["image"] else '<span class="option-photo option-empty">Sin foto</span>')+'<span class="option-label">'+esc(v["label"])+'</span>'+('<span class="option-offer">Oferta</span>' if v.get('on_offer') else '')+'</a>' for v in variants)
- related_html=''.join('<a class="related-item" href="'+esc(v["url"])+'">'+('<img loading="lazy" src="'+esc(v["image"])+'" alt="'+esc(v["name"])+'">' if v["image"] else '')+'<strong>'+esc(v["name"])+'</strong><small>'+esc(v["brand"])+'</small></a>' for v in related)
- title_brand_html = (' <span class="seo-title-brand">' + esc(brand) + '</span>') if brand else ''
- product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"url":canonical,"on_offer":bool(promotion),"promoUntil":(row.get("_offer") or {}).get("promoUntil") if promotion else None},ensure_ascii=False).replace("<","\\u003c")
+ variants_html=''.join('<a class="option'+(' selected' if str(v["id"])==str(pid) else '')+'" href="'+esc(v["url"])+'" title="'+esc(v["label"])+'">'+('<span class="option-photo"><img src="'+esc(v["image"])+'" alt="'+esc(v["label"])+'" loading="lazy" width="90" height="90"></span>' if v["image"] else '<span class="option-photo option-empty">Sin foto</span>')+'<span class="option-label">'+esc(v["label"])+'</span>'+('<span class="option-offer">Oferta</span>' if v.get('on_offer') else '')+'</a>' for v in variants)
+ related_html=''.join(related_card(v) for v in related)
+ # Marca encima del nombre, enlazada a su laboratorio cuando la página existe.
+ brand_slug=slug(brand)
+ if brand and (ROOT/"laboratorios"/brand_slug).is_dir():
+  brand_html='<a class="pi-brand" href="/laboratorios/'+esc(brand_slug)+'/">'+esc(brand)+'</a>'
+ elif brand:
+  brand_html='<span class="pi-brand">'+esc(brand)+'</span>'
+ else:brand_html=''
+ # Presentación, sabor y categoría como etiquetas.
+ category=str(p.get("category") or p.get("categoria") or "").strip()
+ flavor=str(p.get("flavor") or p.get("sabor") or "").strip()
+ if not flavor and len(variants)>1:
+  flavor=next((v["label"] for v in variants if str(v["id"])==str(pid)),"")
+ tags=[]
+ if presentation and str(presentation).strip():tags.append('<li class="pi-tag"><b>Presentación</b> '+esc(str(presentation).strip())+'</li>')
+ if flavor and flavor.casefold()!=name.casefold():tags.append('<li class="pi-tag"><b>Sabor</b> '+esc(flavor)+'</li>')
+ if category:
+  cat_slug=slug(category)
+  if (ROOT/"categorias"/cat_slug).is_dir():tags.append('<li><a class="pi-tag" href="/categorias/'+esc(cat_slug)+'/"><b>Categoría</b> '+esc(category)+'</a></li>')
+  else:tags.append('<li class="pi-tag"><b>Categoría</b> '+esc(category)+'</li>')
+ tags_html='<ul class="pi-tags">'+''.join(tags)+'</ul>' if tags else ''
+ regular=float(p.get("price") or p.get("precio") or 0) if valid_price else 0
+ try:regular=float(regular)
+ except (TypeError,ValueError):regular=0
+ product_json=json.dumps({"id":str(pid),"name":name,"image":image,"price":amount,"regular":regular,"url":canonical,"on_offer":bool(promotion),"promoUntil":(row.get("_offer") or {}).get("promoUntil") if promotion else None},ensure_ascii=False).replace("<","\\u003c")
  return filename, f'''<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title><meta name="description" content="{esc(meta)}">\n<meta name="robots" content="{'index, follow' if row.get('_indexable', True) else 'noindex, follow'}">
@@ -501,7 +694,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
  body .product-page .related-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}}
  body .product-page .related-item img{{height:120px}}
  body .product-page .product-info .actions{{position:fixed!important;left:0;right:0;bottom:0;z-index:950;display:flex;align-items:center;gap:10px;width:100%;margin:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e8e8e8;box-shadow:0 -5px 18px rgba(0,0,0,.07)}}
- body .product-page .product-info .actions #add{{flex:1;min-height:46px;padding:11px 14px;font-size:14px;letter-spacing:0}}
+ body .product-page .product-info .actions .add{{flex:1;min-height:46px;padding:11px 14px;font-size:14px;letter-spacing:0}}
  body .product-page .product-info .actions #fav{{flex:0 0 46px;min-width:46px;height:46px;padding:0}}
  .zoom-overlay{{padding:60px 38px}}
  .zoom-arrow{{width:34px;height:34px;font-size:28px}}
@@ -596,6 +789,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 .seo-payments-content .seo-payment-note{{margin:0;color:#747880;font-size:10px}}
 @media(max-width:600px){{.seo-buy-assurance{{padding:12px;margin:12px 0}}.seo-buy-benefit{{gap:8px}}}}
 </style>
+<style id="seo-ficha-v2">{FICHA_V2_CSS}</style>
 <style id="seo-header-css">{SEO_HEADER_CSS}\n{SEO_MENU_FIX}</style>
 
 
@@ -605,30 +799,36 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 
 <script defer src="/componentes/header-loader.js?v=20261022-oculto-inicial6"></script>
 
-<main class="product-page">
+<main class="product-page" data-ficha="{FICHA_VERSION}">
 <nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/productos/">Productos</a>{f'<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/{slug(brand)}/">{esc(brand)}</a>' if brand else ''}<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">{esc(name)}</span></nav>
 <article class="product-card">
-<section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div>{f'<section class="related related-under-image"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="related-grid">{related_html}</div></section>' if related_html else ''}</section>
+<section class="product-gallery">{f'<div class="gallery-thumbs">{gallery_html}</div>' if len(gallery)>1 else ''}<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">{img}<span class="zoom-hint">⌕ Ampliar</span></button></div></section>
 <section class="product-info">
-<h1>{esc(name)}{title_brand_html}</h1><div class="product-price">{price_html}</div>{offer_extra_html}
+{brand_html}<h1>{esc(name)}</h1>{tags_html}
+<!--precio--><div class="product-price">{price_html}</div>{offer_extra_html}<!--/precio-->
+<div class="pi-ship"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div><strong>Envío gratis en Medellín llevando 3 unidades</strong><span>Pide antes de las 2 p. m. y llega hoy <small>(Medellín, días hábiles)</small></span></div></div>
 {f'<div class="variant-panel"><h3>Sabor: {esc(next((v["label"] for v in variants if str(v["id"])==str(pid)), ""))}</h3><div class="variant-grid">{variants_html}</div></div>' if len(variants)>1 else ''}
-<div class="product-rule"></div>
-<details class="seo-description"><summary>Descripción completa <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
-<div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" aria-live="polite"></p>
+<div class="actions"><div class="seo-qty" aria-label="Seleccionar unidades"><button type="button" id="qtyMinus" aria-label="Restar unidad">−</button><output id="qtyValue" aria-live="polite">1</output><button type="button" id="qtyPlus" aria-label="Sumar unidad">+</button></div><button id="pi-add" class="add" type="button">Agregar al carrito</button><button id="fav" class="fav" type="button" aria-label="Favoritos">♡</button></div><p id="notice" class="pi-sr" aria-live="polite"></p>
+{PAYMENT_HTML}
+<details class="seo-description" open><summary>Descripción <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">{description_body}</div></details>
 <section class="seo-buy-assurance" aria-label="Compra, envíos y pagos"><details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">✓</span><strong>Compra con confianza</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">Confirma disponibilidad y presentación antes de pagar.</div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">🚚</span><strong>Envíos en Medellín y Colombia</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">El costo se calcula por unidades del pedido.<div class="seo-shipping-table-wrap"><table class="seo-shipping-table"><thead><tr><th>Unidades</th><th>Medellín</th><th>Otras ciudades</th></tr></thead><tbody><tr><td>1</td><td>$11.000</td><td>$15.000</td></tr><tr><td>2</td><td>$7.000</td><td>$12.000</td></tr><tr><td>3</td><td>Gratis</td><td>$10.000</td></tr><tr><td>4+</td><td>Gratis</td><td>Gratis</td></tr></tbody></table></div><p>Medellín: pedidos confirmados antes de las 2:00 p. m. pueden salir en ruta el mismo día hábil. Ciudades principales: aproximadamente 1 día hábil desde la guía; otras zonas: 2 a 3 días hábiles, según cobertura.</p></div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">🔒</span><strong>Pago seguro</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body">Selecciona el medio de pago durante el proceso de compra.</div></details>
 <details class="seo-info-fold"><summary><span class="seo-info-icon" aria-hidden="true">💳</span><strong>Medios de pago disponibles</strong><span class="seo-info-chevron" aria-hidden="true">⌄</span></summary><div class="seo-info-body seo-payment-image-wrap"><a href="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ampliar medios de pago"><img src="https://static.wixstatic.com/media/251da0_0d41a59ba74a42959a1fb3a7e6ef28fd~mv2.jpg" alt="Medios de pago SUPGO: Bold, Apple Pay, tarjetas, Bre-B, Bancolombia, Nequi y PSE" loading="lazy" decoding="async"></a></div></details></section>
 </section></article>
-
+<!--relacionados-->{f'<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">{related_html}</div></section>' if related_html else ''}<!--/relacionados-->
 </main>
+<div id="pi-toast" class="pi-toast" role="status" aria-live="polite"><span class="pi-toast-text"><b>✓ Agregado</b><small></small></span><button type="button" id="pi-toast-cart">Ver carrito</button></div>
 <style>
-#seo-wa-float{{position:fixed;right:16px;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:2147482000;font-family:Poppins,Arial,sans-serif}}
+#seo-wa-float{{position:fixed;right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:900;font-family:Poppins,Arial,sans-serif}}
 #seo-wa-toggle{{width:54px;height:54px;border:0;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 5px 16px #0003;display:grid;place-items:center;cursor:pointer}}
 #seo-wa-panel{{position:absolute;right:0;bottom:64px;width:min(315px,calc(100vw - 32px));box-sizing:border-box;padding:13px;background:#fff;border:1px solid #e2e2e2;border-radius:13px;box-shadow:0 8px 28px #0003}}
 #seo-wa-panel[hidden]{{display:none!important}}
 #seo-wa-message{{box-sizing:border-box;width:100%;min-height:80px;padding:11px;border:1px solid #ddd;border-radius:8px;font:14px/1.5 Poppins,Arial,sans-serif;color:#222;background:#fff;resize:vertical}}
 #seo-wa-send{{margin-top:9px;width:100%;padding:11px;background:#25d366;color:white;border:0;border-radius:8px;font:600 14px Poppins,Arial,sans-serif}}
+/* Celular: WhatsApp se integra a la barra de compra fija para no tapar contenido. */
+@media(max-width:760px){{#seo-wa-float{{right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:960}}#seo-wa-toggle{{width:46px;height:46px;box-shadow:none}}#seo-wa-toggle svg{{width:24px;height:24px}}#seo-wa-panel{{bottom:58px}}body .product-page .product-info .actions{{padding-right:68px!important;gap:8px!important}}}}
+@media(max-width:380px){{body .product-page .product-info .actions .add{{font-size:12px!important;padding:10px 6px!important}}}}
 @media(min-width:768px){{#seo-wa-float{{bottom:26px;right:24px}}}}
 </style>
 <div id="seo-wa-float"><div id="seo-wa-panel" hidden><textarea id="seo-wa-message" aria-label="Mensaje para WhatsApp"></textarea><button id="seo-wa-send" type="button">Enviar por WhatsApp</button></div><button id="seo-wa-toggle" type="button" aria-label="Consultar por WhatsApp" aria-expanded="false" aria-controls="seo-wa-panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="29" height="29" fill="currentColor" aria-hidden="true"><path d="M16 .8A15.1 15.1 0 0 0 3 23.5L.8 31.2l7.9-2.1A15.2 15.2 0 1 0 16 .8Zm0 27.6a12.2 12.2 0 0 1-6.2-1.7l-.4-.2-4.7 1.2L6 23.1l-.3-.4A12.3 12.3 0 1 1 16 28.4Zm6.8-9.2c-.4-.2-2.2-1.1-2.6-1.2-.3-.1-.6-.2-.8.2-.3.4-1 1.2-1.2 1.4-.2.3-.4.3-.8.1-.4-.2-1.6-.6-3-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8l.6-.6c.2-.2.3-.4.4-.6.1-.3 0-.5 0-.7-.1-.2-.8-2-1.2-2.8-.3-.7-.6-.6-.8-.6h-.7c-.3 0-.7.1-1 .5s-1.3 1.3-1.3 3.1 1.4 3.6 1.6 3.9c.2.2 2.6 4 6.3 5.6.9.4 1.6.6 2.1.8.9.3 1.7.2 2.4.1.7-.1 2.2-.9 2.5-1.8.3-.9.3-1.6.2-1.8-.1-.1-.3-.2-.7-.4Z"/></svg></button></div>
@@ -647,24 +847,8 @@ document.getElementById('zoomNext').addEventListener('click',()=>display(current
 overlay.addEventListener('click',e=>{{if(e.target===overlay)closeZoom();}});
 document.addEventListener('keydown',e=>{{if(overlay.hidden)return;if(e.key==='Escape')closeZoom();if(e.key==='ArrowLeft')display(current-1);if(e.key==='ArrowRight')display(current+1);}});
 }})();</script>
-<script>(function(){{
-const p={product_json};const f=document.getElementById('fav'),note=document.getElementById('notice');
-function read(k){{try{{const a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}}catch(e){{return []}}}}
-function paint(){{f.textContent=read('supgo_seo_favorites').some(x=>x.id===p.id)?'♥':'♡'}}
-f.onclick=()=>{{let a=read('supgo_seo_favorites');a=a.some(x=>x.id===p.id)?a.filter(x=>x.id!==p.id):[...a,p];localStorage.setItem('supgo_seo_favorites',JSON.stringify(a));paint();note.textContent='Favoritos actualizados';}};
-let selectedQuantity=1; const qtyValue=document.getElementById('qtyValue');const showQuantity=()=>{{qtyValue.textContent=String(selectedQuantity);}};document.getElementById('qtyMinus').onclick=()=>{{selectedQuantity=Math.max(1,selectedQuantity-1);showQuantity();}};document.getElementById('qtyPlus').onclick=()=>{{selectedQuantity=Math.min(99,selectedQuantity+1);showQuantity();}};document.getElementById('add').onclick=()=>{{
- const key=String(p.id),cartKey='liftCartV2',metaKey='liftCartMetaV1';
- let cart={{}},meta={{}};
- try{{cart=JSON.parse(localStorage.getItem(cartKey)||'{{}}')||{{}};meta=JSON.parse(localStorage.getItem(metaKey)||'{{}}')||{{}};}}catch(error){{}}
- const previous=cart[key],qty=Number(typeof previous==='object'?(previous.quantity??previous.qty):previous)||0;
- cart[key]=qty+selectedQuantity;meta[key]={{name:p.name,image:p.image,price:p.price}};
- localStorage.setItem(cartKey,JSON.stringify(cart));localStorage.setItem(metaKey,JSON.stringify(meta));
- window.dispatchEvent(new Event('supgo-cart-change'));
- note.textContent=selectedQuantity+' unidad(es) agregada(s) al carrito';selectedQuantity=1;showQuantity();
- const button=document.querySelector('#supgo-global-header .cartDesktop');if(button)button.click();
-}};
-paint();
-}})();</script>
+<script>(function(){{const p={product_json};const f=document.getElementById('fav');window.__supgoFicha=p;}})();</script>
+<script>{FICHA_V2_JS}</script>
 <script>
 (()=>{{
  const button=document.getElementById('seo-wa-toggle'),panel=document.getElementById('seo-wa-panel'),field=document.getElementById('seo-wa-message'),send=document.getElementById('seo-wa-send');
@@ -675,10 +859,7 @@ paint();
  send.addEventListener('click',()=>{{location.href='https://api.whatsapp.com/send?phone=573137380766&text='+encodeURIComponent(field.value+'\\n'+location.href);}});
 }})();
 </script>
-<script>
-document.addEventListener('DOMContentLoaded',function(){{if(window.matchMedia('(max-width:700px)').matches){{var gallery=document.querySelector('.product-card .product-gallery');var card=document.querySelector('.product-card');var related=gallery&&gallery.querySelector('.related-under-image');if(card&&related)card.insertAdjacentElement('afterend',related);}}}});
-document.addEventListener('DOMContentLoaded',function(){{document.querySelectorAll('.related-under-image').forEach(function(section){{var track=section.querySelector('.related-grid');if(!track)return;section.querySelector('.related-prev').addEventListener('click',function(){{track.scrollBy({{left:-track.clientWidth*.75,behavior:'smooth'}});}});section.querySelector('.related-next').addEventListener('click',function(){{track.scrollBy({{left:track.clientWidth*.75,behavior:'smooth'}});}});}});}});
-</script></body></html>'''
+</body></html>'''
 
 def build_direct(row, shared):
   """Ficha SEO independiente sin encabezados añadidos."""
@@ -713,16 +894,33 @@ def shared_template():
  return re.sub(r'(<script\b[^>]*>)(.*?)(</script>)',externalize_js,source,flags=re.S|re.I)
 
 
+def keep_existing_seo_head(existing, generated):
+ """Al pasar una ficha a la nueva plantilla se conservan su título, su meta
+ descripción y su descripción publicados (pueden haber sido ajustados a mano para SEO)."""
+ title=re.search(r"<title>(.*?)</title>",existing,re.S)
+ meta=re.search(r'<meta name="description" content="([^"]*)">',existing)
+ if title:generated=re.sub(r"<title>.*?</title>",lambda m:"<title>"+title.group(1)+"</title>",generated,count=1,flags=re.S)
+ if meta:
+  value=meta.group(1)
+  for attr in ('name="description"','property="og:description"','name="twitter:description"'):
+   generated=re.sub(r'<meta '+re.escape(attr)+r' content="[^"]*">',lambda m:'<meta '+attr+' content="'+value+'">',generated,count=1)
+ # La descripción publicada también se conserva (la sincronización diaria nunca la cambia).
+ body=re.search(r'<div class="product-description">(.*?)</div></details>',existing,re.S)
+ if body and body.group(1).strip():
+  generated=re.sub(r'(<div class="product-description">).*?(</div></details>)',lambda m:m.group(1)+body.group(1)+m.group(2),generated,count=1,flags=re.S)
+ return generated
+
 def patch_offer_only(existing, generated):
- """Sync only commercial offer fields; preserve SEO copy, title, canonical and layout."""
- import copy
- boundary=r'(?=<div class="variant-panel"|<div class="product-rule">)'
- price_pattern=r'<div class="product-price">.*?'+boundary
- new_price=re.search(price_pattern,generated,re.S)
- old_price=re.search(price_pattern,existing,re.S)
- if not new_price or not old_price:
-  raise RuntimeError("No se pudo localizar el bloque comercial; se conserva la ficha")
- updated=existing[:old_price.start()]+new_price.group(0)+existing[old_price.end():]
+ """Sincroniza solo datos comerciales (precio, oferta, relacionados, schema Offer);
+ conserva textos SEO, título, canonical y diseño de la ficha existente."""
+ updated=existing
+ for start,end in (("<!--precio-->","<!--/precio-->"),("<!--relacionados-->","<!--/relacionados-->")):
+  pattern=re.escape(start)+r'.*?'+re.escape(end)
+  new_block=re.search(pattern,generated,re.S)
+  old_block=re.search(pattern,updated,re.S)
+  if not new_block or not old_block:
+   raise RuntimeError("No se pudo localizar el bloque "+start+"; se conserva la ficha")
+  updated=updated[:old_block.start()]+new_block.group(0)+updated[old_block.end():]
  schema_pattern=r'<script type="application/ld[+]json">(.*?)</script>'
  new_schemas=list(re.finditer(schema_pattern,generated,re.S))
  old_schemas=list(re.finditer(schema_pattern,updated,re.S))
@@ -732,7 +930,7 @@ def patch_offer_only(existing, generated):
  if not old_product_match:raise RuntimeError("No hay schema Product existente")
  old_product=json.loads(old_product_match.group(1))
  old_product["offers"]=new_product.get("offers")
- replacement=json.dumps(old_product,ensure_ascii=False).replace("<","\u003c")
+ replacement=json.dumps(old_product,ensure_ascii=False).replace("<","\\u003c")
  updated=updated[:old_product_match.start(1)]+replacement+updated[old_product_match.end(1):]
  meta_pattern=r'<meta property="product:price:amount" content="[^"]*">'
  new_meta=re.search(meta_pattern,generated)
@@ -743,8 +941,8 @@ def patch_offer_only(existing, generated):
  old_js=re.search(js_pattern,updated)
  if new_js and old_js:
   current=json.loads(old_js.group(1)); fresh=json.loads(new_js.group(1))
-  for key in ("price","on_offer","promoUntil"):current[key]=fresh.get(key)
-  updated=updated[:old_js.start(1)]+json.dumps(current,ensure_ascii=False).replace("<","\u003c")+updated[old_js.end(1):]
+  for key in ("price","regular","on_offer","promoUntil"):current[key]=fresh.get(key)
+  updated=updated[:old_js.start(1)]+json.dumps(current,ensure_ascii=False).replace("<","\\u003c")+updated[old_js.end(1):]
  return updated
 
 def main():
@@ -792,7 +990,11 @@ def main():
  if not valid: raise RuntimeError("No hay productos validos para generar")
  def info(item):
   p=item["product"];name=str(p.get("name") or p.get("nombre") or "")
-  return {"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name),"on_offer":active_offer(item) is not None}
+  promo=active_offer(item)
+  try:regular=float(p.get("price") or p.get("precio") or 0)
+  except (TypeError,ValueError):regular=0
+  commercial={"price":regular,"sale":promo[1] if promo else None,"pct":round((1-promo[1]/promo[0])*100) if promo else 0,"until":(item.get("_offer") or {}).get("promoUntil") if promo else None}
+  return {**commercial,"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name),"on_offer":active_offer(item) is not None}
  # Agrupar sabores por familia y presentación sin mezclar tamaños diferentes.
  # Priorizar el identificador padre cuando existe; en su ausencia, eliminar
  # exclusivamente el sabor declarado en Supabase del final del nombre.
@@ -947,7 +1149,11 @@ def main():
    target_content=content
    # Las heredadas rotas se reparan incluso sin SEO_OVERWRITE_EXISTING.
    is_legacy=target_name in legacy_by_id.get(str(row["id"]),[])
-   if is_legacy or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
+   # Fichas con una plantilla anterior se regeneran completas una sola vez.
+   outdated=destination.exists() and ('data-ficha="'+FICHA_VERSION+'"') not in destination.read_text(encoding="utf-8",errors="replace")
+   if is_legacy or outdated or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
+    if outdated and not is_legacy and os.getenv("SEO_OVERWRITE_EXISTING","0")!="1":
+     target_content=keep_existing_seo_head(destination.read_text(encoding="utf-8",errors="replace"),target_content)
     destination.write_text(target_content,encoding="utf-8")
    else:
     # Conserva títulos, textos SEO, precios y contenido existentes.
