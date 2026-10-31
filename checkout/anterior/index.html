@@ -12281,7 +12281,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    if(explicitNoCharge) return {kind:'paid',title:'NO COBRAR',detail:'No recibir dinero en esta entrega.',amount:0};
    return payInfo(p);
  }
- window.liftAdminCourierAccess=async function(id){try{const password=sessionStorage.getItem(PASS)||'';if(!password)throw new Error('Vuelve a entrar al administrador.');const j=await api({action:'courier-link',password,pedido_id:Number(id)}),u=base()+'?entrega='+encodeURIComponent(j.token);if(await copy(u))alert('✓ Link del proveedor/mensajero copiado');else window.prompt('Copia el enlace:',u)}catch(e){alert('Mensajero: '+e.message)}};
+ window.liftAdminCourierAccess=async function(id){try{const password=sessionStorage.getItem(PASS)||'';if(!password)throw new Error('Vuelve a entrar al administrador.');const j=await api({action:'courier-link',password,pedido_id:Number(id)}),u=j.url_corta||(base()+'?entrega='+encodeURIComponent(j.token));if(await copy(u))alert('✓ Link del proveedor/mensajero copiado');else window.prompt('Copia el enlace:',u)}catch(e){alert('Mensajero: '+e.message)}};
 
  // Estado de pago visible en cada tarjeta administrativa.
  async function loadAdminDispatch(){
