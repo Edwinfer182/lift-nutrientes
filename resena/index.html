@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#111111">
+<title>Califica tu compra · SUPGO</title>
+<link rel="icon" type="image/png" href="/favicon-48.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111;--ink2:#374151;--muted:#6b7280;--line:#e5e7eb;--bg:#f2f3f2;--star:#f5b301;--green:#15803d;--lime:#c8f34b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+.top{background:var(--ink);color:#fff;padding:16px 18px}
+.top .in{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.top img{width:36px;height:36px;border-radius:9px}
+.top b{display:block;font-size:18px;line-height:1.2}.top small{color:#d4d4d4;font-size:13px}
+main{max-width:620px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:22px;line-height:1.25;margin:4px 0 6px}
+.lead{color:var(--ink2);margin:0 0 16px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+.prod{display:flex;gap:12px;align-items:center}
+.prod img,.prod .ph{width:60px;height:60px;object-fit:contain;border-radius:10px;background:#f6f6f6;flex:none}
+.prod b{display:block;font-weight:600;line-height:1.3}.prod small{color:var(--muted)}
+.stars{display:flex;gap:4px;margin:12px 0 4px}
+.stars button{border:0;background:none;padding:2px;font-size:38px;line-height:1;color:#d9d9d9;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stars button.on{color:var(--star)}
+.lbl{font-size:13px;color:var(--muted);min-height:18px}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;font-size:16px}
+textarea{min-height:84px;resize:vertical;margin-top:10px}
+.cnt{text-align:right;font-size:12px;color:var(--muted);margin-top:2px}
+.done{background:#dcfce7;color:#14532d;border-radius:10px;padding:8px 11px;font-size:14px;font-weight:500;margin-top:10px}
+.field{margin-top:4px}.field span{display:block;font-size:13px;font-weight:500;color:var(--ink2);margin:0 0 6px}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;color:var(--ink2)}
+.check input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:#111}
+.note{font-size:13px;color:var(--muted);background:#fafafa;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:12px 0 0}
+.send{width:100%;min-height:58px;border:0;border-radius:16px;background:var(--ink);color:#fff;font-size:18px;font-weight:700;cursor:pointer;margin-top:6px}
+.send:disabled{opacity:.5}
+.err{color:#b91c1c;font-size:14px;text-align:center;margin:8px 0 0;min-height:20px}
+.msg{text-align:center;padding:48px 18px}.msg .big{font-size:52px}.msg b{display:block;font-size:21px;margin:6px 0}
+.msg a{display:inline-block;margin-top:16px;background:var(--ink);color:#fff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:12px}
+.skel{height:130px;border-radius:16px;background:linear-gradient(90deg,#e9e9e9,#f6f6f6,#e9e9e9);background-size:200% 100%;animation:s 1.2s infinite;margin-bottom:12px}
+@keyframes s{to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><img src="/favicon.png" alt="" width="36" height="36"><div><b>SUPGO</b><small id="sub">Califica tu compra</small></div></div></header>
+<main id="app"><div class="skel"></div><div class="skel"></div></main>
+<script>
+(function(){
+const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-resenas',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const q=new URLSearchParams(location.search),pedido=Number(q.get('pedido')),token=(q.get('token')||'').trim();
+const LABELS=['','No me gustó','Regular','Bien','Muy bien','Excelente'];
+let data=null;const picks={};
+async function api(body){
+  const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...body,pedido_id:pedido,token})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'No se pudo conectar. Intenta de nuevo.');return j;
+}
+function msg(icon,title,text,link){$('app').innerHTML='<div class="msg"><div class="big">'+icon+'</div><b>'+esc(title)+'</b>'+esc(text||'')+(link?'<br><a href="'+esc(link.href)+'">'+esc(link.label)+'</a>':'')+'</div>'}
+function starRow(i){
+  const v=picks[i]?.estrellas||0;
+  return '<div class="stars" role="radiogroup" aria-label="Calificación">'+[1,2,3,4,5].map(n=>'<button type="button" role="radio" aria-checked="'+(n===v)+'" aria-label="'+n+' de 5 estrellas" data-i="'+i+'" data-n="'+n+'" class="'+(n<=v?'on':'')+'">★</button>').join('')+'</div><div class="lbl" id="lbl'+i+'">'+(v?LABELS[v]:'Toca las estrellas')+'</div>';
+}
+function render(){
+  const p=data.pedido,prev={};(data.resenas||[]).forEach(r=>prev[r.producto_nombre]=r);
+  const cards=data.items.map((x,i)=>{
+    const old=prev[x.nombre_pedido],locked=old&&old.estado!=='pendiente';
+    if(old&&!picks[i])picks[i]={estrellas:old.estrellas,comentario:old.comentario||''};
+    return '<div class="card"><div class="prod">'+(x.imagen?'<img src="'+esc(x.imagen)+'" alt="" loading="lazy">':'<div class="ph"></div>')+'<div><b>'+esc(x.nombre)+'</b><small>'+esc([x.marca,x.sabor&&('Sabor: '+x.sabor)].filter(Boolean).join(' · '))+'</small></div></div>'+
+      (locked?'<div class="done">✓ Ya calificaste este producto. ¡Gracias!</div>':
+      starRow(i)+'<textarea data-c="'+i+'" maxlength="600" placeholder="Cuéntanos del sabor, la textura, el empaque o el envío (opcional)">'+esc(picks[i]?.comentario||'')+'</textarea><div class="cnt" id="cnt'+i+'">'+((picks[i]?.comentario||'').length)+'/600</div>')+'</div>';
+  }).join('');
+  const anyOpen=data.items.some(x=>!(prev[x.nombre_pedido]&&prev[x.nombre_pedido].estado!=='pendiente'));
+  const first=(data.resenas||[])[0];
+  $('sub').textContent='Pedido #'+p.id;
+  $('app').innerHTML='<h1>¿Qué te pareció tu compra?</h1><p class="lead">Tu opinión ayuda a otros clientes a elegir. Toma menos de un minuto.</p>'+cards+
+   (anyOpen?'<div class="card"><label class="field"><span>Nombre que se mostrará</span><input type="text" id="nombre" maxlength="40" value="'+esc(first?.nombre_publico||p.nombre_publico)+'"></label>'+
+   '<label class="check"><input type="checkbox" id="auth" '+(first&&first.autoriza_publicar===false?'':'checked')+'><span>Autorizo a SUPGO a publicar mi reseña en su página con este nombre y mi ciudad'+(p.ciudad?' ('+esc(p.ciudad)+')':'')+'.</span></label>'+
+   '<p class="note">Revisamos cada reseña antes de publicarla. Por la norma sanitaria de los suplementos no podemos publicar comentarios sobre efectos en la salud o en el cuerpo. Cuéntanos del sabor, la presentación, el envío o la atención.</p></div>'+
+   '<button class="send" id="send" type="button">Enviar mi opinión</button><p class="err" id="err"></p>':'');
+  document.querySelectorAll('.stars button').forEach(b=>b.onclick=()=>{const i=b.dataset.i,n=Number(b.dataset.n);picks[i]=Object.assign(picks[i]||{},{estrellas:n});
+    b.parentNode.querySelectorAll('button').forEach(x=>{const on=Number(x.dataset.n)<=n;x.classList.toggle('on',on);x.setAttribute('aria-checked',String(Number(x.dataset.n)===n))});$('lbl'+i).textContent=LABELS[n];if($('err'))$('err').textContent=''});
+  document.querySelectorAll('textarea[data-c]').forEach(t=>t.oninput=()=>{const i=t.dataset.c;picks[i]=Object.assign(picks[i]||{},{comentario:t.value});$('cnt'+i).textContent=t.value.length+'/600'});
+  if($('send'))$('send').onclick=send;
+}
+async function send(){
+  const resenas=data.items.map((x,i)=>picks[i]&&picks[i].estrellas?{nombre_pedido:x.nombre_pedido,estrellas:picks[i].estrellas,comentario:picks[i].comentario||'',sabor:x.sabor||''}:null).filter(Boolean);
+  if(!resenas.length){$('err').textContent='Elige las estrellas de al menos un producto.';return}
+  const b=$('send');b.disabled=true;b.textContent='Enviando…';
+  try{
+    await api({action:'submit',resenas,nombre_publico:$('nombre').value.trim(),autoriza:$('auth').checked});
+    window.scrollTo(0,0);
+    msg('🙌','¡Gracias por tu opinión!','La revisamos y la publicamos en la página del producto en los próximos días.',{href:'/',label:'Volver a la tienda'});
+  }catch(e){$('err').textContent=e.message;b.disabled=false;b.textContent='Enviar mi opinión'}
+}
+async function load(){
+  if(!pedido||token.length<16)return msg('🔗','Enlace incompleto','Abre de nuevo el enlace que te enviamos por correo o WhatsApp.');
+  try{
+    data=await api({action:'view'});
+    if(!data.pedido.listo)return msg('📦','Tu pedido aún no ha sido entregado','Podrás calificarlo cuando lo recibas.',{href:'/?pedido='+pedido+'&token='+encodeURIComponent(token),label:'Ver mi pedido'});
+    if(!data.items.length)return msg('📦','Este pedido no tiene productos para calificar','');
+    render();
+  }catch(e){msg('⚠️','No pudimos abrir tu pedido',e.message)}
+}
+load();
+})();
+</script>
+</body>
+</html>
