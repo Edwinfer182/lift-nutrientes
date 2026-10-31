@@ -4,8 +4,8 @@
    fila 1: logo · buscador · favoritos · carrito
    fila 2: Ofertas · Categorías · Laboratorios · Mi pedido */
 @media (max-width:760px){
- .top .bar{display:grid!important;grid-template-columns:40px 46px minmax(0,1fr) minmax(0,1fr) 38px 46px!important;grid-template-rows:40px 36px!important;
-  grid-template-areas:"logo search search search fav cart" "offers offers links links order order"!important;
+ .top .bar{display:grid!important;grid-template-columns:40px 46px minmax(0,1fr) minmax(0,1fr) 38px 38px 46px!important;grid-template-rows:40px 36px!important;
+  grid-template-areas:"logo search search search acct fav cart" "offers offers links links links order order"!important;
   align-items:center!important;column-gap:6px!important;row-gap:8px!important;padding:8px 12px 9px!important;width:100%!important;max-width:100%!important;min-height:0!important}
  .top .bar>.brand{grid-area:logo!important;width:40px!important;height:40px!important;min-width:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
  .top .bar .liftHeaderLogo{max-width:38px!important;max-height:38px!important;width:auto!important;height:auto!important;object-fit:contain!important}
@@ -13,6 +13,8 @@
  .top .bar>.search input{height:40px!important;min-height:40px!important;width:100%!important;font-size:16px!important;padding:0 12px!important;border-radius:10px!important}
  .top .bar>.supgo-fav-link{grid-area:fav!important;width:38px!important;height:40px!important;min-width:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
  .top .bar>.supgo-fav-link svg{width:21px!important;height:21px!important}
+ .top .bar>.supgo-account-link{grid-area:acct!important;width:38px!important;height:40px!important;min-width:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
+ .top .bar>.supgo-account-link svg{width:21px!important;height:21px!important}
  .top .bar>.cartDesktop{grid-area:cart!important;display:flex!important;position:relative!important;width:46px!important;min-width:0!important;height:40px!important;padding:0 4px!important;justify-content:center!important;align-items:center!important}
  .top .bar>.cartDesktop .txt{display:none!important}
  .top .bar>.cartDesktop .badge{position:absolute!important;top:-5px!important;right:-4px!important;font-size:10px!important;line-height:18px!important;min-width:18px!important;height:18px!important;padding:0 3px!important}
@@ -24,7 +26,7 @@
  .top .bar>.liftFilterLink{display:none!important}
 }
 @media (max-width:370px){
- .top .bar{grid-template-columns:36px 40px minmax(0,1fr) minmax(0,1fr) 34px 42px!important;column-gap:5px!important;padding-left:8px!important;padding-right:8px!important}
+ .top .bar{grid-template-columns:36px 40px minmax(0,1fr) minmax(0,1fr) 34px 34px 42px!important;column-gap:5px!important;padding-left:8px!important;padding-right:8px!important}
  .top .bar>.supgo-section-links a,.top .bar>.offersBtn,.top .bar>.myOrder,.top .bar>.myOrder .txt{font-size:11px!important}
 }
 .top .bar>.liftFilterLink{display:none!important}

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mi cuenta | SUPGO</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Entra a tu cuenta SUPGO: tus pedidos, direcciones, favoritos y cupones.">
+<link rel="canonical" href="https://supgo.co/cuenta/">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=supgo-rounded-2">
+<link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=supgo-rounded-2">
+<link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZL00MPW16"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<style>
+:root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--lime:#c8f34b;--green:#15803d;--green-soft:#eaf7ee;--red:#b42318;--red-soft:#fff4f2;--amber:#8a5a00;--amber-soft:#fff6db;--radius:14px}
+*{box-sizing:border-box}
+body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:clamp(22px,4vw,28px);letter-spacing:-.03em;margin:4px 0 6px}
+.lead{color:var(--muted);margin:0 0 20px;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.label small{font-weight:400;color:var(--muted)}
+.input{width:100%;height:48px;border:1px solid #d6d6d6;border-radius:10px;padding:0 14px;background:#fff;font-size:16px}
+textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
+.input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,17,17,.08)}
+.code{letter-spacing:.5em;text-align:center;font-size:24px;font-weight:600;height:58px}
+.field{margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cta{width:100%;height:52px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;cursor:pointer}
+.cta:disabled{opacity:.55;cursor:wait}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.lime{background:var(--lime);border-color:var(--lime);color:#111;font-weight:600}
+.btn.wa{background:#25d366;border-color:#25d366;color:#fff}
+.btn.danger{color:var(--red)}
+.link{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;cursor:pointer;font-size:13px}
+.msg{font-size:13px;margin-top:10px;min-height:20px}
+.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+.perks{display:grid;gap:8px;margin:16px 0 0;padding:0;list-style:none;font-size:13px;color:#333}
+.perks li{display:flex;gap:8px;align-items:flex-start}.perks li::before{content:"✓";font-weight:700;color:var(--green)}
+.hello{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 14px;margin:0 -16px 4px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:500;cursor:pointer}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.panel{display:none}.panel.on{display:block}
+.order{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.otop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.otop b{font-size:15px}.otop small{display:block;color:var(--muted);font-size:12px}
+.total{font-weight:600;white-space:nowrap}
+.badge{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--soft);color:#333}
+.badge.ok{background:var(--green-soft);color:var(--green)}.badge.warn{background:var(--amber-soft);color:var(--amber)}.badge.bad{background:var(--red-soft);color:var(--red)}.badge.go{background:var(--lime);color:#111}
+.items{margin:12px 0;padding:10px 12px;background:var(--soft);border-radius:10px;font-size:13px;line-height:1.55}
+.oact{display:flex;gap:8px;flex-wrap:wrap}
+.addr{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line)}
+.addr:last-of-type{border-bottom:0}
+.addr b{font-size:14px}.addr small{display:block;color:var(--muted);font-size:12px}
+.addr .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag{display:inline-block;font-size:10px;font-weight:600;background:var(--lime);padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
+.refbox{background:#111;color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.refbox h2{margin:0 0 6px;font-size:18px}.refbox p{margin:0 0 14px;color:#cfcfcf;font-size:13px}
+.refcode{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#1d1d1d;border:1px dashed #555;border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.refcode b{font-size:22px;letter-spacing:.08em;color:var(--lime)}
+.refstats{font-size:12px;color:#bdbdbd;margin-top:10px}
+.coupon{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px dashed #cfcfcf;border-radius:12px;padding:14px;margin-bottom:10px;background:#fff}
+.coupon b{font-size:16px;letter-spacing:.05em}.coupon small{display:block;color:var(--muted);font-size:12px}
+.favcta{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.big{font-size:34px;font-weight:700;line-height:1}
+.dlg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:2147483000}
+.dlg.on{display:flex}
+.dlg .sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+@media(min-width:640px){.dlg{align-items:center}.dlg .sheet{border-radius:18px}}
+.sheet h3{margin:0 0 14px;font-size:17px}
+.suggest{position:relative}
+.suggest .list{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.1);max-height:220px;overflow:auto;z-index:5;display:none;padding:4px}
+.suggest .list.open{display:block}
+.suggest .list button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+.suggest .list button:hover{background:var(--soft)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;transition:.25s;background:#111;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;z-index:2147483001;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.skeleton{height:110px;border-radius:var(--radius);background:linear-gradient(90deg,#f0f0ee 0%,#f7f7f5 50%,#f0f0ee 100%);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:12px}
+@keyframes sk{to{background-position:-200% 0}}
+@media(max-width:520px){.row{grid-template-columns:1fr}.addr{flex-direction:column}.addr .acts{justify-content:flex-start}}
+</style>
+</head>
+<body data-page="cuenta">
+<main class="wrap" id="app">
+
+<!-- Ingreso -->
+<section id="login" hidden>
+  <h1>Entra a tu cuenta</h1>
+  <p class="lead">Sin contraseñas: te enviamos un código a tu correo.</p>
+  <div class="card" id="stepEmail">
+    <form id="emailForm" novalidate>
+      <label class="label" for="email">Correo electrónico</label>
+      <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
+      <div class="msg" id="emailMsg" role="alert"></div>
+      <button class="cta" id="sendBtn" type="submit">Enviarme el código</button>
+    </form>
+    <ul class="perks">
+      <li>Mira todos tus pedidos y en qué va cada uno</li>
+      <li>Compra más rápido con tus direcciones guardadas</li>
+      <li>Tus favoritos en cualquier celular o computador</li>
+      <li>Tus cupones y un código para invitar amigos</li>
+    </ul>
+  </div>
+  <div class="card" id="stepCode" hidden>
+    <form id="codeForm" novalidate>
+      <p style="margin:0 0 14px;font-size:14px">Te enviamos un código de 6 dígitos a <b id="sentTo"></b>. Revisa también la carpeta de spam o promociones.</p>
+      <label class="label" for="code">Código</label>
+      <input class="input code" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" placeholder="······" required>
+      <div class="msg" id="codeMsg" role="alert"></div>
+      <button class="cta" id="verifyBtn" type="submit">Entrar</button>
+    </form>
+    <p style="margin:14px 0 0;font-size:13px;display:flex;gap:14px;flex-wrap:wrap">
+      <button class="link" type="button" id="resend">Reenviar código</button>
+      <button class="link" type="button" id="changeEmail">Usar otro correo</button>
+    </p>
+  </div>
+</section>
+
+<!-- Cuenta -->
+<section id="account" hidden>
+  <div class="hello">
+    <div><h1 id="helloName">Hola</h1><p class="lead" id="helloEmail" style="margin:0 0 16px"></p></div>
+    <button class="btn" type="button" id="logout">Salir</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button type="button" data-tab="pedidos" class="on">📦 Pedidos</button>
+    <button type="button" data-tab="direcciones">📍 Direcciones</button>
+    <button type="button" data-tab="favoritos">♡ Favoritos</button>
+    <button type="button" data-tab="cupones">🎁 Cupones</button>
+    <button type="button" data-tab="perfil">👤 Mis datos</button>
+  </nav>
+
+  <div class="panel on" id="p-pedidos"><div class="skeleton"></div><div class="skeleton"></div></div>
+
+  <div class="panel" id="p-direcciones">
+    <div class="card" id="addrList"></div>
+    <button class="btn dark" type="button" id="addAddr">+ Agregar dirección</button>
+  </div>
+
+  <div class="panel" id="p-favoritos">
+    <div class="card favcta"><div><div class="big" id="favCount">0</div><small style="color:var(--muted)">productos guardados</small></div><a class="btn dark" href="/favoritos/">Ver mis favoritos</a></div>
+    <p class="lead" style="font-size:13px">Toca el ♡ en cualquier producto para guardarlo. Ahora tus favoritos quedan en tu cuenta y los ves desde cualquier dispositivo.</p>
+  </div>
+
+  <div class="panel" id="p-cupones"><div class="skeleton"></div></div>
+
+  <div class="panel" id="p-perfil">
+    <div class="card">
+      <form id="profileForm" novalidate>
+        <div class="field"><label class="label" for="pfNombre">Nombre completo</label><input class="input" id="pfNombre" autocomplete="name" required></div>
+        <div class="field"><label class="label" for="pfCel">Celular <small>(WhatsApp)</small></label><input class="input" id="pfCel" type="tel" inputmode="tel" autocomplete="tel" placeholder="300 000 0000"></div>
+        <div class="field"><label class="label">Correo</label><input class="input" id="pfEmail" disabled></div>
+        <div class="msg" id="pfMsg"></div>
+        <button class="cta" type="submit" id="pfSave">Guardar</button>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="dlg" id="addrDlg" role="dialog" aria-modal="true" aria-labelledby="addrTitle"><div class="sheet">
+  <h3 id="addrTitle">Nueva dirección</h3>
+  <form id="addrForm" novalidate>
+    <input type="hidden" id="adId">
+    <div class="field"><label class="label" for="adEtiqueta">Nombre <small>(opcional)</small></label><input class="input" id="adEtiqueta" placeholder="Casa, Oficina, Gimnasio…" maxlength="40"></div>
+    <div class="field suggest"><label class="label" for="adCiudad">Ciudad o municipio</label><input class="input" id="adCiudad" autocomplete="off" placeholder="Escribe y elige tu ciudad" required><div class="list" id="adCityList"></div></div>
+    <div class="field"><label class="label" for="adDireccion">Dirección</label><input class="input" id="adDireccion" autocomplete="street-address" placeholder="Ej: Cra 65 # 45-20, apto 302" required></div>
+    <div class="field"><label class="label" for="adNotas">Indicaciones <small>(opcional)</small></label><textarea class="input" id="adNotas" rows="2" placeholder="Portería, torre, apartamento…"></textarea></div>
+    <div class="msg" id="adMsg"></div>
+    <div class="row"><button class="btn" type="button" id="adCancel" style="height:48px">Cancelar</button><button class="cta" type="submit" id="adSave" style="height:48px">Guardar</button></div>
+  </form>
+</div></div>
+<div class="dlg" id="confirmDlg" role="dialog" aria-modal="true"><div class="sheet">
+  <p id="confirmText" style="margin:0 0 16px"></p>
+  <div class="row"><button class="btn" type="button" id="cfNo" style="height:46px">Cancelar</button><button class="btn dark" type="button" id="cfYes" style="height:46px">Sí, eliminar</button></div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="/componentes/cuenta.js?v=20261031-cuentas-1"></script>
+<script>
+(function(){
+'use strict';
+var C=window.SupgoCuenta,$=function(id){return document.getElementById(id)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var money=function(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Math.round(Number(n)||0))};
+var norm=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim()};
+var data={pedidos:[],direcciones:[],favoritos:[],cuenta:{}},pendingEmail='',couponsLoaded=false;
+var STATUS={nuevo:['Recibido',''],verificando_disponibilidad:['Verificando disponibilidad','warn'],sin_disponibilidad:['Falta un producto','bad'],pendiente_pago:['Listo para pagar','go'],preparando:['Preparando','warn'],programado:['Programado','warn'],en_ruta:['En camino','go'],entregado:['Entregado','ok'],cancelado:['Cancelado','bad']};
+
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('on')},2400)}
+function msg(id,t,kind){var e=$(id);e.textContent=t||'';e.className='msg'+(kind?' '+kind:'')}
+function busy(btn,on,label){btn.disabled=on;if(label)btn.textContent=label}
+function copy(t,okMsg){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast(okMsg||'Copiado')},function(){window.prompt('Copia:',t)})}else window.prompt('Copia:',t)}
+
+/* ---------- Ingreso ---------- */
+function showLogin(){$('account').hidden=true;$('login').hidden=false;$('stepEmail').hidden=false;$('stepCode').hidden=true;
+  try{var r=JSON.parse(localStorage.getItem('liftRememberCustomerDataV1')||'null');if(r&&r.email&&!$('email').value)$('email').value=r.email}catch(e){}}
+function sendCode(email){
+  return C.api('send-code',{email:email}).then(function(){pendingEmail=email;$('sentTo').textContent=email;$('stepEmail').hidden=true;$('stepCode').hidden=false;$('code').value='';msg('codeMsg','');setTimeout(function(){$('code').focus()},50)});
+}
+$('emailForm').addEventListener('submit',function(e){
+  e.preventDefault();var email=$('email').value.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)){msg('emailMsg','Escribe un correo válido.','err');return}
+  msg('emailMsg','');busy($('sendBtn'),true,'Enviando…');
+  sendCode(email).catch(function(er){msg('emailMsg',er.message,'err')}).then(function(){busy($('sendBtn'),false,'Enviarme el código')});
+});
+$('code').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,6);if(this.value.length===6)$('codeForm').requestSubmit?$('codeForm').requestSubmit():$('verifyBtn').click()});
+$('codeForm').addEventListener('submit',function(e){
+  e.preventDefault();var code=$('code').value.trim();if(code.length!==6){msg('codeMsg','Escribe los 6 dígitos.','err');return}
+  if($('verifyBtn').disabled)return;
+  busy($('verifyBtn'),true,'Verificando…');msg('codeMsg','');
+  C.api('verify-code',{email:pendingEmail,code:code}).then(function(j){
+    C.set({token:j.token,email:j.cuenta.email,nombre:j.cuenta.nombre||''});
+    try{if(typeof gtag==='function')gtag('event',j.nuevo?'sign_up':'login',{method:'email_code'})}catch(e){}
+    C.syncFavs();
+    var back='';try{back=new URLSearchParams(location.search).get('volver')||''}catch(e){}
+    if(/^\/[a-z0-9\-\/]*$/i.test(back)&&back.indexOf('//')<0){location.replace(back);return}
+    load(j.nuevo);
+  }).catch(function(er){msg('codeMsg',er.message,'err');$('code').select()}).then(function(){busy($('verifyBtn'),false,'Entrar')});
+});
+$('resend').onclick=function(){if(!pendingEmail)return;sendCode(pendingEmail).then(function(){toast('Te enviamos un código nuevo')}).catch(function(er){msg('codeMsg',er.message,'err')})};
+$('changeEmail').onclick=function(){$('stepCode').hidden=true;$('stepEmail').hidden=false;$('email').focus()};
+
+/* ---------- Cuenta ---------- */
+function load(isNew){
+  $('login').hidden=true;$('account').hidden=false;
+  var s=C.get();$('helloEmail').textContent=s?s.email:'';
+  return C.api('me').then(function(j){
+    data=j;var c=j.cuenta||{};
+    C.set({token:C.get().token,email:c.email,nombre:c.nombre||''});
+    $('helloName').textContent=c.nombre?'Hola, '+c.nombre.split(/\s+/)[0]:'Hola 👋';
+    $('pfNombre').value=c.nombre||'';$('pfCel').value=c.celular||'';$('pfEmail').value=c.email||'';
+    renderOrders();renderAddresses();renderFavs();
+    if(isNew&&!c.nombre){tab('perfil');toast('¡Bienvenido! Completa tus datos')}
+    var h=(location.hash||'').replace('#','');if(['pedidos','direcciones','favoritos','cupones','perfil'].indexOf(h)>=0)tab(h);
+  }).catch(function(er){if(er.status===401){showLogin();return}$('p-pedidos').innerHTML='<div class="empty">'+esc(er.message)+'<br><br><button class="btn" onclick="location.reload()">Reintentar</button></div>'});
+}
+function tab(name){
+  document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.tab===name)});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('on',p.id==='p-'+name)});
+  if(name==='cupones'&&!couponsLoaded)loadCoupons();
+  try{history.replaceState(null,'','#'+name)}catch(e){}
+}
+document.querySelector('.tabs').addEventListener('click',function(e){var b=e.target.closest('button[data-tab]');if(b)tab(b.dataset.tab)});
+$('logout').onclick=function(){C.logout();data={pedidos:[],direcciones:[],favoritos:[],cuenta:{}};couponsLoaded=false;try{history.replaceState(null,'','/cuenta/')}catch(e){}showLogin();toast('Cerraste sesión')};
+window.addEventListener('supgo-favorites-change',renderFavs);
+
+function orderUrl(p){return '/mi-pedido/?pedido='+encodeURIComponent(p.id)+(p.token?'&token='+encodeURIComponent(p.token):'')}
+function renderOrders(){
+  var box=$('p-pedidos'),list=data.pedidos||[];
+  if(!list.length){box.innerHTML='<div class="card empty">Aún no tienes pedidos con este correo.<br><small>Cuando compres usando <b>'+esc((data.cuenta||{}).email||'')+'</b> aparecerán aquí.</small><br><br><a class="btn dark" href="/home/">Ver productos</a></div>';return}
+  box.innerHTML=list.map(function(p){
+    var st=STATUS[p.estado]||[p.estado,''],items=p.items||[];
+    var guia=p.despacho_tipo==='guia'&&p.guia?'<div style="font-size:12px;margin-top:6px">🚚 '+esc(p.transportadora||'Transportadora')+' · Guía <b>'+esc(p.guia)+'</b></div>':'';
+    return '<article class="order"><div class="otop"><div><b>Pedido #'+esc(p.id)+'</b><small>'+new Date(p.fecha).toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'})+' · '+esc(p.ciudad||'')+'</small><span class="badge '+st[1]+'">'+esc(st[0])+'</span>'+guia+'</div><div class="total">'+money(p.total)+'</div></div>'
+      +'<div class="items">'+(items.map(function(x){return esc(x.cantidad||1)+' × '+esc(x.nombre)+(x.marca?' · <span style="color:var(--muted)">'+esc(x.marca)+'</span>':'')}).join('<br>')||'Sin detalle')+'</div>'
+      +'<div class="oact">'+(p.token?'<a class="btn dark" href="'+orderUrl(p)+'">'+(p.estado==='pendiente_pago'?'Pagar pedido':'Ver pedido')+'</a>':'')
+      +(items.some(function(x){return x.producto_id})?'<button class="btn lime" type="button" data-repeat="'+esc(p.id)+'">↻ Volver a pedir</button>':'')+'</div></article>';
+  }).join('');
+}
+$('p-pedidos').addEventListener('click',function(e){
+  var b=e.target.closest('[data-repeat]');if(!b)return;
+  var p=(data.pedidos||[]).filter(function(x){return String(x.id)===b.dataset.repeat})[0];if(!p)return;
+  var cart,meta;try{cart=JSON.parse(localStorage.getItem('liftCartV2')||'{}')||{};meta=JSON.parse(localStorage.getItem('liftCartMetaV1')||'{}')||{}}catch(er){cart={};meta={}}
+  if(typeof cart!=='object'||Array.isArray(cart))cart={};if(typeof meta!=='object'||Array.isArray(meta))meta={};
+  var n=0;(p.items||[]).forEach(function(x){if(!x.producto_id)return;
+    var m=String(x.nombre||'').split(' · Sabor: '),flavor=(m[1]||'').trim(),key=String(x.producto_id)+(flavor?'::'+flavor:'');
+    var cur=Number(typeof cart[key]==='object'&&cart[key]?(cart[key].quantity!=null?cart[key].quantity:cart[key].qty):cart[key])||0;
+    cart[key]=Math.min(99,cur+(Number(x.cantidad)||1));meta[key]=Object.assign({},meta[key]||{},{name:m[0],brand:x.marca||'',price:Number(x.precio)||0,flavor:flavor});n++});
+  if(!n){toast('Estos productos ya no están disponibles');return}
+  try{localStorage.setItem('liftCartV2',JSON.stringify(cart));localStorage.setItem('liftCartMetaV1',JSON.stringify(meta))}catch(er){}
+  window.dispatchEvent(new Event('supgo-cart-change'));location.assign('/checkout/');
+});
+
+/* ---------- Direcciones ---------- */
+function renderAddresses(){
+  var box=$('addrList'),list=data.direcciones||[];
+  if(!list.length){box.innerHTML='<div class="empty" style="padding:10px">Aún no tienes direcciones guardadas.<br><small>Se guardan solas cuando haces un pedido, o agrégalas aquí.</small></div>';return}
+  box.innerHTML=list.map(function(a){
+    return '<div class="addr"><div><b>'+esc(a.etiqueta||a.ciudad)+(a.predeterminada?'<span class="tag">Principal</span>':'')+'</b><small>'+esc(a.direccion)+'</small><small>'+esc(a.ciudad)+(a.departamento?' · '+esc(a.departamento):'')+'</small>'+(a.notas?'<small>'+esc(a.notas)+'</small>':'')+'</div>'
+      +'<div class="acts">'+(a.predeterminada?'':'<button class="btn" type="button" data-def="'+a.id+'">Usar como principal</button>')+'<button class="btn" type="button" data-edit="'+a.id+'">Editar</button><button class="btn danger" type="button" data-del="'+a.id+'" aria-label="Eliminar">🗑</button></div></div>';
+  }).join('');
+}
+function findAddr(id){return (data.direcciones||[]).filter(function(a){return String(a.id)===String(id)})[0]}
+$('addrList').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.def){b.disabled=true;C.api('address-default',{id:Number(b.dataset.def)}).then(function(j){data.direcciones=j.direcciones;renderAddresses();toast('Dirección principal actualizada')}).catch(function(er){toast(er.message);b.disabled=false})}
+  if(b.dataset.edit)openAddr(findAddr(b.dataset.edit));
+  if(b.dataset.del){var a=findAddr(b.dataset.del);ask('¿Eliminar la dirección '+(a?a.direccion:'')+'?',function(){return C.api('address-delete',{id:Number(b.dataset.del)}).then(function(j){data.direcciones=j.direcciones;renderAddresses();toast('Dirección eliminada')})})}
+});
+$('addAddr').onclick=function(){openAddr(null)};
+var adCity=null,cities=null;
+function loadCities(){
+  if(cities)return Promise.resolve(cities);
+  var base='https://raw.githubusercontent.com/proyecto26/colombia/master/';
+  return Promise.all([fetch(base+'cities.json'),fetch(base+'departments.json')]).then(function(rs){if(!rs[0].ok||!rs[1].ok)throw 0;return Promise.all([rs[0].json(),rs[1].json()])}).then(function(d){
+    var dep={};(d[1].data||[]).forEach(function(x){dep[x.id]=x.name});
+    var list=(d[0].data||[]).map(function(c){return {name:c.name,department:dep[c.departmentId]||''}});
+    if(list.length<100)throw 0;cities=list.sort(function(a,b){return a.name.localeCompare(b.name,'es')});return cities;
+  }).catch(function(){cities=[['Medellín','Antioquia'],['Bello','Antioquia'],['Itagüí','Antioquia'],['Envigado','Antioquia'],['Sabaneta','Antioquia'],['La Estrella','Antioquia'],['Caldas','Antioquia'],['Copacabana','Antioquia'],['Girardota','Antioquia'],['Rionegro','Antioquia'],['Bogotá D.C.','Bogotá D.C.'],['Cali','Valle del Cauca'],['Barranquilla','Atlántico'],['Cartagena','Bolívar'],['Bucaramanga','Santander'],['Pereira','Risaralda'],['Manizales','Caldas'],['Armenia','Quindío'],['Santa Marta','Magdalena'],['Cúcuta','Norte de Santander'],['Villavicencio','Meta'],['Ibagué','Tolima'],['Montería','Córdoba'],['Neiva','Huila'],['Pasto','Nariño']].map(function(c){return {name:c[0],department:c[1]}});return cities});
+}
+function openAddr(a){
+  $('addrTitle').textContent=a?'Editar dirección':'Nueva dirección';$('adId').value=a?a.id:'';
+  $('adEtiqueta').value=a&&a.etiqueta||'';$('adDireccion').value=a&&a.direccion||'';$('adNotas').value=a&&a.notas||'';
+  adCity=a?{name:a.ciudad,department:a.departamento||''}:null;$('adCiudad').value=a?a.ciudad+(a.departamento?' · '+a.departamento:''):'';
+  msg('adMsg','');$('addrDlg').classList.add('on');loadCities();
+}
+function closeDlg(id){$(id).classList.remove('on')}
+$('adCancel').onclick=function(){closeDlg('addrDlg')};
+$('addrDlg').addEventListener('click',function(e){if(e.target===this)closeDlg('addrDlg')});
+$('adCiudad').addEventListener('input',function(){
+  adCity=null;var q=norm(this.value.split('·')[0]),list=$('adCityList');if(!q){list.classList.remove('open');return}
+  loadCities().then(function(cs){var a=[],b=[];cs.forEach(function(c){var n=norm(c.name);if(n.indexOf(q)===0)a.push(c);else if(n.indexOf(q)>0)b.push(c)});var res=a.concat(b).slice(0,8);list._res=res;
+    list.innerHTML=res.length?res.map(function(c,i){return '<button type="button" data-i="'+i+'">'+esc(c.name)+' <small style="color:var(--muted)">· '+esc(c.department)+'</small></button>'}).join(''):'<div style="padding:10px;font-size:13px;color:var(--muted)">No encontramos esa ciudad.</div>';list.classList.add('open')});
+});
+$('adCityList').addEventListener('mousedown',function(e){var b=e.target.closest('button[data-i]');if(!b)return;e.preventDefault();var c=this._res[Number(b.dataset.i)];adCity=c;$('adCiudad').value=c.name+(c.department?' · '+c.department:'');this.classList.remove('open')});
+$('adCiudad').addEventListener('blur',function(){var l=$('adCityList');setTimeout(function(){l.classList.remove('open');if(!adCity&&l._res&&l._res.length===1){adCity=l._res[0];$('adCiudad').value=adCity.name+' · '+adCity.department}},150)});
+$('addrForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  if(!adCity){msg('adMsg','Elige tu ciudad de la lista.','err');return}
+  if($('adDireccion').value.trim().length<5){msg('adMsg','Escribe la dirección completa.','err');return}
+  busy($('adSave'),true,'Guardando…');
+  C.api('address-save',{address:{id:$('adId').value?Number($('adId').value):undefined,etiqueta:$('adEtiqueta').value,direccion:$('adDireccion').value,ciudad:adCity.name,departamento:adCity.department,notas:$('adNotas').value}})
+    .then(function(j){data.direcciones=j.direcciones;renderAddresses();closeDlg('addrDlg');toast('Dirección guardada')})
+    .catch(function(er){msg('adMsg',er.message,'err')}).then(function(){busy($('adSave'),false,'Guardar')});
+});
+var askFn=null;
+function ask(t,fn){$('confirmText').textContent=t;askFn=fn;$('confirmDlg').classList.add('on')}
+$('cfNo').onclick=function(){closeDlg('confirmDlg')};
+$('cfYes').onclick=function(){var f=askFn;closeDlg('confirmDlg');if(f)f().catch(function(er){toast(er.message)})};
+
+/* ---------- Favoritos ---------- */
+function renderFavs(){var n=0;try{var x=JSON.parse(localStorage.getItem('liftFavoritesV1')||'[]');n=Array.isArray(x)?x.length:0}catch(e){}$('favCount').textContent=n}
+
+/* ---------- Cupones y referidos ---------- */
+function loadCoupons(){
+  var box=$('p-cupones');
+  C.api('coupons').then(function(j){
+    couponsLoaded=true;var r=j.referido,list=j.cupones||[],html='';
+    if(r){
+      var link='https://supgo.co/home/?ref='+encodeURIComponent(r.codigo);
+      var share='¡Te regalo '+(r.tipo==='percentage'?r.valor+'%':money(r.valor))+' de descuento en tu primera compra en SUPGO! 💪 Usa mi código '+r.codigo+' aquí: '+link;
+      html+='<div class="refbox"><h2>Invita a tus amigos</h2><p>Comparte tu código: tus amigos reciben '+(r.tipo==='percentage'?r.valor+'%':money(r.valor))+' de descuento en su primera compra.</p>'
+        +'<div class="refcode"><b>'+esc(r.codigo)+'</b><button class="btn lime" type="button" id="copyRef">Copiar</button></div>'
+        +'<div class="oact"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(share)+'">Compartir por WhatsApp</a><button class="btn" type="button" id="copyLink" style="background:#1d1d1d;color:#fff;border-color:#333">Copiar enlace</button></div>'
+        +'<div class="refstats">'+(r.usos?('🎉 '+r.usos+(r.usos===1?' amigo ya compró':' amigos ya compraron')+' con tu código'):'Aún nadie ha usado tu código.')+'</div></div>';
+      box._ref={code:r.codigo,link:link};
+    }
+    html+='<h2 style="font-size:16px;margin:18px 0 10px">Cupones disponibles</h2>';
+    html+=list.length?list.map(function(c){return '<div class="coupon"><div><b>'+esc(c.codigo)+'</b><small>'+(c.tipo==='percentage'?c.valor+'% de descuento':money(c.valor)+' de descuento')+(c.minimo?' · compra mínima '+money(c.minimo):'')+(c.vence_en?' · vence '+new Date(c.vence_en).toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'')+'</small></div><button class="btn" type="button" data-copy="'+esc(c.codigo)+'">Copiar</button></div>'}).join(''):'<div class="card empty">Por ahora no hay cupones. Te avisaremos cuando haya promociones.</div>';
+    box.innerHTML=html;
+  }).catch(function(er){box.innerHTML='<div class="card empty">'+esc(er.message)+'</div>'});
+}
+$('p-cupones').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;var r=$('p-cupones')._ref||{};
+  if(b.id==='copyRef')copy(r.code,'Código copiado');
+  if(b.id==='copyLink')copy(r.link,'Enlace copiado');
+  if(b.dataset.copy)copy(b.dataset.copy,'Cupón copiado: úsalo al finalizar tu compra');
+});
+
+/* ---------- Mis datos ---------- */
+$('profileForm').addEventListener('submit',function(e){
+  e.preventDefault();var n=$('pfNombre').value.trim(),c=$('pfCel').value.replace(/\D/g,'');
+  if(n.length<3){msg('pfMsg','Escribe tu nombre completo.','err');return}
+  if(c&&c.length<10){msg('pfMsg','Escribe un celular de 10 dígitos.','err');return}
+  busy($('pfSave'),true,'Guardando…');
+  C.api('profile',{nombre:n,celular:c}).then(function(j){data.cuenta=j.cuenta;var s=C.get();C.set({token:s.token,email:s.email,nombre:j.cuenta.nombre});$('helloName').textContent='Hola, '+j.cuenta.nombre.split(/\s+/)[0];msg('pfMsg','Datos guardados ✓','ok')})
+    .catch(function(er){msg('pfMsg',er.message,'err')}).then(function(){busy($('pfSave'),false,'Guardar')});
+});
+
+if(C.get())load(false);else showLogin();
+})();
+</script>
+<script defer src="/componentes/header-loader.js?v=20261022-unificado"></script>
+</body>
+</html>

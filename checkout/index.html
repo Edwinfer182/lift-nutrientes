@@ -139,6 +139,13 @@ details.coupon[open] summary::after{content:"−"}
   .row{grid-template-columns:1fr}
   .secure span{display:none}
 }
+.acctBar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px}
+.acctBar a{font-weight:600;white-space:nowrap}
+.acctBar.in{background:#f3fbe3;border-color:#cfe9a0}
+.savedAddrs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
+.savedAddrs button{flex:0 0 auto;max-width:240px;text-align:left;border:1px solid #d6d6d6;background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer}
+.savedAddrs button b{display:block;font-size:13px}
+.savedAddrs button.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
 </style>
 </head>
 <body>
@@ -155,6 +162,7 @@ details.coupon[open] summary::after{content:"−"}
       <p class="lead">Al hacer el pedido confirmamos la disponibilidad y te enviamos cómo pagar. <b>No se cobra nada en este paso.</b></p>
       <div class="formError" id="formError" role="alert"></div>
       <form id="form" novalidate>
+        <div class="acctBar" id="acctBar" hidden></div>
         <div class="card">
           <h2><span class="step">1</span>Tus datos</h2>
           <label class="field" id="f-nombre"><span class="label">Nombre completo</span>
@@ -171,6 +179,7 @@ details.coupon[open] summary::after{content:"−"}
         </div>
         <div class="card">
           <h2><span class="step">2</span>Entrega</h2>
+          <div class="savedAddrs" id="savedAddrs" hidden></div>
           <label class="field" id="f-ciudad"><span class="label">Ciudad o municipio</span>
             <input class="input" id="ciudad" name="ciudad" autocomplete="off" placeholder="Escribe y elige tu ciudad" role="combobox" aria-expanded="false" aria-controls="cityList" aria-autocomplete="list" required>
             <div class="suggest" id="cityList" role="listbox"></div>
@@ -224,6 +233,7 @@ details.coupon[open] summary::after{content:"−"}
   <button class="cta" type="submit" form="form" id="submitMobile"><span class="spin"></span><span class="ctaText">Hacer pedido</span></button>
 </div>
 
+<script src="/componentes/cuenta.js?v=20261031-cuentas-1"></script>
 <script>
 (function(){
 'use strict';
@@ -431,6 +441,7 @@ function submit(ev){
       localStorage.removeItem(CART);localStorage.removeItem(META);
     }catch(e){}
     window.dispatchEvent(new Event('supgo-cart-change'));
+    saveToAccount(p);
     location.assign(id?'/mi-pedido/?pedido='+encodeURIComponent(id)+(r.token?'&token='+encodeURIComponent(r.token):'')+'&nuevo=1':'https://supgo.co/?mi-pedido=1');
   }).catch(function(e){busy(false);showError(e.message||'No pudimos crear el pedido. Revisa tu conexión e inténtalo de nuevo.')});
 }
@@ -469,8 +480,45 @@ function bind(){
   $('toggleSummary').addEventListener('click',function(){var s=$('summary'),open=s.classList.toggle('collapsed');this.setAttribute('aria-expanded',String(!open))});
   window.addEventListener('storage',function(e){if(e.key===CART){buildLines();render()}});
 }
+/* ---------- Cuenta del cliente ---------- */
+var account=null;
+function useAddress(a,btn){
+  if(!a)return;
+  $('direccion').value=a.direccion||'';$('f-direccion').classList.remove('bad');
+  if(a.notas&&!$('notas').value.trim())$('notas').value=a.notas;
+  if(a.ciudad){state.city={name:a.ciudad,department:a.departamento||''};$('ciudad').value=a.ciudad+(a.departamento?' · '+a.departamento:'');$('f-ciudad').classList.remove('bad');updateCity();render()}
+  [].forEach.call(document.querySelectorAll('#savedAddrs button'),function(b){b.classList.toggle('on',b===btn)});
+}
+function fillAccount(){
+  var C=window.SupgoCuenta,bar=$('acctBar');if(!C)return;
+  var ref=C.refCode&&C.refCode();
+  if(ref&&!$('cupon').value){$('cupon').value=ref;$('couponBox').open=true;$('couponMsg').textContent='Código de invitación listo. Escribe tu celular y toca Aplicar.';$('couponMsg').className='msg'}
+  var s=C.get();
+  if(!s){bar.hidden=false;bar.className='acctBar';bar.innerHTML='<span>¿Ya tienes cuenta? Entra y tus datos se llenan solos.</span><a href="/cuenta/?volver=%2Fcheckout%2F">Entrar</a>';return}
+  bar.hidden=false;bar.className='acctBar in';bar.innerHTML='<span>Comprando como <b>'+esc(s.email)+'</b></span><a href="/cuenta/">Mi cuenta</a>';
+  C.api('me').then(function(j){
+    account=j;var c=j.cuenta||{};
+    if(c.nombre)$('nombre').value=c.nombre;if(c.celular)$('celular').value=c.celular;if(c.email)$('email').value=c.email;
+    var dirs=j.direcciones||[],box=$('savedAddrs');
+    if(dirs.length){
+      box.hidden=false;box.innerHTML=dirs.map(function(a,i){return '<button type="button" data-i="'+i+'"><b>'+esc(a.etiqueta||a.ciudad)+'</b>'+esc(a.direccion)+'</button>'}).join('');
+      box.onclick=function(e){var b=e.target.closest('button[data-i]');if(b)useAddress(dirs[Number(b.dataset.i)],b)};
+      if(!$('direccion').value.trim()||!state.city){var d=dirs.filter(function(a){return a.predeterminada})[0]||dirs[0];useAddress(d,box.querySelector('button[data-i="'+dirs.indexOf(d)+'"]'))}
+    }
+  }).catch(function(){if(!C.get()){bar.className='acctBar';bar.innerHTML='<span>Tu sesión terminó.</span><a href="/cuenta/?volver=%2Fcheckout%2F">Entrar de nuevo</a>'}});
+}
+function saveToAccount(p){
+  var C=window.SupgoCuenta;if(!C)return;
+  try{if(state.coupon&&C.refCode&&state.coupon.code===C.refCode())C.clearRef()}catch(e){}
+  if(!C.get())return;
+  try{
+    C.api('address-save',{address:{direccion:p.direccion,ciudad:p.ciudad,departamento:p.departamento,notas:$('notas').value.trim()}}).catch(function(){});
+    var c=account&&account.cuenta||{};
+    if(!c.nombre||!c.celular)C.api('profile',{nombre:c.nombre||p.nombre,celular:c.celular||p.celular}).catch(function(){});
+  }catch(e){}
+}
 function start(){
-  bind();fillRemembered();
+  bind();fillRemembered();fillAccount();
   var cart=json(CART,{});var ids=Object.keys(cart).filter(function(k){return qtyOf(cart[k])>0}).map(function(k){return String(k).split('::')[0]});
   if(!ids.length){state.loaded=true;renderEmpty();return}
   buildLines();render();
