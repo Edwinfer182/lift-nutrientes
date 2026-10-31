@@ -893,8 +893,8 @@ def shared_template():
 
 
 def keep_existing_seo_head(existing, generated):
- """Al pasar una ficha a la nueva plantilla se conservan su título y su meta
- descripción publicados (pueden haber sido ajustados a mano para SEO)."""
+ """Al pasar una ficha a la nueva plantilla se conservan su título, su meta
+ descripción y su descripción publicados (pueden haber sido ajustados a mano para SEO)."""
  title=re.search(r"<title>(.*?)</title>",existing,re.S)
  meta=re.search(r'<meta name="description" content="([^"]*)">',existing)
  if title:generated=re.sub(r"<title>.*?</title>",lambda m:"<title>"+title.group(1)+"</title>",generated,count=1,flags=re.S)
@@ -902,6 +902,10 @@ def keep_existing_seo_head(existing, generated):
   value=meta.group(1)
   for attr in ('name="description"','property="og:description"','name="twitter:description"'):
    generated=re.sub(r'<meta '+re.escape(attr)+r' content="[^"]*">',lambda m:'<meta '+attr+' content="'+value+'">',generated,count=1)
+ # La descripción publicada también se conserva (la sincronización diaria nunca la cambia).
+ body=re.search(r'<div class="product-description">(.*?)</div></details>',existing,re.S)
+ if body and body.group(1).strip():
+  generated=re.sub(r'(<div class="product-description">).*?(</div></details>)',lambda m:m.group(1)+body.group(1)+m.group(2),generated,count=1,flags=re.S)
  return generated
 
 def patch_offer_only(existing, generated):
