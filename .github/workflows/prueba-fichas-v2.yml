@@ -68,11 +68,9 @@ jobs:
       - name: Publicar informe en rama temporal
         if: always()
         run: |
-          cp -r informe /tmp/informe
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout --orphan fichas-v2-informe
-          git rm -rq --cached . 
-          git clean -fdxq -e informe
-          mv /tmp/informe/* . 2>/dev/null; rm -rf informe
-          git add -A && git commit -qm "Informe temporal fichas v2" && git push -f origin fichas-v2-informe
+          git checkout -b fichas-v2-informe
+          git add -f informe
+          git commit -qm "Informe temporal fichas v2"
+          git push -f origin HEAD:refs/heads/fichas-v2-informe
