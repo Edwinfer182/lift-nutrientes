@@ -139,6 +139,10 @@ details.coupon[open] summary::after{content:"−"}
   .row{grid-template-columns:1fr}
   .secure span{display:none}
 }
+.payTiming{display:flex;gap:10px;align-items:flex-start;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.45;background:#fff;border:1px solid var(--line)}
+.payTiming b{display:block;font-size:14px;margin-bottom:2px}
+.payTiming.fast{background:#f3fbe3;border-color:#cfe9a0}
+.payTiming .ic{font-size:20px;line-height:1}
 .acctBar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px}
 .acctBar a{font-weight:600;white-space:nowrap}
 .acctBar.in{background:#f3fbe3;border-color:#cfe9a0}
@@ -200,6 +204,7 @@ details.coupon[open] summary::after{content:"−"}
             <div class="msg" id="couponMsg" aria-live="polite"></div>
           </details>
         </div>
+        <div class="payTiming" id="payTiming" hidden></div>
         <div class="card">
           <label class="check" id="c-datos"><input type="checkbox" id="datos" required><span>Autorizo el <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">tratamiento de mis datos personales</a> para gestionar mi pedido.</span></label>
           <label class="check"><input type="checkbox" id="recordar" checked><span>Guardar mis datos en este dispositivo para la próxima compra.</span></label>
@@ -257,7 +262,7 @@ function api(path,opts){opts=opts||{};return fetch(SB+path,Object.assign({},opts
 function loadProducts(ids){
   var nums=ids.filter(function(x){return /^\d+$/.test(x)});
   if(!nums.length)return Promise.resolve();
-  return api('/rest/v1/lift_productos?select=id,product,activo&id=in.('+nums.join(',')+')').then(function(rows){(rows||[]).forEach(function(r){state.products[String(r.id)]=r})});
+  return api('/rest/v1/lift_productos?select=id,product,activo,pago_directo&id=in.('+nums.join(',')+')').then(function(rows){(rows||[]).forEach(function(r){state.products[String(r.id)]=r})});
 }
 function loadOffers(){
   return api('/rest/v1/lift_catalog_config?select=valor&clave=eq.weekly_offers&limit=1').then(function(rows){var v=rows&&rows[0]&&rows[0].valor||{};if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v={}}}state.offers=v&&typeof v==='object'?v:{}}).catch(function(){state.offers={}});
@@ -319,9 +324,19 @@ function discount(){return state.coupon?Math.min(subtotal(),Number(state.coupon.
 function total(){var s=shipping();return Math.max(0,subtotal()-discount())+(s||0)}
 
 /* ---------- Pintar ---------- */
+function renderTiming(){
+  var el=$('payTiming');if(!el)return;var ls=okLines();
+  if(!state.loaded||!ls.length){el.hidden=true;return}
+  var direct=ls.every(function(l){var r=state.products[String(l.id)];return r&&r.pago_directo===true&&r.activo!==false});
+  el.hidden=false;el.className='payTiming'+(direct?' fast':'');
+  el.innerHTML=direct
+    ?'<span class="ic">⚡</span><div><b>Todo está disponible</b>Al hacer el pedido pasas directo a pagar y lo despachamos de una vez.</div>'
+    :'<span class="ic">🔎</span><div><b>Primero confirmamos disponibilidad</b>Verificamos tus productos con la bodega antes de cobrarte. Normalmente te confirmamos en máximo 30 minutos (8 a. m. a 8 p. m.) y te avisamos para que pagues. <b style="display:inline;font-size:13px">No se cobra nada ahora.</b></div>';
+}
 function render(){
   var lines=state.lines,box=$('items');
   if(state.loaded&&!lines.length){renderEmpty();return}
+  try{renderTiming()}catch(e){}
   box.innerHTML=lines.map(function(l){
     return '<div class="item'+(l.available?'':' unavailable')+'">'+
       (l.image?'<img class="thumb" src="'+esc(l.image)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+

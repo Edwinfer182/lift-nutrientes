@@ -10952,7 +10952,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
    nuevo:'Recibimos tu pedido y estamos verificando la disponibilidad de los productos.',
    verificando_disponibilidad:'Recibimos tu pedido. Estamos verificando la disponibilidad de los productos para habilitar el pago.',
    sin_disponibilidad:'Uno o más productos de tu pedido no están disponibles. No realices el pago todavía; te contactaremos para revisar las opciones.',
-   pendiente_pago:'Ya confirmamos la disponibilidad de tu pedido y tienes habilitados los medios de pago. Puedes continuar desde el enlace.',
+   pendiente_pago:'¡Buenas noticias! Ya confirmamos que tus productos están disponibles 🙌 Paga desde este enlace para que preparemos tu pedido de una vez.',
    preparando:'Tu pago fue confirmado y estamos preparando tu pedido.',
    programado:'Tu pedido ya está programado para despacho. Te avisaremos cuando salga a ruta.',
    en_ruta:p.despacho_tipo==='guia'?'Tu pedido ya fue despachado por '+(p.despacho_transportadora||'transportadora')+(p.despacho_guia?'. Número de guía: '+p.despacho_guia:'')+'. Puedes consultar el seguimiento en el enlace.':'Tu pedido ya salió a ruta. No podemos confirmar una hora exacta de entrega.',
@@ -10961,7 +10961,7 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
   };
   const first=(p.items||[])[0]?.nombre||'tu pedido';
   const message=follow?`¿Cómo te fue con tu pedido de ${first}? Quería confirmar que lo recibiste todo bien.`:(messages[estado]||'Puedes consultar el estado actualizado de tu pedido.');
-  const text=`Hola ${name}, ${message}\n\nConsulta tu pedido #${p.id} aquí:\n${url}`;
+  const text=estado==='pendiente_pago'&&!follow?`Hola ${name}, ${message}\n\nPedido #${p.id} · Total ${money(p.total)}\n${url}`:`Hola ${name}, ${message}\n\nConsulta tu pedido #${p.id} aquí:\n${url}`;
   const num=phone.length===10?'57'+phone:phone;
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`,'_blank');
  };
@@ -11011,6 +11011,36 @@ window.liftSetOrderStatus=async function(id,estado){try{await rpc('estado',{pedi
   };
   document.body.appendChild(m);
  };
+ // Tras habilitar el pago: un toque para avisarle al cliente por WhatsApp con su enlace de pago.
+ window.liftPromptNotifyPay=function(id){
+  const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;
+  document.getElementById('liftNotifyPay')?.remove();
+  const d=document.createElement('div');d.id='liftNotifyPay';
+  d.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483600;width:min(94vw,420px);background:#111;color:#fff;border-radius:16px;padding:16px;box-shadow:0 18px 50px #0006;font:13px Poppins,Arial,sans-serif';
+  d.innerHTML=`<b style="display:block;font-size:14px;margin-bottom:4px">✓ Pago habilitado · Pedido #${p.id}</b><span style="color:#ccc">Avísale a ${esc(String(p.nombre||'el cliente').split(' ')[0])} ahora para que pague mientras tiene ganas.</span><div style="display:flex;gap:8px;margin-top:12px"><button type="button" data-go style="flex:1;height:42px;border:0;border-radius:10px;background:#25d366;color:#fff;font:600 13px Poppins,Arial;cursor:pointer">📲 Avisar por WhatsApp</button><button type="button" data-x style="height:42px;border:1px solid #444;border-radius:10px;background:none;color:#fff;padding:0 12px;cursor:pointer">Después</button></div>`;
+  d.onclick=e=>{if(e.target.closest('[data-go]')){window.liftOpsWhatsApp(p.id,false);d.remove()}else if(e.target.closest('[data-x]'))d.remove()};
+  document.body.appendChild(d);setTimeout(()=>d.remove(),45000);
+ };
+ // Pedidos olvidados: más de 48 h en "verificando disponibilidad".
+ function staleOrders(){const lim=Date.now()-48*3600e3;return rows.filter(p=>p.estado_operativo==='verificando_disponibilidad'&&new Date(p.fecha).getTime()<lim)}
+ function staleBanner(){
+  const box=$('liftOpsList');if(!box)return;box.querySelector('.liftStaleBanner')?.remove();
+  const st=staleOrders();if(!st.length)return;
+  const b=document.createElement('div');b.className='liftStaleBanner';
+  b.style.cssText='background:#fff7d6;border:1px solid #ead98e;color:#5c4400;border-radius:12px;padding:12px;margin-bottom:10px;font:12px Poppins,Arial,sans-serif';
+  b.innerHTML=`<b style="display:block;font-size:13px">⚠️ ${st.length} pedido${st.length===1?' lleva':'s llevan'} más de 48 h verificando disponibilidad</b><span>Probablemente se atendieron por WhatsApp o el cliente ya no los quiere.</span><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" data-list style="height:34px;border:1px solid #d9c56e;border-radius:9px;background:#fff;padding:0 12px;font:600 11px Poppins,Arial;cursor:pointer">Ver cuáles</button><button type="button" data-cancel style="height:34px;border:0;border-radius:9px;background:#111;color:#fff;padding:0 12px;font:600 11px Poppins,Arial;cursor:pointer">Cancelarlos (sin avisar al cliente)</button></div><div data-detail hidden style="margin-top:10px;max-height:180px;overflow:auto;line-height:1.7">${st.map(p=>`#${p.id} · ${esc(p.nombre||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')} · ${money(p.total)}`).join('<br>')}</div>`;
+  b.onclick=async e=>{
+   if(e.target.closest('[data-list]')){const dt=b.querySelector('[data-detail]');dt.hidden=!dt.hidden;return}
+   const btn=e.target.closest('[data-cancel]');if(!btn)return;
+   if(!confirm('¿Cancelar '+st.length+' pedidos con más de 48 h en verificación?\n\nNo se le envía correo al cliente.'))return;
+   btn.disabled=true;let ok=0;
+   for(const p of st){btn.textContent='Cancelando '+(ok+1)+'/'+st.length+'…';try{await rpc('estado',{pedido_id:p.id,estado:'cancelado'});ok++}catch(er){console.warn('cancelar',p.id,er)}}
+   alert('Listo: '+ok+' pedido'+(ok===1?'':'s')+' cancelado'+(ok===1?'':'s')+'.');await liftLoadAllOrders();
+  };
+  box.prepend(b);
+ }
+ const renderOrig=window.liftRenderAllOrders;
+ window.liftRenderAllOrders=function(){const r=renderOrig.apply(this,arguments);try{staleBanner()}catch(e){console.warn(e)}return r};
  function boot(){inject();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
@@ -11983,6 +12013,7 @@ window.liftAdminAvailability=async function(id,available,btn){
        :'<div class="liftOpsPaymentBlocked">✕ Falta producto. El pago sigue bloqueado.</div>';
    }
    if(typeof window.liftLoadAllOrders==='function')await window.liftLoadAllOrders();
+   if(available&&typeof window.liftPromptNotifyPay==='function')window.liftPromptNotifyPay(id);
  }catch(e){
    alert('No pude actualizar el pedido: '+e.message);
    buttons.forEach(b=>b.disabled=false);

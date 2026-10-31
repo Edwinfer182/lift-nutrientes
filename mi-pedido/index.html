@@ -166,7 +166,7 @@ function stage(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
   if(s==='verificando_disponibilidad'||s==='sin_disponibilidad')return 1;return 0}
 function info(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
   if(s==='sin_disponibilidad')return {t:'Un producto no está disponible',d:'No realices el pago todavía. Puedes esperar reposición, cambiar el producto o quitarlo.',k:'bad'};
-  if(s==='verificando_disponibilidad')return {t:'Verificando tus productos',d:'Estamos confirmando la disponibilidad. Te avisaremos por correo cuando puedas pagar desde esta página.'};
+  if(s==='verificando_disponibilidad')return {t:'Verificando tus productos',d:'Estamos confirmando la disponibilidad con la bodega. Normalmente te confirmamos en máximo 30 minutos (8 a. m. a 8 p. m.). Te avisaremos por WhatsApp y correo, y aquí mismo aparecerá el botón para pagar. No se cobra nada todavía.'};
   if(s==='pendiente_pago'&&ps==='aprobado')return {t:'Pago aprobado',d:'Estamos alistando tu pedido.',k:'ok'};
   if(s==='pendiente_pago'&&ps==='por_verificar')return {t:'Verificando tu pago',d:'Recibimos tu comprobante y lo estamos revisando.'};
   if(s==='pendiente_pago'&&ps==='contraentrega')return {t:'Pago contraentrega',d:'Pagarás en efectivo al recibir tu pedido.',k:'ok'};
@@ -219,6 +219,9 @@ function render(img,disp){
   if(c.token)h+='<div class="card"><h2>Enlace de tu pedido</h2><div class="link"><code>'+esc(orderUrl(c.id,c.token))+'</code><button class="ghost" type="button" data-copy="'+esc(orderUrl(c.id,c.token))+'">Copiar</button></div><p class="lead" style="margin:8px 0 0;font-size:12px">Guárdalo para volver a consultar tu pedido.</p></div>';
   h+='<a class="other" href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a><a class="other" href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a>';
   $('order').innerHTML=h;show('order');
+  // Mientras verificamos, la página se actualiza sola (cada minuto, hasta 40 min).
+  clearTimeout(window.__verifTimer);
+  if(s==='verificando_disponibilidad'&&(window.__verifTries=(window.__verifTries||0)+1)<=40)window.__verifTimer=setTimeout(function tick(){if(document.hidden){window.__verifTimer=setTimeout(tick,60000);return}load(c.id,'',c.token,true).catch(function(){})},60000);
 }
 function confirmingCard(timedOut){
   if(!timedOut){
