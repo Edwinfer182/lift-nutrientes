@@ -209,7 +209,7 @@ body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 
 # Versión de la plantilla de ficha. Si una ficha existente no la tiene, se
 # regenera completa una vez; después solo se sincronizan precio y relacionados.
-FICHA_VERSION="v2-20261030"
+FICHA_VERSION="v2-20261031"
 PAYMENT_HTML='<div class="pi-pay"><span class="pi-pay-label">Paga con</span><ul aria-label="Medios de pago"><li class="pi-breb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Bre-B</span></li><li class="pi-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg><span>Tarjeta con Bold</span></li><li class="pi-bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 12 4l9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><span>Transferencia</span></li></ul></div>'
 FICHA_V2_CSS=r'''
 /* ===== Ficha v2: jerarquía, precio, envío, pagos, relacionados y escritorio ===== */
@@ -279,6 +279,10 @@ body .product-page .product-card .product-gallery .zoom-image img{width:100%!imp
 .pi-toast-text{flex:1;display:flex;flex-direction:column;min-width:0}
 .pi-toast-text b{font-weight:600;font-size:14px;color:#4ade80}
 .pi-toast-text small{font-size:12px;color:#d1d5db;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-toast-ship{font-style:normal;font-size:12px;color:#fde68a;margin-top:3px}
+.pi-toast-ship.ok{color:#86efac}
+.pi-toast-bar{display:block;height:4px;margin-top:5px;border-radius:9px;background:rgba(255,255,255,.18);overflow:hidden}
+.pi-toast-bar i{display:block;height:100%;width:0;background:#4ade80;border-radius:9px;transition:width .3s}
 .pi-toast button{flex:none;padding:10px 14px;border:0;border-radius:10px;background:#fff;color:#111;font:600 13px Poppins,Arial,sans-serif;cursor:pointer}
 /* Escritorio: foto fija a la izquierda, información completa a la derecha. */
 @media(min-width:901px){
@@ -320,7 +324,9 @@ function favs(){var a=get('supgo_seo_favorites',[]);return Array.isArray(a)?a:[]
 function paint(){if(fav)fav.textContent=favs().some(function(x){return x.id===p.id})?'♥':'♡'}
 if(fav)fav.onclick=function(){var a=favs();a=a.some(function(x){return x.id===p.id})?a.filter(function(x){return x.id!==p.id}):a.concat([p]);save('supgo_seo_favorites',a);paint();note.textContent='Favoritos actualizados'};
 paint();
-function toast(name,qty){if(!toastBox)return;toastBox.querySelector('small').textContent=(qty>1?qty+' × ':'')+name;toastBox.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toastBox.classList.remove('show')},5000)}
+/* Progreso hacia el envío gratis: 3 unidades en Medellín, 4 en el resto de Colombia. */
+function shipHint(){var c=get('liftCartV2',{}),n=0;if(c&&typeof c==='object')Object.keys(c).forEach(function(k){var v=c[k];n+=Math.max(0,Number(v&&typeof v==='object'?(v.quantity!=null?v.quantity:v.qty):v)||0)});var el=toastBox.querySelector('.pi-toast-ship'),bar=toastBox.querySelector('.pi-toast-bar i');if(!el)return;el.textContent=n<3?'Te '+(3-n===1?'falta 1 unidad':'faltan '+(3-n)+' unidades')+' para envío gratis en Medellín':n<4?'✓ Envío gratis en Medellín · 1 más y es gratis a toda Colombia':'✓ Tienes envío gratis a toda Colombia';el.classList.toggle('ok',n>=3);if(bar)bar.style.width=Math.min(100,n/3*100)+'%'}
+function toast(name,qty){if(!toastBox)return;toastBox.querySelector('small').textContent=(qty>1?qty+' × ':'')+name;shipHint();toastBox.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toastBox.classList.remove('show')},5000)}
 if(toastBox){toastBox.addEventListener('mouseenter',function(){clearTimeout(toastTimer)});toastBox.addEventListener('mouseleave',function(){toastTimer=setTimeout(function(){toastBox.classList.remove('show')},2500)})}
 var toCart=$('pi-toast-cart');if(toCart)toCart.onclick=function(){location.href='/carrito/'};
 function addToCart(item,qty){
@@ -818,7 +824,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 </section></article>
 <!--relacionados-->{f'<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">{related_html}</div></section>' if related_html else ''}<!--/relacionados-->
 </main>
-<div id="pi-toast" class="pi-toast" role="status" aria-live="polite"><span class="pi-toast-text"><b>✓ Agregado</b><small></small></span><button type="button" id="pi-toast-cart">Ver carrito</button></div>
+<div id="pi-toast" class="pi-toast" role="status" aria-live="polite"><span class="pi-toast-text"><b>✓ Agregado</b><small></small><em class="pi-toast-ship"></em><span class="pi-toast-bar" aria-hidden="true"><i></i></span></span><button type="button" id="pi-toast-cart">Ver carrito</button></div>
 <style>
 #seo-wa-float{{position:fixed;right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:900;font-family:Poppins,Arial,sans-serif}}
 #seo-wa-toggle{{width:54px;height:54px;border:0;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 5px 16px #0003;display:grid;place-items:center;cursor:pointer}}
