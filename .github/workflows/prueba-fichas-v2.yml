@@ -30,13 +30,17 @@ jobs:
                 d=json.loads(b)
                 if d.get("@type")=="Product":prod=d
               except Exception:pass
+            offers=(prod or {}).get("offers") or {}
+            if isinstance(offers,list):offers=offers[0] if offers else {}
             return {"title":g(r"<title>(.*?)</title>"),"desc":g(r'<meta name="description" content="([^"]*)"'),"canon":g(r'rel="canonical" href="([^"]*)"'),"robots":g(r'<meta name="robots" content="([^"]*)"'),
-                    "price":(prod or {}).get("offers",{}).get("price") if prod else None,"name":(prod or {}).get("name")}
+                    "price":offers.get("price"),"name":(prod or {}).get("name")}
           diffs={k:0 for k in ("title","desc","canon","robots","price","name")}; examples={k:[] for k in diffs}
           for f in files:
             old=subprocess.run(["git","show","HEAD:"+f],capture_output=True,text=True).stdout
             if not old:continue
-            a,b=grab(old),grab(pathlib.Path(f).read_text(encoding="utf-8"))
+            try:a,b=grab(old),grab(pathlib.Path(f).read_text(encoding="utf-8"))
+            except Exception as e:
+              print("ERROR",f,e);continue
             for k in diffs:
               if a[k]!=b[k]:
                 diffs[k]+=1
@@ -50,9 +54,11 @@ jobs:
           sin_v2=[p.name for p in all_pages if 'data-ficha="v2' not in p.read_text(encoding="utf-8",errors="replace")]
           pathlib.Path("informe/sin_v2.txt").write_text("\n".join(sorted(sin_v2)),encoding="utf-8")
           PY
-      - name: Externalizar CSS como en la corrida de listados
+      - name: Externalizar CSS
+        if: always() como en la corrida de listados
         run: python scripts/seo_indexacion.py || true
       - name: Muestras
+        if: always()
         run: |
           mkdir -p informe/productos
           for f in 100-gold-isolate-standard-5-lb-30188.html lipodrene-amarillo-90-12268.html super-mass-gainer-6-lb-chocolate-30144.html; do cp "productos/$f" informe/productos/ || true; done
@@ -60,6 +66,7 @@ jobs:
           git status --short productos-assets | head -20 > informe/assets.txt
           git ls-files --others --exclude-standard productos-assets | xargs -I{} cp {} informe/productos/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: informe-fichas-v2
           path: informe/
