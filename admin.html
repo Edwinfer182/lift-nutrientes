@@ -15053,6 +15053,41 @@ document.addEventListener('DOMContentLoaded',function(){
 #liftTrackModal .liftTrackForm{display:grid!important;gap:10px!important;width:100%!important}
 #liftTrackModal .liftTrackForm input{width:100%!important;box-sizing:border-box!important}
 </style>
+
+<!-- Puente con el panel nuevo (/panel/): abre la herramienta pedida y permite volver. -->
+<style id="supgo-panel-bridge-style">
+#supgoBackToPanel{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:2147483000;display:none;align-items:center;gap:6px;height:42px;padding:0 15px;border:0;border-radius:999px;background:#111;color:#fff;font:600 13px Poppins,Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.28);text-decoration:none}
+body.liftAdminUnlocked #supgoBackToPanel{display:inline-flex}
+</style>
+<a id="supgoBackToPanel" href="/panel/">← Panel</a>
+<script id="supgo-panel-bridge">
+(function(){
+ var m=/^#abrir=([a-z-]+)/.exec(location.hash||'');if(!m)return;var tool=m[1];
+ function click(sel){var el=document.querySelector(sel);if(!el)return false;el.click();return true}
+ function laf(tab){if(typeof window.openLiftAdminFull!=='function')return false;window.openLiftAdminFull();setTimeout(function(){click('button[onclick^="lafTab(\''+tab+'\'"]')},250);return true}
+ function orders(tab){if(!click('#liftOrdersOpenBtn'))return false;if(tab)setTimeout(function(){typeof window.liftOrdersTab==='function'?window.liftOrdersTab(tab):0},500);return true}
+ var T={
+  productos:function(){return laf('products')},crear:function(){return laf('create')},ofertas:function(){return laf('offers')},combos:function(){return laf('combos')},
+  categorias:function(){return laf('categories')},variaciones:function(){return laf('variants')},excel:function(){return laf('excel')},
+  laboratorio:function(){if(typeof window.openOff==='function')window.openOff('filters');return click('.labAdminNew')},
+  pedidos:function(){return orders('')},historial:function(){return orders('history')},anterior:function(){return orders('old')},
+  entrenadores:function(){if(!orders(''))return false;setTimeout(function(){click('#lift-trainer-admin-open')},700);return true},
+  pagos:function(){if(typeof window.liftOpenPaymentsAdmin!=='function')return false;window.liftOpenPaymentsAdmin();return true},
+  cartera:function(){return click('#liftCarteraOpenBtn')},proveedores:function(){return click('#liftProviderWalletBtn')},
+  crm:function(){return click('#liftCrmBtn')||click('#liftCrmFloatingBtn')},clientes:function(){return click('#liftClientDirectoryBtn')},
+  pdf:function(){return click('#liftPdfShortcut')},abandonados:function(){return click('#liftAbandonOpenBtn')},instagram:function(){return click('#lift-ig-seo-launcher')},
+  calculadora:function(){return click('#liftCalcToggle')},calcofertas:function(){return click('#supgoOffersToggle')},herramientas:function(){return click('#liftAdminToolsMain')},
+  checkout:function(){return click('#liftDirectCheckoutBtn')},listarapida:function(){return click('#liftQuickListBtn')},
+  catalogo:function(){return true}
+ };
+ var fn=T[tool];if(!fn)return;var tries=0;
+ var timer=setInterval(function(){
+  tries++;
+  if(document.body.classList.contains('liftAdminUnlocked')){var ok=false;try{ok=fn()}catch(e){console.warn('Panel:',e)}if(ok||tries>40){clearInterval(timer);try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}}
+  else if(tries>40){clearInterval(timer);if(typeof window.openLiftAdminAccess==='function')window.openLiftAdminAccess()}
+ },300);
+})();
+</script>
 </body>
 </html>
 
