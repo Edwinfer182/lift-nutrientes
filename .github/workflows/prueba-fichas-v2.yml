@@ -3,7 +3,7 @@ on:
   push:
     branches: [fichas-v2]
 permissions:
-  contents: read
+  contents: write
 jobs:
   probar:
     runs-on: ubuntu-latest
@@ -65,8 +65,14 @@ jobs:
           ls productos/*-121.html productos/*-901274.html productos/*-398.html 2>/dev/null | head -3 | xargs -I{} cp {} informe/productos/
           git status --short productos-assets | head -20 > informe/assets.txt
           git ls-files --others --exclude-standard productos-assets | xargs -I{} cp {} informe/productos/ 2>/dev/null || true
-      - uses: actions/upload-artifact@v4
+      - name: Publicar informe en rama temporal
         if: always()
-        with:
-          name: informe-fichas-v2
-          path: informe/
+        run: |
+          cp -r informe /tmp/informe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan fichas-v2-informe
+          git rm -rq --cached . 
+          git clean -fdxq -e informe
+          mv /tmp/informe/* . 2>/dev/null; rm -rf informe
+          git add -A && git commit -qm "Informe temporal fichas v2" && git push -f origin fichas-v2-informe
