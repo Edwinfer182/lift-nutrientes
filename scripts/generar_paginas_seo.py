@@ -892,6 +892,18 @@ def shared_template():
  return re.sub(r'(<script\b[^>]*>)(.*?)(</script>)',externalize_js,source,flags=re.S|re.I)
 
 
+def keep_existing_seo_head(existing, generated):
+ """Al pasar una ficha a la nueva plantilla se conservan su título y su meta
+ descripción publicados (pueden haber sido ajustados a mano para SEO)."""
+ title=re.search(r"<title>(.*?)</title>",existing,re.S)
+ meta=re.search(r'<meta name="description" content="([^"]*)">',existing)
+ if title:generated=re.sub(r"<title>.*?</title>",lambda m:"<title>"+title.group(1)+"</title>",generated,count=1,flags=re.S)
+ if meta:
+  value=meta.group(1)
+  for attr in ('name="description"','property="og:description"','name="twitter:description"'):
+   generated=re.sub(r'<meta '+re.escape(attr)+r' content="[^"]*">',lambda m:'<meta '+attr+' content="'+value+'">',generated,count=1)
+ return generated
+
 def patch_offer_only(existing, generated):
  """Sincroniza solo datos comerciales (precio, oferta, relacionados, schema Offer);
  conserva textos SEO, título, canonical y diseño de la ficha existente."""
@@ -1134,6 +1146,8 @@ def main():
    # Fichas con una plantilla anterior se regeneran completas una sola vez.
    outdated=destination.exists() and ('data-ficha="'+FICHA_VERSION+'"') not in destination.read_text(encoding="utf-8",errors="replace")
    if is_legacy or outdated or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
+    if outdated and not is_legacy and os.getenv("SEO_OVERWRITE_EXISTING","0")!="1":
+     target_content=keep_existing_seo_head(destination.read_text(encoding="utf-8",errors="replace"),target_content)
     destination.write_text(target_content,encoding="utf-8")
    else:
     # Conserva títulos, textos SEO, precios y contenido existentes.

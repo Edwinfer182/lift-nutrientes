@@ -33,8 +33,10 @@ jobs:
             offers=(prod or {}).get("offers") or {}
             if isinstance(offers,list):offers=offers[0] if offers else {}
             return {"title":g(r"<title>(.*?)</title>"),"desc":g(r'<meta name="description" content="([^"]*)"'),"canon":g(r'rel="canonical" href="([^"]*)"'),"robots":g(r'<meta name="robots" content="([^"]*)"'),
-                    "price":offers.get("price"),"name":(prod or {}).get("name")}
-          diffs={k:0 for k in ("title","desc","canon","robots","price","name")}; examples={k:[] for k in diffs}
+                    "price":offers.get("price"),"name":(prod or {}).get("name"),
+                    "h1":re.sub(r"<[^>]+>|\s+"," ",g(r"<h1>(.*?)</h1>") or "").strip()[:60],
+                    "cuerpo":re.sub(r"\s+"," ",re.sub(r"<[^>]+>"," ",g(r'<div class="product-description">(.*?)</div></details>') or "")).strip()}
+          diffs={k:0 for k in ("title","desc","canon","robots","price","name","h1","cuerpo")}; examples={k:[] for k in diffs}
           for f in files:
             old=subprocess.run(["git","show","HEAD:"+f],capture_output=True,text=True).stdout
             if not old:continue
@@ -42,9 +44,9 @@ jobs:
             except Exception as e:
               print("ERROR",f,e);continue
             for k in diffs:
-              if a[k]!=b[k]:
+              if a[k]!=b[k] and not (k=='h1' and b[k] and a[k].startswith(b[k])):
                 diffs[k]+=1
-                if len(examples[k])<8:examples[k].append((f,a[k],b[k]))
+                if len(examples[k])<8:examples[k].append((f,str(a[k])[:300],str(b[k])[:300]))
           all_pages=list(pathlib.Path("productos").glob("*.html"))
           v2=sum('data-ficha="v2' in p.read_text(encoding="utf-8",errors="replace") for p in all_pages)
           rep={"cambiadas":len(files),"total":len(all_pages),"con_v2":v2,"diferencias":diffs,"ejemplos":examples}
