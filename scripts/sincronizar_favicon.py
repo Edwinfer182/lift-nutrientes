@@ -49,7 +49,9 @@ def run():
             content=path.read_text(encoding='utf-8',errors='replace')
             if '</head>' not in content.lower():continue
             newer=re.sub(r"<link\b[^>]*\brel=['\"](?:shortcut\s+)?(?:icon|apple-touch-icon|mask-icon)['\"][^>]*>", '',content,flags=re.I)
-            newer=re.sub(r'<!-- LIFT-FAVICON-SYNC -->.*?<!-- /LIFT-FAVICON-SYNC -->','',newer,flags=re.S)
+            newer=re.sub(r'\s*<!-- LIFT-FAVICON-SYNC -->.*?<!-- /LIFT-FAVICON-SYNC -->\s*','\n',newer,flags=re.S)
+            # Sin líneas vacías acumuladas antes de </head> (cada ejecución sumaba una).
+            newer=re.sub(r'\n{2,}(\s*</head>)',r'\n\1',newer,count=1,flags=re.I)
             newer=re.sub(r'</head>', '<!-- LIFT-FAVICON-SYNC -->\n'+tags+'\n<!-- /LIFT-FAVICON-SYNC -->\n</head>',newer,count=1,flags=re.I)
             if newer!=content:path.write_text(newer,encoding='utf-8');changed+=1
     print('Iconos originales:',unique)
