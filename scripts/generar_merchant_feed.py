@@ -2,7 +2,7 @@
 """Feed Google Merchant Center: solo referencias revisadas explícitamente."""
 import os, sys, json, re, pathlib, urllib.request, urllib.parse
 import xml.etree.ElementTree as ET
-from generar_paginas_seo import fetch, slug, allowed, seo_plain, fetch_allowed_brands
+from generar_paginas_seo import fetch, slug, allowed, seo_plain, fetch_allowed_brands, fetch_seo_blocked
 BASE="https://supgo.co"
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 ET.register_namespace("g","http://base.google.com/ns/1.0")
@@ -12,6 +12,7 @@ def field(item,name,value):
 def main():
  # Indexable = marca habilitada en lift_seo_marcas, misma regla del sitemap SEO.
  indexable_brands=fetch_allowed_brands()
+ blocked_ids=fetch_seo_blocked()
  # Exclusiones prudenciales para sustancias reguladas y reclamos médicos.
  blocked=re.compile(r"(?:tadalafil|sildenafil|proviron|masteron|trenbol|trembol|testosteron|anabol|steroid|oxandrol|nandrol|clenbuterol|semaglut|tirzepat|retatrut|yohimb|ephedr|efedr|sarms|ostarine|rad.?140|mk.?677|peptide|péptido|hgh|hcg|dianabol|winstrol|anavar|viagra|cialis)",re.I)
  channel=ET.Element("rss",{"version":"2.0"})
@@ -22,6 +23,7 @@ def main():
   p=row.get("product") or {}
   pid=str(row.get("id"))
   if not allowed(row) or row.get("activo") is not True:continue
+  if pid in blocked_ids:continue
   if str(p.get("brand") or p.get("marca") or "").strip().casefold() not in indexable_brands:continue
   if blocked.search(" ".join(str(p.get(k) or "") for k in ("name","nombre","description","descripcion","category","categoria"))):continue
   name=str(p.get("name") or p.get("nombre") or "").strip()

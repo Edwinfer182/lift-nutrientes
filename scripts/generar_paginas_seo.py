@@ -231,6 +231,14 @@ def fetch_allowed_brands():
  if not result:raise RuntimeError("No hay marcas SEO habilitadas en Supabase")
  return result
 
+def fetch_seo_blocked():
+ """Productos que no se indexan por alertas del Invima o sustancias no permitidas (tabla lift_seo_bloqueos)."""
+ query=urllib.parse.urlencode({"select":"producto_id","limit":"5000"})
+ req=urllib.request.Request(URL+"/rest/v1/lift_seo_bloqueos?"+query,headers={"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json"})
+ with urllib.request.urlopen(req,timeout=40) as res: batch=json.load(res)
+ if not isinstance(batch,list):raise RuntimeError("Respuesta inesperada de lift_seo_bloqueos")
+ return {str(x["producto_id"]) for x in batch}
+
 def allowed(row):
  p=row.get("product")
  if not isinstance(p,dict) or not (p.get("name") or p.get("nombre")):return False
@@ -1090,8 +1098,10 @@ def main():
  for row in rows: row["_filter_counts"]=filter_counts
  allowed_brands=fetch_allowed_brands()
  valid=[r for r in rows if allowed(r)]
+ blocked_ids=fetch_seo_blocked()
+ print("Productos no indexables por Invima:",len(blocked_ids))
  for r in valid:
-  r['_indexable']=str((r['product'].get('brand') or r['product'].get('marca') or 'SIN MARCA')).strip().casefold() in allowed_brands
+  r['_indexable']=str((r['product'].get('brand') or r['product'].get('marca') or 'SIN MARCA')).strip().casefold() in allowed_brands and str(r['id']) not in blocked_ids
  brand_only=os.getenv("SEO_BRAND_ONLY","").strip().casefold()
  if brand_only:
   if brand_only not in allowed_brands:raise RuntimeError("Marca no habilitada para SEO: "+brand_only)
@@ -1298,6 +1308,9 @@ def main():
     # Una ficha que entra al sitemap no puede conservar un noindex antiguo.
     if row.get("_indexable",True) and target_name==filename:
      patched=re.sub(r'<meta name="robots" content="noindex[^"]*">','<meta name="robots" content="index, follow">',patched,count=1)
+    # Y una ficha bloqueada (Invima / marca no habilitada) no puede quedar indexable.
+    if not row.get("_indexable",True):
+     patched=re.sub(r'<meta name="robots" content="index[^"]*">','<meta name="robots" content="noindex, follow">',patched,count=1)
     if patched!=existing:destination.write_text(patched,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
   if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
