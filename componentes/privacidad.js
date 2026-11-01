@@ -85,8 +85,28 @@ function footer(){
   f.querySelector('.pc').onclick=open;
   f.querySelector('.sl-wa').addEventListener('click',function(){this.href=waLink()});
   document.body.appendChild(f);
-  // Si la página tiene una barra fija abajo (ficha o checkout), dejar espacio para que no tape el pie.
-  try{var bar=document.querySelector('.product-page .product-info .actions,.stickyBar');if(bar&&getComputedStyle(bar).position==='fixed')f.style.paddingBottom='calc('+(bar.offsetHeight+18)+'px + env(safe-area-inset-bottom,0px))'}catch(e){}
+  fitBottom();
+  addEventListener('load',fitBottom);addEventListener('resize',fitBottom);setTimeout(fitBottom,1200);setTimeout(fitBottom,3500);
+}
+
+/* El pie es lo último de la página: nada blanco debajo.
+   - El relleno inferior que algunas páginas ponen en <body> (para su barra fija) pasa al pie, que es oscuro.
+   - Si hay una barra fija de compra abajo, el pie deja su espacio.
+   - El fondo de <html> se vuelve oscuro: el rebote de Safari en iPhone al final (y arriba, bajo el header oscuro)
+     muestra el color del pie en vez de una franja blanca. El <body> conserva su propio fondo. */
+var bodyPad=null;
+function fitBottom(){
+  var f=document.querySelector('.supgo-legal');if(!f)return;
+  try{
+    var b=document.body,cs=getComputedStyle(b);
+    if(bodyPad===null){bodyPad=parseFloat(cs.paddingBottom)||0;if(bodyPad)b.style.setProperty('padding-bottom','0px','important')}
+    var bg=cs.backgroundColor,html=document.documentElement;
+    if(!bg||bg==='transparent'||/rgba\(\s*0,\s*0,\s*0,\s*0\s*\)/.test(bg)){var hb=getComputedStyle(html).backgroundColor;b.style.backgroundColor=(hb&&!/rgba\(\s*0,\s*0,\s*0,\s*0\s*\)/.test(hb))?hb:'#fff'}
+    html.style.backgroundColor='#111315';
+    var extra=bodyPad,bar=document.querySelector('.product-page .product-info .actions,.stickyBar,[data-barra-fija]');
+    if(bar&&getComputedStyle(bar).position==='fixed'&&bar.offsetHeight)extra=Math.max(extra,bar.offsetHeight);
+    f.style.paddingBottom='calc('+(Math.round(extra)+22)+'px + env(safe-area-inset-bottom,0px))';
+  }catch(e){}
 }
 
 /* ---------- Botón flotante de WhatsApp ----------
@@ -95,13 +115,13 @@ function footer(){
 var wa;
 function waSkip(){
   var p=location.pathname;
-  return /^\/(checkout|panel|e|disponible|baja|resena)\//.test(p)||document.getElementById('seo-wa-float')||document.getElementById('supgo-wa-general')||document.querySelector('.product-page .product-info .actions');
+  return /^\/(checkout|carrito|panel|e|disponible|baja|resena)\//.test(p)||document.getElementById('seo-wa-float')||document.getElementById('supgo-wa-general')||document.querySelector('.product-page .product-info .actions');
 }
 function buyButtons(){
   var out=[];document.querySelectorAll('button,a.buy,a.add').forEach(function(b){
     if(b===wa||b.closest('#supgo-wa-btn,#supgo-cookies,.supgo-legal,.supgo-cart-drawer,.supgo-menu'))return;
     var t=(b.textContent||'')+' '+(b.getAttribute('aria-label')||'');
-    if(/agregar|comprar|añadir|hacer pedido/i.test(t)||b.matches('.buy,.add,.rel-add,.cta'))out.push(b);
+    if(/agregar|comprar|añadir|hacer pedido|continuar|pagar/i.test(t)||b.matches('.buy,.add,.rel-add,.cta'))out.push(b);
   });return out;
 }
 function overlap(a,b){return !(a.right<b.left-6||a.left>b.right+6||a.bottom<b.top-6||a.top>b.bottom+6)}
@@ -112,6 +132,8 @@ function waCheck(){
   var ck=document.getElementById('supgo-cookies');if(ck&&!ck.hidden)hide=true;
   if(!hide){var bs=buyButtons();for(var i=0;i<bs.length;i++){var br=bs[i].getBoundingClientRect();if(br.height&&br.bottom>0&&br.top<innerHeight&&overlap(r,br)){hide=true;break}}}
   if(!hide){var el=document.elementFromPoint(r.left+r.width/2,r.top-8);if(el&&el.closest&&el.closest('.stickyBar,[class*="sticky"],[class*="bottom-bar"]'))hide=true}
+  // Cualquier barra o botón fijo (de la página) debajo del botón también lo oculta.
+  if(!hide&&document.elementsFromPoint){var pts=[[r.left+r.width/2,r.top+r.height/2],[r.left+4,r.top+4],[r.right-4,r.bottom-4]];for(var k=0;k<pts.length&&!hide;k++){var st=document.elementsFromPoint(pts[k][0],pts[k][1]);for(var j=0;j<st.length;j++){var e=st[j];if(e===wa||wa.contains(e)||e===document.body||e===document.documentElement||e.closest('.supgo-legal'))continue;var pe=e;while(pe&&pe!==document.body){if(getComputedStyle(pe).position==='fixed'){hide=true;break}pe=pe.parentElement}if(hide)break}}}
   wa.classList.toggle('sw-hide',hide);
 }
 function waQueue(){if(!waTick){waTick=true;requestAnimationFrame(waCheck)}}
