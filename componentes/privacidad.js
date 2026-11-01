@@ -170,6 +170,6 @@ function diag(){
 
 window.SupgoCookies={open:open,get:read,accept:function(){save(true)},reject:function(){save(false)}};
 var c=read();apply(c);
-function boot(){footer();waMount();if(!c)open();try{diag()}catch(e){}}
+function boot(){waMount();if(!c)open();try{diag()}catch(e){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
