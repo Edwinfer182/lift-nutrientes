@@ -16,10 +16,10 @@ def slug(value):
     s = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode().lower()
     return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", s))[:110]
 
-def fetch(table, fields):
+def fetch(table, fields, order="id.asc"):
     data = []
     for offset in range(0, 100000, 500):
-        query = urllib.parse.urlencode({"select":fields, "order":"id.asc", "limit":500, "offset":offset})
+        query = urllib.parse.urlencode({"select":fields, "order":order, "limit":500, "offset":offset})
         req = urllib.request.Request(f"{URL}/rest/v1/{table}?{query}", headers={"apikey": KEY, "Authorization": "Bearer " + KEY, "Accept":"application/json"})
         with urllib.request.urlopen(req, timeout=40) as resp:
             batch = json.load(resp)
@@ -51,6 +51,7 @@ def valid_image(value):
 def main():
     rows = fetch("lift_productos", "id,activo,product")
     private_ids = {str(x["id"]) for x in fetch("lift_private_productos", "id,activo,product")}
+    blocked_ids = {str(x["producto_id"]) for x in fetch("lift_seo_bloqueos", "producto_id", "producto_id.asc")}
     items = []
     excluded = {}
     for r in rows:
@@ -62,7 +63,7 @@ def main():
         brand = text(p.get("brand") or p.get("marca")) or "SUPGO"
         price = number(p.get("price") if p.get("price") is not None else p.get("precio"))
         image = valid_image(p.get("image") or p.get("imagen"))
-        if r.get("activo") is not True or rid in private_ids or any(p.get(k) for k in ("__deleted", "__private", "adminOnly", "hidden", "oculto")):
+        if r.get("activo") is not True or rid in private_ids or rid in blocked_ids or any(p.get(k) for k in ("__deleted", "__private", "adminOnly", "hidden", "oculto")):
             continue
         if RESTRICTED.search(" ".join([name, brand, text(p.get("category") or p.get("categoria"))])):
             excluded[rid] = name
