@@ -42,15 +42,15 @@ jobs:
               def handle_endtag(self, tag):
                   if tag == "script":
                       self.capture = False
-          p = Path("productos/iso-100-5-lb-dunkin-mocha-latte-901284.html")
+          p = Path("categorias/index.html")
           html = p.read_text(encoding="utf-8")
           parser = JsonScripts()
           parser.feed(html)
           entries = [json.loads(s) for s in parser.scripts]
           ids = [x.get("@id") for x in entries if isinstance(x,dict)]
           print(f"JSON-LD encontrados: {len(entries)}; identidades: {ids}")
-          assert "https://supgo.co/#organization" in ids, "No se insertó identidad en ficha ISO100"
-          print("Identidad GEO validada en ficha ISO100")
+          assert "https://supgo.co/#organization" in ids, "No se insertó identidad en categorías"
+          print("Identidad GEO validada en categorías")
           PY
       - name: Revisar marca SUPGO (sin Lift Nutrientes)
         run: python scripts/revisar_marca.py .
