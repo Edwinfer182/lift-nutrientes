@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZL00MPW16"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<script>window.SUPGO_GA=1;window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<script src="/componentes/privacidad.js?v=20261101-legal" defer></script>
 <style>
 :root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--lime:#c8f34b;--green:#15803d;--green-soft:#eaf7ee;--red:#b42318;--red-soft:#fff4f2;--amber:#8a5a00;--amber-soft:#fff6db;--radius:14px}
 *{box-sizing:border-box}
@@ -94,6 +94,11 @@ textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
 .gbtn{display:flex;justify-content:center;min-height:44px}
 .or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:14px 0 12px}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.authc{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.45;color:#333;margin:0 0 14px;cursor:pointer}
+.authc input{width:19px;height:19px;margin:1px 0 0;flex:none;accent-color:#111}
+.authc.bad{color:var(--red)}
+.gwrap{position:relative}.gwrap.off .gbtn{opacity:.45;pointer-events:none}
+.gwrap.off::after{content:"";position:absolute;inset:0;cursor:pointer}
 </style>
 </head>
 <body data-page="cuenta">
@@ -104,7 +109,8 @@ textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
   <h1>Entra a tu cuenta</h1>
   <p class="lead">Sin contraseñas: entra con Google o con un código a tu correo.</p>
   <div class="card" id="stepEmail">
-    <div class="gbox" id="gBox" hidden><div id="gBtn" class="gbtn"></div><div class="msg" id="gMsg" role="alert"></div><div class="or"><span>o con tu correo</span></div></div>
+    <label class="authc" id="authBox"><input type="checkbox" id="authAcc"><span>Autorizo a SUPGO a tratar mis datos (correo, nombre y celular) para crear y gestionar mi cuenta, según la <a href="/tratamiento-de-datos/" target="_blank" rel="noopener">política de tratamiento de datos</a>.</span></label>
+    <div class="gbox" id="gBox" hidden><div class="gwrap off" id="gWrap"><div id="gBtn" class="gbtn"></div></div><div class="msg" id="gMsg" role="alert"></div><div class="or"><span>o con tu correo</span></div></div>
     <form id="emailForm" novalidate>
       <label class="label" for="email">Correo electrónico</label>
       <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
@@ -217,6 +223,7 @@ function sendCode(email){
 }
 $('emailForm').addEventListener('submit',function(e){
   e.preventDefault();var email=$('email').value.trim().toLowerCase();
+  if(!authOk())return;
   if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)){msg('emailMsg','Escribe un correo válido.','err');return}
   msg('emailMsg','');busy($('sendBtn'),true,'Enviando…');
   sendCode(email).catch(function(er){msg('emailMsg',er.message,'err')}).then(function(){busy($('sendBtn'),false,'Enviarme el código')});
@@ -237,6 +244,11 @@ $('codeForm').addEventListener('submit',function(e){
 });
 $('resend').onclick=function(){if(!pendingEmail)return;sendCode(pendingEmail).then(function(){toast('Te enviamos un código nuevo')}).catch(function(er){msg('codeMsg',er.message,'err')})};
 $('changeEmail').onclick=function(){$('stepCode').hidden=true;$('stepEmail').hidden=false;$('email').focus()};
+/* Autorización de datos: obligatoria antes de crear la cuenta o entrar (Ley 1581 de 2012). */
+function authOk(){var ok=$('authAcc').checked;$('authBox').classList.toggle('bad',!ok);if(!ok){msg('emailMsg','Para continuar, marca la autorización de tratamiento de datos.','err');$('authAcc').focus()}return ok}
+$('authAcc').addEventListener('change',function(){$('authBox').classList.remove('bad');$('gWrap').classList.toggle('off',!this.checked);if(this.checked)msg('emailMsg','');try{localStorage.setItem('supgoAuthCuentaV1',this.checked?new Date().toISOString():'')}catch(e){}});
+$('gWrap').addEventListener('click',function(){if(this.classList.contains('off'))authOk()});
+try{if(localStorage.getItem('supgoAuthCuentaV1')){$('authAcc').checked=true;$('gWrap').classList.remove('off')}}catch(e){}
 /* Entrar con Google */
 function afterLogin(j){
   var back='';try{back=new URLSearchParams(location.search).get('volver')||''}catch(e){}
