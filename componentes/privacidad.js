@@ -81,7 +81,7 @@ function footer(){
    +'<nav class="sl-col" aria-label="Tienda"><b>Tienda</b><a href="/categorias/">Categorías</a><a href="/laboratorios/">Marcas</a><a href="/ofertas/">Ofertas</a><a href="/guias/">Guías de compra</a></nav>'
    +'<nav class="sl-col" aria-label="Ayuda"><b>Ayuda</b><a href="/mi-pedido/">Mi pedido</a><a href="/cuenta/">Mi cuenta</a><a href="/politica-de-devoluciones/">Devoluciones y garantías</a><a class="sl-wa" href="'+waLink()+'" target="_blank" rel="noopener">Escríbenos</a></nav>'
    +'<nav class="sl-col" aria-label="Privacidad"><b>Privacidad</b><a href="/tratamiento-de-datos/">Datos personales</a><a href="/tratamiento-de-datos/#cookies">Cookies</a><button type="button" class="pc">Preferencias de cookies</button></nav>'
-   +'</div><div class="sl-bottom">© '+new Date().getFullYear()+' SUPGO · Medellín, Colombia</div>';
+   +'</div><div class="sl-bottom">© '+new Date().getFullYear()+' SUPGO</div>';
   f.querySelector('.pc').onclick=open;
   f.querySelector('.sl-wa').addEventListener('click',function(){this.href=waLink()});
   document.body.appendChild(f);
