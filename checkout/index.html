@@ -146,6 +146,12 @@ details.coupon[open] summary::after{content:"−"}
 .acctBar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px}
 .acctBar a{font-weight:600;white-space:nowrap}
 .acctBar.in{background:#f3fbe3;border-color:#cfe9a0}
+.newAcct{margin-top:14px;padding:14px 16px;border:1px dashed #cfe9a0;background:#f8fcef;border-radius:var(--radius);font-size:13px;line-height:1.45}
+.newAcct p{margin:0 0 10px}
+.newAcct .btn2{height:42px}
+.naLinks{margin:8px 0 0!important;color:var(--muted)}
+.naLinks button{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;cursor:pointer}
+#naInput{letter-spacing:6px;font-weight:600;text-align:center}
 .savedAddrs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
 .savedAddrs button{flex:0 0 auto;max-width:240px;text-align:left;border:1px solid #d6d6d6;background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer}
 .savedAddrs button b{display:block;font-size:13px}
@@ -179,6 +185,18 @@ details.coupon[open] summary::after{content:"−"}
             <label class="field" id="f-email"><span class="label">Correo electrónico</span>
               <input class="input" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
               <span class="err">Escribe un correo válido. Ahí te avisamos del pedido.</span></label>
+          </div>
+          <div class="newAcct" id="newAcct" hidden>
+            <div class="naIntro" id="naIntro">
+              <p><b>¿Quieres crear tu cuenta?</b> Con estos mismos datos sigues tus pedidos y la próxima compra se llena sola.</p>
+              <button class="btn2" type="button" id="naStart">Crear cuenta con estos datos</button>
+            </div>
+            <div class="naCode" id="naCode" hidden>
+              <p>Te enviamos un código de 6 dígitos a <b id="naEmail"></b>. Escríbelo aquí:</p>
+              <div class="couponRow"><input class="input" id="naInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="Código de 6 dígitos"><button class="btn2" type="button" id="naVerify">Confirmar</button></div>
+              <p class="naLinks"><button type="button" id="naResend">Reenviar código</button> · <button type="button" id="naCancel">Cancelar</button></p>
+            </div>
+            <div class="msg" id="naMsg" aria-live="polite"></div>
           </div>
         </div>
         <div class="card">
@@ -522,6 +540,51 @@ function fillAccount(){
     }
   }).catch(function(){if(!C.get()){bar.className='acctBar';bar.innerHTML='<span>Tu sesión terminó.</span><a href="/cuenta/?volver=%2Fcheckout%2F">Entrar de nuevo</a>'}});
 }
+/* Crear cuenta con los datos que ya escribió en el checkout (código al correo). */
+var naEmail='';
+function naMsg(t,cls){var m=$('naMsg');m.textContent=t||'';m.className='msg'+(cls?' '+cls:'')}
+function naReset(){naEmail='';$('naIntro').hidden=false;$('naCode').hidden=true;$('naInput').value='';naMsg('')}
+function naPaint(){var C=window.SupgoCuenta,box=$('newAcct');if(!box)return;box.hidden=!C||!!C.get()}
+function naSend(){
+  var C=window.SupgoCuenta;if(!C)return;
+  var bad=[],ok=function(id,v){$(id).classList.toggle('bad',!v);if(!v)bad.push(id)};
+  ok('f-nombre',$('nombre').value.trim().length>=3);
+  ok('f-celular',validPhone($('celular').value));
+  var email=$('email').value.trim().toLowerCase();
+  ok('f-email',/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email));
+  if(bad.length){naMsg('Completa tu nombre, celular y correo para crear la cuenta.','bad');$(bad[0]).querySelector('input').focus();return}
+  var b1=$('naStart'),b2=$('naResend');b1.disabled=b2.disabled=true;naMsg('Enviando código…');
+  C.api('send-code',{email:email}).then(function(){
+    naEmail=email;$('naEmail').textContent=email;$('naIntro').hidden=true;$('naCode').hidden=false;naMsg('Revisa tu correo (también la carpeta de spam).');
+    setTimeout(function(){$('naInput').focus()},50);
+  }).catch(function(e){naMsg(e.message,'bad')}).then(function(){b1.disabled=b2.disabled=false});
+}
+function naVerify(){
+  var C=window.SupgoCuenta,code=digits($('naInput').value);
+  if(code.length!==6){naMsg('Escribe el código de 6 dígitos.','bad');return}
+  var btn=$('naVerify');if(btn.disabled)return;btn.disabled=true;naMsg('Verificando…');
+  var nombre=$('nombre').value.trim(),cel=digits($('celular').value);
+  C.api('verify-code',{email:naEmail,code:code}).then(function(j){
+    C.set({token:j.token,email:j.cuenta.email,nombre:j.cuenta.nombre||nombre});
+    var c=j.cuenta||{};
+    return C.api('profile',{nombre:c.nombre||nombre,celular:c.celular||cel.slice(-10)}).catch(function(){}).then(function(){
+      naReset();naPaint();fillAccount();
+      C.toast(j.nuevo?'¡Listo! Creamos tu cuenta con estos datos.':'Entraste a tu cuenta. Este pedido quedará guardado en ella.');
+    });
+  }).catch(function(e){naMsg(e.message,'bad')}).then(function(){btn.disabled=false});
+}
+function naBind(){
+  if(!$('newAcct'))return;
+  $('naStart').addEventListener('click',naSend);
+  $('naResend').addEventListener('click',naSend);
+  $('naCancel').addEventListener('click',naReset);
+  $('naVerify').addEventListener('click',naVerify);
+  $('naInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();naVerify()}});
+  $('naInput').addEventListener('input',function(){this.value=digits(this.value).slice(0,6);if(this.value.length===6)naVerify()});
+  $('email').addEventListener('input',function(){if(naEmail&&this.value.trim().toLowerCase()!==naEmail)naReset()});
+  window.addEventListener('supgo-cuenta-change',function(){naPaint();if(window.SupgoCuenta&&!window.SupgoCuenta.get())fillAccount()});
+  naPaint();
+}
 function saveToAccount(p){
   var C=window.SupgoCuenta;if(!C)return;
   try{if(state.coupon&&C.refCode&&state.coupon.code===C.refCode())C.clearRef()}catch(e){}
@@ -533,7 +596,7 @@ function saveToAccount(p){
   }catch(e){}
 }
 function start(){
-  bind();fillRemembered();fillAccount();
+  bind();fillRemembered();fillAccount();naBind();
   var cart=json(CART,{});var ids=Object.keys(cart).filter(function(k){return qtyOf(cart[k])>0}).map(function(k){return String(k).split('::')[0]});
   if(!ids.length){state.loaded=true;renderEmpty();return}
   buildLines();render();
