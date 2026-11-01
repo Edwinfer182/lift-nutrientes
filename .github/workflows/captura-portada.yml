@@ -1,0 +1,39 @@
+name: Captura portada (temporal)
+on:
+  push:
+    branches: [portada-fotos]
+permissions:
+  contents: write
+jobs:
+  captura:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Capturas
+        run: |
+          npm i playwright@1.47.2 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          (python3 -m http.server 8765 >/dev/null 2>&1 &)
+          sleep 2
+          cat > cap.js <<'JS'
+          const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();
+          for(const [w,h,t,s] of [[390,844,'m',2],[1440,900,'d',1]]){const c=await b.newContext({viewport:{width:w,height:h},deviceScaleFactor:s});const p=await c.newPage();
+          await p.route(/home\.js/,r=>r.abort());
+          await p.goto('http://localhost:8765/home/',{waitUntil:'networkidle'});await p.waitForTimeout(2500);
+          await p.screenshot({path:`out/hero-${t}.png`});
+          for(const i of [2,3]){await p.click(`.hero-nav button:nth-child(${i})`).catch(()=>{});await p.waitForTimeout(900);await p.screenshot({path:`out/hero${i}-${t}.png`})}
+          const cat=await p.$('.categories');await cat.scrollIntoViewIfNeeded();await p.waitForTimeout(800);await cat.screenshot({path:`out/cats-${t}.png`});
+          const bad=await p.evaluate(()=>[...document.images].filter(i=>i.complete&&i.naturalWidth===0).map(i=>i.src));console.log(t,'rotas',JSON.stringify(bad));await c.close()}
+          await b.close()})();
+          JS
+          mkdir -p out && node cap.js
+      - name: Publicar capturas
+        run: |
+          cd out
+          git init -q && git checkout -q -b capturas-portada
+          git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add . && git commit -qm capturas
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" capturas-portada
