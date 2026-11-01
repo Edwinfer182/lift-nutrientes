@@ -152,6 +152,8 @@ details.coupon[open] summary::after{content:"−"}
 .naLinks{margin:8px 0 0!important;color:var(--muted)}
 .naLinks button{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;cursor:pointer}
 #naInput{letter-spacing:6px;font-weight:600;text-align:center}
+.check.mailOk{padding:2px 0 0;font-size:12px;color:#444}
+.check.mailOk input{width:18px;height:18px}
 .naBtns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .naGoogle{min-height:42px}
 .savedAddrs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
@@ -188,6 +190,7 @@ details.coupon[open] summary::after{content:"−"}
               <input class="input" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
               <span class="err">Escribe un correo válido. Ahí te avisamos del pedido.</span></label>
           </div>
+          <label class="check mailOk" id="c-recordatorio"><input type="checkbox" id="recordatorio"><span>Si no termino la compra, autorizo a SUPGO a enviarme hasta 2 recordatorios de mi carrito a este correo. Puedo darme de baja cuando quiera. <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">Ver política</a></span></label>
           <div class="newAcct" id="newAcct" hidden>
             <div class="naIntro" id="naIntro">
               <p><b>¿Quieres crear tu cuenta?</b> Sigues tus pedidos y la próxima compra se llena sola.</p>
@@ -328,7 +331,7 @@ function setQty(key,q){
   try{localStorage.setItem(CART,JSON.stringify(cart));localStorage.setItem(META,JSON.stringify(meta))}catch(e){}
   window.dispatchEvent(new Event('supgo-cart-change'));
   if(state.coupon){state.coupon=null;$('couponMsg').textContent='Revisa el cupón: cambió tu carrito.';$('couponMsg').className='msg'}
-  buildLines();render();trackCart('activo');
+  buildLines();render();trackCart('activo');avisoSync();
 }
 
 /* ---------- Cálculos ---------- */
@@ -467,6 +470,7 @@ function submit(ev){
     try{sessionStorage.removeItem('supgoCheckoutRequestKey')}catch(e){}
     if(state.coupon&&id)api('/rest/v1/rpc/lift_validar_cupon',{method:'POST',body:JSON.stringify(couponArgs(state.coupon.code,true,'LIFT-'+id.padStart(5,'0')))}).catch(function(){});
     trackCart('convertido');
+    if(trackSession)avisoPost({action:'convert',sesion:trackSession,pedido_id:Number(id)||null},true);
     try{if(typeof gtag==='function')gtag('event','purchase',{transaction_id:'pedido-'+id,currency:'COP',value:p.total,shipping:p.envio,items:p.items.map(function(x){return {item_id:String(x.producto_id||''),item_name:x.nombre,quantity:x.cantidad,price:x.precio_unitario}})})}catch(e){}
     try{
       var saved={ref:r.referencia||id,pedido_id:id,phone:p.celular,token:r.token||''};
@@ -489,6 +493,53 @@ function trackCart(stateName){
   var send=function(){var ls=okLines().slice(0,40);if(!ls.length&&stateName==='activo')return;
     fetch(SB+'/rest/v1/rpc/lift_registrar_carrito_identificado',{method:'POST',keepalive:true,headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_sesion:trackSession,p_productos:ls.map(function(l){return {nombre:l.name.slice(0,120),marca:l.brand.slice(0,70),sabor:l.flavor.slice(0,70),cantidad:l.qty,precio:l.price}}),p_total:subtotal(),p_cantidad:units(),p_estado:stateName,p_nombre:'',p_celular:'',p_autorizado:false})}).catch(function(){})};
   if(stateName==='convertido')send();else trackTimer=setTimeout(send,900);
+}
+
+/* ---------- Recordatorios de carrito por correo (solo con la casilla marcada) ---------- */
+var CARRITO_FN=SB+'/functions/v1/lift-carritos',AVISO='supgoCarritoAvisoV1',AVISO_TXT='Si no termino la compra, autorizo a SUPGO a enviarme hasta 2 recordatorios de mi carrito a este correo. Puedo darme de baja cuando quiera.',avisoTimer;
+function avisoOk(){var e=$('email').value.trim().toLowerCase();return $('recordatorio').checked&&/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)?e:''}
+function avisoPost(body,keep){return fetch(CARRITO_FN,{method:'POST',keepalive:!!keep,headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(function(){})}
+function avisoSync(now){
+  clearTimeout(avisoTimer);if(!trackSession)return;
+  var send=function(){
+    var email=avisoOk();if(!email)return;
+    var ls=state.lines.filter(function(l){return l.qty>0});
+    avisoPost({action:'save',sesion:trackSession,email:email,nombre:$('nombre').value.trim(),autorizado:true,texto:AVISO_TXT,
+      carrito:json(CART,{}),meta:json(META,{}),
+      productos:ls.slice(0,40).map(function(l){return {id:l.id,nombre:l.name,marca:l.brand,sabor:l.flavor,cantidad:l.qty,precio:l.price,imagen:l.image}})},true);
+  };
+  if(now)send();else avisoTimer=setTimeout(send,1500);
+}
+function avisoBind(){
+  var box=$('recordatorio');if(!box)return;
+  try{var saved=localStorage.getItem(AVISO);if(saved&&saved===$('email').value.trim().toLowerCase())box.checked=true}catch(e){}
+  box.addEventListener('change',function(){
+    var email=$('email').value.trim().toLowerCase();
+    if(box.checked){try{localStorage.setItem(AVISO,email)}catch(e){}avisoSync(true)}
+    else{
+      try{localStorage.removeItem(AVISO)}catch(e){}
+      // Retira la autorización para este carrito: se guarda vacío y no se envía nada.
+      if(trackSession&&/@/.test(email))avisoPost({action:'save',sesion:trackSession,email:email,autorizado:true,texto:'retirada',carrito:{},meta:{},productos:[]},true);
+    }
+  });
+  ['email','nombre'].forEach(function(id){$(id).addEventListener('change',function(){if(box.checked){try{localStorage.setItem(AVISO,$('email').value.trim().toLowerCase())}catch(e){}avisoSync()}})});
+}
+/* Enlace del correo: /checkout/?recuperar=TOKEN vuelve a llenar el carrito tal como estaba. */
+function recover(done){
+  var t='';try{t=new URLSearchParams(location.search).get('recuperar')||''}catch(e){}
+  if(!/^[0-9a-f]{48}$/.test(t)){done();return}
+  try{history.replaceState(null,'',location.pathname)}catch(e){}
+  fetch(CARRITO_FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'view',t:t})})
+    .then(function(r){return r.json()}).then(function(j){
+      if(!j||!j.ok)return;
+      var cart=json(CART,{}),meta=json(META,{});
+      Object.keys(j.carrito||{}).forEach(function(k){if(!(qtyOf(cart[k])>0))cart[k]=j.carrito[k];if(j.meta&&j.meta[k]&&!meta[k])meta[k]=j.meta[k]});
+      try{localStorage.setItem(CART,JSON.stringify(cart));localStorage.setItem(META,JSON.stringify(meta))}catch(e){}
+      window.dispatchEvent(new Event('supgo-cart-change'));
+      if(j.email&&!$('email').value.trim())$('email').value=j.email;
+      if(j.nombre&&!$('nombre').value.trim())$('nombre').value=j.nombre;
+      if(j.email&&$('email').value.trim().toLowerCase()===String(j.email).toLowerCase()){$('recordatorio').checked=true;try{localStorage.setItem(AVISO,String(j.email).toLowerCase())}catch(e){}}
+    }).catch(function(){}).then(done);
 }
 
 /* ---------- Inicio ---------- */
@@ -608,12 +659,15 @@ function saveToAccount(p){
   }catch(e){}
 }
 function start(){
-  bind();fillRemembered();fillAccount();naBind();
+  bind();fillRemembered();fillAccount();naBind();avisoBind();
+  recover(start2);
+}
+function start2(){
   var cart=json(CART,{});var ids=Object.keys(cart).filter(function(k){return qtyOf(cart[k])>0}).map(function(k){return String(k).split('::')[0]});
   if(!ids.length){state.loaded=true;renderEmpty();return}
   buildLines();render();
   loadCities();
-  Promise.all([loadProducts(ids).then(function(){state.loaded=true}).catch(function(){}),loadOffers()]).then(function(){buildLines();render();trackCart('activo');
+  Promise.all([loadProducts(ids).then(function(){state.loaded=true}).catch(function(){}),loadOffers()]).then(function(){buildLines();render();trackCart('activo');avisoSync();
     try{if(typeof gtag==='function')gtag('event','begin_checkout',{currency:'COP',value:subtotal()})}catch(e){}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
