@@ -69,6 +69,8 @@ function footer(){
    +'<div>'+IDENT.marca+' · '+IDENT.ciudad+' · WhatsApp <a href="https://wa.me/'+IDENT.wa+'" rel="noopener">'+IDENT.whatsapp+'</a></div>';
   f.querySelector('.pc').onclick=open;
   document.body.appendChild(f);
+  // Si la página tiene una barra fija abajo (ficha: «Agregar al carrito»), dejar espacio para que no tape el pie.
+  try{var bar=document.querySelector('.product-page .product-info .actions,.stickyBar');if(bar&&getComputedStyle(bar).position==='fixed')f.style.paddingBottom='calc('+(bar.offsetHeight+18)+'px + env(safe-area-inset-bottom,0px))'}catch(e){}
 }
 
 window.SupgoCookies={open:open,get:read,accept:function(){save(true)},reject:function(){save(false)}};
