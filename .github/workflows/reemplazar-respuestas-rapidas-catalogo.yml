@@ -1,10 +1,7 @@
 name: Dejar solo respuesta del catalogo
 
 on:
-  push:
-    paths:
-      - '.github/workflows/reemplazar-respuestas-rapidas-catalogo.yml'
-      - 'scripts/reemplazar_respuestas_rapidas_catalogo.py'
+  workflow_dispatch:
 
 permissions:
   contents: write

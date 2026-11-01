@@ -1,9 +1,7 @@
 name: Publicar catalogo completo
 
 on:
-  push:
-    paths:
-      - '.github/workflows/publicar-catalogo-completo.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -58,9 +56,9 @@ jobs:
               state.brand='Todas';
               render();
               renderCart();
-              console.info(`Lift: catálogo público completo cargado (${incoming.length} productos adicionales).`);
+              console.info(`SUPGO: catálogo público completo cargado (${incoming.length} productos adicionales).`);
             }catch(e){
-              console.error('Lift: no se pudieron cargar los productos públicos adicionales.',e);
+              console.error('SUPGO: no se pudieron cargar los productos públicos adicionales.',e);
             }
           })();
           </script>

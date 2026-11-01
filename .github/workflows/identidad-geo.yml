@@ -52,12 +52,14 @@ jobs:
           assert "https://supgo.co/#organization" in ids, "No se insertó identidad en ficha ISO100"
           print("Identidad GEO validada en ficha ISO100")
           PY
+      - name: Revisar marca SUPGO (sin Lift Nutrientes)
+        run: python scripts/revisar_marca.py .
       - name: Publicar cambios
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- '*.html'
           if ! git diff --cached --quiet; then
-            git commit -m "GEO: publicar identidad de Lift Nutrientes en paginas HTML"
+            git commit -m "GEO: publicar identidad de SUPGO en paginas HTML"
             git push
           fi

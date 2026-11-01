@@ -23,6 +23,8 @@ jobs:
           python-version: '3.12'
       - name: Generar feed desde Supabase
         run: python scripts/generar_merchant_feed.py
+      - name: Revisar marca SUPGO (sin Lift Nutrientes)
+        run: python scripts/revisar_marca.py merchant-feed.xml
       - name: Verificar XML
         run: python -c "import xml.etree.ElementTree as E; E.parse('merchant-feed.xml')"
       - name: Publicar feed

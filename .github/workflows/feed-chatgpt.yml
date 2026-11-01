@@ -1,4 +1,4 @@
-name: Feed ChatGPT Lift Nutrientes
+name: Feed ChatGPT SUPGO
 on:
   workflow_dispatch:
   schedule:
@@ -18,9 +18,10 @@ jobs:
           python-version: '3.11'
       - name: Generar catálogo desde Supabase
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
         run: python scripts/generar-feed-chatgpt.py
+      - name: Revisar marca SUPGO (sin Lift Nutrientes)
+        run: python scripts/revisar_marca.py feeds
       - name: Validar las nueve columnas obligatorias
         run: |
           python - <<'PY'

@@ -1,8 +1,5 @@
 name: WhatsApp conversacional index
 on:
-  push:
-    paths:
-      - '.github/workflows/whatsapp-index.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -42,9 +39,9 @@ jobs:
           </style>
           <div id="lift-wa-index">
             <section id="lift-wa-index-panel" hidden aria-label="Consulta por WhatsApp">
-              <header><strong>Habla con Lift Nutrientes</strong><button id="lift-wa-index-close" type="button" aria-label="Cerrar">×</button></header>
+              <header><strong>Habla con SUPGO</strong><button id="lift-wa-index-close" type="button" aria-label="Cerrar">×</button></header>
               <p>Escribe tu consulta y envíala directamente por WhatsApp.</p>
-              <textarea id="lift-wa-index-message" aria-label="Tu mensaje">Hola, quiero recibir asesoría sobre los productos de Lift Nutrientes.</textarea>
+              <textarea id="lift-wa-index-message" aria-label="Tu mensaje">Hola, quiero recibir asesoría sobre los productos de SUPGO.</textarea>
               <button id="lift-wa-index-send" type="button">Enviar por WhatsApp</button>
             </section>
             <button id="lift-wa-index-toggle" type="button" aria-label="Abrir WhatsApp" aria-controls="lift-wa-index-panel" aria-expanded="false">

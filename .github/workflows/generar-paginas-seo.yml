@@ -92,6 +92,8 @@ jobs:
           PY
       - name: Sincronizar favicon con index principal
         run: python scripts/sincronizar_favicon.py
+      - name: Revisar marca SUPGO (sin Lift Nutrientes)
+        run: python scripts/revisar_marca.py productos productos-assets sitemap-productos.xml
       - name: Publicar páginas generadas
         run: |
           git config user.name "github-actions[bot]"

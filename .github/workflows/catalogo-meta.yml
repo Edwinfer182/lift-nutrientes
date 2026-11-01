@@ -26,6 +26,8 @@ jobs:
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
         run: python scripts/generar_catalogo_meta.py
+      - name: Revisar marca SUPGO (sin Lift Nutrientes)
+        run: python scripts/revisar_marca.py catalogo-meta.csv
       - name: Validar CSV
         run: |
           python - <<'PY'
