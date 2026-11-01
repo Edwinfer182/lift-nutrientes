@@ -57,6 +57,9 @@ def status(p):
     return "unknown"
 def export():
     pages=find_static_pages()
+    # Solo fichas indexables (las que están en el sitemap): las variantes unidas o noindex no van al feed.
+    sitemap=ROOT/"sitemap-productos.xml"
+    listed=set(re.findall(r"<loc>([^<]+)</loc>",sitemap.read_text(encoding="utf-8"))) if sitemap.exists() else None
     products=fetch_supabase()
     rows=[]
     for item in products:
@@ -70,6 +73,7 @@ def export():
         image=item.get("imagen") or (page.get("image") or [""])[0]
         url=page.get("url","")
         price=item.get("precio")
+        if listed is not None and url not in listed:continue
         if not all((name,brand,image,url)) or not str(image).startswith("https://") or not url.startswith("https://supgo.co/productos/"):continue
         if BLOCKED.search(" ".join((name,brand,item.get("categoria") or ""))):continue
         if not isinstance(price,(int,float)) or price<=0:continue
