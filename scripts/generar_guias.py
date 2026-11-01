@@ -38,7 +38,7 @@ NOW = datetime.now(BOGOTA)
 YEAR = NOW.year
 MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 UPDATED = f"{NOW.day} de {MONTHS[NOW.month - 1]} de {NOW.year}"
-HIDDEN_BRANDS = {"venom-pharma"}
+HIDDEN_BRANDS = {"venom-pharma", "lift-nutrientes"}
 LINKS_START, LINKS_END = "<!--guia-enlaces-->", "<!--/guia-enlaces-->"
 
 # Palabras que no pueden aparecer en el texto visible de una guía nueva.
