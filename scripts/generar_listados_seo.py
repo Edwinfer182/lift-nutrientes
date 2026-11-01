@@ -131,6 +131,17 @@ def product_path(row):
     return f"/productos/{slug(name) or 'producto'}-{row.get('id')}.html"
 
 
+BLOCKED = set()
+
+
+def load_blocked():
+    """Productos no indexables por el Invima: siguen visibles en categorías y marcas, sin entrar al sitemap."""
+    query = urllib.parse.urlencode({"select": "producto_id", "limit": "5000"})
+    req = urllib.request.Request(API.replace("/lift_productos", "/lift_seo_bloqueos") + "?" + query, headers={"apikey": KEY})
+    with urllib.request.urlopen(req, timeout=40) as res:
+        return {str(x["producto_id"]) for x in json.load(res)}
+
+
 def linkable(rows, approved):
     """Productos con ficha publicada e indexable: (nombre, ruta, marca, categoría)."""
     items = []
@@ -139,7 +150,7 @@ def linkable(rows, approved):
         if slug(read(row, "brand", "marca")) in HIDDEN_BRANDS:
             continue
         path = product_path(row)
-        if BASE + path not in approved or path in seen or not (ROOT / path.lstrip("/")).exists():
+        if (BASE + path not in approved and str(row.get("id")) not in BLOCKED) or path in seen or not (ROOT / path.lstrip("/")).exists():
             continue
         seen.add(path)
         items.append((read(row, "name", "nombre"), path, read(row, "brand", "marca"), read(row, "category", "categoria")))
@@ -405,6 +416,7 @@ def main():
     rows = load()
     logos = load_logos()
     approved = approved_urls()
+    BLOCKED.update(load_blocked())
     items = linkable(rows, approved)
     print(f"Fichas indexables enlazables: {len(items)} de {len(approved)} en sitemap-productos.xml")
     if approved and len(items) < len(approved) * 0.5:
