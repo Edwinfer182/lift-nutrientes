@@ -1,4 +1,4 @@
-name: Identidad GEO Lift Nutrientes
+name: Identidad GEO SUPGO
 on:
   workflow_dispatch:
   push:

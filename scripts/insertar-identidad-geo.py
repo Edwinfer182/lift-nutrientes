@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Insert one consistent Lift Nutrientes store identity in static public HTML."""
+"""Mantiene una sola identidad de tienda (SUPGO) en las páginas que ya tienen el bloque marcado.
+
+Solo actualiza bloques existentes: no inserta el bloque en páginas nuevas (las fichas,
+el panel y el admin tienen sus propios datos estructurados)."""
 from pathlib import Path
 import json
 import re
@@ -11,8 +14,9 @@ identity = {
     "@context": "https://schema.org",
     "@type": ["Organization", "OnlineStore"],
     "@id": "https://supgo.co/#organization",
-    "name": "Lift Nutrientes",
-    "alternateName": "SUPGO",
+    "name": "SUPGO",
+    "alternateName": "SUPlementos GO",
+    "logo": "https://supgo.co/favicon.png",
     "url": "https://supgo.co/",
     "description": "Tienda en línea de suplementos deportivos, proteínas, creatinas y vitaminas. Atiende pedidos en Medellín y realiza envíos a otras ciudades de Colombia.",
     "areaServed": [
@@ -40,7 +44,7 @@ for path in ROOT.rglob("*.html"):
     if MARK_START in html and MARK_END in html:
         new = re.sub(re.escape(MARK_START) + r".*?" + re.escape(MARK_END), lambda _: block, html, count=1, flags=re.S)
     else:
-        new = re.sub(r"</head\s*>", lambda m: block + "\n" + m.group(0), html, count=1, flags=re.I)
+        continue
     if new != html:
         path.write_text(new, encoding="utf-8")
         changed += 1
