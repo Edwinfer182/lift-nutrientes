@@ -73,7 +73,7 @@ def export():
         if BLOCKED.search(" ".join((name,brand,item.get("categoria") or ""))):continue
         if not isinstance(price,(int,float)) or price<=0:continue
         description=re.sub(r"\s+"," ",re.sub(r"<[^>]*>"," ",data.get("description") or page.get("description") or name)).strip()[:5000]
-        record={"item_id":str(id),"title":name[:150],"description":description,"url":url,"brand":brand,"seller_name":"Lift Nutrientes","image_url":image,"price":f"{int(price)} COP","availability":status(data)}
+        record={"item_id":str(id),"title":name[:150],"description":description,"url":url,"brand":brand,"seller_name":"SUPGO","image_url":image,"price":f"{int(price)} COP","availability":status(data)}
         rows.append(record)
     if len(rows)<600:raise ValueError(f"Feed incompleto ({len(rows)} filas); se conserva el feed anterior")
     fields=["item_id","title","description","url","brand","seller_name","image_url","price","availability"]
