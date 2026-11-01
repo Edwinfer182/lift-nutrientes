@@ -152,6 +152,8 @@ details.coupon[open] summary::after{content:"−"}
 .naLinks{margin:8px 0 0!important;color:var(--muted)}
 .naLinks button{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;cursor:pointer}
 #naInput{letter-spacing:6px;font-weight:600;text-align:center}
+.naBtns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.naGoogle{min-height:42px}
 .savedAddrs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
 .savedAddrs button{flex:0 0 auto;max-width:240px;text-align:left;border:1px solid #d6d6d6;background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer}
 .savedAddrs button b{display:block;font-size:13px}
@@ -188,8 +190,8 @@ details.coupon[open] summary::after{content:"−"}
           </div>
           <div class="newAcct" id="newAcct" hidden>
             <div class="naIntro" id="naIntro">
-              <p><b>¿Quieres crear tu cuenta?</b> Con estos mismos datos sigues tus pedidos y la próxima compra se llena sola.</p>
-              <button class="btn2" type="button" id="naStart">Crear cuenta con estos datos</button>
+              <p><b>¿Quieres crear tu cuenta?</b> Sigues tus pedidos y la próxima compra se llena sola.</p>
+              <div class="naBtns"><div id="naGoogle" class="naGoogle" hidden></div><button class="btn2" type="button" id="naStart">Crear cuenta con estos datos</button></div>
             </div>
             <div class="naCode" id="naCode" hidden>
               <p>Te enviamos un código de 6 dígitos a <b id="naEmail"></b>. Escríbelo aquí:</p>
@@ -256,7 +258,7 @@ details.coupon[open] summary::after{content:"−"}
   <button class="cta" type="submit" form="form" id="submitMobile"><span class="spin"></span><span class="ctaText">Hacer pedido</span></button>
 </div>
 
-<script src="/componentes/cuenta.js?v=20261031-cuentas-2"></script>
+<script src="/componentes/cuenta.js?v=20261101-google"></script>
 <script>
 (function(){
 'use strict';
@@ -584,6 +586,16 @@ function naBind(){
   $('email').addEventListener('input',function(){if(naEmail&&this.value.trim().toLowerCase()!==naEmail)naReset()});
   window.addEventListener('supgo-cuenta-change',function(){naPaint();if(window.SupgoCuenta&&!window.SupgoCuenta.get())fillAccount()});
   naPaint();
+  var C=window.SupgoCuenta;
+  if(C&&C.googleButton&&!C.get())C.googleButton($('naGoogle'),{text:'signup_with',
+    onStart:function(){naMsg('Entrando con Google…')},
+    onError:function(m){naMsg(m,'bad')},
+    onLogin:function(j){
+      var c=j.cuenta||{},nombre=$('nombre').value.trim()||c.nombre||'',cel=digits($('celular').value);
+      var save=(!c.celular&&validPhone($('celular').value))||(!c.nombre&&nombre)?C.api('profile',{nombre:c.nombre||nombre,celular:c.celular||cel.slice(-10)}).catch(function(){}):Promise.resolve();
+      save.then(function(){naReset();naPaint();fillAccount();
+        C.toast(j.nuevo?'¡Listo! Creamos tu cuenta con Google.':'Entraste con Google. Este pedido quedará guardado en tu cuenta.')});
+    }});
 }
 function saveToAccount(p){
   var C=window.SupgoCuenta;if(!C)return;

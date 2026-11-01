@@ -102,7 +102,41 @@ document.addEventListener('click',function(e){
   location.assign('/cuenta/#pedidos');
 },true);
 
-window.SupgoCuenta={get:get,set:setSession,api:api,logout:logout,syncFavs:syncFavs,refCode:refCode,clearRef:function(){del(REF)},toast:toast};
+/* ---------- Entrar con Google ----------
+   Botón oficial de Google (Google Identity Services). El token lo verifica lift-cuenta (acción "google"). */
+var GOOGLE_ID='446005762435-rkq4ech241m211r9ttsbh2df6aqs1cn6.apps.googleusercontent.com';
+var gsiLoading=null,gsiReady=false,gHandler=null;
+function loadGsi(){
+  if(window.google&&google.accounts&&google.accounts.id)return Promise.resolve();
+  if(gsiLoading)return gsiLoading;
+  gsiLoading=new Promise(function(ok,ko){var sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;sc.onload=ok;sc.onerror=function(){gsiLoading=null;ko(new Error('Google no cargó'))};document.head.appendChild(sc)});
+  return gsiLoading;
+}
+function onGoogle(r){
+  var h=gHandler||{};
+  if(h.onStart)try{h.onStart()}catch(e){}
+  api('google',{credential:r&&r.credential}).then(function(j){
+    setSession({token:j.token,email:j.cuenta.email,nombre:j.cuenta.nombre||''});
+    try{if(typeof gtag==='function')gtag('event',j.nuevo?'sign_up':'login',{method:'google'})}catch(e){}
+    syncFavs();
+    if(h.onLogin)h.onLogin(j);
+  }).catch(function(e){if(h.onError)h.onError(e.message);else toast(e.message)});
+}
+/* googleButton(elemento,{text:'continue_with'|'signup_with'|'signin_with',onLogin(j),onError(msg),onStart()}) */
+function googleButton(el,opts){
+  if(!el)return Promise.resolve(false);
+  opts=opts||{};
+  return loadGsi().then(function(){
+    gHandler=opts;
+    if(!gsiReady){google.accounts.id.initialize({client_id:GOOGLE_ID,callback:onGoogle,ux_mode:'popup',auto_select:false,cancel_on_tap_outside:true,context:'signin',itp_support:true});gsiReady=true}
+    el.innerHTML='';
+    var w=Math.round(Math.min(400,Math.max(220,el.clientWidth||el.parentNode&&el.parentNode.clientWidth||320)));
+    google.accounts.id.renderButton(el,{type:'standard',theme:'outline',size:'large',text:opts.text||'continue_with',shape:'pill',logo_alignment:'center',width:w,locale:'es'});
+    el.hidden=false;return true;
+  }).catch(function(){el.hidden=true;return false});
+}
+
+window.SupgoCuenta={get:get,set:setSession,api:api,logout:logout,syncFavs:syncFavs,refCode:refCode,clearRef:function(){del(REF)},toast:toast,googleButton:googleButton};
 captureRef();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){waitHeader();syncFavs()});else{waitHeader();syncFavs()}
 })();
