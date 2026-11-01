@@ -1,0 +1,46 @@
+name: Diagnóstico WebKit iPhone
+on:
+  push:
+    branches: [diag-webkit]
+permissions:
+  contents: write
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: npm init -y >/dev/null && npm i playwright@1.48.2 >/dev/null && npx playwright install --with-deps webkit >/dev/null
+      - name: Medir
+        run: |
+          mkdir -p out
+          cat > t.js <<'JS'
+          const { webkit, devices } = require('playwright');
+          (async()=>{const b=await webkit.launch();const res={};
+          const urls={home:'https://supgo.co/home/',cat:'https://supgo.co/categorias/proteinas-whey/',ficha:'https://supgo.co/productos/iso-100-5-lb-chocolate-30131.html',labs:'https://supgo.co/laboratorios/'};
+          for(const [k,u] of Object.entries(urls)){
+            const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();
+            await p.goto(u+'?t='+Date.now(),{waitUntil:'networkidle',timeout:60000}).catch(()=>{});await p.waitForTimeout(4000);
+            await p.evaluate(()=>{const n=document.querySelector('#supgo-cookies .no');if(n)n.click()});
+            for(let i=0;i<30;i++){await p.evaluate(()=>scrollBy(0,600));await p.waitForTimeout(150)}
+            await p.waitForTimeout(1500);
+            res[k]=await p.evaluate(()=>{
+              const H=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight);
+              let content=0;const deep=[];
+              document.querySelectorAll('body *').forEach(e=>{const cs=getComputedStyle(e);if(cs.position==='fixed'||cs.display==='none'||cs.visibility==='hidden')return;const r=e.getBoundingClientRect();if(!r.width||!r.height)return;const bot=r.bottom+scrollY;
+                const hasText=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())||['IMG','BUTTON','INPUT','SVG','svg'].includes(e.tagName);if(hasText)content=Math.max(content,bot);deep.push([Math.round(bot),e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(typeof e.className==='string'&&e.className?'.'+e.className.trim().split(/\s+/).slice(0,3).join('.'):''),cs.position,Math.round(r.height),cs.transform!=='none'?'tf':'']);});
+              deep.sort((a,b)=>b[0]-a[0]);
+              return {H,innerH:innerHeight,scrollY,lastContent:Math.round(content),gap:H-Math.round(content),deep:deep.slice(0,30),ob:getComputedStyle(document.documentElement).overscrollBehaviorY,priv:[...document.scripts].map(s=>s.src).filter(s=>/privacidad|header-loader/.test(s))};
+            });
+            await p.screenshot({path:'out/'+k+'-fin.png'});
+            await ctx.close();
+          }
+          require('fs').writeFileSync('out/medidas.json',JSON.stringify(res,null,1));await b.close()})();
+          JS
+          node t.js
+      - name: Guardar
+        run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan capturas-webkit; git rm -rfq . ; cp -r out/* . ; rm -rf out node_modules package*.json t.js
+          git add -A; git commit -qm "Medidas WebKit iPhone"; git push -f origin capturas-webkit
