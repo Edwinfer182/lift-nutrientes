@@ -270,7 +270,73 @@ body .supgo-menu[hidden],body .supgo-menu-shade[hidden]{display:none!important}
 
 # Versión de la plantilla de ficha. Si una ficha existente no la tiene, se
 # regenera completa una vez; después solo se sincronizan precio y relacionados.
-FICHA_VERSION="v2-20261031"
+FICHA_VERSION="v3-20261101"
+ZOOM_CSS = """
+.zoom-overlay{padding:56px 64px 118px!important;touch-action:none}
+.zoom-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;cursor:zoom-in}
+.zoom-stage.zoomed{cursor:grab}.zoom-stage.zoomed:active{cursor:grabbing}
+.zoom-overlay .zoom-photo{max-width:100%!important;max-height:100%!important;width:auto;height:auto;object-fit:contain;transform-origin:center center;transition:transform .22s ease;will-change:transform;-webkit-user-drag:none;user-select:none;background:#fff;border-radius:14px}
+.zoom-overlay .zoom-photo.dragging{transition:none}
+.zoom-bottom{position:absolute;left:0;right:0;bottom:12px;display:flex;flex-direction:column;align-items:center;gap:7px;pointer-events:none}
+.zoom-thumbs{display:flex;gap:8px;max-width:92vw;overflow-x:auto;padding:2px;pointer-events:auto;scrollbar-width:none}
+.zoom-thumbs::-webkit-scrollbar{display:none}
+.zoom-thumbs button{flex:0 0 52px;width:52px;height:52px;border-radius:10px;border:2px solid transparent;background:#fff;padding:3px;cursor:pointer;opacity:.6}
+.zoom-thumbs button.active{border-color:#16a34a;opacity:1}
+.zoom-thumbs img{width:100%;height:100%;object-fit:contain}
+.zoom-overlay .zoom-counter{position:static!important;color:#fff;font-size:12px}
+.zoom-tip{color:#d4d4d4;font-size:12px;text-align:center;padding:0 12px}
+.zoom-tools{position:absolute;left:16px;top:16px;display:flex;gap:8px}
+.zoom-tools button{width:43px;height:43px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:24px;line-height:1;cursor:pointer}
+.zoom-image{overflow:hidden}
+@media(hover:hover) and (pointer:fine){.zoom-image img{transition:transform .18s ease;transform-origin:center}.zoom-image.lens img{transform:scale(2.1)}}
+@media(max-width:700px){.zoom-overlay{padding:58px 10px 118px!important}.zoom-overlay .zoom-arrow{display:none}.zoom-tools{left:10px;top:12px}}
+"""
+
+ZOOM_JS = r"""(function(){
+const gallery=window.__supgoGallery||[];if(!gallery.length)return;
+const hi=u=>/googleusercontent\.com\//.test(u)?u.replace(/=w\d+(-h\d+)?(-[a-z]+)?$/,'')+'=w2000':u;
+const $=id=>document.getElementById(id);
+const overlay=$('zoomOverlay'),stage=$('zoomStage'),photo=$('zoomPhoto'),counter=$('zoomCounter'),thumbs=$('zoomThumbs');
+const media=document.querySelector('.zoom-image'),mainPhoto=media&&media.querySelector('img');
+let current=0,s=1,tx=0,ty=0;
+function apply(anim){photo.classList.toggle('dragging',!anim);photo.style.transform='translate('+tx+'px,'+ty+'px) scale('+s+')';stage.classList.toggle('zoomed',s>1.01)}
+function clamp(){const r=stage.getBoundingClientRect(),w=photo.offsetWidth,h=photo.offsetHeight,mx=Math.max(0,(w*s-r.width)/2),my=Math.max(0,(h*s-r.height)/2);tx=Math.min(mx,Math.max(-mx,tx));ty=Math.min(my,Math.max(-my,ty));if(s<=1){tx=0;ty=0}}
+function reset(){s=1;tx=0;ty=0;apply(true)}
+function zoomAt(ns,cx,cy){const r=photo.getBoundingClientRect(),ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);ns=Math.min(5,Math.max(1,ns));const k=ns/s;tx=tx-ox*(k-1);ty=ty-oy*(k-1);s=ns;clamp()}
+function display(i){current=(i+gallery.length)%gallery.length;photo.src=hi(gallery[current]);counter.textContent=gallery.length>1?(current+1)+' / '+gallery.length:'';thumbs.querySelectorAll('button').forEach((b,n)=>b.classList.toggle('active',n===current));document.querySelectorAll('.gallery-thumb').forEach((b,n)=>b.classList.toggle('active',n===current));if(mainPhoto)mainPhoto.src=gallery[current];reset()}
+if(gallery.length>1){gallery.forEach((u,n)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label','Ver imagen '+(n+1));const im=document.createElement('img');im.src=u;im.alt='';im.loading='lazy';b.append(im);b.onclick=()=>display(n);thumbs.append(b)})}else{['zoomPrev','zoomNext'].forEach(id=>{const b=$(id);if(b)b.hidden=true})}
+function open(){display(current);overlay.hidden=false;document.body.style.overflow='hidden'}
+function close(){overlay.hidden=true;document.body.style.overflow='';reset()}
+document.querySelectorAll('.gallery-thumb').forEach(b=>b.addEventListener('click',()=>display(Number(b.dataset.index))));
+$('openZoom').addEventListener('click',open);$('zoomClose').addEventListener('click',close);
+$('zoomPrev').addEventListener('click',()=>display(current-1));$('zoomNext').addEventListener('click',()=>display(current+1));
+$('zoomIn').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(s*1.6,r.left+r.width/2,r.top+r.height/2);apply(true)});
+$('zoomOut').addEventListener('click',()=>{const r=stage.getBoundingClientRect();zoomAt(s/1.6,r.left+r.width/2,r.top+r.height/2);apply(true)});
+document.addEventListener('keydown',e=>{if(overlay.hidden)return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')display(current-1);if(e.key==='ArrowRight')display(current+1);if(e.key==='+'||e.key==='=')$('zoomIn').click();if(e.key==='-')$('zoomOut').click()});
+/* Gestos: pellizcar, doble toque, arrastrar cuando hay zoom y deslizar para cambiar de foto. */
+const pts=new Map();let start=null,lastTap=0,moved=false;
+stage.addEventListener('pointerdown',e=>{stage.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=false;
+ if(pts.size===2){const [a,b]=[...pts.values()];start={d:Math.hypot(a.x-b.x,a.y-b.y),s,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2}}else{start={x:e.clientX,y:e.clientY,tx,ty,t:Date.now()}}});
+stage.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!start)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pts.size===2&&start.d){const [a,b]=[...pts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);zoomAt(start.s*d/start.d,(a.x+b.x)/2,(a.y+b.y)/2);moved=true;apply(false);return}
+ if(pts.size===1&&start.x!=null){const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dx)+Math.abs(dy)>6)moved=true;if(s>1){tx=start.tx+dx;ty=start.ty+dy;clamp();apply(false)}else{photo.classList.add('dragging');photo.style.transform='translateX('+dx+'px)'}}});
+function end(e){if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);
+ if(start&&start.x!=null&&pts.size===0){const dx=e.clientX-start.x;
+  if(s<=1&&moved&&Math.abs(dx)>60&&gallery.length>1){display(current+(dx<0?1:-1));start=null;return}
+  if(!moved){const now=Date.now();if(now-lastTap<320){if(s>1)reset();else{zoomAt(2.5,e.clientX,e.clientY);apply(true)}lastTap=0}else{lastTap=now;if(e.pointerType==='mouse'){if(s>1)reset();else{zoomAt(2.5,e.clientX,e.clientY);apply(true)}lastTap=0}}}
+  else apply(true)}
+ if(pts.size<2&&start&&start.d){const p=[...pts.values()][0];start=p?{x:p.x,y:p.y,tx,ty}:null;if(!p)apply(true)}}
+stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(s*(e.deltaY<0?1.2:1/1.2),e.clientX,e.clientY);apply(true)},{passive:false});
+overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+/* Ficha: lupa al pasar el mouse (computador) y deslizar para cambiar de foto (celular). */
+if(media&&mainPhoto){
+ if(matchMedia('(hover:hover) and (pointer:fine)').matches){media.addEventListener('mousemove',e=>{const r=media.getBoundingClientRect();mainPhoto.style.transformOrigin=((e.clientX-r.left)/r.width*100)+'% '+((e.clientY-r.top)/r.height*100)+'%';media.classList.add('lens')});media.addEventListener('mouseleave',()=>media.classList.remove('lens'))}
+ let sx=null,sy=0;media.addEventListener('touchstart',e=>{if(e.touches.length===1){sx=e.touches[0].clientX;sy=e.touches[0].clientY}},{passive:true});
+ media.addEventListener('touchend',e=>{if(sx==null||gallery.length<2)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;sx=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.4){e.preventDefault();display(current+(dx<0?1:-1))}},{passive:false});
+}
+})();"""
+
 PAYMENT_HTML='<div class="pi-pay"><span class="pi-pay-label">Paga con</span><ul aria-label="Medios de pago"><li class="pi-breb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Bre-B</span></li><li class="pi-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg><span>Tarjeta con Bold</span></li><li class="pi-bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 12 4l9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><span>Transferencia</span></li></ul></div>'
 FICHA_V2_CSS=r'''
 /* ===== Ficha v2: jerarquía, precio, envío, pagos, relacionados y escritorio ===== */
@@ -900,21 +966,8 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 @media(min-width:768px){{#seo-wa-float{{bottom:26px;right:24px}}}}
 </style>
 <div id="seo-wa-float"><div id="seo-wa-panel" hidden><textarea id="seo-wa-message" aria-label="Mensaje para WhatsApp"></textarea><button id="seo-wa-send" type="button">Enviar por WhatsApp</button></div><button id="seo-wa-toggle" type="button" aria-label="Consultar por WhatsApp" aria-expanded="false" aria-controls="seo-wa-panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="29" height="29" fill="currentColor" aria-hidden="true"><path d="M16 .8A15.1 15.1 0 0 0 3 23.5L.8 31.2l7.9-2.1A15.2 15.2 0 1 0 16 .8Zm0 27.6a12.2 12.2 0 0 1-6.2-1.7l-.4-.2-4.7 1.2L6 23.1l-.3-.4A12.3 12.3 0 1 1 16 28.4Zm6.8-9.2c-.4-.2-2.2-1.1-2.6-1.2-.3-.1-.6-.2-.8.2-.3.4-1 1.2-1.2 1.4-.2.3-.4.3-.8.1-.4-.2-1.6-.6-3-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8l.6-.6c.2-.2.3-.4.4-.6.1-.3 0-.5 0-.7-.1-.2-.8-2-1.2-2.8-.3-.7-.6-.6-.8-.6h-.7c-.3 0-.7.1-1 .5s-1.3 1.3-1.3 3.1 1.4 3.6 1.6 3.9c.2.2 2.6 4 6.3 5.6.9.4 1.6.6 2.1.8.9.3 1.7.2 2.4.1.7-.1 2.2-.9 2.5-1.8.3-.9.3-1.6.2-1.8-.1-.1-.3-.2-.7-.4Z"/></svg></button></div>
-<div id="zoomOverlay" class="zoom-overlay" role="dialog" aria-modal="true" aria-label="Galería del producto" hidden><button type="button" id="zoomClose" class="zoom-close" aria-label="Cerrar galería">×</button><button type="button" id="zoomPrev" class="zoom-arrow zoom-prev" aria-label="Imagen anterior">‹</button><img id="zoomPhoto" class="zoom-photo" alt="{esc(name)}"><button type="button" id="zoomNext" class="zoom-arrow zoom-next" aria-label="Imagen siguiente">›</button><div id="zoomCounter" class="zoom-counter"></div></div>
-<script>(function(){{
-const gallery={gallery_json};
-let current=0;
-const overlay=document.getElementById('zoomOverlay'),zoomPhoto=document.getElementById('zoomPhoto'),mainPhoto=document.querySelector('.zoom-image img'),counter=document.getElementById('zoomCounter');
-function display(i){{if(!gallery.length)return;current=(i+gallery.length)%gallery.length;zoomPhoto.src=gallery[current];counter.textContent=(current+1)+' / '+gallery.length;document.querySelectorAll('.gallery-thumb').forEach((b,n)=>b.classList.toggle('active',n===current));if(mainPhoto)mainPhoto.src=gallery[current];}}
-document.querySelectorAll('.gallery-thumb').forEach(b=>b.addEventListener('click',()=>display(Number(b.dataset.index))));
-document.getElementById('openZoom').addEventListener('click',()=>{{if(!gallery.length)return;display(current);overlay.hidden=false;document.body.style.overflow='hidden';}});
-function closeZoom(){{overlay.hidden=true;document.body.style.overflow='';}}
-document.getElementById('zoomClose').addEventListener('click',closeZoom);
-document.getElementById('zoomPrev').addEventListener('click',()=>display(current-1));
-document.getElementById('zoomNext').addEventListener('click',()=>display(current+1));
-overlay.addEventListener('click',e=>{{if(e.target===overlay)closeZoom();}});
-document.addEventListener('keydown',e=>{{if(overlay.hidden)return;if(e.key==='Escape')closeZoom();if(e.key==='ArrowLeft')display(current-1);if(e.key==='ArrowRight')display(current+1);}});
-}})();</script>
+<style>{ZOOM_CSS}</style><div id="zoomOverlay" class="zoom-overlay" role="dialog" aria-modal="true" aria-label="Galería del producto" hidden><button type="button" id="zoomClose" class="zoom-close" aria-label="Cerrar galería">×</button><div class="zoom-tools"><button type="button" id="zoomOut" aria-label="Alejar">−</button><button type="button" id="zoomIn" aria-label="Acercar">+</button></div><button type="button" id="zoomPrev" class="zoom-arrow zoom-prev" aria-label="Imagen anterior">‹</button><div id="zoomStage" class="zoom-stage"><img id="zoomPhoto" class="zoom-photo" alt="{esc(name)}" draggable="false"></div><button type="button" id="zoomNext" class="zoom-arrow zoom-next" aria-label="Imagen siguiente">›</button><div class="zoom-bottom"><div id="zoomThumbs" class="zoom-thumbs"></div><div id="zoomCounter" class="zoom-counter"></div><div class="zoom-tip">Pellizca o toca dos veces para ampliar · desliza para cambiar de foto</div></div></div>
+<script>window.__supgoGallery={gallery_json};</script><script>{ZOOM_JS}</script>
 <script>(function(){{const p={product_json};const f=document.getElementById('fav');window.__supgoFicha=p;}})();</script>
 <script>{FICHA_V2_JS}</script>
 <script>
