@@ -809,7 +809,7 @@ body{{background:#fff;color:#111;font-family:Poppins,Inter,-apple-system,BlinkMa
 /* ÚNICO BLOQUE RESPONSIVO DE LA FICHA SEO. */
 @media screen and (max-width:760px){{
  /* clip (no hidden): en Safari de iPhone, overflow-x:hidden en html y body dejaba un espacio blanco al final al hacer scroll. */
- html,body{{max-width:100%;overflow-x:hidden;overflow-x:clip}}
+ html,body{{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none}}
  body .product-page{{width:100%;max-width:100%;margin:0 auto;padding:10px 12px 110px}}
  body .product-page .product-card{{display:flex;flex-direction:column;gap:12px;min-width:0;border-radius:10px;overflow:visible}}
  body .product-page .product-card .product-gallery{{width:100%;min-width:0;max-width:100%;overflow:hidden}}
