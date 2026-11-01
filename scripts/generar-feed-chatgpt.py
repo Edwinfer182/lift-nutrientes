@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export discovery feed for Lift Nutrientes from Supabase + published product pages."""
+"""Export discovery feed for SUPGO from Supabase + published product pages."""
 import csv, io, json, os, re, unicodedata, urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
@@ -19,8 +19,9 @@ class ProductParser(HTMLParser):
     def handle_endtag(self,tag):
         if tag=="script" and self.in_script:self.scripts.append(self.buf);self.in_script=False
 def fetch_supabase():
-    base=os.environ.get("SUPABASE_URL","").rstrip("/")
-    key=os.environ.get("SUPABASE_ANON_KEY","")
+    base=(os.environ.get("SUPABASE_URL") or "https://vdxkknftyssjyfbdieqa.supabase.co").rstrip("/")
+    # Clave publicable (la misma que usa la tienda); solo lectura de datos públicos.
+    key=os.environ.get("SUPABASE_ANON_KEY") or "sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh"
     if not base or not key: raise RuntimeError("Configurar SUPABASE_URL y SUPABASE_ANON_KEY en GitHub Actions")
     result=[];offset=0
     while True:

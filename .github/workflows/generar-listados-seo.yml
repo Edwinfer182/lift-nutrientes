@@ -31,6 +31,8 @@ jobs:
         run: python scripts/generar_listados_seo.py
       - name: Limpiar duplicados y generar sitemap índice
         run: python scripts/seo_indexacion.py
+      - name: Revisar marca SUPGO (sin Lift Nutrientes)
+        run: python scripts/revisar_marca.py categorias laboratorios productos/index.html home/index.html sitemap.xml sitemaps
       - name: Publicar páginas
         run: |
           git config user.name "github-actions[bot]"

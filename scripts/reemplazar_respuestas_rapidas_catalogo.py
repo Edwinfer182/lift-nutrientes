@@ -4,7 +4,7 @@ import re
 p = Path('index.html')
 text = p.read_text(encoding='utf-8')
 
-mensaje = "Te comparto nuestro catálogo de Lift Nutrientes 👇\nhttps://lift-nutrientes.vercel.app/catalogo/\n\nPuedes buscar por producto, marca o categoría, agregar los productos al carrito, aplicar tus cupones disponibles y enviarnos el pedido directamente por WhatsApp."
+mensaje = "Te comparto nuestro catálogo de SUPGO 👇\nhttps://supgo.co/catalogo/\n\nPuedes buscar por producto, marca o categoría, agregar los productos al carrito, aplicar tus cupones disponibles y enviarnos el pedido directamente por WhatsApp."
 nueva = '["Catálogo", "Compartir catálogo", ' + repr(mensaje) + ']'
 
 # Localiza el arreglo de respuestas usando una respuesta conocida y reemplaza
