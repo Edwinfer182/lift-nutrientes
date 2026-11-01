@@ -48,7 +48,7 @@ def slug(value):
 
 
 BASE = "https://supgo.co"
-HIDDEN_BRANDS = {"venom-pharma"}
+HIDDEN_BRANDS = {"venom-pharma", "lift-nutrientes"}
 NOINDEX_SLUGS = {"pruebas"}
 LIST_STYLE = (".seo-productos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}"
               ".seo-productos a{display:block;border:1px solid #e7e7e7;border-radius:9px;padding:12px 14px;font-weight:500;line-height:1.35}"
@@ -418,7 +418,7 @@ def main():
         groups = {}
         for row in rows:
             name = read(row, *keys)
-            if name and not (kind == "laboratorio" and slug(name) == "venom-pharma"):
+            if name and not (kind == "laboratorio" and slug(name) in HIDDEN_BRANDS):
                 groups.setdefault(name, 0)
                 groups[name] += 1
         write_hub(plural, {k: v for k, v in groups.items() if slug(k) not in NOINDEX_SLUGS}, logos)
