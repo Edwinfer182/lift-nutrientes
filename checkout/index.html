@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZL00MPW16"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<script>window.SUPGO_GA=1;window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<script src="/componentes/privacidad.js?v=20261101-legal" defer></script>
 <style>
 :root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--green:#15803d;--green-soft:#eaf7ee;--red:#b42318;--red-soft:#fff4f2;--radius:14px}
 *{box-sizing:border-box}
@@ -156,6 +156,9 @@ details.coupon[open] summary::after{content:"−"}
 .check.mailOk input{width:18px;height:18px}
 .naBtns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .naGoogle{min-height:42px}
+.check.naAuth{padding:0 0 10px;font-size:12px}.check.naAuth input{width:18px;height:18px}
+.naGoogle.off{opacity:.45;pointer-events:none}
+.naGw{position:relative}.naGw.off::after{content:"";position:absolute;inset:0;cursor:pointer}
 .savedAddrs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
 .savedAddrs button{flex:0 0 auto;max-width:240px;text-align:left;border:1px solid #d6d6d6;background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer}
 .savedAddrs button b{display:block;font-size:13px}
@@ -194,7 +197,8 @@ details.coupon[open] summary::after{content:"−"}
           <div class="newAcct" id="newAcct" hidden>
             <div class="naIntro" id="naIntro">
               <p><b>¿Quieres crear tu cuenta?</b> Sigues tus pedidos y la próxima compra se llena sola.</p>
-              <div class="naBtns"><div id="naGoogle" class="naGoogle" hidden></div><button class="btn2" type="button" id="naStart">Crear cuenta con estos datos</button></div>
+              <label class="check naAuth" id="naAuthBox"><input type="checkbox" id="naAuth"><span>Autorizo a SUPGO a tratar mis datos (correo, nombre y celular) para crear y gestionar mi cuenta, según la <a href="/tratamiento-de-datos/" target="_blank" rel="noopener">política de tratamiento de datos</a>.</span></label>
+              <div class="naBtns"><div class="naGw off" id="naGw"><div id="naGoogle" class="naGoogle off" hidden></div></div><button class="btn2" type="button" id="naStart">Crear cuenta con estos datos</button></div>
             </div>
             <div class="naCode" id="naCode" hidden>
               <p>Te enviamos un código de 6 dígitos a <b id="naEmail"></b>. Escríbelo aquí:</p>
@@ -598,8 +602,10 @@ var naEmail='';
 function naMsg(t,cls){var m=$('naMsg');m.textContent=t||'';m.className='msg'+(cls?' '+cls:'')}
 function naReset(){naEmail='';$('naIntro').hidden=false;$('naCode').hidden=true;$('naInput').value='';naMsg('')}
 function naPaint(){var C=window.SupgoCuenta,box=$('newAcct');if(!box)return;box.hidden=!C||!!C.get()}
+function naAuthOk(){var ok=$('naAuth').checked;$('naAuthBox').classList.toggle('bad',!ok);if(!ok)naMsg('Para crear la cuenta, marca la autorización de tratamiento de datos.','bad');return ok}
 function naSend(){
   var C=window.SupgoCuenta;if(!C)return;
+  if(!naAuthOk())return;
   var bad=[],ok=function(id,v){$(id).classList.toggle('bad',!v);if(!v)bad.push(id)};
   ok('f-nombre',$('nombre').value.trim().length>=3);
   ok('f-celular',validPhone($('celular').value));
@@ -629,6 +635,8 @@ function naVerify(){
 function naBind(){
   if(!$('newAcct'))return;
   $('naStart').addEventListener('click',naSend);
+  $('naAuth').addEventListener('change',function(){$('naAuthBox').classList.remove('bad');$('naGw').classList.toggle('off',!this.checked);$('naGoogle').classList.toggle('off',!this.checked);if(this.checked)naMsg('')});
+  $('naGw').addEventListener('click',function(){if(this.classList.contains('off'))naAuthOk()});
   $('naResend').addEventListener('click',naSend);
   $('naCancel').addEventListener('click',naReset);
   $('naVerify').addEventListener('click',naVerify);

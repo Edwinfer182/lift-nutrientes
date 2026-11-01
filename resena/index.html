@@ -83,7 +83,7 @@ function render(){
   $('sub').textContent='Pedido #'+p.id;
   $('app').innerHTML='<h1>¿Qué te pareció tu compra?</h1><p class="lead">Tu opinión ayuda a otros clientes a elegir. Toma menos de un minuto.</p>'+cards+
    (anyOpen?'<div class="card"><label class="field"><span>Nombre que se mostrará</span><input type="text" id="nombre" maxlength="40" value="'+esc(first?.nombre_publico||p.nombre_publico)+'"></label>'+
-   '<label class="check"><input type="checkbox" id="auth" '+(first&&first.autoriza_publicar===false?'':'checked')+'><span>Autorizo a SUPGO a publicar mi reseña en su página con este nombre y mi ciudad'+(p.ciudad?' ('+esc(p.ciudad)+')':'')+'.</span></label>'+
+   '<label class="check"><input type="checkbox" id="auth" '+(first&&first.autoriza_publicar===true?'checked':'')+'><span>Autorizo a SUPGO a publicar mi reseña en su página con este nombre y mi ciudad'+(p.ciudad?' ('+esc(p.ciudad)+')':'')+'.</span></label>'+
    '<p class="note">Revisamos cada reseña antes de publicarla. Por la norma sanitaria de los suplementos no podemos publicar comentarios sobre efectos en la salud o en el cuerpo. Cuéntanos del sabor, la presentación, el envío o la atención.</p></div>'+
    '<button class="send" id="send" type="button">Enviar mi opinión</button><p class="err" id="err"></p>':'');
   document.querySelectorAll('.stars button').forEach(b=>b.onclick=()=>{const i=b.dataset.i,n=Number(b.dataset.n);picks[i]=Object.assign(picks[i]||{},{estrellas:n});
@@ -113,5 +113,6 @@ async function load(){
 load();
 })();
 </script>
+<script src="/componentes/privacidad.js?v=20261101-legal" defer></script>
 </body>
 </html>
