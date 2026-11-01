@@ -1,10 +1,5 @@
 {
-  "generated_at": "2026-10-23",
-  "products": 803,
-  "source_products": 1246,
-  "sitemap_urls": 899,
-  "excluded_missing_page": 347,
-  "excluded_regulated": 93,
-  "excluded_invalid": 3,
-  "availability_unknown": 803
+  "productos_publicados": 1044,
+  "sin_stock_verificado": 1044,
+  "excluidos_o_sin_pagina": 657
 }
