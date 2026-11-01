@@ -169,6 +169,9 @@ function diag(){
 }
 
 window.SupgoCookies={open:open,get:read,accept:function(){save(true)},reject:function(){save(false)}};
+/* Sin rebote al final de la página en iPhone: Safari estiraba la página y mostraba una franja vacía
+   (y la barra fija de compra parecía flotar). */
+try{var nb=document.createElement('style');nb.id='supgo-no-bounce';nb.textContent='html,body{overscroll-behavior-y:none}';(document.head||document.documentElement).appendChild(nb)}catch(e){}
 var c=read();apply(c);
 function boot(){waMount();if(!c)open();try{diag()}catch(e){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
