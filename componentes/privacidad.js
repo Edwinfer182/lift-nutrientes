@@ -127,8 +127,27 @@ function waMount(){
   waQueue();setTimeout(waQueue,800);
 }
 
+/* ---------- Diagnóstico temporal (?diag=1): qué alarga la página en iPhone ---------- */
+function diag(){
+  if(!/[?&]diag=1/.test(location.search))return;
+  var d=document.createElement('pre');
+  d.style.cssText='position:fixed;left:6px;right:6px;top:60px;z-index:2147483647;max-height:60vh;overflow:auto;background:#000d;color:#7CFC00;font:11px/1.35 monospace;padding:8px;border-radius:8px;white-space:pre-wrap;margin:0';
+  function run(){
+    var H=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),f=document.querySelector('.supgo-legal');
+    var fb=f?Math.round(f.getBoundingClientRect().bottom+scrollY):0,rows=[];
+    document.querySelectorAll('body *').forEach(function(e){
+      if(e===d)return;var r=e.getBoundingClientRect();if(!r.width&&!r.height)return;
+      var bot=Math.round(r.bottom+scrollY),cs=getComputedStyle(e);
+      if(bot>fb+4&&cs.position!=='fixed')rows.push(bot+' '+e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(typeof e.className==='string'&&e.className?'.'+e.className.trim().split(/\s+/).slice(0,2).join('.'):'')+' pos='+cs.position+' h='+Math.round(r.height)+(cs.transform!=='none'?' tf':'')+(cs.display==='none'?' none':''));
+    });
+    rows.sort(function(a,b){return parseInt(b)-parseInt(a)});
+    d.textContent='scrollHeight='+H+'  fin pie='+fb+'  vista='+innerHeight+'  html='+document.documentElement.scrollHeight+' body='+document.body.scrollHeight+'\nui='+navigator.userAgent.slice(0,90)+'\nElementos bajo el pie: '+rows.length+'\n'+rows.slice(0,25).join('\n');
+  }
+  document.body.appendChild(d);run();setTimeout(run,1500);setTimeout(run,4000);addEventListener('scroll',function(){clearTimeout(d._t);d._t=setTimeout(run,300)},{passive:true});
+}
+
 window.SupgoCookies={open:open,get:read,accept:function(){save(true)},reject:function(){save(false)}};
 var c=read();apply(c);
-function boot(){footer();waMount();if(!c)open()}
+function boot(){footer();waMount();if(!c)open();try{diag()}catch(e){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
