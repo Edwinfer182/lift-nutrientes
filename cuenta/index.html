@@ -88,6 +88,12 @@ textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
 .skeleton{height:110px;border-radius:var(--radius);background:linear-gradient(90deg,#f0f0ee 0%,#f7f7f5 50%,#f0f0ee 100%);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:12px}
 @keyframes sk{to{background-position:-200% 0}}
 @media(max-width:520px){.row{grid-template-columns:1fr}.addr{flex-direction:column}.addr .acts{justify-content:flex-start}}
+.gbox{margin-bottom:6px}
+.gbox .msg:empty{display:none}
+.gbox .msg{margin-top:8px}
+.gbtn{display:flex;justify-content:center;min-height:44px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:14px 0 12px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
 </style>
 </head>
 <body data-page="cuenta">
@@ -96,8 +102,9 @@ textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
 <!-- Ingreso -->
 <section id="login" hidden>
   <h1>Entra a tu cuenta</h1>
-  <p class="lead">Sin contraseñas: te enviamos un código a tu correo.</p>
+  <p class="lead">Sin contraseñas: entra con Google o con un código a tu correo.</p>
   <div class="card" id="stepEmail">
+    <div class="gbox" id="gBox" hidden><div id="gBtn" class="gbtn"></div><div class="msg" id="gMsg" role="alert"></div><div class="or"><span>o con tu correo</span></div></div>
     <form id="emailForm" novalidate>
       <label class="label" for="email">Correo electrónico</label>
       <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
@@ -186,7 +193,7 @@ textarea.input{height:auto;min-height:70px;padding:12px 14px;resize:vertical}
 </div></div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="/componentes/cuenta.js?v=20261031-cuentas-2"></script>
+<script src="/componentes/cuenta.js?v=20261101-google"></script>
 <script>
 (function(){
 'use strict';
@@ -203,7 +210,7 @@ function busy(btn,on,label){btn.disabled=on;if(label)btn.textContent=label}
 function copy(t,okMsg){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast(okMsg||'Copiado')},function(){window.prompt('Copia:',t)})}else window.prompt('Copia:',t)}
 
 /* ---------- Ingreso ---------- */
-function showLogin(){$('account').hidden=true;$('login').hidden=false;$('stepEmail').hidden=false;$('stepCode').hidden=true;
+function showLogin(){$('account').hidden=true;$('login').hidden=false;$('stepEmail').hidden=false;$('stepCode').hidden=true;setTimeout(mountGoogle,0);
   try{var r=JSON.parse(localStorage.getItem('liftRememberCustomerDataV1')||'null');if(r&&r.email&&!$('email').value)$('email').value=r.email}catch(e){}}
 function sendCode(email){
   return C.api('send-code',{email:email}).then(function(){pendingEmail=email;$('sentTo').textContent=email;$('stepEmail').hidden=true;$('stepCode').hidden=false;$('code').value='';msg('codeMsg','');setTimeout(function(){$('code').focus()},50)});
@@ -230,6 +237,20 @@ $('codeForm').addEventListener('submit',function(e){
 });
 $('resend').onclick=function(){if(!pendingEmail)return;sendCode(pendingEmail).then(function(){toast('Te enviamos un código nuevo')}).catch(function(er){msg('codeMsg',er.message,'err')})};
 $('changeEmail').onclick=function(){$('stepCode').hidden=true;$('stepEmail').hidden=false;$('email').focus()};
+/* Entrar con Google */
+function afterLogin(j){
+  var back='';try{back=new URLSearchParams(location.search).get('volver')||''}catch(e){}
+  if(/^\/[a-z0-9\-\/]*$/i.test(back)&&back.indexOf('//')<0){location.replace(back);return}
+  load(j.nuevo);
+}
+function mountGoogle(){
+  if(!C.googleButton)return;
+  $('gBox').hidden=false;
+  C.googleButton($('gBtn'),{text:'continue_with',
+    onStart:function(){msg('gMsg','Entrando…')},
+    onLogin:function(j){msg('gMsg','');afterLogin(j)},
+    onError:function(t){msg('gMsg',t,'err')}}).then(function(ok){if(!ok)$('gBox').hidden=true});
+}
 
 /* ---------- Cuenta ---------- */
 function load(isNew){
