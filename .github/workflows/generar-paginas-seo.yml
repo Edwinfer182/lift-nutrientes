@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/generar-paginas-seo.yml'
       - 'scripts/generar_paginas_seo.py'
+      - 'scripts/seo_contenido.py'
   workflow_dispatch:
     inputs:
       marca:
