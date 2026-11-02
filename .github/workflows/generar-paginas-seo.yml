@@ -38,7 +38,8 @@ jobs:
         env:
           SUPABASE_URL: https://vdxkknftyssjyfbdieqa.supabase.co
           SEO_OVERWRITE_EXISTING: '0'
-          SEO_OFFER_IDS_ONLY: ${{ github.event_name == 'push' && '12268,12395,901274,901196,398,901117,121' || '' }}
+          # Un cambio en el generador afecta a todas las fichas: se regeneran completas.
+          SEO_OFFER_IDS_ONLY: ''
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
@@ -60,6 +61,35 @@ jobs:
           assert any(s.get("@type") == "Product" and s.get("offers", {}).get("price") for s in schemas), "Falta Product/Offer JSON-LD"
           assert any(s.get("@type") == "BreadcrumbList" for s in schemas), "Falta BreadcrumbList JSON-LD"
           print("SEO verificado: descripción larga, metadescripción, Product/Offer y BreadcrumbList")
+          PY
+      - name: Revisar contenido automático (sin promesas de salud ni enlaces rotos)
+        run: |
+          python - <<'PY'
+          import sys, re, json
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          import seo_contenido as sc
+          auto = bad = broken = 0
+          for page in Path("productos").glob("*.html"):
+              html = page.read_text(encoding="utf-8", errors="replace")
+              m = re.search(r'<div class="seo-auto".*?</div></div></details>', html, re.S)
+              if not m:
+                  continue
+              auto += 1
+              product = next(json.loads(s) for s in re.findall(r'<script type="application/ld[+]json">(.*?)</script>', html, re.S) if '"Product"' in s)
+              names = [product.get("name"), (product.get("brand") or {}).get("name"), product.get("category")]
+              names += [p.get("value") for p in product.get("additionalProperty", [])]
+              hits = sc.contiene_prohibidas(m.group(0), names)
+              if hits:
+                  bad += 1; print("Revisar", page.name, hits)
+              for url in re.findall(r'href="([^"]+)"', m.group(0)):
+                  path = url.replace("https://supgo.co", "").lstrip("/")
+                  if path.endswith("/"): path += "index.html"
+                  if not Path(path).exists():
+                      broken += 1; print("Enlace roto", page.name, url)
+          print(f"Fichas con contenido automático: {auto}")
+          assert bad == 0, f"{bad} fichas con palabras no permitidas"
+          assert broken == 0, f"{broken} enlaces internos rotos"
           PY
       - name: Auditar marca antigua y metadatos de fichas
         run: |

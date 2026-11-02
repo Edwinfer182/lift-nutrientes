@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Genera fichas SEO estáticas desde Supabase. No elimina páginas existentes."""
-import os, json, re, html, urllib.request, urllib.parse, pathlib, unicodedata
+import os, json, re, html, urllib.request, urllib.parse, pathlib, unicodedata, sys
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
+import seo_contenido
 from datetime import datetime, timezone, timedelta
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 OUT=ROOT/"productos"
@@ -380,6 +382,10 @@ body .product-page .pi-offer-meta .seo-offer-until{order:1;color:#4b5563;font-si
 .product-page .pi-pay .pi-breb{color:#6d28d9}.product-page .pi-pay .pi-card{color:#d97706}.product-page .pi-pay .pi-bank{color:#0369a1}
 .product-page .seo-description{margin:0 0 6px!important}
 .product-page .seo-description .product-description{font-size:14px;line-height:1.75}
+.product-page .seo-auto h3{margin:18px 0 6px;font:600 16px/1.35 Poppins,Arial,sans-serif}
+.product-page .seo-auto ul{margin:0 0 6px;padding-left:20px}
+.product-page .seo-auto a{color:#15803d;text-decoration:underline;text-underline-offset:2px}
+.product-page .seo-auto .seo-leyenda{margin-top:14px;color:#6b7280;line-height:1.5}
 /* Foto con alto fijo: reserva el espacio desde el primer pintado. */
 body .product-page .product-card .product-gallery .product-media{height:clamp(400px,40vw,540px)!important;min-height:0!important;aspect-ratio:auto!important;padding:28px!important}
 body .product-page .product-card .product-gallery .zoom-image{width:100%;height:100%!important;min-height:0!important}
@@ -585,18 +591,35 @@ def build(row):
  promotion=active_offer(row)
  try: amount=float(price); valid_price=amount>0
  except (ValueError,TypeError):valid_price=False;amount=0
- title=str(seo_data.get("titulo_seo") or embedded.get("title") or (name+" | Supgo"))[:140]
- seo_description=seo_plain(seo_data.get("descripcion_larga_html") or embedded.get("html"))
- # Meta única por ficha: prioridad a nombre y marca, con enfoque local real.
- # No reutilizar textos heredados de WordPress ni descripciones genéricas.
- product_label=name if not brand or brand.casefold() in name.casefold() else f"{name} de {brand}"
- meta=f"Compra {product_label} en Medellín con SUPGO. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y Colombia."
- if len(meta)>160:
-  meta=f"Compra {product_label} en Medellín con SUPGO. Consulta precios y disponibilidad. Envíos a toda Colombia."
- if len(meta)>160:
-  prefix="Compra "
-  suffix=" en Medellín con SUPGO. Envíos a Colombia."
-  meta=prefix+product_label[:160-len(prefix)-len(suffix)].rstrip()+suffix
+ category=str(p.get("category") or p.get("categoria") or "").strip()
+ presentation=p.get("presentation") or p.get("presentacion")
+ flavor=str(p.get("flavor") or p.get("sabor") or "").strip()
+ variants=row.get("_variants",[])
+ if not flavor and len(variants)>1:
+  flavor=next((v["label"] for v in variants if str(v["id"])==str(pid)),"")
+ # Textos de Supabase copiados de otro producto (título que no corresponde) se descartan.
+ stored_title=str(seo_data.get("titulo_seo") or embedded.get("title") or "").strip()
+ wrong_copy=seo_contenido.titulo_no_corresponde(stored_title,name)
+ if wrong_copy:seo_data={k:v for k,v in seo_data.items() if k not in ("titulo_seo","meta_descripcion","descripcion_larga_html")};stored_title=""
+ stored_long=str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
+ # Fichas con texto genérico o vacío reciben contenido automático enriquecido.
+ auto_content=seo_contenido.es_delgada(stored_long,name) and brand.strip().casefold() not in ("applied nutrition","bsn")
+ row["_contenido_auto"]=auto_content
+ row["_copia_erronea"]=wrong_copy
+ auto_title=not stored_title or re.fullmatch(r"(?i)\s*"+re.escape(name.strip())+r"\s*\|\s*supgo\s*",stored_title) is not None
+ title=(seo_contenido.titulo_seo(name,brand,flavor) if auto_title else stored_title)[:140]
+ auto_html=""
+ if auto_content:
+  def lab_url(b):
+   s=slug(b);return f"/laboratorios/{s}/" if b and (ROOT/"laboratorios"/s).is_dir() else ""
+  def cat_url(c):
+   s=slug(c);return f"/categorias/{s}/" if c and (ROOT/"categorias"/s).is_dir() else ""
+  auto_html=seo_contenido.descripcion_html(pid=pid,nombre=name,marca=brand,categoria=category,sabor=flavor,presentacion=presentation,
+   variantes=variants,mas_marca=row.get("_mas_marca",[]),alternativas=row.get("_alternativas",[]),url_marca=lab_url(brand),url_categoria=cat_url(category))
+ seo_description=seo_plain(auto_html or seo_data.get("descripcion_larga_html") or embedded.get("html"))
+ # Meta única por ficha: la escrita a mano en Supabase si existe; si no, automática con nombre, marca y sabor.
+ stored_meta=str(seo_data.get("meta_descripcion") or "").strip()
+ meta=stored_meta if stored_meta and not stored_meta.startswith("Compra ") and 50<=len(stored_meta)<=170 else seo_contenido.meta_descripcion(name,brand,flavor,presentation)
  product_schema={"@context":"https://schema.org","@type":"Product","name":name,"url":canonical,"sku":str(embedded.get("sku") or p.get("sku") or pid)}
  settings=row.get("_merchant_settings") or {}
  for source,target in (("gtin","gtin"),("gtin8","gtin8"),("color","color"),("material","material"),("size","size")):
@@ -609,8 +632,12 @@ def build(row):
  if brand:product_schema["brand"]={"@type":"Brand","name":brand}
  if embedded.get("gtin"):product_schema["gtin"]=str(embedded["gtin"])
  if embedded.get("manufacturer"):product_schema["manufacturer"]={"@type":"Organization","name":brand,"url":str(embedded["manufacturer"])} if str(embedded["manufacturer"]).startswith(("https://","http://")) else {"@type":"Organization","name":str(embedded["manufacturer"])}
- if image:product_schema["image"]=[image]
+ if image:product_schema["image"]=list(dict.fromkeys([image]+[u for u in row.get("_images",[]) if u]))[:6]
+ if category:product_schema["category"]=category
  product_schema["description"]=(seo_description or description or meta)[:5000]
+ if auto_html:
+  first_p=re.search(r"<p>(.*?)</p>",auto_html,re.S)
+  if first_p:product_schema["description"]=seo_plain(first_p.group(1))
  if brand.strip().casefold() in ("applied nutrition","bsn"):
   product_schema["description"]=meta
  # Datos estructurados verificables: no inventar stock, reseñas ni identificadores.
@@ -666,7 +693,7 @@ def build(row):
  if offer_extra_html:offer_extra_html='<div class="seo-offer-extras">'+offer_extra_html+'</div>'
  # Mostrar la descripción larga como HTML real dentro de un acordeón nativo.
  # El contenido viene del editor SEO; se eliminan scripts y eventos inline.
- long_html=str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
+ long_html=auto_html or str(embedded.get("html") or seo_data.get("descripcion_larga_html") or "").strip()
  long_html=re.sub(r"(?is)<(script|iframe|object|embed|form|style|svg)\b[^>]*>.*?</\1\s*>","",long_html)
  long_html=re.sub(r"(?is)<(script|iframe|object|embed|form|style|svg)\b[^>]*/?>","",long_html)
  long_html=re.sub(r"""(?i)\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)""","",long_html)
@@ -1200,6 +1227,20 @@ def main():
   p=item["product"]
   cat=str(p.get("category") or p.get("categoria") or "").casefold();brand=d["brand"].casefold()
   item["_related"]=[v for other,v in entries if str(v["id"]) not in excluded and (cat and str(other["product"].get("category") or other["product"].get("categoria") or "").casefold()==cat)][:12]
+  # Enlaces de texto para el contenido automático: solo fichas indexables con precio,
+  # una por familia de sabores, elegidas de forma estable y distinta por ficha.
+  def firsts(cands):
+   seen=set();out=[]
+   for other,v in cands:
+    fam=id(group_by_id[str(v["id"])])
+    if fam in seen:continue
+    seen.add(fam);out.append(v)
+   return out
+  pool=[(other,v) for other,v in entries if str(v["id"]) not in excluded and other.get("_indexable",True) and v["price"]>0]
+  same_brand=firsts([(o,v) for o,v in pool if brand and v["brand"].casefold()==brand])
+  item["_mas_marca"]=seo_contenido.seleccionar(same_brand,item["id"],4)
+  same_cat=firsts([(o,v) for o,v in pool if cat and v["brand"].casefold()!=brand and str(o["product"].get("category") or o["product"].get("categoria") or "").casefold()==cat])
+  item["_alternativas"]=seo_contenido.seleccionar(same_cat,item["id"],4)
  OUT.mkdir(exist_ok=True)
  shared=None  # Conservar la plantilla SEO moderna existente.
  # Detectar fichas antiguas que dependen de assets /catalogo/assets/ inexistentes.
@@ -1276,6 +1317,7 @@ def main():
   print("Productos heredados recuperados fuera del filtro:",len(restored))
  urls=[]
  repaired_legacy=0
+ refreshed_content=0
  for row in valid:
   filename,content=build_direct(row,shared)
   generated_url=BASE+"/productos/"+filename
@@ -1289,8 +1331,20 @@ def main():
    # Las heredadas rotas se reparan incluso sin SEO_OVERWRITE_EXISTING.
    is_legacy=target_name in legacy_by_id.get(str(row["id"]),[])
    # Fichas con una plantilla anterior se regeneran completas una sola vez.
-   outdated=destination.exists() and ('data-ficha="'+FICHA_VERSION+'"') not in destination.read_text(encoding="utf-8",errors="replace")
-   if is_legacy or outdated or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
+   current_html=destination.read_text(encoding="utf-8",errors="replace") if destination.exists() else ""
+   outdated=destination.exists() and ('data-ficha="'+FICHA_VERSION+'"') not in current_html
+   # Fichas publicadas con texto genérico: se reescriben con el contenido automático
+   # vigente. Las que tienen una descripción escrita a mano no se tocan.
+   refresh_content=False
+   # Las fichas ya automáticas se regeneran completas para que sus enlaces sigan vigentes.
+   if destination.exists() and row.get("_contenido_auto"):
+    body_match=re.search(r'<div class="product-description">(.*?)</div></details>',current_html,re.S)
+    refresh_content='class="seo-auto"' in current_html or row.get("_copia_erronea") or seo_contenido.es_delgada(body_match.group(1) if body_match else "")
+   if refresh_content:
+    if current_html!=target_content:
+     if 'class="seo-auto"' not in current_html:refreshed_content+=1
+     destination.write_text(target_content,encoding="utf-8")
+   elif is_legacy or outdated or not destination.exists() or os.getenv("SEO_OVERWRITE_EXISTING","0")=="1":
     if outdated and not is_legacy and os.getenv("SEO_OVERWRITE_EXISTING","0")!="1":
      target_content=keep_existing_seo_head(destination.read_text(encoding="utf-8",errors="replace"),target_content)
     destination.write_text(target_content,encoding="utf-8")
@@ -1376,6 +1430,7 @@ def main():
  if unmatched_legacy:
   print("Requieren revisión:",", ".join(unmatched_legacy[:15]))
  print("Fichas heredadas reparadas:",repaired_legacy)
+ print("Fichas con contenido automático nuevo:",refreshed_content)
  # Control real de calidad: no aprobar ni publicar una corrida que deja HTML roto.
  if not brand_only and not preview_id:
   remaining=[]
