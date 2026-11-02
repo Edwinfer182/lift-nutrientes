@@ -329,9 +329,9 @@ def contiene_prohibidas(texto_html, permitidos=()):
     """Devuelve las palabras prohibidas presentes en el texto propio (sin enlaces ni nombres)."""
     sin_enlaces = re.sub(r"(?is)<a\b[^>]*>.*?</a>", " ", texto_html)
     texto = plain(sin_enlaces).lower()
-    for p in permitidos:
+    for p in sorted((plain(x).lower() for x in permitidos if x), key=len, reverse=True):
         if p:
-            texto = texto.replace(str(p).lower(), " ")
+            texto = texto.replace(p, " ")
     return sorted({w for w in PALABRAS_PROHIBIDAS if w in texto})
 
 
