@@ -15770,9 +15770,18 @@ body.supgoMenuOpen #supgoAdminShade{opacity:1;pointer-events:auto}
  const money=n=>'$ '+String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
  const toast=m=>{try{typeof liftShareToast==='function'?liftShareToast(m):0}catch(e){}};
  function wrap(ctx,text,max,maxLines){const words=String(text||'').split(/\s+/).filter(Boolean),out=[];let line='';for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){out.push(line);line=w;if(out.length>=maxLines-1)break}else line=t}if(line&&out.length<maxLines)out.push(line);return out}
+ /* Foto del producto del pedido: por ID; si el producto se borró o no tiene foto,
+    la toma de su sabor/grupo o de otro producto con el mismo nombre. */
  function productFor(it){
   const ps=window.PRODUCTS||(typeof PRODUCTS!=='undefined'?PRODUCTS:[]);
-  return ps.find(p=>it.producto_id&&String(p.id)===String(it.producto_id))||ps.find(p=>String(p.name||'').trim().toLowerCase()===String(it.nombre||'').replace(/\s*·\s*Sabor:.*/i,'').trim().toLowerCase())||null;
+  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*·\s*Sabor:.*/i,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const byId=it.producto_id?ps.find(p=>String(p.id)===String(it.producto_id)):null;
+  if(byId&&byId.image)return byId;
+  const groups=[].concat(window.LIFT_PUBLIC_VARIANT_GROUPS||[],window.LIFT_VARIANT_GROUP_ADMIN_CACHE||[]);
+  for(const g of groups){const v=(g.lift_producto_variantes||[]).find(v=>it.producto_id&&String(v.producto_id)===String(it.producto_id));if(v&&(v.imagen||g.imagen))return {...(byId||{}),image:v.imagen||g.imagen}}
+  const n=norm(it.nombre),base=n.split(' · ')[0];
+  const byName=ps.find(p=>p.image&&norm(p.name)===n)||ps.find(p=>p.image&&norm(p.name)===base)||ps.find(p=>p.image&&base.length>8&&norm(p.name).startsWith(base));
+  return byName||byId||null;
  }
  async function loadImg(url){try{return typeof liftLoadShareImage==='function'&&url?await liftLoadShareImage(url):null}catch(e){return null}}
  window.liftOrderImage=async function(id){
