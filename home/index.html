@@ -154,6 +154,66 @@ main{padding:12px 10px 55px}
 @media(max-width:700px){.pgrid{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:calc(50% - 5px);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px;}.pgrid::-webkit-scrollbar{display:none}.pgrid .pcard{scroll-snap-align:start}}
 .category{position:relative}
 @media(max-width:700px){.trust{gap:10px!important}.trust>div{display:grid!important;grid-template-columns:44px 1fr;column-gap:12px;text-align:left!important;padding:14px 16px!important;align-items:start}.trust>div>*:not(.trust-icon){grid-column:2}.trust .trust-icon{grid-row:1/span 4;margin:0!important}.trust .trust-icon svg{width:36px!important;height:36px!important}.trust strong{margin-top:0!important}.trust p{margin:3px 0 6px!important}.trust-disclosure summary,.trust>div>a{justify-content:flex-start!important;text-align:left!important}}
+</style>
+<style id="supgo-home-v2">
+/* Portada v2: tipografía, espacios y animaciones */
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.hero-title{font-weight:700;line-height:1.03;letter-spacing:-.045em;text-wrap:balance}
+.hero .hero-copy p{font-size:clamp(14px,1.25vw,17px);line-height:1.6;color:#cfe0d6;max-width:44ch;margin:0 0 22px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 #4ade8099;animation:supgo-pulso 2.4s ease-out infinite;flex:0 0 auto}
+.slide.active .hero-copy>*{animation:supgo-sube .7s cubic-bezier(.2,.7,.2,1) both}
+.slide.active .hero-copy>*:nth-child(2){animation-delay:.08s}
+.slide.active .hero-copy>*:nth-child(3){animation-delay:.16s}
+.slide.active .hero-copy>*:nth-child(4){animation-delay:.24s}
+.slide.active .hero-tiles .hero-tile{animation:supgo-flota 6s ease-in-out infinite}
+.slide.active .hero-tiles .hero-tile:nth-child(2){animation-delay:-2s}
+.slide.active .hero-tiles .hero-tile:nth-child(3){animation-delay:-4s}
+.btn{transition:transform .18s ease,background-color .2s ease,box-shadow .2s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px #16a34a40}
+.btn.alt:hover{box-shadow:0 8px 20px #0003}
+.btn:active,.section-head a:active,.category:active,.brands .brand:active{transform:scale(.97)}
+.hero-nav button{transition:background-color .25s,transform .2s}
+.hero-nav button:hover{transform:scale(1.08)}
+/* Encabezados de sección */
+.section-head{margin:clamp(36px,4.6vw,60px) 0 clamp(14px,1.6vw,20px)}
+.section-head h2{font-size:clamp(21px,2.3vw,30px);line-height:1.15;letter-spacing:-.04em;margin:0;text-wrap:balance}
+.section-head a{border:1px solid #cfe7d8;background:#fff;border-radius:999px;padding:7px 13px;white-space:nowrap;transition:background-color .2s,border-color .2s,color .2s,transform .18s}
+.section-head a:hover{background:#0b8841;border-color:#0b8841;color:#fff}
+/* Marcas en movimiento */
+.brands-wrap.is-marquee{padding:12px 0;overflow:hidden}
+.brands-wrap.is-marquee .brand-arrow{display:none}
+.brands.marquee{overflow:hidden;padding:4px 0!important;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.brands .brand-track{display:flex;gap:12px;width:max-content}
+.brands:not(.marquee) .brand-track{padding:0 4px}
+.brands.marquee .brand-track{animation:supgo-marcas var(--dur,40s) linear infinite;will-change:transform}
+.brands.marquee:hover .brand-track,.brands.marquee.paused .brand-track,.brands.marquee:focus-within .brand-track{animation-play-state:paused}
+.brands .brand{transition:transform .25s ease,border-color .25s,box-shadow .25s}
+.brands .brand:hover{transform:translateY(-3px)}
+.brands .brand img{transition:transform .3s ease}
+.brands .brand:hover img{transform:scale(1.06)}
+/* Categorías */
+.category{transition:transform .25s ease,box-shadow .25s ease,border-color .25s}
+.category:hover{transform:translateY(-4px)}
+.category strong{letter-spacing:-.02em}
+/* Aparición al hacer scroll */
+.js-rv .rv{opacity:0;translate:0 22px;transition:opacity .65s ease var(--d,0ms),translate .65s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.js-rv .rv.in{opacity:1;translate:none}
+@keyframes supgo-marcas{to{transform:translateX(calc(-50% - 6px))}}
+@keyframes supgo-sube{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes supgo-flota{0%,100%{translate:0 0}50%{translate:0 -10px}}
+@keyframes supgo-pulso{0%{box-shadow:0 0 0 0 #4ade8099}70%,100%{box-shadow:0 0 0 9px #4ade8000}}
+@media(max-width:760px){
+.section-head{margin:34px 0 12px}
+.section-head{gap:10px}
+.section-head h2{font-size:19.5px}
+.section-head a{padding:5px 10px;font-size:11px}
+.brands .brand,.brands .brand-track .brand{flex:0 0 118px!important;min-height:64px!important;padding:10px!important}
+.brands .brand img{max-width:92px;max-height:40px}
+.brands .brand-track{gap:9px}
+@keyframes supgo-marcas{to{transform:translateX(calc(-50% - 4.5px))}}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.brands{overflow-x:auto!important}}
 </style></head><body>
 <main>
 <section class="hero" aria-label="Promociones destacadas">
@@ -175,5 +235,6 @@ main{padding:12px 10px 55px}
 <!-- SEO-EXPLORA:INICIO (generado por scripts/generar_listados_seo.py) --><section class="seo-explora" aria-labelledby="seo-explora-titulo"><style>.seo-explora{margin:46px 0 10px}.seo-explora h2{font-size:clamp(21px,3vw,28px);letter-spacing:-.04em;margin:0 0 6px}.seo-explora h3{font-size:15px;margin:22px 0 10px}.seo-explora nav{display:flex;flex-wrap:wrap;gap:8px}.seo-explora nav a{border:1px solid #e5e5e5;border-radius:30px;padding:7px 13px;font-size:12.5px}.seo-explora nav a:hover{border-color:#16a34a;color:#16a34a}.seo-explora details{margin-top:22px}.seo-explora summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;gap:8px}.seo-explora summary::-webkit-details-marker{display:none}.seo-explora summary::after{content:'⌄';color:#16a34a}.seo-explora details[open] summary::after{content:'⌃'}.seo-explora details nav{margin-top:10px}</style><h2 id="seo-explora-titulo">Explora el catálogo</h2><p>Encuentra suplementos por categoría, marca o guía de compra. <a href="/productos/"><b>Ver todos los productos →</b></a></p><details><summary>Categorías (50)</summary><nav aria-label="Categorías"><a href="/categorias/accesorios/">Accesorios</a><a href="/categorias/aminoacidos/">Aminoácidos</a><a href="/categorias/aminoacidos-y-recuperacion/">Aminoácidos y recuperación</a><a href="/categorias/antioxidantes/">Antioxidantes</a><a href="/categorias/articulaciones/">Articulaciones</a><a href="/categorias/ashwagandha/">Ashwagandha</a><a href="/categorias/bcaa/">BCAA</a><a href="/categorias/cabello-piel-y-unas/">Cabello, piel y uñas</a><a href="/categorias/cafeina/">Cafeína</a><a href="/categorias/colageno/">Colágeno</a><a href="/categorias/complemento-nutricional/">Complemento nutricional</a><a href="/categorias/creatinas/">Creatinas</a><a href="/categorias/digestion-y-probioticos/">Digestión y probióticos</a><a href="/categorias/eaa/">EAA</a><a href="/categorias/esenciales/">Esenciales</a><a href="/categorias/ganadores-de-masa/">Ganadores de masa</a><a href="/categorias/ginkgo-biloba/">Ginkgo biloba</a><a href="/categorias/glutamina/">Glutamina</a><a href="/categorias/greens-jugo-verde/">Greens / Jugo verde</a><a href="/categorias/helixir-pharmaceutical/">Helixir Pharmaceutical</a><a href="/categorias/hidratacion-y-electrolitos/">Hidratación y electrolitos</a><a href="/categorias/hormonal/">Hormonal</a><a href="/categorias/inositol/">Inositol</a><a href="/categorias/l-carnitina/">L-Carnitina</a><a href="/categorias/magnesio/">Magnesio</a><a href="/categorias/melatoninas-y-nootropicos/">Melatoninas y nootrópicos</a><a href="/categorias/multivitaminicos/">Multivitamínicos</a><a href="/categorias/musculo-y-testosterona/">Músculo y testosterona</a><a href="/categorias/nootropicos/">Nootrópicos</a><a href="/categorias/obsequios/">Obsequios</a><a href="/categorias/omega-3/">Omega 3</a><a href="/categorias/otros/">Otros</a><a href="/categorias/pre-entrenos/">Pre entrenos</a><a href="/categorias/precursor-de-testoterona/">Precursor de testoterona</a><a href="/categorias/precursores-de-testosterona/">Precursores de testosterona</a><a href="/categorias/proteinas/">Proteínas</a><a href="/categorias/proteinas-de-carne/">Proteínas de carne</a><a href="/categorias/proteinas-de-otras-fuentes/">Proteínas de otras fuentes</a><a href="/categorias/proteinas-iso/">Proteínas ISO</a><a href="/categorias/proteinas-veganas/">Proteínas veganas</a><a href="/categorias/proteinas-whey/">Proteínas Whey</a><a href="/categorias/quemadores/">Quemadores</a><a href="/categorias/salud/">Salud</a><a href="/categorias/snacks-y-bebidas/">Snacks y bebidas</a><a href="/categorias/soporte-hepatico/">Soporte hepático</a><a href="/categorias/sueno/">Sueño</a><a href="/categorias/venom-pharma/">Venom Pharma</a><a href="/categorias/vitaminas/">Vitaminas</a><a href="/categorias/vitaminas-y-minerales/">Vitaminas y minerales</a><a href="/categorias/yohimbina/">Yohimbina</a></nav></details><details><summary>Marcas (68)</summary><nav aria-label="Marcas"><a href="/laboratorios/allmax/">ALLMAX</a><a href="/laboratorios/anabolic-cream/">Anabolic Cream</a><a href="/laboratorios/applied-nutrition/">APPLIED NUTRITION</a><a href="/laboratorios/atlhetica/">ATLHETICA</a><a href="/laboratorios/basic-supplements/">Basic Supplements</a><a href="/laboratorios/bsn/">BSN</a><a href="/laboratorios/cellucor/">Cellucor</a><a href="/laboratorios/darkness/">Darkness</a><a href="/laboratorios/dragon-pharma/">DRAGON PHARMA</a><a href="/laboratorios/dymatize/">Dymatize</a><a href="/laboratorios/elite-pharma/">Elite Pharma</a><a href="/laboratorios/enhanced-athlete/">Enhanced Athlete</a><a href="/laboratorios/gmn/">GMN</a><a href="/laboratorios/hangry-boy/">Hangry Boy</a><a href="/laboratorios/hard-supps/">Hard Supps</a><a href="/laboratorios/healthy-america/">Healthy America</a><a href="/laboratorios/healthy-sports/">Healthy Sports</a><a href="/laboratorios/helixir-pharmaceutical/">Helixir Pharmaceutical</a><a href="/laboratorios/hitech/">HITECH</a><a href="/laboratorios/hyper/">Hyper</a><a href="/laboratorios/imn/">IMN</a><a href="/laboratorios/improve/">Improve</a><a href="/laboratorios/innovation/">INNOVATION</a><a href="/laboratorios/insane-labz/">Insane labz</a><a href="/laboratorios/inside/">INSIDE</a><a href="/laboratorios/integralmedica/">Integralmedica</a><a href="/laboratorios/its-boom/">ITS BOOM</a><a href="/laboratorios/kirkland/">Kirkland</a><a href="/laboratorios/macroblends/">Macroblends</a><a href="/laboratorios/metabolic-nutrition/">Metabolic Nutrition</a><a href="/laboratorios/monster-test/">Monster Test</a><a href="/laboratorios/musclemeds/">MUSCLEMEDS</a><a href="/laboratorios/muscletech/">MuscleTech</a><a href="/laboratorios/mutant-cookies/">Mutant Cookies</a><a href="/laboratorios/natures-best/">Natures Best</a><a href="/laboratorios/naturlab/">NaturLab</a><a href="/laboratorios/now/">NOW</a><a href="/laboratorios/now-foods/">NOW Foods</a><a href="/laboratorios/nutrakey/">NUTRAKEY</a><a href="/laboratorios/nutramerican-pharma/">Nutramerican Pharma</a><a href="/laboratorios/nutrex/">NUTREX</a><a href="/laboratorios/nutricost/">Nutricost</a><a href="/laboratorios/nutrideli/">Nutrideli</a><a href="/laboratorios/one-element/">One Element</a><a href="/laboratorios/optimum-nutrition/">Optimum Nutrition</a><a href="/laboratorios/osana/">OSANA</a><a href="/laboratorios/premier-protein/">Premier Protein</a><a href="/laboratorios/primaforce/">Primaforce</a><a href="/laboratorios/proscience/">ProScience</a><a href="/laboratorios/prossups/">PROSSUPS</a><a href="/laboratorios/raw-nutrition/">RAW Nutrition</a><a href="/laboratorios/redforce/">Redforce</a><a href="/laboratorios/revive/">Revive</a><a href="/laboratorios/ronnie-coleman/">Ronnie Coleman</a><a href="/laboratorios/rosa-latina/">ROSA LATINA</a><a href="/laboratorios/sascha-fitness/">Sascha Fitness</a><a href="/laboratorios/savage/">Savage</a><a href="/laboratorios/simply/">Simply</a><a href="/laboratorios/sin-laboratorio/">Sin laboratorio</a><a href="/laboratorios/smart-nutrition/">Smart Nutrition</a><a href="/laboratorios/smartmuscle/">SmartMuscle</a><a href="/laboratorios/snp/">SNP</a><a href="/laboratorios/supremacy/">SUPREMACY</a><a href="/laboratorios/tnt/">TNT</a><a href="/laboratorios/typezero/">TYPEZERO</a><a href="/laboratorios/universal/">UNIVERSAL</a><a href="/laboratorios/varias-marcas/">Varias marcas</a><a href="/laboratorios/vitanas/">Vitanas</a></nav></details><details open><summary>Guías de compra</summary><nav aria-label="Guías"><a href="/guias/colageno-medellin.html">Suplementos de colágeno en Medellín</a><a href="/guias/comprar-creatina-medellin.html">Comprar creatina en Medellín</a><a href="/guias/ganadores-masa-colombia.html">Ganadores de masa en Colombia</a><a href="/guias/iso-100-vs-gold-standard.html">ISO 100 vs Gold Standard: diferencias y precios 2026</a><a href="/guias/magnesio-colombia.html">Suplementos de magnesio en Colombia</a><a href="/guias/multivitaminicos-medellin.html">Multivitamínicos en Medellín</a><a href="/guias/omega-3-medellin.html">Omega 3 en Medellín</a><a href="/guias/precio-creatina-colombia.html">Precio de la creatina en Colombia 2026</a><a href="/guias/precio-proteina-colombia.html">Precio de la proteína whey en Colombia 2026</a><a href="/guias/preentrenos-medellin.html">Preentrenos deportivos en Medellín</a><a href="/guias/proteina-iso100-medellin.html">Proteína ISO100 Dymatize en Medellín</a><a href="/guias/proteina-para-principiantes.html">Proteína para principiantes: cómo elegir tu primera proteína</a><a href="/guias/proteina-whey-colombia.html">Comprar proteína whey en Colombia</a><a href="/guias/que-creatina-comprar-colombia.html">Qué creatina comprar en Colombia (2026): tipos y precios</a><a href="/guias/suplementos-domicilio-medellin.html">Suplementos deportivos a domicilio en Medellín</a></nav></details></section><!-- SEO-EXPLORA:FIN -->
 </main>
 <script defer src="/componentes/header-loader.js?v=20261022-unificado"></script>
-<script defer src="/home/home.js?v=20261030-home3"></script>
+<script defer src="/home/home.js?v=20261103-home4"></script>
+<script defer src="/home/efectos.js?v=20261103-1"></script>
 </body></html>
