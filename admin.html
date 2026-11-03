@@ -15216,6 +15216,69 @@ body.liftAdminUnlocked .supgo-legible table td,body.liftAdminUnlocked .supgo-leg
  run();
 })();
 </script>
+<style id="lift-admin-google-css">
+.liftAdminGoogleBox{margin-top:14px}
+.liftAdminGoogleSep{display:flex;align-items:center;gap:10px;color:#999;font-size:11px;margin:0 0 10px}
+.liftAdminGoogleSep:before,.liftAdminGoogleSep:after{content:"";flex:1;height:1px;background:#e5e5e5}
+#liftAdminGoogleBtn{display:flex;justify-content:center;min-height:44px}
+#liftAdminGoogleMsg{font-size:11px;line-height:1.45;color:#555;margin-top:8px;text-align:center}
+#liftAdminGoogleMsg.ok{color:#087e3a}#liftAdminGoogleMsg.err{color:#b42318}
+</style>
+<script id="lift-admin-google-js">
+/* Entrar al administrador con Google (cuentas vinculadas) — la verificación la hace lift-admin-google */
+(function(){
+ var FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-admin-google';
+ var KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+ var CLIENT='446005762435-rkq4ech241m211r9ttsbh2df6aqs1cn6.apps.googleusercontent.com';
+ var pending=null,inited=false,loading=null;
+ function $(id){return document.getElementById(id)}
+ function msg(t,c){var m=$('liftAdminGoogleMsg');if(m){m.textContent=t||'';m.className=c||''}}
+ function call(body){return fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok||j.error){var e=new Error(j.error||'No se pudo conectar');e.status=r.status;throw e}return j})})}
+ function loadGsi(){if(window.google&&google.accounts&&google.accounts.id)return Promise.resolve();if(loading)return loading;loading=new Promise(function(ok,ko){var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=ok;s.onerror=function(){loading=null;ko(new Error('Google no cargó'))};document.head.appendChild(s)});return loading}
+ function onCredential(r){
+  var cred=r&&r.credential;if(!cred)return;
+  msg('Verificando con Google…');
+  call({action:'login',credential:cred}).then(function(j){
+   pending=null;msg('Entrando como '+j.email+'…','ok');
+   var i=$('liftAdminAccessPassword');if(i)i.value=j.password;
+   if(typeof window.unlockLiftAdmin==='function')window.unlockLiftAdmin();
+   setTimeout(function(){if(i)i.value='';msg('')},1500);
+  }).catch(function(e){
+   if(e.status===403||e.status===409){pending=cred;msg(e.status===403?'Tu cuenta de Google aún no está vinculada. Escribe la clave arriba y pulsa Entrar: quedará vinculada para la próxima vez.':'La clave cambió. Escribe la nueva clave arriba y pulsa Entrar para volver a vincular Google.','err');var i=$('liftAdminAccessPassword');if(i)i.focus()}
+   else msg(e.message,'err');
+  });
+ }
+ function render(){
+  var el=$('liftAdminGoogleBtn');if(!el)return;
+  loadGsi().then(function(){
+   if(!inited){google.accounts.id.initialize({client_id:CLIENT,callback:onCredential,ux_mode:'popup',auto_select:false,cancel_on_tap_outside:true,context:'signin',itp_support:true});inited=true}
+   el.innerHTML='';
+   var w=Math.round(Math.min(340,Math.max(220,el.clientWidth||300)));
+   google.accounts.id.renderButton(el,{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'pill',logo_alignment:'center',width:w,locale:'es'});
+  }).catch(function(){var b=document.querySelector('.liftAdminGoogleBox');if(b)b.hidden=true});
+ }
+ function mount(){
+  var card=document.querySelector('#liftAdminAccessModal .liftAdminAccessCard');if(!card||$('liftAdminGoogleBtn'))return;
+  var box=document.createElement('div');box.className='liftAdminGoogleBox';
+  box.innerHTML='<div class="liftAdminGoogleSep">o</div><div id="liftAdminGoogleBtn"></div><div id="liftAdminGoogleMsg"></div>';
+  card.appendChild(box);
+ }
+ // Al abrir el acceso, dibuja el botón de Google
+ var oldOpen=window.openLiftAdminAccess;
+ if(typeof oldOpen==='function')window.openLiftAdminAccess=function(){var r=oldOpen.apply(this,arguments);mount();msg('');setTimeout(render,30);return r};
+ // Si entra con clave y hay una cuenta de Google pendiente, la vincula
+ var oldUnlock=window.unlockLiftAdmin;
+ if(typeof oldUnlock==='function')window.unlockLiftAdmin=function(){
+  var i=$('liftAdminAccessPassword'),pass=i?i.value:'',cred=pending;
+  var r=oldUnlock.apply(this,arguments);
+  if(cred&&pass){var n=0;(function wait(){if(document.body.classList.contains('liftAdminUnlocked')){pending=null;call({action:'link',password:pass,credential:cred}).then(function(j){alertaSuave('Listo: '+j.email+' ya puede entrar al administrador con Google.')}).catch(function(e){alertaSuave('No se pudo vincular Google: '+e.message)})}else if(++n<40)setTimeout(wait,150)})()}
+  return r;
+ };
+ function alertaSuave(t){var d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:15000;background:#111;color:#fff;padding:11px 16px;border-radius:12px;font:500 13px Poppins,Arial,sans-serif;box-shadow:0 10px 30px #0005;max-width:92vw;text-align:center';document.body.appendChild(d);setTimeout(function(){d.remove()},5000)}
+ mount();
+ var m0=$('liftAdminAccessModal');if(m0&&m0.classList.contains('open'))render();
+})();
+</script>
 </body>
 </html>
 
