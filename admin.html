@@ -6519,7 +6519,7 @@ window.shareLiftProductImage=async function(id){
        producto_id:id,
        sabor:row.querySelector('.lafVariantFlavor').value.trim()||`Variación ${i+1}`,
        imagen:row.querySelector('.lafVariantImage').value.trim(),
-       precio:p?.price??null,
+       precio:group.precio>0?group.precio:(p?.price??null),
        orden:i
      };
    });
@@ -6644,7 +6644,10 @@ window.shareLiftProductImage=async function(id){
      const groups=Array.isArray(vg?.grupos)?vg.grupos:[];
      const matches=groups.filter(g=>(Array.isArray(g.lift_producto_variantes)?g.lift_producto_variantes:[]).some(v=>String(v.producto_id)===String(p.id)));
      for(const g of matches){
-       await window.liftCatalogAdminCall({action:'update-variant-group',id:Number(g.id),group:{nombre:name,marca:brand,categoria:category,presentacion:presentation,precio:price,imagen:image,visible_publico:g.visible_publico!==false}});
+       /* El precio del sabor editado pasa a ser el de todo el grupo (Supabase lo copia a cada sabor).
+          El nombre e imagen del grupo NO se reemplazan por los del sabor. */
+       await window.liftCatalogAdminCall({action:'update-variant-group',id:Number(g.id),group:{nombre:g.nombre||name,marca:g.marca||brand,categoria:g.categoria||category,presentacion:g.presentacion||presentation,precio:price,imagen:g.imagen||image,visible_publico:g.visible_publico!==false}});
+       if(price>0)(g.lift_producto_variantes||[]).forEach(v=>{const q=PRODUCTS.find(x=>String(x.id)===String(v.producto_id));if(q)q.price=price});
      }
      if(matches.length && typeof window.liftReloadVariantGroups==='function')await window.liftReloadVariantGroups();
      if(matches.length && typeof window.lafLoadVariantGroups==='function')await window.lafLoadVariantGroups().catch(()=>{});
@@ -10531,6 +10534,8 @@ header .liftSearchEnhanced::before{
  window.lafVariantEditorSearch=function(){const q=norm2($('lvgProductSearch')?.value||'');const host=$('lvgSearchResults');if(!host)return;if(!q){host.innerHTML='';return}const used=new Set(editVariants.map(v=>String(v.producto_id)));const arr=(window.PRODUCTS||PRODUCTS||[]).filter(p=>!used.has(String(p.id))&&norm2([p.id,p.name,p.brand,p.category,p.presentation,p.flavor].join(' ')).includes(q)).slice(0,30);host.innerHTML=arr.length?arr.map(p=>`<div class="lvgResult"><img src="${esc2(p.image||'')}" onerror="this.style.visibility='hidden'"><div><b>${esc2(p.name)}</b><small>ID ${esc2(p.id)} · ${esc2(p.brand||'')} · ${esc2(p.presentation||'')}</small></div><button type="button" onclick="lafAddProductToVariantEditor(${Number(p.id)})">Añadir</button></div>`).join(''):'<div style="font-size:10px;color:#777;padding:7px">No encontré productos.</div>'};
  window.lafAddProductToVariantEditor=function(id){if(editVariants.some(v=>String(v.producto_id)===String(id)))return;const p=productById(id);if(!p)return;const guess=typeof lafGuessFlavor==='function'?lafGuessFlavor(p):(p.flavor||p.name||'Variación');editVariants.push({id:null,producto_id:Number(p.id),sabor:guess,imagen:p.image||'',precio:Number(p.price||0),orden:editVariants.length,product:p});renderEditVariants();$('lvgProductSearch').value='';$('lvgSearchResults').innerHTML='';$('lvgStatus').textContent='Producto añadido al borrador. Guarda los cambios para aplicarlo.'};
  function readRows(){return [...document.querySelectorAll('#lvgVariants .lvgVariant')].map((row,i)=>{const id=Number(row.dataset.id),p=productById(id);return {producto_id:id,sabor:row.querySelector('.lvgFlavor').value.trim()||('Variación '+(i+1)),imagen:row.querySelector('.lvgVariantImage').value.trim(),precio:Number(editVariants.find(v=>String(v.producto_id)===String(id))?.precio??p?.price??0),orden:i}})}
+ /* Todos los sabores toman el precio del grupo al guardar. */
+ function applyGroupPrice(variants,price){if(price>0)variants.forEach(v=>{v.precio=price;const p=productById(v.producto_id);if(p)p.price=price});return variants}
  window.lafSaveVariantGroupEdit=async function(){
    if(!editGroup)return;const status=$('lvgStatus'),btn=$('lvgSave');const variants=readRows();if(variants.length<2){status.textContent='Necesitas mínimo 2 productos en el grupo.';return}
    const group={nombre:$('lvgName').value.trim(),marca:$('lvgBrand').value.trim(),categoria:$('lvgCategory').value.trim(),presentacion:$('lvgPresentation').value.trim(),precio:window.liftVariantMoney($('lvgPrice').value),imagen:$('lvgImage').value.trim(),visible_publico:editGroup.visible_publico!==false};if(!group.nombre){status.textContent='El nombre principal no puede quedar vacío.';return}
@@ -10541,6 +10546,7 @@ header .liftSearchEnhanced::before{
    try{
      /* Reutiliza las acciones ya existentes: desagrupa y reconstruye el grupo con la composición editada. */
      await window.liftCatalogAdminCall({action:'delete-variant-group',id:oldId});
+     applyGroupPrice(variants,group.precio);
      const res=await window.liftCatalogAdminCall({action:'merge-variants',product_ids:variants.map(v=>v.producto_id),group,variants});
      status.textContent='✓ Grupo actualizado correctamente · ID '+(res.grupo_id||'nuevo')+'.';
      if(typeof window.loadLiftPublicVariantGroups==='function')await window.loadLiftPublicVariantGroups().catch(()=>{});
@@ -15142,7 +15148,6 @@ body.liftAdminUnlocked #supgoBackToPanel{display:inline-flex}
 <a id="supgoBackToPanel" href="/panel/">← Panel</a>
 <script id="supgo-panel-bridge">
 (function(){
- var m=/^#abrir=([a-z-]+)/.exec(location.hash||'');if(!m)return;var tool=m[1];
  function click(sel){var el=document.querySelector(sel);if(!el)return false;el.click();return true}
  function laf(tab){if(typeof window.openLiftAdminFull!=='function')return false;window.openLiftAdminFull();setTimeout(function(){click('button[onclick^="lafTab(\''+tab+'\'"]')},250);return true}
  function orders(tab){if(!click('#liftOrdersOpenBtn'))return false;if(tab)setTimeout(function(){typeof window.liftOrdersTab==='function'?window.liftOrdersTab(tab):0},500);return true}
@@ -15160,6 +15165,9 @@ body.liftAdminUnlocked #supgoBackToPanel{display:inline-flex}
   checkout:function(){return click('#liftDirectCheckoutBtn')},listarapida:function(){return click('#liftQuickListBtn')},
   catalogo:function(){return true}
  };
+ window.supgoHerramientas=T;
+ window.supgoAbrirHerramienta=function(t){var f=T[t];if(!f)return false;try{return !!f()}catch(e){console.warn('Panel:',e);return false}};
+ var m=/^#abrir=([a-z-]+)/.exec(location.hash||'');if(!m)return;var tool=m[1];
  var fn=T[tool];if(!fn)return;var tries=0;
  var timer=setInterval(function(){
   tries++;
@@ -15575,5 +15583,176 @@ button:active{transform:scale(.98)}
    history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])mi-pedido=1(&?)/,function(_,a,b){return a==='?'&&b?'?':a==='?'?'':b?'&':''}).replace(/[?&]$/,'')+location.hash);
   }else if(++attempts>=100)clearInterval(timer);
  },100);
+})();
+</script>
+
+<!-- ===================== PANEL ORDENADO (estilo WordPress) =====================
+     1) Barra pública limpia: sin botones duplicados ni herramientas de admin.
+     2) Con sesión de admin: franja superior + menú lateral con TODAS las herramientas.
+     3) Aviso al escribir precios sin los tres ceros.
+     Las herramientas se abren con window.supgoAbrirHerramienta (puente #abrir=...). -->
+<style id="supgo-admin-ordenado-style">
+/* --- Tienda pública: un solo "Mi pedido" --- */
+.top .bar > #liftTrackBtn{display:none!important}
+/* --- Botones de admin regados: fuera de la barra y de la pantalla (se usan desde el menú) --- */
+.top .bar > .liftFilterLink,
+.top .bar > #liftQuickListBtn,
+.top .bar > #liftDirectCheckoutBtn,
+.top .bar > #liftAdminBtn,
+.top .bar > #liftAdminFullBtn,
+.top .bar > #liftClientDirectoryBtn,
+body.liftAdminUnlocked #supgoBackToPanel,
+body.liftAdminUnlocked #supgoAdminLaunch,
+body.liftAdminUnlocked #liftCrmFloatingBtn,
+body.liftAdminUnlocked #liftAdminToolsDock{display:none!important}
+/* Acceso discreto al admin cuando NO hay sesión (antes: botón "Administrar" en la barra) */
+#supgoAdminLaunch{opacity:.55}
+/* --- Franja de administrador --- */
+#supgoAdminBar{display:none}
+body.liftAdminUnlocked #supgoAdminBar{display:flex}
+body.liftAdminUnlocked{padding-top:42px}
+body.liftAdminUnlocked header.top{top:42px}
+body.liftAdminUnlocked aside.sidebar{top:114px}
+#supgoAdminBar{position:fixed;top:0;left:0;right:0;height:42px;z-index:2147483100;background:#1d2327;color:#f0f0f1;align-items:center;gap:2px;padding:0 10px;font:500 13px Poppins,Arial,sans-serif;box-shadow:0 1px 0 rgba(0,0,0,.4)}
+#supgoAdminBar button{all:unset;box-sizing:border-box;cursor:pointer;height:42px;display:inline-flex;align-items:center;gap:6px;padding:0 11px;color:#f0f0f1;white-space:nowrap;border-radius:0}
+#supgoAdminBar button:hover,#supgoAdminBar button:focus-visible{background:#2c3338;color:#72aee6}
+#supgoAdminBar .sab-menu{font-weight:700;background:#2271b1;color:#fff;margin-right:6px}
+#supgoAdminBar .sab-menu:hover{background:#135e96;color:#fff}
+#supgoAdminBar .sab-scroll{display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+#supgoAdminBar .sab-scroll::-webkit-scrollbar{display:none}
+#supgoAdminBar .sab-right{margin-left:auto;display:flex}
+#supgoAdminBar .sab-sep{width:1px;height:20px;background:#3c434a;margin:0 4px;flex:0 0 1px}
+/* --- Menú lateral --- */
+#supgoAdminShade{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2147483150;opacity:0;pointer-events:none;transition:opacity .18s}
+#supgoAdminMenu{position:fixed;top:0;bottom:0;left:0;width:290px;max-width:88vw;z-index:2147483200;background:#1d2327;color:#f0f0f1;transform:translateX(-100%);transition:transform .2s ease;display:flex;flex-direction:column;font:500 14px Poppins,Arial,sans-serif;box-shadow:4px 0 24px rgba(0,0,0,.35)}
+body.supgoMenuOpen #supgoAdminMenu{transform:none}
+body.supgoMenuOpen #supgoAdminShade{opacity:1;pointer-events:auto}
+#supgoAdminMenu .sam-head{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-bottom:1px solid #2c3338}
+#supgoAdminMenu .sam-head img{width:30px;height:30px;border-radius:8px}
+#supgoAdminMenu .sam-head b{flex:1;font-size:15px}
+#supgoAdminMenu .sam-close{all:unset;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;font-size:18px;color:#c3c4c7}
+#supgoAdminMenu .sam-close:hover{background:#2c3338;color:#fff}
+#supgoAdminMenu .sam-search{margin:10px 12px 4px;padding:9px 11px;border-radius:8px;border:1px solid #3c434a;background:#2c3338;color:#fff;font:inherit;font-size:14px;outline:none}
+#supgoAdminMenu .sam-search:focus{border-color:#72aee6}
+#supgoAdminMenu nav{overflow-y:auto;flex:1;padding:4px 0 16px}
+#supgoAdminMenu details{border-bottom:1px solid #2c3338}
+#supgoAdminMenu summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 16px;font-weight:600;color:#f0f0f1}
+#supgoAdminMenu summary::-webkit-details-marker{display:none}
+#supgoAdminMenu summary:after{content:'›';margin-left:auto;color:#8c8f94;transition:transform .15s;font-size:18px}
+#supgoAdminMenu details[open] summary:after{transform:rotate(90deg)}
+#supgoAdminMenu details[open] summary{background:#2271b1;color:#fff}
+#supgoAdminMenu details[open] summary:after{color:#fff}
+#supgoAdminMenu .sam-ico{width:22px;text-align:center}
+#supgoAdminMenu .sam-items{background:#2c3338;padding:4px 0}
+#supgoAdminMenu .sam-items button{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;padding:9px 16px 9px 48px;color:#c3c4c7;font-size:14px}
+#supgoAdminMenu .sam-items button:hover,#supgoAdminMenu .sam-items button:focus-visible{color:#72aee6;background:#23282d}
+#supgoAdminMenu .sam-foot{border-top:1px solid #2c3338;padding:10px 12px;display:flex;gap:8px}
+#supgoAdminMenu .sam-foot button{all:unset;cursor:pointer;flex:1;text-align:center;padding:9px;border-radius:8px;background:#2c3338;color:#f0f0f1;font-size:13px}
+#supgoAdminMenu .sam-foot button:hover{background:#3c434a}
+#supgoAdminToast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483300;background:#1d2327;color:#fff;padding:10px 16px;border-radius:10px;font:500 13px Poppins,Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;max-width:90vw}
+@media(max-width:760px){
+ #supgoAdminBar{padding:0 4px}
+ #supgoAdminBar button{padding:0 9px;font-size:12px}
+ #supgoAdminBar .sab-txt-opt{display:none}
+}
+</style>
+
+<div id="supgoAdminBar" role="toolbar" aria-label="Barra de administrador">
+ <button type="button" class="sab-menu" data-sab="menu" aria-label="Abrir menú del administrador">☰ <span>Panel</span></button>
+ <div class="sab-scroll">
+  <button type="button" data-tool="pedidos">🧾 Pedidos</button>
+  <button type="button" data-tool="checkout">＋ Nuevo pedido</button>
+  <button type="button" data-tool="clientes">👤 Clientes</button>
+  <button type="button" data-tool="pagos">💳 Pagos</button>
+  <span class="sab-sep"></span>
+  <button type="button" data-tool="listarapida" title="Lista rápida">⚡ <span class="sab-txt-opt">Lista rápida</span></button>
+  <button type="button" data-sab="link-ofertas" title="Copiar enlace de ofertas">🔗 <span class="sab-txt-opt">Enlace ofertas</span></button>
+ </div>
+ <div class="sab-right"><button type="button" data-sab="salir" title="Salir del administrador">⎋ <span class="sab-txt-opt">Salir</span></button></div>
+</div>
+<div id="supgoAdminShade"></div>
+<aside id="supgoAdminMenu" aria-label="Menú del administrador" aria-hidden="true">
+ <div class="sam-head"><img src="/favicon.png" alt=""><b>Panel SUPGO</b><button type="button" class="sam-close" data-sab="cerrar" aria-label="Cerrar menú">✕</button></div>
+ <input class="sam-search" type="search" placeholder="Buscar herramienta…" aria-label="Buscar herramienta">
+ <nav id="supgoAdminMenuNav"></nav>
+ <div class="sam-foot"><button type="button" data-href="/panel/">Panel móvil</button><button type="button" data-sab="salir">Salir</button></div>
+</aside>
+<div id="supgoAdminToast" role="status" aria-live="polite"></div>
+
+<script id="supgo-admin-ordenado">
+(function(){
+ /* Menú: [icono, sección, [[texto, acción]]]  · acción = clave del puente | "/ruta/" | "fn:nombre" */
+ var MENU=[
+  ['🧾','Pedidos',[['Todos los pedidos','pedidos'],['Nuevo pedido / Checkout','checkout'],['Historial','historial'],['Registrar pedido anterior','anterior'],['Carritos abandonados','abandonados'],['Panel de pedidos (móvil)','/panel/']]],
+  ['💳','Pagos y crédito',[['Pagos (Bold y transferencias)','pagos'],['Crédito y cartera','cartera']]],
+  ['👤','Clientes',[['Directorio de clientes','clientes'],['CRM y seguimientos','crm']]],
+  ['📦','Catálogo',[['Productos','productos'],['Crear producto','crear'],['Variaciones y sabores','variaciones'],['Categorías','categorias'],['Nuevo laboratorio / marca','laboratorio'],['Combos','combos'],['Excel / Datos','excel']]],
+  ['🏷️','Ventas y ofertas',[['Ofertas semanales','ofertas'],['Calculadora de ofertas','fn:calcOfertas'],['Gestor de ofertas','/gestor-ofertas/'],['Cupones','/cupones/'],['Entrenadores','entrenadores'],['Lista rápida','listarapida'],['Copiar enlace de ofertas','fn:linkOfertas']]],
+  ['🚚','Proveedores',[['Proveedores','proveedores'],['Catálogos PDF','pdf']]],
+  ['🛠️','Herramientas',[['Calculadora','calculadora'],['Instagram / SEO','instagram'],['Productividad','/productividad/'],['Atención rápida','/atencion-rapida/'],['Herramientas avanzadas','herramientas']]]
+ ];
+ var $=function(s){return document.querySelector(s)};
+ function admin(){return document.body.classList.contains('liftAdminUnlocked')}
+ function toast(t){var el=$('#supgoAdminToast');if(!el)return;el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){el.style.display='none'},2600)}
+ function closeMenu(){document.body.classList.remove('supgoMenuOpen');var m=$('#supgoAdminMenu');if(m)m.setAttribute('aria-hidden','true')}
+ function openMenu(){document.body.classList.add('supgoMenuOpen');var m=$('#supgoAdminMenu');if(m)m.setAttribute('aria-hidden','false');var s=m&&m.querySelector('.sam-search');if(s&&innerWidth>760)setTimeout(function(){s.focus()},200)}
+ var FN={
+  calcOfertas:function(){if(window.SupgoCalculoOfertas&&typeof window.SupgoCalculoOfertas.open==='function'){window.SupgoCalculoOfertas.open();return true}return window.supgoAbrirHerramienta?window.supgoAbrirHerramienta('calcofertas'):false},
+  linkOfertas:function(){if(typeof window.liftCopyFilterLink==='function'){window.liftCopyFilterLink('ofertas','1');return true}return false}
+ };
+ function run(action){
+  if(!action)return;
+  if(action.charAt(0)==='/'){location.href=action;return}
+  closeMenu();
+  var ok=false;
+  if(action.indexOf('fn:')===0){try{ok=FN[action.slice(3)]()}catch(e){}}
+  else if(typeof window.supgoAbrirHerramienta==='function')ok=window.supgoAbrirHerramienta(action);
+  if(!ok)toast('Esta herramienta todavía está cargando. Intenta de nuevo en unos segundos.');
+ }
+ function render(){
+  var nav=$('#supgoAdminMenuNav');if(!nav||nav.dataset.ok)return;nav.dataset.ok='1';
+  nav.innerHTML=MENU.map(function(sec,i){return '<details'+(i===0?' open':'')+'><summary><span class="sam-ico">'+sec[0]+'</span>'+sec[1]+'</summary><div class="sam-items">'+sec[2].map(function(it){return '<button type="button" data-run="'+it[1]+'">'+it[0]+'</button>'}).join('')+'</div></details>'}).join('');
+ }
+ function filter(q){
+  q=String(q||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+  document.querySelectorAll('#supgoAdminMenuNav details').forEach(function(d){
+   var any=false;d.querySelectorAll('.sam-items button').forEach(function(b){var t=b.textContent.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();var show=!q||t.indexOf(q)>=0;b.style.display=show?'':'none';if(show)any=true});
+   d.style.display=any?'':'none';if(q)d.open=any;
+  });
+ }
+ document.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('#supgoAdminBar [data-tool],#supgoAdminBar [data-sab],#supgoAdminMenu [data-run],#supgoAdminMenu [data-sab],#supgoAdminMenu [data-href],#supgoAdminShade');
+  if(!t)return;
+  if(t.id==='supgoAdminShade')return closeMenu();
+  if(t.dataset.tool)return run(t.dataset.tool);
+  if(t.dataset.run)return run(t.dataset.run);
+  if(t.dataset.href){location.href=t.dataset.href;return}
+  var a=t.dataset.sab;
+  if(a==='menu')return document.body.classList.contains('supgoMenuOpen')?closeMenu():openMenu();
+  if(a==='cerrar')return closeMenu();
+  if(a==='link-ofertas'){if(!FN.linkOfertas())toast('No se pudo copiar el enlace.');return}
+  if(a==='salir'){closeMenu();if(typeof window.lockLiftAdmin==='function')window.lockLiftAdmin();return}
+ });
+ document.addEventListener('input',function(e){if(e.target.classList&&e.target.classList.contains('sam-search'))filter(e.target.value)});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('supgoMenuOpen'))closeMenu()});
+ /* Si se cierra la sesión, se cierra el menú. */
+ new MutationObserver(function(){if(!admin())closeMenu()}).observe(document.body,{attributes:true,attributeFilter:['class']});
+ render();
+
+ /* ---------- Precios sin los tres ceros ----------
+    Si en un campo de precio escribes un número menor a 10.000 sin puntos (ej. "570"),
+    pregunta si quisiste decir 570.000. Los sachets de $4.000 se escriben con punto y no preguntan. */
+ var PRICE_SEL='#lafPrice,#lafTrainerPrice,#laPrice,#lvgPrice,#lafGroupPrice,#liftManualPrice,#liftOfferPrice,.lcvPrice,.lafPrice,input[id*="Price"]:not([type=date]):not([type=checkbox]),input[id*="precio"]:not([type=date]):not([type=checkbox]),input[name*="precio"]:not([type=date])';
+ document.addEventListener('change',function(e){
+  var el=e.target;if(!admin()||!el||!el.matches||!el.matches(PRICE_SEL)||el.type==='date')return;
+  var raw=String(el.value||'').trim();
+  if(!/^\$?\s*\d{1,4}$/.test(raw))return;
+  var n=Number(raw.replace(/\D/g,''));if(!(n>0&&n<10000))return;
+  var big=n*1000,fmt=function(v){return '$'+v.toLocaleString('es-CO')};
+  if(confirm('Escribiste '+fmt(n)+'.\n\n¿Quisiste decir '+fmt(big)+'?\n\nAceptar = '+fmt(big)+'\nCancelar = dejar '+fmt(n))){
+   el.value=el.type==='number'?String(big):big.toLocaleString('es-CO');
+   el.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+ },true);
 })();
 </script>
