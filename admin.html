@@ -3530,7 +3530,8 @@ const LIFT_PROVIDERS=[
   {name:'Cooper 3',phone:'573016803587'},
   {name:'Evolución Muscular',phone:'573018189316'},
   {name:'Tópico',phone:'573243563803'},
-  {name:'Pablo 20-20 Venom',phone:'573207440650'}
+  {name:'Pablo 20-20 Venom',phone:'573207440650'},
+  {name:'Zona Fit',phone:'573005876220'}
 ];
 function renderProviderButtons(){
   const box=document.getElementById('liftProviderButtons');if(!box)return;
@@ -15514,7 +15515,7 @@ button:active{transform:scale(.98)}
 (function(){
  const FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-catalogos-pdf';
  const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
- let providers=['Andrés','Cooper 3','Daniel','Evolución Muscular','Golem Nutrition','MAXFITNESS','Mutantes','Suas','Tópico','Vitaness Distribuidor']; // Respaldo: proveedores registrados, no marcas inventadas.
+ let providers=['Andrés','Cooper 3','Daniel','Evolución Muscular','Golem Nutrition','MAXFITNESS','Mutantes','Suas','Tópico','Vitaness Distribuidor','Zona Fit']; // Respaldo: proveedores registrados, no marcas inventadas.
  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const auth=()=>sessionStorage.getItem('liftAdminCloudPasswordV1')||'';
  async function api(body){const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json',apikey:KEY,Authorization:'Bearer '+KEY},body:JSON.stringify({...body,password:auth()})});const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw Error(j.error||'Error '+r.status);return j}
