@@ -655,7 +655,8 @@ function deliveryEstimate(cityName,now=new Date()){
   const isOp=d=>d.getUTCDay()!==0&&!holidays(d.getUTCFullYear()).has(key(d));
   const nextOp=d=>{let x=add(d,1);while(!isOp(x))x=add(x,1);return x};
   const fmtD=d=>new Intl.DateTimeFormat('es-CO',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}).format(d);
-  if(norm(cityName)!=='medellin')return 'Entrega estimada: 1 a 3 días hábiles (según destino).';
+  /* Entrega el mismo día: Medellín y municipios del área metropolitana cercanos. */
+  if(!['medellin','bello','itagui','sabaneta','la estrella','envigado'].includes(norm(cityName)))return 'Entrega estimada: 1 a 3 días hábiles (según destino).';
   if(!isOp(date))return 'Entrega estimada: '+fmtD(nextOp(date))+' (sujeta a confirmación).';
   if(hour<13)return 'Entrega estimada: de 3 a 8 horas.';
   if(day===6||!isOp(add(date,1)))return 'Entrega estimada: '+fmtD(nextOp(date))+'.';
