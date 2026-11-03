@@ -10922,7 +10922,7 @@ liftRenderAllOrders()}catch(e){if(box)box.innerHTML='<div class="liftOpsEmpty">'
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
   else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 };
- function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${p.despacho_tipo==='guia'?`<div class="liftOpsFollow">🚚 ${esc(p.despacho_transportadora||'')} · Guía: ${esc(p.despacho_guia||'')} <button type="button" data-guia="${esc(p.despacho_guia||'')}" onclick="navigator.clipboard.writeText(this.dataset.guia)">Copiar</button></div>`:p.despacho_tipo==='local'?`<div class="liftOpsFollow">🛵 Salió a ruta en la ciudad. Sin hora prometida de entrega.</div>`:''}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><button type="button" class="liftOrderPencil" title="Editar pedido" aria-label="Editar pedido ${p.id}" onclick="liftEditOrderCheckout(${p.id})">✎ Editar</button><select onchange="liftChooseOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Enlace mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button><button type="button" onclick="liftOrderToProvider(${p.id})" class="liftProvSendBtn">📦 Proveedor</button>${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
+ function card(p){const items=Array.isArray(p.items)?p.items:[],due=followDue(p),status=String(p.estado_operativo||'nuevo'),label={nuevo:'Nuevo',verificando_disponibilidad:'Verificando disponibilidad',pendiente_pago:'Pago habilitado',sin_disponibilidad:'Falta producto',preparando:'Preparando',programado:'Programado',en_ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'}[status]||status,availability=status==='verificando_disponibilidad'?`<div class="liftOpsAvailability"><div><b>Confirmar disponibilidad</b><small>Al aprobar, el cliente podrá elegir su medio de pago.</small></div><div class="liftOpsAvailabilityBtns"><button class="ok" onclick="liftAdminAvailability(${p.id},true,this)">✓ TODO DISPONIBLE</button><button class="no" onclick="liftAdminAvailability(${p.id},false,this)">✕ FALTA PRODUCTO</button></div></div>`:status==='pendiente_pago'?`<div class="liftOpsPaymentReady">✓ Pago habilitado para el cliente</div>`:status==='sin_disponibilidad'?`<div class="liftOpsPaymentBlocked">Pago bloqueado · falta disponibilidad</div>`:'';return `<article class="liftOpsCard"><div class="liftOpsTop"><div><b>Pedido #${p.id} · ${esc(p.nombre||'')}</b><small>${esc(p.celular||'')} · ${esc(p.ciudad||'')} · ${new Date(p.fecha).toLocaleDateString('es-CO')}</small><span class="liftOpsStatus ${status}">${label}</span></div><div class="liftOpsMoney">${money(p.total)}</div></div><div class="liftOpsItems">${items.map(x=>`${Number(x.cantidad||1)} × ${esc(x.nombre||'Producto')}${x.marca?' · '+esc(x.marca):''}`).join('<br>')||'Sin detalle'}${p.direccion?'<br>📍 '+esc(p.direccion):''}${Number(p.envio||0)>0?'<br>Envío: '+money(p.envio):''}</div>${availability}${p.despacho_tipo==='guia'?`<div class="liftOpsFollow">🚚 ${esc(p.despacho_transportadora||'')} · Guía: ${esc(p.despacho_guia||'')} <button type="button" data-guia="${esc(p.despacho_guia||'')}" onclick="navigator.clipboard.writeText(this.dataset.guia)">Copiar</button></div>`:p.despacho_tipo==='local'?`<div class="liftOpsFollow">🛵 Salió a ruta en la ciudad. Sin hora prometida de entrega.</div>`:''}${status==='entregado'?`<div class="liftOpsFollow ${p.seguimiento_realizado?'done':''}">${p.seguimiento_realizado?'✓ Seguimiento realizado'+(p.fecha_seguimiento?' · '+new Date(p.fecha_seguimiento).toLocaleDateString('es-CO'):''):due?'Seguimiento pendiente: preguntar cómo le fue con el pedido.':'Seguimiento programado para el día siguiente a la entrega.'}</div>`:''}<div class="liftOpsActions"><button type="button" class="liftOrderPencil" title="Editar pedido" aria-label="Editar pedido ${p.id}" onclick="liftEditOrderCheckout(${p.id})">✎ Editar</button><select onchange="liftChooseOrderStatus(${p.id},this.value)" aria-label="Estado del pedido"><option value="verificando_disponibilidad" ${status==='verificando_disponibilidad'?'selected':''}>Verificando disponibilidad</option><option value="pendiente_pago" ${status==='pendiente_pago'?'selected':''}>Pago habilitado</option><option value="preparando" ${status==='preparando'?'selected':''}>Preparando</option><option value="programado" ${status==='programado'?'selected':''}>Programado</option><option value="en_ruta" ${status==='en_ruta'?'selected':''}>En ruta</option><option value="entregado" ${status==='entregado'?'selected':''}>Entregado</option><option value="cancelado" ${status==='cancelado'?'selected':''}>Cancelado</option></select><button onclick="liftAdminClientAccess(${p.id})" class="wa">👤 Cliente</button><button onclick="liftAdminCourierAccess(${p.id})" class="liftCourierAdminBtn">🛵 Enlace mensajero</button><button onclick="liftOpsWhatsApp(${p.id},false)" class="wa">WhatsApp</button><button type="button" onclick="liftOrderToProvider(${p.id})" class="liftProvSendBtn">📦 Proveedor</button><button type="button" onclick="liftOrderImage(${p.id})" class="liftOrderImgBtn">🖼 Imagen</button>${((window.LIFT_ORDER_IMG_ROWS=window.LIFT_ORDER_IMG_ROWS||{})[p.id]=p,"")}${status==='entregado'&&!p.seguimiento_realizado?`<button onclick="liftOpsWhatsApp(${p.id},true)" class="wa">Preguntar cómo le fue</button><button onclick="liftMarkFollowup(${p.id})">✓ Marcar seguimiento</button>`:''}</div></article>`}
  window.liftChooseOrderStatus=function(id,estado){
  if(estado!=='en_ruta'){window.liftSetOrderStatus(id,estado);return}
  const p=rows.find(x=>Number(x.id)===Number(id));if(!p)return;
@@ -15755,5 +15755,97 @@ body.supgoMenuOpen #supgoAdminShade{opacity:1;pointer-events:auto}
    el.dispatchEvent(new Event('input',{bubbles:true}));
   }
  },true);
+})();
+</script>
+
+<!-- Imagen del pedido para el cliente, desde la tarjeta de cada pedido guardado.
+     Mismo diseño que "Compartir pedido con datos" del checkout. -->
+<style id="supgo-order-image-style">
+.liftOpsActions .liftOrderImgBtn{background:#111!important;color:#fff!important;border:1px solid #111!important;font-weight:600}
+.liftOpsActions .liftOrderImgBtn:hover{background:#2b2b2b!important}
+</style>
+<script id="supgo-order-image">
+(function(){
+ const STATUS={nuevo:'RECIBIDO',verificando_disponibilidad:'RECIBIDO',pendiente_pago:'POR PAGAR',sin_disponibilidad:'EN REVISIÓN',preparando:'PREPARANDO',programado:'PROGRAMADO',en_ruta:'EN RUTA',entregado:'ENTREGADO',cancelado:'CANCELADO'};
+ const money=n=>'$ '+String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+ const toast=m=>{try{typeof liftShareToast==='function'?liftShareToast(m):0}catch(e){}};
+ function wrap(ctx,text,max,maxLines){const words=String(text||'').split(/\s+/).filter(Boolean),out=[];let line='';for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){out.push(line);line=w;if(out.length>=maxLines-1)break}else line=t}if(line&&out.length<maxLines)out.push(line);return out}
+ function productFor(it){
+  const ps=window.PRODUCTS||(typeof PRODUCTS!=='undefined'?PRODUCTS:[]);
+  return ps.find(p=>it.producto_id&&String(p.id)===String(it.producto_id))||ps.find(p=>String(p.name||'').trim().toLowerCase()===String(it.nombre||'').replace(/\s*·\s*Sabor:.*/i,'').trim().toLowerCase())||null;
+ }
+ async function loadImg(url){try{return typeof liftLoadShareImage==='function'&&url?await liftLoadShareImage(url):null}catch(e){return null}}
+ window.liftOrderImage=async function(id){
+  const o=(window.LIFT_ORDER_IMG_ROWS||{})[id]||(window.liftOrdersCurrentRows||[]).find(x=>Number(x.id)===Number(id));
+  if(!o){alert('Recarga la lista de pedidos e intenta de nuevo.');return}
+  const items=Array.isArray(o.items)?o.items:(o.lift_pedido_productos||[]);
+  if(!items.length){alert('Este pedido no tiene productos para mostrar.');return}
+  try{
+   toast('Creando imagen del pedido…');
+   if(document.fonts){await Promise.all([400,500,700].map(w=>document.fonts.load(w+' 18px Poppins').catch(()=>[])));await document.fonts.ready}
+   const W=720,pad=22,inside=18,ink='#111111',gray='#333333',green='#C8F34B';
+   const c=document.createElement('canvas'),ctx=c.getContext('2d');c.width=W;ctx.font='400 17px Poppins,Arial';
+   const lines=(s,max)=>wrap(ctx,s,max,3);
+   const name=String(o.nombre||'Cliente'),phone=String(o.celular||''),address=String(o.direccion||''),city=String(o.ciudad||''),notes=String(o.notas||'').trim();
+   const addressLines=address?lines(address,W-2*(pad+inside)):[];
+   const noteLines=notes?lines('Notas: '+notes,W-2*(pad+inside)):[];
+   const rows=items.map(it=>{const p=productFor(it),q=Number(it.cantidad||1),unit=Number(it.precio_unitario||0);return {it,p,q,line:Number(it.total_linea||0)||unit*q}});
+   ctx.font='500 18px Poppins,Arial';
+   const nameLines=rows.map(r=>wrap(ctx,r.it.nombre||'Producto',W-280,3));
+   const heights=nameLines.map(l=>Math.max(84,44+l.length*23));
+   const subtotal=Number(o.subtotal||0)||rows.reduce((a,r)=>a+r.line,0),ship=Number(o.envio||0),discount=Number(o.descuento||0);
+   const total=Number(o.total||0)||Math.max(0,subtotal-discount)+ship;
+   const saldo=Number(o.saldo_pendiente||0),showSaldo=saldo>0&&saldo<total;
+   const customerH=82+addressLines.length*23+(city?23:0)+noteLines.length*23;
+   const productsH=45+heights.reduce((a,b)=>a+b,0)+15+54+(discount>0?23:0);
+   const totalH=showSaldo?110:80;
+   const H=90+7+customerH+7+productsH+7+totalH+8+38;c.height=H;
+   const round=(x,y,w,h,r,col)=>{ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()};
+   const txt=(s,x,y,size=19,col=ink,wt=400)=>{ctx.fillStyle=col;ctx.font=wt+' '+size+'px Poppins,Arial';ctx.fillText(String(s),x,y)};
+   const right=(s,x,y,size=19,col=ink,wt=400)=>{ctx.font=wt+' '+size+'px Poppins,Arial';txt(s,x-ctx.measureText(String(s)).width,y,size,col,wt)};
+   ctx.fillStyle='#F2F3F2';ctx.fillRect(0,0,W,H);
+   round(pad,0,W-pad*2,90,12,ink);
+   txt('SUPGO',pad+inside,40,36,'#FFFFFF',700);
+   const st=STATUS[String(o.estado_operativo||'nuevo')]||'PEDIDO';
+   ctx.font='700 14px Poppins,Arial';const bw=ctx.measureText(st).width+28;
+   round(W-pad-inside-bw,12,bw,26,13,green);txt(st,W-pad-inside-bw+14,30,14,ink,700);
+   txt('Pedido #'+o.id,pad+inside,72,17,'#F0F0F0',500);
+   const d=o.created_at||o.fecha;let dateText='';
+   try{dateText=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'short',year:'numeric'}).format(new Date(d))}catch(e){}
+   if(dateText)right(dateText,W-pad-inside,72,16,'#F0F0F0',500);
+   let y=97;round(pad,y,W-pad*2,customerH,12,'#FFFFFF');
+   let cy=y+28;txt('DATOS DEL CLIENTE',pad+inside,cy,18,ink,500);cy+=25;
+   txt(name+(phone?' · '+phone:''),pad+inside,cy,18,ink,500);cy+=24;
+   for(const l of addressLines){txt(l,pad+inside,cy,17,gray);cy+=23}
+   if(city){txt(city,pad+inside,cy,17,gray);cy+=23}
+   for(const l of noteLines){txt(l,pad+inside,cy,16,gray);cy+=23}
+   y+=customerH+7;round(pad,y,W-pad*2,productsH,12,'#FFFFFF');
+   let py=y+28;txt('PRODUCTOS',pad+inside,py,18,ink,500);py+=13;
+   for(let i=0;i<rows.length;i++){
+    const r=rows[i],rowY=py;
+    const img=await loadImg(r.p&&r.p.image);
+    if(img){const size=55,sc=Math.min(size/img.width,size/img.height);ctx.drawImage(img,pad+inside+(size-img.width*sc)/2,rowY+11+(size-img.height*sc)/2,img.width*sc,img.height*sc)}
+    else{round(pad+inside,rowY+11,55,55,10,'#EFEFEF');txt('📦',pad+inside+15,rowY+46,22,gray)}
+    const ix=pad+inside+70;
+    nameLines[i].forEach((l,j)=>txt(l,ix,rowY+27+j*23,18,ink,500));
+    txt('Cant. '+r.q+(r.it.marca?' · '+r.it.marca:''),ix,rowY+27+nameLines[i].length*23,15,gray,500);
+    right(money(r.line),W-pad-inside,rowY+27,18,ink,500);
+    py+=heights[i];
+   }
+   ctx.strokeStyle='#E7E7E7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad+inside,py);ctx.lineTo(W-pad-inside,py);ctx.stroke();py+=24;
+   txt('Subtotal',pad+inside,py,17,gray);right(money(subtotal),W-pad-inside,py,17,ink);py+=23;
+   if(discount>0){txt('Descuento',pad+inside,py,17,gray);right('-'+money(discount),W-pad-inside,py,17,ink);py+=23}
+   txt('Envío',pad+inside,py,17,gray);right(ship===0?'GRATIS':money(ship),W-pad-inside,py,17,ink);
+   y+=productsH+7;round(pad,y,W-pad*2,totalH,12,ink);
+   txt('TOTAL',pad+inside,y+45,22,'#FFFFFF',700);right(money(total),W-pad-inside,y+48,30,green,700);
+   if(showSaldo){txt('Saldo pendiente',pad+inside,y+85,16,'#FFFFFF',500);right(money(saldo),W-pad-inside,y+85,18,'#FFFFFF',600)}
+   y+=totalH+8;
+   ctx.font='400 16px Poppins,Arial';const thanks='Gracias por tu compra · supgo.co';txt(thanks,(W-ctx.measureText(thanks).width)/2,y+20,16,gray);
+   const blob=await new Promise(r=>c.toBlob(r,'image/png',.94));if(!blob)throw new Error('No se pudo crear la imagen');
+   const file=new File([blob],'supgo-pedido-'+o.id+'.png',{type:'image/png'});
+   if(typeof window.liftShareGeneratedImage==='function')await window.liftShareGeneratedImage(blob,file,'Pedido SUPGO #'+o.id);
+   else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+  }catch(e){console.error(e);toast('No se pudo generar la imagen del pedido')}
+ };
 })();
 </script>
