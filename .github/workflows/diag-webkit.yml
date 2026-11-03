@@ -24,7 +24,7 @@ jobs:
               await p.goto('https://supgo.co/home/?t='+Date.now(),{waitUntil:'networkidle',timeout:60000}).catch(()=>{});
               await p.evaluate(()=>{const n=document.querySelector('#supgo-cookies .no');if(n)n.click()});
               for(let i=0;i<25;i++){await p.evaluate(()=>scrollBy(0,500));await p.waitForTimeout(200)}
-              await p.evaluate(()=>scrollTo(0,0));await p.waitForTimeout(2500);
+              await p.evaluate(()=>scrollTo(0,0));await p.waitForTimeout(2500);await p.screenshot({path:'out/top-'+name+'.png'});const a=await p.evaluate(()=>getComputedStyle(document.querySelector('.brand-track')||document.body).transform);await p.waitForTimeout(1500);const b2=await p.evaluate(()=>getComputedStyle(document.querySelector('.brand-track')||document.body).transform);require('fs').writeFileSync('out/marquee-'+name+'.txt',a+' | '+b2);
               await p.screenshot({path:'out/home-'+name+'.png',fullPage:true});
               await ctx.close();
             }
