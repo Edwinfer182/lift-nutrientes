@@ -386,15 +386,6 @@
   async function cargar() {
     var pedido = slugPedido();
     if (!pedido) return mostrarError('Producto no encontrado', 'El enlace no indica qué producto mostrar.');
-    // Enlaces históricos sin ID: resolver a la ficha estática vigente y comprobada.
-    // No depende del slug mutable de Supabase ni de la disponibilidad de la API.
-    var fichasHistoricas = {
-      'amino-x-70-servicios': '/productos/amino-x-70-servicios-30208.html'
-    };
-    if (Object.prototype.hasOwnProperty.call(fichasHistoricas, pedido)) {
-      location.replace(fichasHistoricas[pedido] + location.hash);
-      return;
-    }
     // Configuración compartida en paralelo; la ficha nunca descarga todo el catálogo.
     var sharedPromise = Promise.all([
       config('weekly_offers'), config('seo_merchant_settings'), resenas(),
