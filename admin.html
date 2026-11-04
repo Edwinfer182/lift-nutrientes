@@ -6254,7 +6254,7 @@ window.shareLiftProductImage=async function(id){
  <label class="lafField full">URL imagen SEO<input id="liftSeoImage" class="liftSeoInput" type="url"></label>
  <div class="lafField full" id="liftSeoVisualPanel" style="padding:12px;border:1px solid #e5e5e5;border-radius:10px;background:#fafafa">
  <b style="font-size:13px">Vista previa de imágenes y enlace público</b>
- <p style="font-size:11px;color:#777;margin:4px 0 10px">Previsualiza las imágenes del producto sin cambiar las guardadas. La URL pública usa el identificador original del producto.</p>
+ <p style="font-size:11px;color:#777;margin:4px 0 10px">Edita el Slug SEO y pulsa Guardar producto para guardarlo en Supabase. El enlace de la ficha dinámica usa ese slug.</p>
  <div id="liftSeoImagePreviews" style="display:flex;flex-wrap:wrap;gap:10px"></div>
  <label class="lafField full" style="margin-top:12px">URL pública del producto<input id="liftSeoPublicUrl" type="text" readonly placeholder="Selecciona un producto guardado"></label>
  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><button class="lafBtn" type="button" id="liftSeoCopyPublicUrl">Copiar URL</button><a class="lafBtn" id="liftSeoOpenPublicUrl" target="_blank" rel="noopener noreferrer" style="text-decoration:none" href="#">Abrir página</a><a class="lafBtn" id="liftSeoGoogleTest" target="_blank" rel="noopener noreferrer" style="text-decoration:none" href="https://search.google.com/test/rich-results">Probar datos enriquecidos</a></div>
@@ -14642,6 +14642,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  function urlFor(p){
    if(!p?.id)return '';
+   const custom=String($('liftYoastSlug')?.value||p.seo?.slug||'').trim();
+   if(custom)return 'https://supgo.co/producto/?slug='+encodeURIComponent(custom);
    let rel='';
    try{if(typeof window.liftStaticProductUrl==='function')rel=window.liftStaticProductUrl(p)||'';}catch(e){}
    if(!rel){
@@ -14664,14 +14666,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    $('liftSeoPublicUrl').value=url;
    $('liftSeoOpenPublicUrl').href=url||'#';
    $('liftSeoGoogleTest').href=url?'https://search.google.com/test/rich-results?url='+encodeURIComponent(url):'https://search.google.com/test/rich-results';
-   $('liftSeoUrlStatus').textContent=url?'Comprueba que la página esté publicada antes de enviarla a Google.':'Guarda el producto para obtener una URL con su ID.';
+   $('liftSeoUrlStatus').textContent=url?'Si modificaste el slug, pulsa Guardar producto antes de abrir el enlace.':'Guarda el producto para obtener su enlace.';
  }
  function init(){
    if(!$('liftSeoImagePreviews'))return;
-   ['lafImage','liftSeoImage','lafSecondaryImages','lafEditId','lafName'].forEach(id=>$(id)?.addEventListener('input',render));
+   ['lafImage','liftSeoImage','lafSecondaryImages','lafEditId','lafName','liftYoastSlug'].forEach(id=>$(id)?.addEventListener('input',render));
    $('liftSeoCopyPublicUrl')?.addEventListener('click',async()=>{const v=$('liftSeoPublicUrl')?.value;if(!v)return;try{await navigator.clipboard.writeText(v);$('liftSeoUrlStatus').textContent='URL copiada.';}catch(e){$('liftSeoPublicUrl').select();document.execCommand('copy');$('liftSeoUrlStatus').textContent='URL seleccionada para copiar.';}});
    const form=$('liftSeoEditor');if(form)new MutationObserver(()=>render()).observe($('lafEditId'),{attributes:true,attributeFilter:['value']});
-   let old='';setInterval(()=>{const id=$('lafEditId')?.value||'';if(id!==old){old=id;render();}},700);
+   let old='';setInterval(()=>{const id=($('lafEditId')?.value||'')+'|'+($('liftYoastSlug')?.value||'');if(id!==old){old=id;render();}},700);
    render();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

@@ -386,7 +386,8 @@
       var m = /(?:^|-)(\d+)$/.exec(pedido);
       if (!encontrado && m) { var porId = await get('lift_productos?select=id,activo,slug,product&id=eq.' + m[1]); encontrado = porId[0]; }
       if (!encontrado) return mostrarError('Producto no encontrado', 'Puede que el enlace esté incompleto o que el producto ya no exista.');
-      history.replaceState(null, '', location.pathname + '?slug=' + encodeURIComponent(encontrado.slug) + location.hash);
+      // Un slug personalizado guardado por el panel debe conservarse en la URL.
+      if (!porSeo.length) history.replaceState(null, '', location.pathname + '?slug=' + encodeURIComponent(encontrado.slug) + location.hash);
     }
     if (!allowed(encontrado)) return mostrarError('Producto no disponible', 'Este producto no está disponible en este momento.');
     var marcasOk = new Set(datos[5].filter(function (x) { return x.habilitada === true; }).map(function (x) { return lower(String(x.marca).trim()); }));
