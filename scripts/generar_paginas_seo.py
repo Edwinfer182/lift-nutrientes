@@ -1325,6 +1325,11 @@ def main():
   names=list(dict.fromkeys([filename]+legacy_by_id.get(str(row["id"]),[])))
   for target_name in names:
    destination=OUT/target_name
+   # Las URL heredadas que ya redirigen a su página vigente (seo_indexacion.redirect_legacy,
+   # scripts/fichas_heredadas.json) no se regeneran: volver a escribirlas las dejaría en
+   # noindex y Google perdería el posicionamiento que trasladan.
+   if target_name!=filename and destination.exists() and "<!-- supgo-redireccion -->" in destination.read_text(encoding="utf-8",errors="replace"):
+    continue
    # Las URL heredadas conservan el canonical de la ficha vigente para no competir
    # con ella en Google (antes cada copia se declaraba canónica a sí misma).
    target_content=content

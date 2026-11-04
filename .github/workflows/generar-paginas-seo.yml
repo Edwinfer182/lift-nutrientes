@@ -45,12 +45,7 @@ jobs:
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
       - name: Unir en Google las fichas que solo cambian de sabor
-        run: python scripts/seo_variantes.py
-      - name: Redirigir fichas heredadas a su página vigente
-        # La regeneración vuelve a dejar las URL antiguas en noindex; aquí se
-        # restauran sus redirecciones (scripts/fichas_heredadas.json).
-        run: python -c "import sys; sys.path.insert(0, 'scripts'); import seo_indexacion; seo_indexacion.redirect_legacy()"
-      - name: Verificar HTML SEO y Schema del producto
+        run: python scripts/seo_variantes.py      - name: Verificar HTML SEO y Schema del producto
         run: |
           python - <<'PY'
           from pathlib import Path
