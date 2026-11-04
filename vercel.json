@@ -1,10 +1,13 @@
 {
-  "redirects": [
+  "version": 2,
+  "rewrites": [
     {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "lift-nutrientes.vercel.app" }],
-      "destination": "https://supgo.co/:path*",
-      "permanent": true
+      "source": "/producto/:slug",
+      "destination": "/api/producto?slug=:slug"
+    },
+    {
+      "source": "/producto/:slug/",
+      "destination": "/api/producto?slug=:slug"
     }
   ]
 }
