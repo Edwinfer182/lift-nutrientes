@@ -6635,6 +6635,9 @@ window.shareLiftProductImage=async function(id){
  let p=id?PRODUCTS.find(x=>String(x.id)===String(id)):null;
  if(!p){p={id:nextId()};PRODUCTS.push(p)}
  p.name=name;p.brand=brand;p.category=category;p.presentation=presentation;p.price=price;p.trainerPrice=trainerPrice;p.image=image;p.description=description;p.seo=window.liftSeoRead?.()||{};
+ // Mantener el slug del producto y el del editor SEO sincronizados.
+ p.seo.slug=String(p.seo.slug||p.slug||name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,110);
+ p.slug=p.seo.slug;
  p.flavors=$('lafFlavors').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
  const secondaryText=$('lafSecondaryImages').value;
  const m=meta();m.out=m.out||{};if($('lafStatus').value==='out')m.out[p.id]=true;else delete m.out[p.id];saveMeta(m);patch(p);
@@ -6983,7 +6986,11 @@ body.liftAdminUnlocked .liftCardAdminIcons{display:inline-flex}
    try{copy=structuredClone(original)}catch(e){copy=JSON.parse(JSON.stringify(original))}
    copy.id=newId;
    copy.name=String(original.name||'Producto')+' - Copia';
-   delete copy.slug;
+   // Una copia necesita una URL propia; nunca heredar el slug de la ficha original.
+   const baseSlug=String(copy.name||'producto').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,95);
+   const uniqueSlug=baseSlug+'-'+newId;
+   copy.slug=uniqueSlug;
+   copy.seo={...(copy.seo&&typeof copy.seo==='object'?copy.seo:{}),slug:uniqueSlug};
    delete copy.__private;
    PRODUCTS.push(copy);
 
@@ -14460,6 +14467,9 @@ body.liftAdminUnlocked #liftAdminToolsDock{display:flex}
     if(String(loadedId)!==String(p.id) && document.getElementById('lafEditId')?.value)throw new Error('El SEO aún no se cargó desde Supabase. Abre de nuevo el producto antes de guardar.');
     if(typeof window.liftCatalogAdminCall!=='function')throw new Error('Inicia sesión administrativa para guardar SEO');
     const seo={...(p.seo&&typeof p.seo==='object'?p.seo:{}),...read()};
+    seo.slug=String(seo.slug||p.slug||p.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,110);
+    if(!seo.slug)throw new Error('El producto necesita un slug SEO válido');
+    p.slug=seo.slug;
     setStatus('Guardando en Supabase…');
     // El backend de catálogo guarda product.seo; un trigger en Supabase
     // sincroniza los cuatro campos con lift_producto_seo.
