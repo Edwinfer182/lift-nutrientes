@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "lift-nutrientes.vercel.app" }],
+      "destination": "https://supgo.co/:path*",
+      "permanent": true
+    }
+  ]
+}
