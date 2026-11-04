@@ -2,7 +2,7 @@
 (async function () {
   'use strict';
   try {
-    const response = await fetch('/producto/index.html', { cache: 'no-store' });
+    const response = await fetch('/producto/index.html', { cache: 'default' });
     if (!response.ok) throw new Error('No se pudo cargar la plantilla.');
     const template = await response.text();
     if (!template.includes('id="ficha-plantilla"')) throw new Error('La plantilla no está disponible.');

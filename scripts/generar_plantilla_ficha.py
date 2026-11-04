@@ -41,6 +41,7 @@ def main():
     head = page[page.index("<head>"):page.index("</head>")]
     estilos = "\n".join(re.findall(r"<style\b[^>]*>.*?</style>", head, re.S))
     header_loader = extraer(page, r'<script defer src="/componentes/header-loader\.js[^"]*"></script>', "header-loader")
+    header_loader = re.sub(r'header-loader\.js[^"\s]*', 'header-loader.js?v=20261104-perf1', header_loader)
     main_open = extraer(page, r'<main class="product-page"[^>]*>', "main")
     despues = page[page.index("</main>") + len("</main>"):page.index("<script>window.__supgoGallery")]
     whatsapp = re.findall(r"<script>\s*\(\(\)=>\{.*?</script>", page, re.S)
@@ -62,6 +63,7 @@ def main():
         "laboratorios": sorted(p.name for p in (ROOT / "laboratorios").iterdir() if p.is_dir()),
         "categorias": sorted(p.name for p in (ROOT / "categorias").iterdir() if p.is_dir()),
         "guias": G.GUIDES, "logos": logos, "piezas": piezas,
+        "filtros": G.seo_filter_data(G.fetch(), logos),
         "contenido": {"version": C.CONTENIDO_VERSION, "grupos": C.GRUPOS, "intro": C.INTRO,
                       "revisar": C.REVISAR, "cierre": C.CIERRE, "leyenda": C.LEYENDA_SUPLEMENTO},
     }
@@ -96,7 +98,7 @@ def main():
 {texto("ficha-js-compra", G.FICHA_V2_JS)}
 {texto("ficha-js-whatsapp", whatsapp[-1][len("<script>"):-len("</script>")])}
 <script type="application/json" id="ficha-plantilla">{datos_json}</script>
-<script src="/componentes/ficha-dinamica.js?v={G.FICHA_VERSION}-d6"></script>
+<script src="/componentes/ficha-dinamica.js?v={G.FICHA_VERSION}-d7"></script>
 </body></html>
 '''
     if MARCA in html.replace(f'alt="{MARCA}"', ""):

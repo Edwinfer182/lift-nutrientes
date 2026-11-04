@@ -37,7 +37,7 @@ const menuSearch=popup.querySelector('.supgo-menu-search input');
 let catalog=[];
 const field=(p,...names)=>{for(const n of names){if(p&&p[n]!=null&&p[n]!=='')return p[n];}return '';};
 function closeMenu(){popup.hidden=true;menuShade.hidden=true;document.body.classList.remove('supgo-menu-open');}
-function openMenu(){popup.hidden=false;menuShade.hidden=false;document.body.classList.add('supgo-menu-open');draw(popup.querySelector('[data-tab].active').dataset.tab);menuSearch.value='';}
+function openMenu(){if(!window.__supgoSeoFilters)ensureCatalog();popup.hidden=false;menuShade.hidden=false;document.body.classList.add('supgo-menu-open');draw(popup.querySelector('[data-tab].active').dataset.tab);menuSearch.value='';}
 function draw(tab){
  const categories=tab==='categories',key=categories?'categoria':'marca',names=categories?['category','categoria']:['brand','marca'];
  const counts=new Map();
@@ -323,5 +323,6 @@ function ensureCatalog(){
   const light=rows.map(lightRow);setCatalog(light);try{localStorage.setItem(INDEX_KEY,JSON.stringify({t:Date.now(),rows:light}))}catch{}})().catch(err=>{catalogPromise=null;catalogReady=true;console.warn('SUPGO componentes: no se pudo cargar el catálogo',err)});
 }
 if(search)search.addEventListener('focus',()=>ensureCatalog(),{once:true});
-(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>ensureCatalog());
+// En fichas, el índice completo solo se descarga al utilizar el buscador.
+if(!/^\/producto\//.test(location.pathname))(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>ensureCatalog());
 })();

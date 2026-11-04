@@ -57,10 +57,17 @@
 
   /* ---------- Supabase ---------- */
   var H = { apikey: KEY, Authorization: 'Bearer ' + KEY, Accept: 'application/json' };
-  async function get(path) {
+  async function get(path, ttl) {
+    var cacheKey = 'supgoFicha:' + path;
+    if (ttl) try {
+      var cached = JSON.parse(sessionStorage.getItem(cacheKey));
+      if (cached && Date.now() - cached.time < ttl) return cached.data;
+    } catch (e) { /* El almacenamiento puede estar deshabilitado. */ }
     var r = await fetch(SB + '/rest/v1/' + path, { headers: H });
     if (!r.ok) throw new Error('Supabase ' + r.status + ' en ' + path.split('?')[0]);
-    return r.json();
+    var data = await r.json();
+    if (ttl) try { sessionStorage.setItem(cacheKey, JSON.stringify({ time: Date.now(), data: data })); } catch (e) {}
+    return data;
   }
   async function all(path) {
     var out = [];
@@ -71,16 +78,25 @@
   }
   var CAMPOS = ['name', 'nombre', 'brand', 'marca', 'category', 'categoria', 'flavor', 'sabor', 'presentation', 'presentacion', 'price', 'precio', 'image', 'imagen',
     'parent_id', 'producto_padre_id', 'id_padre_sabor', '__deleted', '__private', 'adminOnly', 'hidden', 'oculto'];
-  async function catalogo() {
+  async function catalogoCercano(row) {
     var sel = 'id,activo,slug,' + CAMPOS.map(function (c) { return 'f' + CAMPOS.indexOf(c) + ':product->' + c; }).join(',');
-    var rows = await all('lift_productos?select=' + sel + '&order=id.asc');
+    var p = row.product || {}, conditions = [];
+    function match(fields, value) {
+      if (!value) return;
+      var quoted = JSON.stringify(String(value).replace(/[%_]/g, '\\$&'));
+      fields.forEach(function (field) { conditions.push('product->>' + field + '.ilike.' + quoted); });
+    }
+    match(['brand', 'marca'], or(p.brand, p.marca));
+    match(['category', 'categoria'], or(p.category, p.categoria));
+    conditions.push('id.eq.' + row.id);
+    var rows = await all('lift_productos?select=' + sel + '&activo=eq.true&or=' + encodeURIComponent('(' + conditions.join(',') + ')') + '&order=id.asc');
     return rows.map(function (r) {
       var p = {}; CAMPOS.forEach(function (c, i) { var v = r['f' + i]; if (v !== null && v !== undefined) p[c] = v; });
       return { id: r.id, activo: r.activo, slug: r.slug, product: p };
     });
   }
   async function config(clave) {
-    var rows = await get('lift_catalog_config?select=valor&clave=eq.' + encodeURIComponent(clave) + '&limit=1');
+    var rows = await get('lift_catalog_config?select=valor&clave=eq.' + encodeURIComponent(clave) + '&limit=1', 60000);
     var v = rows[0] ? rows[0].valor : {}; if (typeof v === 'string') try { v = JSON.parse(v); } catch (e) { v = {}; }
     return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
   }
@@ -370,15 +386,17 @@
   async function cargar() {
     var pedido = slugPedido();
     if (!pedido) return mostrarError('Producto no encontrado', 'El enlace no indica qué producto mostrar.');
-    var datos = await Promise.all([
-      get('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(pedido)),
-      catalogo(), config('weekly_offers'), config('seo_merchant_settings'), resenas(),
-      get('lift_seo_marcas?select=marca,habilitada&limit=5000').catch(function () { return []; }),
-      get('lift_seo_bloqueos?select=producto_id&limit=5000').catch(function () { return []; })
+    // Configuración compartida en paralelo; la ficha nunca descarga todo el catálogo.
+    var sharedPromise = Promise.all([
+      config('weekly_offers'), config('seo_merchant_settings'), resenas(),
+      get('lift_seo_marcas?select=marca,habilitada&limit=5000', 60000).catch(function () { return []; }),
+      get('lift_seo_bloqueos?select=producto_id&limit=5000', 60000).catch(function () { return []; })
     ]);
-    if (datos[0].length > 1) return mostrarError('Slug duplicado', 'Hay varios productos con esta dirección. Debe corregirse el slug en el catálogo.');
-    var encontrado = datos[0][0], rows = datos[1], offers = datos[2], settings = datos[3], REVIEWS = datos[4];
-    window.__supgoSeoFilters = filtros(rows);
+    sharedPromise.catch(function () {});
+    var found = await get('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(pedido) + '&limit=2');
+    if (found.length > 1) return mostrarError('Slug duplicado', 'Hay varios productos con esta dirección. Debe corregirse el slug en el catálogo.');
+    var encontrado = found[0];
+    window.__supgoSeoFilters = D.filtros || window.__supgoSeoFilters;
     if (!encontrado) {
       /* Slug viejo (cambió el nombre): buscar por el ID del final y corregir la dirección. */
       /* Slug personalizado del panel SEO (product.seo.slug) o slug viejo: buscar por el ID del final. */
@@ -397,10 +415,24 @@
       var cleanSlug = pedido === encontrado.slug || pedido === seoSlug ? pedido : encontrado.slug;
       history.replaceState(null, '', '/producto/' + encodeURIComponent(cleanSlug) + '/' + location.hash);
     }
-    var marcasOk = new Set(datos[5].filter(function (x) { return x.habilitada === true; }).map(function (x) { return lower(String(x.marca).trim()); }));
-    var bloqueados = new Set(datos[6].map(function (x) { return String(x.producto_id); }));
+    // SEO y productos relacionados se consultan simultáneamente tras identificar la ficha.
+    var loaded = await Promise.all([
+      catalogoCercano(encontrado), sharedPromise,
+      get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo&producto_id=eq.' + encontrado.id).catch(function () { return []; })
+    ]);
+    var rows = loaded[0], datos = loaded[1], seoRows = loaded[2];
+    var offers = datos[0], settings = datos[1], REVIEWS = datos[2];
+    var marcasOk = new Set(datos[3].filter(function (x) { return x.habilitada === true; }).map(function (x) { return lower(String(x.marca).trim()); }));
+    var bloqueados = new Set(datos[4].map(function (x) { return String(x.producto_id); }));
     var productsById = {};
     rows.forEach(function (r) { productsById[String(r.id)] = r.product; r._offer = offers[String(r.id)]; });
+    // Un obsequio puede pertenecer a otra marca/categoría: traer solo ese registro.
+    var currentOffer = offers[String(encontrado.id)] || {};
+    var giftId = String(currentOffer.giftProductId || '');
+    if (currentOffer.gift && /^\d+$/.test(giftId) && !productsById[giftId]) {
+      var giftRows = await get('lift_productos?select=id,product&id=eq.' + giftId + '&limit=1').catch(function () { return []; });
+      if (giftRows[0]) productsById[giftId] = giftRows[0].product;
+    }
     var valid = rows.filter(allowed);
     valid.forEach(function (r) { r._indexable = marcasOk.has(lower(String(or(r.product.brand, r.product.marca, 'SIN MARCA')).trim())) && !bloqueados.has(String(r.id)); });
     /* La fila completa del producto (con descripción y SEO) reemplaza a la liviana. */
@@ -448,7 +480,6 @@
       choices.sort(function (x, y) { var a = slug(or(x.product.name, x.product.nombre)) === mine ? 1 : 0, c = slug(or(y.product.name, y.product.nombre)) === mine ? 1 : 0; return a - c || cmp(String(x.id), String(y.id)); });
       row[b === 'bsn' ? '_bsn_links' : '_applied_links'] = choices.slice(0, 3).map(function (r) { var n = String(or(r.product.name, r.product.nombre)); return { name: n, url: BASE + '/productos/' + (slug(n) || 'producto') + '-' + r.id + '.html' }; });
     });
-    var seoRows = await get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo&producto_id=eq.' + row.id).catch(function () { return []; });
     row._seo = seoRows[0] || {};
     var ids2 = [String(row.id)].concat(row._variants.map(function (v) { return String(v.id); }).filter(function (x) { return x !== String(row.id); }));
     var revs = []; Array.from(new Set(ids2)).forEach(function (x) { revs = revs.concat(REVIEWS[x] || []); });
