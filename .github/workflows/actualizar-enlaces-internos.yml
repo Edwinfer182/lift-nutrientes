@@ -1,0 +1,38 @@
+name: Actualizar enlaces internos a fichas vigentes
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/actualizar_enlaces_internos.py'
+      - 'scripts/fichas_heredadas.json'
+permissions:
+  contents: write
+concurrency:
+  group: supgo-enlaces-vigentes
+  cancel-in-progress: false
+jobs:
+  corregir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Comprobar sintaxis
+        run: python -m py_compile scripts/actualizar_enlaces_internos.py
+      - name: Reescribir enlaces y crear redirecciones verificadas
+        run: python scripts/actualizar_enlaces_internos.py
+      - name: Publicar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git add scripts/reporte_enlaces_vigentes.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Actualizar enlaces internos y redirecciones de productos"
+            git pull --rebase -X theirs origin main
+            git push
+          fi
