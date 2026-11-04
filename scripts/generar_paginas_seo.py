@@ -586,7 +586,7 @@ def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"
  embedded=p.get("seo") if isinstance(p.get("seo"),dict) else {}
- canonical=f"{BASE}/productos/{filename}"
+ canonical=f"{BASE}/producto/{row.get('slug') or key}/"
  brand=str(p.get("brand") or p.get("marca") or "")
  description=str(p.get("description") or p.get("descripcion") or "").strip()
  image=str(embedded.get("image") or seo_data.get("imagen_seo") or p.get("image") or p.get("imagen") or "").strip()
@@ -908,12 +908,12 @@ def main():
  for row in applied:
   choices=[r for r in applied if str(r["id"])!=str(row["id"])]
   choices.sort(key=lambda other:(slug(other["product"].get("name") or other["product"].get("nombre"))==slug(row["product"].get("name") or row["product"].get("nombre")),str(other["id"])))
-  row["_applied_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/productos/"+(slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"-"+str(r["id"])+".html"} for r in choices[:3]]
+  row["_applied_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/producto/"+str(r.get("slug") or slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"/"} for r in choices[:3]]
  bsn_rows=[r for r in valid if str((r["product"].get("brand") or r["product"].get("marca") or "")).strip().casefold()=="bsn"]
  for row in bsn_rows:
   choices=[r for r in bsn_rows if str(r["id"])!=str(row["id"])]
   choices.sort(key=lambda other:(slug(other["product"].get("name") or other["product"].get("nombre"))==slug(row["product"].get("name") or row["product"].get("nombre")),str(other["id"])))
-  row["_bsn_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/productos/"+(slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"-"+str(r["id"])+".html"} for r in choices[:3]]
+  row["_bsn_links"]=[{"name":str(r["product"].get("name") or r["product"].get("nombre")),"url":BASE+"/producto/"+str(r.get("slug") or slug(r["product"].get("name") or r["product"].get("nombre")) or "producto")+"/"} for r in choices[:3]]
  offer_ids={x.strip() for x in os.getenv("SEO_OFFER_IDS_ONLY","").split(",") if x.strip()}
  if offer_ids:
   valid=[r for r in valid if str(r["id"]) in offer_ids]
@@ -929,7 +929,7 @@ def main():
   try:regular=float(p.get("price") or p.get("precio") or 0)
   except (TypeError,ValueError):regular=0
   commercial={"price":regular,"sale":promo[1] if promo else None,"pct":round((1-promo[1]/promo[0])*100) if promo else 0,"until":(item.get("_offer") or {}).get("promoUntil") if promo else None}
-  return {**commercial,"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/productos/"+(slug(name) or "producto")+"-"+str(item["id"])+".html","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name),"on_offer":active_offer(item) is not None}
+  return {**commercial,"id":item["id"],"name":name,"brand":str(p.get("brand") or p.get("marca") or ""),"image":str(p.get("image") or p.get("imagen") or ""),"url":BASE+"/producto/"+str(item.get("slug") or slug(name) or "producto")+"/","label":str(p.get("flavor") or p.get("sabor") or p.get("presentation") or p.get("presentacion") or name),"on_offer":active_offer(item) is not None}
  # Agrupar sabores por familia y presentación sin mezclar tamaños diferentes.
  # Priorizar el identificador padre cuando existe; en su ausencia, eliminar
  # exclusivamente el sabor declarado en Supabase del final del nombre.
@@ -1089,7 +1089,7 @@ def main():
  refreshed_content=0
  for row in valid:
   filename,content=build_direct(row,shared)
-  generated_url=BASE+"/productos/"+filename
+  generated_url=BASE+"/producto/"+str(row.get("slug") or slug(row["product"].get("name") or row["product"].get("nombre")) or "producto")+"/"
   # Actualizar tanto la URL vigente como cualquier URL heredada del mismo producto.
   names=list(dict.fromkeys([filename]+legacy_by_id.get(str(row["id"]),[])))
   for target_name in names:
@@ -1142,7 +1142,7 @@ def main():
      patched=re.sub(r'<meta name="robots" content="index[^"]*">','<meta name="robots" content="noindex, follow">',patched,count=1)
     if patched!=existing:destination.write_text(patched,encoding="utf-8")
     if is_legacy:repaired_legacy+=1
-  if row.get("_indexable",True):urls.append(BASE+"/productos/"+filename)
+  if row.get("_indexable",True):urls.append(generated_url)
  # Sustituir las fichas históricas restantes con la MISMA plantilla moderna.
  # Conservar datos explícitos de su propio HTML, nunca usar otro producto.
  migrated_from_legacy=0
