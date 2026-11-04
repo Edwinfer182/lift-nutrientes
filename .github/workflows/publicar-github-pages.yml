@@ -28,6 +28,11 @@ jobs:
           mkdir -p _site
           rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' --exclude='node_modules/' --exclude='.env*' ./ _site/
           touch _site/.nojekyll
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Crear rutas de productos sin extensión desde Supabase
+        run: python scripts/generar_rutas_producto.py --output _site
       - name: Subir archivos
         uses: actions/upload-pages-artifact@v3
         with:

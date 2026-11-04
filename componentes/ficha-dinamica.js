@@ -387,9 +387,14 @@
       if (!encontrado && m) { var porId = await get('lift_productos?select=id,activo,slug,product&id=eq.' + m[1]); encontrado = porId[0]; }
       if (!encontrado) return mostrarError('Producto no encontrado', 'Puede que el enlace esté incompleto o que el producto ya no exista.');
       // Un slug personalizado guardado por el panel debe conservarse en la URL.
-      if (!porSeo.length) history.replaceState(null, '', location.pathname + '?slug=' + encodeURIComponent(encontrado.slug) + location.hash);
+      if (!porSeo.length) history.replaceState(null, '', '/producto/' + encodeURIComponent(encontrado.slug) + '/' + location.hash);
     }
     if (!allowed(encontrado)) return mostrarError('Producto no disponible', 'Este producto no está disponible en este momento.');
+    if (location.search) {
+      var seoSlug = (encontrado.product.seo || {}).slug;
+      var cleanSlug = pedido === encontrado.slug || pedido === seoSlug ? pedido : encontrado.slug;
+      history.replaceState(null, '', '/producto/' + encodeURIComponent(cleanSlug) + '/' + location.hash);
+    }
     var marcasOk = new Set(datos[5].filter(function (x) { return x.habilitada === true; }).map(function (x) { return lower(String(x.marca).trim()); }));
     var bloqueados = new Set(datos[6].map(function (x) { return String(x.producto_id); }));
     var productsById = {};
