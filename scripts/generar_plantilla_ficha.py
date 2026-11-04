@@ -96,13 +96,17 @@ def main():
 {texto("ficha-js-compra", G.FICHA_V2_JS)}
 {texto("ficha-js-whatsapp", whatsapp[-1][len("<script>"):-len("</script>")])}
 <script type="application/json" id="ficha-plantilla">{datos_json}</script>
-<script src="/componentes/ficha-dinamica.js?v={G.FICHA_VERSION}-d2"></script>
+<script src="/componentes/ficha-dinamica.js?v={G.FICHA_VERSION}-d3"></script>
 </body></html>
 '''
     if MARCA in html.replace(f'alt="{MARCA}"', ""):
         raise RuntimeError("Quedó texto del producto ficticio en la plantilla")
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
+    # Ruta pública solicitada: archivo real para recibir HTTP 200 en GitHub Pages.
+    pretty = OUT.parent / "crtne-hcl-60-serv-lychee-117" / "index.html"
+    pretty.parent.mkdir(parents=True, exist_ok=True)
+    pretty.write_text(html, encoding="utf-8")
     print("Plantilla dinámica:", OUT.relative_to(ROOT), f"({len(html)//1024} KB)")
 
 

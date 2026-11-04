@@ -359,6 +359,8 @@
   /* ---------- Página ---------- */
   function slugPedido() {
     var q = new URLSearchParams(location.search), s = q.get('slug') || q.get('s') || q.get('producto') || '';
+    var path = location.pathname.match(/^\/producto\/([a-z0-9-]+)\/?$/);
+    if (!s && path) s = path[1];
     return s.replace(/\.html$/, '').trim();
   }
   function mostrarError(titulo, texto) {
