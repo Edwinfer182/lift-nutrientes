@@ -8878,6 +8878,19 @@ async function liftSecondaryGet(productId, force=false){
  liftSecondaryCache.set(k,rows);
  return rows;
 }
+// Pide las imágenes secundarias de muchos productos en pocas consultas (antes: una por producto).
+async function liftSecondaryPrefetch(ids){
+ const need=[...new Set((ids||[]).map(String))].filter(k=>/^\d+$/.test(k)&&!liftSecondaryCache.has(k));
+ for(let i=0;i<need.length;i+=150){
+  const part=need.slice(i,i+150);
+  const u=LIFT_SECONDARY_BASE+'/rest/v1/lift_producto_imagenes?select=id,producto_id,imagen_url,orden&producto_id=in.('+part.join(',')+')&order=producto_id.asc,orden.asc,id.asc';
+  const r=await fetch(u,{headers:{apikey:LIFT_SECONDARY_KEY,Authorization:'Bearer '+LIFT_SECONDARY_KEY}});
+  if(!r.ok)return;
+  const rows=await r.json(),by=new Map(part.map(k=>[k,[]]));
+  (rows||[]).forEach(x=>{const k=String(x.producto_id);if(by.has(k))by.get(k).push(x)});
+  by.forEach((v,k)=>{if(!liftSecondaryCache.has(k))liftSecondaryCache.set(k,v)});
+ }
+}
 async function liftSecondaryEditorLoad(productId){
  const f=document.getElementById('lafSecondaryImages');
  if(!f)return;
@@ -13807,11 +13820,14 @@ document.addEventListener('DOMContentLoaded',()=>{inject();observer.observe(docu
  if(typeof original!=='function')return;
  window.lafRenderProducts=function(){
    original.apply(this,arguments);
-   document.querySelectorAll('#lafProductList [data-lift-secondary]').forEach(async input=>{
+   const inputs=[...document.querySelectorAll('#lafProductList [data-lift-secondary]')];
+   if(!inputs.length)return;
+   // Primero todas en lote; las que falten se piden una por una como antes.
+   Promise.resolve(typeof liftSecondaryPrefetch==='function'?liftSecondaryPrefetch(inputs.map(i=>i.dataset.liftSecondary)):null).catch(()=>{}).then(()=>inputs.forEach(async input=>{
      const id=input.dataset.liftSecondary;
      try{const rows=await liftSecondaryGet(id);if(input.isConnected&&!input.dataset.edited)input.value=(rows[0]&&rows[0].imagen_url)||''}
      catch(e){input.title='No se pudo cargar imagen secundaria: '+e.message}
-   });
+   }));
  };
  document.addEventListener('input',e=>{if(e.target.matches('#lafProductList [data-lift-secondary]'))e.target.dataset.edited='1'});
  window.liftSaveInlineImages=async function(id,button){
