@@ -1,0 +1,3 @@
+# Caché de Python (se crea al correr los scripts)
+__pycache__/
+*.pyc
