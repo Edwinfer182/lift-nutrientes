@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');
+const assert=require('assert');
+(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const p=await b.newPage({viewport:{width:1420,height:1000}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+const r=await p.goto('http://127.0.0.1:8004/plantilla-producto/?id=901126',{waitUntil:'domcontentloaded',timeout:180000});assert.equal(r.status(),200);
+await p.locator('.product-info h1').waitFor({state:'visible'});console.log('PRODUCT',await p.locator('h1').innerText());
+assert((await p.locator('.variant-grid .option').count())>=2);console.log('VARIANTS',await p.locator('.variant-grid .option').count());
+await p.locator('#qtyPlus').click();assert.equal(await p.locator('#qtyValue').innerText(),'2');await p.locator('#qtyMinus').click();assert.equal(await p.locator('#qtyValue').innerText(),'1');
+await p.locator('#pi-add').click();await p.locator('#pi-toast').waitFor({state:'visible'});console.log('PASS quantity and add to cart');
+await p.locator('#openZoom').click();await p.locator('#zoomOverlay').waitFor({state:'visible',timeout:3000}).catch(async()=>{assert(await p.locator('.zoom-overlay:visible').count())});await p.keyboard.press('Escape');console.log('PASS zoom');
+await p.goto('http://127.0.0.1:8004/plantilla-producto/?id=102',{waitUntil:'domcontentloaded',timeout:60000});
+await p.waitForFunction(()=>document.querySelector('#openZoom img').complete&&document.querySelector('#openZoom img').naturalWidth>0,{timeout:30000});
+await p.getByRole('button',{name:'Rechazar',exact:true}).click().catch(()=>{});
+await p.screenshot({path:'/tmp/plantilla-original-desktop.png',fullPage:false});
+await p.setViewportSize({width:390,height:844});await p.screenshot({path:'/tmp/plantilla-original-mobile.png',fullPage:false});
+assert(await p.locator('#pi-add').isVisible());assert.deepEqual(errors,[]);console.log('PASS mobile, image, no JS errors');
+await b.close()})().catch(e=>{console.error(e);process.exit(1)});
