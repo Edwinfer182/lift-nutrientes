@@ -88,10 +88,10 @@ def routes_for(rows):
 
 
 def canonical_pages(output):
-    """Mapea IDs a fichas HTML indexables incluidas en el sitemap real."""
+    """Valida que cada URL del sitemap tenga HTML indexable y canonical coherente."""
     sitemap = output / 'sitemaps' / 'productos.xml'
     if not sitemap.is_file():
-        raise FileNotFoundError('Falta sitemap de productos: ' + str(sitemap))
+        raise FileNotFoundError('Falta sitemap: ' + str(sitemap))
     result = {}
     for loc in ET.parse(sitemap).iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc'):
         url = (loc.text or '').strip()
@@ -99,17 +99,42 @@ def canonical_pages(output):
         if not url.startswith(prefix):
             continue
         path = url[len(prefix):]
-        if not re.fullmatch(r'productos/[a-z0-9-]+-\\d+\\.html', path):
+        if not re.fullmatch(r'productos/[a-z0-9-]+-\d+\.html', path):
             continue
         file = output / path
         if not file.is_file():
-            raise FileNotFoundError('Sitemap anuncia una ficha inexistente: ' + path)
+            raise FileNotFoundError('Sitemap anuncia ficha inexistente: ' + path)
         page = file.read_text(encoding='utf-8', errors='replace')
         if 'name="robots" content="index, follow"' not in page:
-            raise ValueError('Ficha no indexable en sitemap: ' + path)
+            raise ValueError('Ficha no indexable: ' + path)
         if 'rel="canonical" href="' + url + '"' not in page:
-            raise ValueError('Canonical diferente de la URL del sitemap: ' + path)
-        pid = int(re.search(r'-(\\d+)\\.html    parser = argparse.ArgumentParser()
+            raise ValueError('Canonical distinto del sitemap: ' + path)
+        pid = int(re.search(r'-(\d+)\.html$', path).group(1))
+        if pid in result and result[pid] != url:
+            raise ValueError('Dos fichas canonicas para ID ' + str(pid))
+        result[pid] = url
+    if not result:
+        raise ValueError('No hay fichas indexables en el sitemap.')
+    return result
+
+
+def redirect_page(url):
+    """Rutas alternativas llevan al HTML completo, no a una ficha vacia JS."""
+    safe = html.escape(url, quote=True)
+    js = json.dumps(url, ensure_ascii=True)
+    return ('<!doctype html><html lang="es"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<meta name="robots" content="noindex,follow">'
+            '<link rel="canonical" href="' + safe + '">'
+            '<meta http-equiv="refresh" content="0;url=' + safe + '">'
+            '<title>Ficha de producto | SUPGO</title>'
+            '<script>location.replace(' + js + ');</script>'
+            '</head><body><p>Abriendo <a href="' + safe + '">ficha del producto</a>.</p>'
+            '</body></html>\n')
+
+
+def main():
+    parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
 
@@ -126,53 +151,8 @@ def canonical_pages(output):
             redirected += 1
 
     print('Rutas sin .html ni parámetros:', len(routes))
-    print('Rutas que llevan a HTML SEO indexable:', redirected)
+    print('Redirecciones a fichas HTML indexables:', redirected)
     print('Fichas canónicas verificadas:', len(canonicals))
-    print(
-        'Slugs ambiguos omitidos sin detener las demás rutas:',
-        len(conflicts)
-    )
-
-
-if __name__ == '__main__':
-    main()
-, path).group(1))
-        if pid in result and result[pid] != url:
-            raise ValueError('Dos fichas canónicas para el mismo ID: ' + str(pid))
-        result[pid] = url
-    if not result:
-        raise ValueError('El sitemap no contiene fichas indexables.')
-    return result
-
-
-def redirect_page(url):
-    """Ruta de acceso alternativa: conduce al HTML completo legible por Google."""
-    safe = html.escape(url, quote=True)
-    js = json.dumps(url, ensure_ascii=True)
-    return ('<!doctype html><html lang="es"><head><meta charset="utf-8">'
-            '<meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<meta name="robots" content="noindex,follow">'
-            '<link rel="canonical" href="' + safe + '">'
-            '<meta http-equiv="refresh" content="0;url=' + safe + '">'
-            '<title>Ir a ficha de producto | SUPGO</title>'
-            '<script>location.replace(' + js + ');</script>'
-            '</head><body><p>Abriendo <a href="' + safe + '">ficha del producto</a>.</p>'
-            '</body></html>\\n')
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, required=True)
-    args = parser.parse_args()
-
-    routes, conflicts = routes_for(fetch_rows())
-
-    for slug in routes:
-        page = args.output / 'producto' / slug / 'index.html'
-        page.parent.mkdir(parents=True, exist_ok=True)
-        page.write_text(SHELL, encoding='utf-8')
-
-    print('Rutas sin .html ni parámetros:', len(routes))
     print(
         'Slugs ambiguos omitidos sin detener las demás rutas:',
         len(conflicts)
