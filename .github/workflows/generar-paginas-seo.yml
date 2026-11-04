@@ -88,6 +88,10 @@ jobs:
                   bad += 1; print("Revisar", page.name, hits)
               for url in re.findall(r'href="([^"]+)"', m.group(0)):
                   path = url.replace("https://supgo.co", "").lstrip("/")
+                  # Las fichas /producto/<slug>/ son rutas dinamicas de Vercel.
+                  # No existen como archivos locales: se resuelven desde Supabase.
+                  if re.fullmatch(r"producto/[a-z0-9]+(?:-[a-z0-9]+)*/?", path):
+                      continue
                   if path.endswith("/"): path += "index.html"
                   if not Path(path).exists():
                       broken += 1; print("Enlace roto", page.name, url)
@@ -109,7 +113,7 @@ jobs:
           html = sample.read_text(encoding="utf-8")
           assert re.search(r"<title>[^<]+</title>", html), "Sin meta titulo"
           assert '<meta name="robots" content="index, follow">' in html, "Ficha de control no indexable"
-          assert 'rel="canonical" href="https://supgo.co/productos/100-whey-gold-standard-2-lb-chocolate-30191.html"' in html, "Canonical inesperado"
+          assert re.search(r'rel="canonical" href="https://supgo.co/producto/[a-z0-9-]+/"', html), "Canonical dinámico inesperado"
           print(f"Auditoria SEO aprobada para {len(files)} fichas")
           PY
       - name: Verificar botón WhatsApp en fichas generadas
