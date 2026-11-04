@@ -8,7 +8,7 @@ const val=(p,...keys)=>{for(const k of keys)if(p?.[k]!==undefined&&p[k]!==null&&
 const getName=r=>String(val(r.product,'name','nombre')||'Producto'),getBrand=r=>String(val(r.product,'brand','marca')||''),getPrice=r=>Number(val(r.product,'price','precio')||0);
 function image(r){let x=val(r.product,'image','imagen','image_url','imagen_url','foto','url_imagen');if(!x&&Array.isArray(r.product?.images))x=r.product.images[0];if(x&&typeof x==='object')x=x.url;return typeof x==='string'&&/^https?:\/\//.test(x)?x:''}
 const isPublic=r=>{const p=r?.product||{};return r?.activo!==false&&!p.__deleted&&!p.__private&&!p.adminOnly&&!p.hidden&&!p.oculto&&p.visibility!=='admin'&&!!val(p,'name','nombre')};
-const productLink=r=>'/productos/'+slug(getName(r))+'-'+r.id+'.html';
+const productLink=r=>'/producto/'+(r.slug||slug(getName(r)))+'/';
 const store={get:(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 const qtyOf=v=>Number(typeof v==='object'&&v?(v.quantity??v.qty):v)||0;
 function cartObj(){const c=store.get('liftCartV2',{});return c&&typeof c==='object'&&!Array.isArray(c)?c:{}}
