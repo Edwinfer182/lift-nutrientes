@@ -34,7 +34,7 @@ module.exports = async function handler(req, res) {
     try {
       const [brands, blocked] = await Promise.all([
         fetchRows('lift_seo_marcas?select=marca,habilitada&limit=5000'),
-        fetchRows('lift_seo_bloqueos?select=producto_id&eq.producto_id=' + encodeURIComponent(row.id) + '&limit=1')
+        fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + encodeURIComponent(row.id) + '&limit=1')
       ]);
       indexable = brands.some(b => text(b.marca).toLowerCase() === brand.toLowerCase() && b.habilitada === true) && blocked.length === 0;
     } catch (_) { indexable = false; }
