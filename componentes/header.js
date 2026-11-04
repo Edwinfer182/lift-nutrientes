@@ -121,7 +121,7 @@ function suggest(){
  const {products,groups,total}=searchCatalog(raw,6);
  for(const g of groups){const a=document.createElement('a');a.className='supgo-search-item supgo-search-group';a.href=g.href;a.setAttribute('role','option');const ic=document.createElement('span');ic.className='supgo-search-icon';ic.textContent=g.type==='Laboratorio'?'🏷️':'📂';const c=document.createElement('span');c.className='supgo-search-content';const t=document.createElement('span');t.className='supgo-search-title';t.textContent=g.label;const sm=document.createElement('small');sm.className='supgo-search-type';sm.textContent=g.type+' · '+g.count+' productos';c.append(t,sm);a.append(ic,c);results.append(a)}
  for(const {item,name} of products){
-  const p=item.product||{};const a=document.createElement('a');a.className='supgo-search-item';a.href='/productos/'+seoSlug(name)+'-'+item.id+'.html';a.setAttribute('role','option');
+  const p=item.product||{};const a=document.createElement('a');a.className='supgo-search-item';a.href='/producto/'+(item.slug||seoSlug(name))+'/';a.setAttribute('role','option');
   const src=field(p,'image','imagen','image_url','imagen_url','foto','url_imagen');const photo=document.createElement('img');photo.className='supgo-search-photo';photo.alt='';photo.loading='lazy';if(typeof src==='string'&&/^https?:\/\//i.test(src))photo.src=src;else photo.style.visibility='hidden';photo.onerror=()=>{photo.style.visibility='hidden'};a.append(photo);
   const content=document.createElement('span');content.className='supgo-search-content';
   const title=document.createElement('span');title.className='supgo-search-title';title.textContent=name;content.append(title);
