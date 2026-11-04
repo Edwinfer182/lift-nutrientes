@@ -28,9 +28,11 @@
  var had=!!ss(P),pidiendo=false;
  function revisar(){
   var p=ss(P),t=ls(T);
-  // Salió en otra pestaña de este dispositivo: cerrar también aquí
+  // Primero anotar desde cuándo hay sesión en esta pestaña; si no, un «Salir» viejo
+  // (de antes de volver a entrar con la clave) parecía reciente y la sesión se cerraba sola.
+  if(p&&(!had||!ss(D)))ss(D,String(Date.now()));
+  // Salió en otra pestaña de este dispositivo DESPUÉS de entrar aquí: cerrar también aquí
   if(p&&Number(ls(S)||0)>Number(ss(D)||0)){had=false;try{sessionStorage.removeItem(P);sessionStorage.removeItem(U)}catch(e){}if(typeof window.lockLiftAdmin==='function')try{window.lockLiftAdmin()}catch(e){}else location.reload();return}
-  if(p&&!had)ss(D,String(Date.now()));
   if(p&&ss(U)==='1'&&!t&&!pidiendo){
    pidiendo=true;
    post({action:'device',password:p,etiqueta:navigator.userAgent},false,function(r){pidiendo=false;if(r.status===200){var j=json(r);if(j.token)ls(T,j.token)}});
