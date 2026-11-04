@@ -8,6 +8,12 @@ def product(pid, slug, custom=None, **flags):
 
 
 class ProductRoutesTest(unittest.TestCase):
+    def test_duplicate_database_slugs_do_not_block_other_products(self):
+        routes, conflicts = routes_for([product(1, 'duplicado'), product(2, 'duplicado'), product(3, 'nutra-vegan-protein-400-gr')])
+        self.assertNotIn('duplicado', routes)
+        self.assertIn('duplicado', conflicts)
+        self.assertEqual(routes['nutra-vegan-protein-400-gr'], 3)
+
     def test_custom_and_original_route_resolve_to_same_product(self):
         routes, conflicts = routes_for([product(1, 'producto-1', 'nombre-editado')])
         self.assertEqual(routes, {'producto-1': 1, 'nombre-editado': 1})

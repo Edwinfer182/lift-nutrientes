@@ -376,12 +376,14 @@
       get('lift_seo_marcas?select=marca,habilitada&limit=5000').catch(function () { return []; }),
       get('lift_seo_bloqueos?select=producto_id&limit=5000').catch(function () { return []; })
     ]);
+    if (datos[0].length > 1) return mostrarError('Slug duplicado', 'Hay varios productos con esta dirección. Debe corregirse el slug en el catálogo.');
     var encontrado = datos[0][0], rows = datos[1], offers = datos[2], settings = datos[3], REVIEWS = datos[4];
     window.__supgoSeoFilters = filtros(rows);
     if (!encontrado) {
       /* Slug viejo (cambió el nombre): buscar por el ID del final y corregir la dirección. */
       /* Slug personalizado del panel SEO (product.seo.slug) o slug viejo: buscar por el ID del final. */
-      var porSeo = await get('lift_productos?select=id,activo,slug,product&product->seo->>slug=eq.' + encodeURIComponent(pedido) + '&limit=1').catch(function () { return []; });
+      var porSeo = await get('lift_productos?select=id,activo,slug,product&product->seo->>slug=eq.' + encodeURIComponent(pedido) + '&limit=2').catch(function () { return []; });
+      if (porSeo.length > 1) return mostrarError('Slug duplicado', 'Hay varios productos con esta dirección. Debe corregirse el slug en el catálogo.');
       encontrado = porSeo[0];
       var m = /(?:^|-)(\d+)$/.exec(pedido);
       if (!encontrado && m) { var porId = await get('lift_productos?select=id,activo,slug,product&id=eq.' + m[1]); encontrado = porId[0]; }

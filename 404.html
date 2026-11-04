@@ -7,6 +7,8 @@
 <title>Página no encontrada · SUPGO</title>
 <link rel="icon" type="image/png" href="/favicon-48.png">
 <script>
+// Producto nuevo o renombrado aún no publicado: cargar la plantilla en la misma ruta.
+(function(){if(/^\/producto\/[a-z0-9-]+\/?$/.test(location.pathname)){var script=document.createElement('script');script.src='/producto/cargar-ruta.js';document.head.appendChild(script);}})();
 // Enlaces cortos de entrega: supgo.co/e/CODIGO → /e/?c=CODIGO
 (function(){var m=location.pathname.match(/^\/e\/([A-Za-z0-9]{7})\/?$/);if(m)location.replace('/e/?c='+m[1].toUpperCase());})();
 // Ficha que aún no tiene página estática (producto nuevo o renombrado): abrir la ficha dinámica.

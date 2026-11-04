@@ -35,23 +35,28 @@ def fetch_rows():
 def routes_for(rows):
     rows = [row for row in rows if allowed(row)]
     routes = {}
+    originals = {}
+    conflicts = []
     for row in rows:
         value = row.get('slug') or ''
         if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', value):
             raise ValueError('Slug automático no válido para producto ' + str(row['id']))
-        if value in routes and routes[value] != row['id']:
-            raise ValueError('Slug automático duplicado: ' + value)
-        routes[value] = row['id']
+        originals.setdefault(value, set()).add(row['id'])
+    for value, ids in originals.items():
+        if len(ids) > 1:
+            conflicts.append(value)
+        else:
+            routes[value] = next(iter(ids))
     custom = {}
     for row in rows:
         seo = row['product'].get('seo') or {}
         value = seo.get('slug') if isinstance(seo, dict) else None
         if isinstance(value, str) and re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', value):
             custom.setdefault(value, set()).add(row['id'])
-    conflicts = []
     for value, ids in custom.items():
-        if len(ids) > 1 or (value in routes and routes[value] not in ids):
-            conflicts.append(value)
+        if value in conflicts or len(ids) > 1 or (value in routes and routes[value] not in ids):
+            if value not in conflicts:
+                conflicts.append(value)
             continue
         routes[value] = next(iter(ids))
     return routes, conflicts
@@ -67,7 +72,7 @@ def main():
         page.parent.mkdir(parents=True, exist_ok=True)
         page.write_text(SHELL, encoding='utf-8')
     print('Rutas sin .html ni parámetros:', len(routes))
-    print('Slugs personalizados ambiguos omitidos; conservan su ruta automática:', len(conflicts))
+    print('Slugs ambiguos omitidos sin detener las demás rutas:', len(conflicts))
 
 
 if __name__ == '__main__':
