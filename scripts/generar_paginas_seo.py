@@ -576,6 +576,8 @@ def bsn_local_seo(row,name,brand,description):
  '<h3>Productos relacionados de BSN</h3><p>Explora el '+a(*links[0])+', compara '+a(*links[1])+', '+a(*links[2])+' y '+a(*links[3])+'. Estos enlaces permiten descubrir otras referencias de la misma marca y encontrar la presentación que buscas.</p>'
  '<h3>Envíos de BSN a Colombia</h3><p>También puedes consultar pedidos desde Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y otras ciudades de Colombia. Confirma cobertura, costo de envío, medios de pago y disponibilidad antes de finalizar tu compra. Cada ficha incluye los detalles publicados del producto para ayudarte a tomar una decisión informada.</p></section>')
 
+# La ficha dinámica (componentes/ficha-dinamica.js) repite esta lógica en el navegador:
+# si cambias build() o main(), haz el mismo cambio allí.
 def build(row):
  p=row["product"]; seo_data=row.get("_seo") or {}; name=str(p.get("name") or p.get("nombre")); pid=row["id"]
  key=slug(name) or "producto"; filename=f"{key}-{pid}.html"

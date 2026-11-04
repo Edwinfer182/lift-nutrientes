@@ -6,6 +6,7 @@ on:
       - '.github/workflows/generar-paginas-seo.yml'
       - 'scripts/generar_paginas_seo.py'
       - 'scripts/seo_contenido.py'
+      - 'scripts/generar_plantilla_ficha.py'
   workflow_dispatch:
     inputs:
       marca:
@@ -44,6 +45,8 @@ jobs:
           SEO_PREVIEW_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_creatina_iron && '102' || '' }}
           SEO_BRAND_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.marca || '' }}
         run: python scripts/generar_paginas_seo.py
+      - name: Actualizar la ficha dinámica (producto/?slug=) con el mismo diseño
+        run: python scripts/generar_plantilla_ficha.py
       - name: Unir en Google las fichas que solo cambian de sabor
         run: python scripts/seo_variantes.py
       - name: Verificar HTML SEO y Schema del producto
@@ -129,7 +132,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A productos/ productos-assets/ sitemap-productos.xml
+          git add -A productos/ productos-assets/ sitemap-productos.xml producto/
           git status --short
           if ! git diff --cached --quiet; then
             git commit -m "SEO: actualizar fichas individuales desde Supabase"
