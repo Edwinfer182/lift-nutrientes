@@ -104,6 +104,68 @@ def set_noindex(html):
     return html.replace("</head>", tag + "\n</head>", 1)
 
 
+REDIRECT_MARK = "<!-- supgo-redireccion -->"
+LEGACY_MAP = Path(__file__).resolve().parent / "fichas_heredadas.json"
+
+
+def redirect_page(target):
+    """GitHub Pages no permite 301: canonical + meta refresh inmediato, que Google
+    trata como redirección permanente y le traslada el posicionamiento."""
+    return (
+        '<!doctype html>\n<html lang="es"><head><meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+        '<title>Esta ficha se movió | SUPGO</title>\n'
+        f'<link rel="canonical" href="{target}">\n'
+        f'<meta http-equiv="refresh" content="0; url={target}">\n'
+        f'{REDIRECT_MARK}\n'
+        f'<script>location.replace({json.dumps(target)}+location.search+location.hash);</script>\n'
+        '</head><body>\n'
+        f'<p>Esta ficha se movió. <a href="{target}">Ver la página actual</a>.</p>\n'
+        '</body></html>\n'
+    )
+
+
+def redirect_legacy(approved=None):
+    """Fichas heredadas (URL antiguas indexadas) -> página vigente, según
+    scripts/fichas_heredadas.json (lo crea mapear_fichas_heredadas.py).
+    Idempotente: se reaplica tras cada regeneración, que las vuelve a dejar noindex.
+    Nunca toca una ficha publicada en el sitemap ni redirige a una página noindex."""
+    if not LEGACY_MAP.exists():
+        return 0
+    if approved is None:
+        approved = set(re.findall(r"<loc>\s*(https://supgo\.co/productos/[^<\s]+)\s*</loc>",
+                                  APPROVED.read_text(encoding="utf-8"))) if APPROVED.exists() else set()
+    mapping = json.loads(LEGACY_MAP.read_text(encoding="utf-8"))
+    applied = skipped = 0
+    for name, dest in sorted(mapping.items()):
+        source = PRODUCTS / name
+        if not source.exists() or f"{BASE}/productos/{name}" in approved:
+            skipped += 1
+            continue
+        dest_path = ROOT / dest.lstrip("/")
+        if dest.endswith("/"):
+            dest_path = dest_path / "index.html"
+        if not dest_path.exists():
+            skipped += 1
+            continue
+        dest_html = dest_path.read_text(encoding="utf-8", errors="replace")
+        if is_noindex(dest_html):
+            skipped += 1
+            continue
+        target = BASE + dest
+        # Si el destino es una variante de sabor unida a otra, ir directo a la principal.
+        final = canonical(dest_html)
+        if final.startswith(BASE + "/productos/") and final != target and (PRODUCTS / final.rsplit("/", 1)[1]).exists():
+            target = final
+        current = source.read_text(encoding="utf-8", errors="replace")
+        # Ya redirigida al mismo destino (otros scripts pueden añadir p. ej. el favicon): no reescribir.
+        if not (REDIRECT_MARK in current and canonical(current) == target and f'url={target}"' in current):
+            source.write_text(redirect_page(target), encoding="utf-8")
+        applied += 1
+    print(f"Fichas heredadas redirigidas: {applied}; omitidas (sin destino válido o publicadas): {skipped}")
+    return applied
+
+
 def clean_duplicates(approved):
     sku_to_url = {}
     for url in approved:
@@ -120,7 +182,7 @@ def clean_duplicates(approved):
         if url in approved:
             continue
         html = path.read_text(encoding="utf-8", errors="replace")
-        if is_noindex(html):
+        if is_noindex(html) or REDIRECT_MARK in html:
             continue
         sku, name = product_info(html)
         target, target_name = sku_to_url.get(sku, ("", ""))
@@ -291,6 +353,7 @@ def main():
     if not approved:
         sys.exit("ERROR: sitemap-productos.xml sin URLs")
 
+    redirect_legacy(approved)
     clean_duplicates(approved)
     # Fichas que solo cambian de sabor: una principal por grupo (scripts/seo_variantes.py).
     sys.path.insert(0, str(Path(__file__).resolve().parent))
