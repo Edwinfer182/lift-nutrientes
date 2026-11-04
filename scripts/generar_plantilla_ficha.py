@@ -96,7 +96,7 @@ def main():
 {texto("ficha-js-compra", G.FICHA_V2_JS)}
 {texto("ficha-js-whatsapp", whatsapp[-1][len("<script>"):-len("</script>")])}
 <script type="application/json" id="ficha-plantilla">{datos_json}</script>
-<script src="/componentes/ficha-dinamica.js?v={G.FICHA_VERSION}-d1"></script>
+<script src="/componentes/ficha-dinamica.js?v={G.FICHA_VERSION}-d2"></script>
 </body></html>
 '''
     if MARCA in html.replace(f'alt="{MARCA}"', ""):

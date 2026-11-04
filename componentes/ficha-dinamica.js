@@ -378,8 +378,11 @@
     window.__supgoSeoFilters = filtros(rows);
     if (!encontrado) {
       /* Slug viejo (cambió el nombre): buscar por el ID del final y corregir la dirección. */
+      /* Slug personalizado del panel SEO (product.seo.slug) o slug viejo: buscar por el ID del final. */
+      var porSeo = await get('lift_productos?select=id,activo,slug,product&product->seo->>slug=eq.' + encodeURIComponent(pedido) + '&limit=1').catch(function () { return []; });
+      encontrado = porSeo[0];
       var m = /(?:^|-)(\d+)$/.exec(pedido);
-      if (m) { var porId = await get('lift_productos?select=id,activo,slug,product&id=eq.' + m[1]); encontrado = porId[0]; }
+      if (!encontrado && m) { var porId = await get('lift_productos?select=id,activo,slug,product&id=eq.' + m[1]); encontrado = porId[0]; }
       if (!encontrado) return mostrarError('Producto no encontrado', 'Puede que el enlace esté incompleto o que el producto ya no exista.');
       history.replaceState(null, '', location.pathname + '?slug=' + encodeURIComponent(encontrado.slug) + location.hash);
     }
