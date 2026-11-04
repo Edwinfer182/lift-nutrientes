@@ -183,7 +183,7 @@
     var promo = active_offer(item), regular = fl(or(p.price, p.precio, 0)); if (!isFinite(regular)) regular = 0;
     return { price: regular, sale: promo ? promo[1] : null, pct: promo ? roundEven((1 - promo[1] / promo[0]) * 100) : 0, until: promo ? (item._offer || {}).promoUntil : null,
       id: item.id, name: name, brand: String(or(p.brand, p.marca, '')), image: String(or(p.image, p.imagen, '')),
-      url: BASE + '/productos/' + (slug(name) || 'producto') + '-' + item.id + '.html',
+      url: BASE + '/producto/' + (item.slug || slug(name) || 'producto') + '/',
       label: String(or(p.flavor, p.sabor, p.presentation, p.presentacion, name)), on_offer: promo !== null };
   }
   function family_key(item) {
@@ -478,7 +478,7 @@
       if (lower(String(or(p.brand, p.marca, '')).trim()) !== b) return;
       var mine = slug(or(p.name, p.nombre)), choices = valid.filter(function (r) { return lower(String(or(r.product.brand, r.product.marca, '')).trim()) === b && r.id !== row.id; });
       choices.sort(function (x, y) { var a = slug(or(x.product.name, x.product.nombre)) === mine ? 1 : 0, c = slug(or(y.product.name, y.product.nombre)) === mine ? 1 : 0; return a - c || cmp(String(x.id), String(y.id)); });
-      row[b === 'bsn' ? '_bsn_links' : '_applied_links'] = choices.slice(0, 3).map(function (r) { var n = String(or(r.product.name, r.product.nombre)); return { name: n, url: BASE + '/productos/' + (slug(n) || 'producto') + '-' + r.id + '.html' }; });
+      row[b === 'bsn' ? '_bsn_links' : '_applied_links'] = choices.slice(0, 3).map(function (r) { var n = String(or(r.product.name, r.product.nombre)); return { name: n, url: BASE + '/producto/' + (r.slug || slug(n) || 'producto') + '/' }; });
     });
     row._seo = seoRows[0] || {};
     var ids2 = [String(row.id)].concat(row._variants.map(function (v) { return String(v.id); }).filter(function (x) { return x !== String(row.id); }));
@@ -489,7 +489,7 @@
 
   async function dibujar(row, reviews, productsById) {
     var p = row.product, seo = row._seo || {}, name = String(or(p.name, p.nombre)), pid = row.id;
-    var key = slug(name) || 'producto', canonical = BASE + '/productos/' + key + '-' + pid + '.html';
+    var key = row.slug || slug(name) || 'producto', canonical = BASE + '/producto/' + key + '/';
     var embedded = p.seo && typeof p.seo === 'object' && !Array.isArray(p.seo) ? p.seo : {};
     var brand = String(or(p.brand, p.marca, '')), description = String(or(p.description, p.descripcion, '')).trim();
     var image = String(or(embedded.image, seo.imagen_seo, p.image, p.imagen, '')).trim();
