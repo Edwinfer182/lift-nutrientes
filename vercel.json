@@ -2,9 +2,29 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "lift-nutrientes.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "lift-nutrientes.vercel.app"
+        }
+      ],
       "destination": "https://supgo.co/:path*",
       "permanent": true
+    }
+  ],
+  "functions": {
+    "api/producto.js": {
+      "includeFiles": "producto/index.html"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/producto/:slug([a-z0-9-]+)/",
+      "destination": "/api/producto?slug=:slug"
+    },
+    {
+      "source": "/producto/:slug([a-z0-9-]+)",
+      "destination": "/api/producto?slug=:slug"
     }
   ]
 }
