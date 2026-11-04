@@ -1,0 +1,37 @@
+name: Pruebas 404 y SEO de productos (solo rama)
+on:
+  push:
+    branches:
+      - fix/404-seo-productos-prueba
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compilar generador de rutas
+        run: python -m py_compile scripts/generar_rutas_producto.py
+      - name: Auditar sitemap y fichas SEO sin cambiar archivos
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts')
+          from generar_rutas_producto import canonical_pages, redirect_page, routes_for
+          pages = canonical_pages(Path('.'))
+          assert len(pages) >= 900, f'Fichas indexables inesperadamente pocas: {len(pages)}'
+          sample = redirect_page(pages[30208])
+          assert 'noindex,follow' in sample and 'rel="canonical"' in sample
+          assert 'amino-x-70-servicios-30208.html' in sample
+          routes, conflicts = routes_for([
+              {'id':30208,'activo':True,'slug':'amino-x-70-servicios','product':{'name':'Amino X','seo':{'slug':'amino-x-70-servicios'}}}
+          ])
+          assert routes.get('amino-x-70-servicios') == 30208
+          assert not conflicts
+          print('OK: ', len(pages), 'fichas HTML indexables con canonical y sitemap coherentes')
+          PY
