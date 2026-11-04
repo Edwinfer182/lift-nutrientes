@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
     let html = template.replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
       .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + (indexable ? 'index, follow' : 'noindex, follow') + '">')
-      .replace('</head>', '<link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
+      .replace('</head>', '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
       .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
