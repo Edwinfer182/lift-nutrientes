@@ -128,11 +128,13 @@ jobs:
         run: python scripts/sincronizar_favicon.py
       - name: Revisar marca SUPGO (sin Lift Nutrientes)
         run: python scripts/revisar_marca.py productos productos-assets sitemap-productos.xml
+      - name: Unificar enlaces internos y redirecciones a fichas vigentes
+        run: python scripts/actualizar_enlaces_internos.py
       - name: Publicar páginas generadas
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A productos/ productos-assets/ sitemap-productos.xml producto/
+          git add -u && git add -A productos/ productos-assets/ sitemap-productos.xml producto/ scripts/reporte_enlaces_vigentes.json
           git status --short
           if ! git diff --cached --quiet; then
             git commit -m "SEO: actualizar fichas individuales desde Supabase"
