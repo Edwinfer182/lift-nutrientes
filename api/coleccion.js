@@ -56,7 +56,7 @@ module.exports = async function handler(req, res) {
       mainEntity:{'@type':'ItemList',numberOfItems:rows.length,itemListElement:rows.slice(0,50).map((r,i)=>({
         '@type':'ListItem',position:i+1,name:str(r.nombre),url:'https://supgo.co/producto/'+r.slug+'/'
       }))}};
-    let html = template;
+    let html = template.replace('<meta name="robots" content="noindex, follow">', '<meta name="robots" content="index, follow">');
     const replacements = {
       '@@TITLE@@':esc(title), '@@DESCRIPTION@@':esc(desc), '@@CANONICAL@@':esc(canonical),
       '@@HEADING@@':esc(heading), '@@INTRO@@':esc(intro), '@@SLUG@@':esc(requested),
