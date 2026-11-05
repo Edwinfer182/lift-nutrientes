@@ -2,7 +2,6 @@
    Mantiene HTML inicial indexable y deja las tarjetas interactivas a supgo-pages.js. */
 const fs = require('node:fs');
 const path = require('node:path');
-const SEO = require('./colecciones-seo.json');
 const SB = 'https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/';
 const API_KEY = 'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 const str = v => String(v == null ? '' : v).trim();
@@ -43,20 +42,30 @@ module.exports = async function handler(req, res) {
     const isCategory = tipo === 'categoria';
     const base = isCategory ? 'categorias' : 'laboratorios';
     const canonical = 'https://supgo.co/' + base + '/' + requested + '/';
-    const custom = SEO[tipo + '/' + requested] || {};
-    const title = str(custom.title || (isCategory ? label + ' en Medellín | SUPGO' : 'Suplementos ' + label + ' en Medellín | SUPGO')).slice(0, 100);
-    const desc = str(custom.meta || ((isCategory ? 'Encuentra ' + label + ' en SUPGO: ' : 'Compra productos de ' + label + ' en SUPGO: ')
-      + rows.length + ' referencias disponibles. Consulta precios y presentaciones con envíos desde Medellín a Colombia.'));
-    const heading = str(custom.h1 || label);
-    const intro = str(custom.intro || desc);
+    // Todos los textos SEO se editan en Supabase; no se redactan desde Vercel.
+    const seoQuery = new URLSearchParams({select:'tipo,slug,titulo_seo,meta_descripcion,h1,introduccion,canonical_url,indexable,datos_estructurados',tipo:'eq.'+tipo,slug:'eq.'+requested,limit:'2'});
+    const seoResp = await fetch(SB + 'lift_coleccion_seo?' + seoQuery, {
+      headers:{apikey:API_KEY,Accept:'application/json'}, signal:AbortSignal.timeout(9000)
+    });
+    if (!seoResp.ok) throw Error('Supabase SEO HTTP ' + seoResp.status);
+    const seoRows = await seoResp.json();
+    if (seoRows.length !== 1) throw Error('SEO de colección inexistente o duplicado: '+tipo+'/'+requested);
+    const seo = seoRows[0];
+    const title = str(seo.titulo_seo);
+    const desc = str(seo.meta_descripcion);
+    const heading = str(seo.h1);
+    const intro = str(seo.introduccion);
+    if (!title || !desc || !heading) throw Error('SEO de colección incompleto: '+tipo+'/'+requested);
+    if (seo.canonical_url !== canonical) throw Error('Canonical de colección incorrecto: '+tipo+'/'+requested);
     const initial = '<ul class="seo-productos">' + rows.slice(0, 80).map(r =>
       '<li><a href="/producto/' + esc(r.slug) + '/">' + esc(r.nombre) + '</a></li>'
     ).join('') + '</ul>';
-    const schema = {'@context':'https://schema.org','@type':'CollectionPage',name:label,url:canonical,description:desc,
+    const schema = {'@context':'https://schema.org','@type':'CollectionPage',name:heading,url:canonical,description:desc,
       mainEntity:{'@type':'ItemList',numberOfItems:rows.length,itemListElement:rows.slice(0,50).map((r,i)=>({
         '@type':'ListItem',position:i+1,name:str(r.nombre),url:'https://supgo.co/producto/'+r.slug+'/'
       }))}};
-    let html = template.replace('<meta name="robots" content="noindex, follow">', '<meta name="robots" content="index, follow">');
+    if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object' && !Array.isArray(seo.datos_estructurados)) Object.assign(schema,seo.datos_estructurados);
+    let html = template.replace('<meta name="robots" content="noindex, follow">', '<meta name="robots" content="' + (seo.indexable === false ? 'noindex, follow' : 'index, follow') + '">');
     const replacements = {
       '@@TITLE@@':esc(title), '@@DESCRIPTION@@':esc(desc), '@@CANONICAL@@':esc(canonical),
       '@@HEADING@@':esc(heading), '@@INTRO@@':esc(intro), '@@SLUG@@':esc(requested),

@@ -18,32 +18,58 @@
     },
     "api/coleccion.js": {
       "includeFiles": "{categorias,laboratorios}/plantilla.html"
+    },
+    "api/pagina.js": {
+      "includeFiles": "{home,categorias,laboratorios,ofertas,guias,politica-de-devoluciones,tratamiento-de-datos}/*.html"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/categorias/:slug([a-z0-9-]+)/",
-      "destination": "/api/coleccion?tipo=categoria&slug=:slug"
+      "src": "^/home/?$",
+      "dest": "/api/pagina?ruta=home"
     },
     {
-      "source": "/categorias/:slug([a-z0-9-]+)",
-      "destination": "/api/coleccion?tipo=categoria&slug=:slug"
+      "src": "^/categorias/?$",
+      "dest": "/api/pagina?ruta=categorias"
     },
     {
-      "source": "/laboratorios/:slug([a-z0-9-]+)/",
-      "destination": "/api/coleccion?tipo=laboratorio&slug=:slug"
+      "src": "^/laboratorios/?$",
+      "dest": "/api/pagina?ruta=laboratorios"
     },
     {
-      "source": "/laboratorios/:slug([a-z0-9-]+)",
-      "destination": "/api/coleccion?tipo=laboratorio&slug=:slug"
+      "src": "^/ofertas/?$",
+      "dest": "/api/pagina?ruta=ofertas"
     },
     {
-      "source": "/producto/:slug([a-z0-9-]+)/",
-      "destination": "/api/producto?slug=:slug"
+      "src": "^/guias/?$",
+      "dest": "/api/pagina?ruta=guias"
     },
     {
-      "source": "/producto/:slug([a-z0-9-]+)",
-      "destination": "/api/producto?slug=:slug"
+      "src": "^/politica-de-devoluciones/?$",
+      "dest": "/api/pagina?ruta=politica-de-devoluciones"
+    },
+    {
+      "src": "^/tratamiento-de-datos/?$",
+      "dest": "/api/pagina?ruta=tratamiento-de-datos"
+    },
+    {
+      "src": "^/guias/([a-z0-9-]+)\\.html$",
+      "dest": "/api/pagina?ruta=guias/$1"
+    },
+    {
+      "src": "^/producto/([a-z0-9-]+)/?$",
+      "dest": "/api/producto?slug=$1"
+    },
+    {
+      "src": "^/categorias/([a-z0-9-]+)/?$",
+      "dest": "/api/coleccion?tipo=categoria&slug=$1"
+    },
+    {
+      "src": "^/laboratorios/([a-z0-9-]+)/?$",
+      "dest": "/api/coleccion?tipo=laboratorio&slug=$1"
+    },
+    {
+      "handle": "filesystem"
     }
   ]
 }

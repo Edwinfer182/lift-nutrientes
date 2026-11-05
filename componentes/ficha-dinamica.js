@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var D = JSON.parse(document.getElementById('ficha-plantilla').textContent);
-  var BASE = D.base, SB = D.supabase, KEY = D.key, P = D.piezas, CT = D.contenido;
+  var BASE = D.base, SB = D.supabase, KEY = D.key, P = D.piezas;
   var LABS = new Set(D.laboratorios), CATS = new Set(D.categorias);
   var root = document.getElementById('supgo-ficha');
   var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -226,80 +226,6 @@
     return keyed.slice(0, n).map(function (x) { return x[1]; });
   }
 
-  /* ---------- seo_contenido.py ---------- */
-  function grupo_de(categoria) { var c = slug(categoria); for (var g in CT.grupos) if (CT.grupos[g].indexOf(c) >= 0) return g; return 'capsulas'; }
-  function es_delgada(texto, nombre) {
-    texto = plain(texto); if (!texto) return true;
-    if (/Encuentra .{3,200}? en Supgo\./i.test(texto)) return true;
-    if (texto.indexOf('La ficha corresponde específicamente a') >= 0) return true;
-    var words = texto.split(/\s+/).filter(Boolean).length;
-    if (texto.indexOf('Revisa la presentación, ingredientes e instrucciones del fabricante antes de comprar') >= 0 && words < 150) return true;
-    return words < 120;
-  }
-  function titulo_no_corresponde(titulo, nombre) {
-    if (!titulo || !nombre) return false;
-    var pal = slug(nombre).split('-').filter(function (w) { return w.length >= 3 && !/\d/.test(w); });
-    if (!pal.length) return false;
-    return slug(titulo).indexOf(pal[0]) < 0;
-  }
-  function titulo_seo(nombre, marca) {
-    var base = nombre.trim();
-    if (marca && slug(base).indexOf(slug(marca)) < 0) { var cm = base + ' ' + marca.trim(); if (cm.length + 8 <= 65) base = cm; }
-    var t = base + ' | SUPGO';
-    if (t.length > 70) t = base.slice(0, 62).replace(/[ \-|·]+$/, '') + ' | SUPGO';
-    return t;
-  }
-  function meta_descripcion(nombre, marca, sabor, presentacion) {
-    var et = !marca || slug(nombre).indexOf(slug(marca)) >= 0 ? nombre : nombre + ' de ' + marca;
-    var extra = sabor && slug(nombre).indexOf(slug(sabor)) < 0 ? ' sabor ' + sabor : '';
-    var opts = ['Compra ' + et + extra + ' en SUPGO Medellín. Consulta precio, presentaciones y disponibilidad. Envíos a Bogotá, Cali y toda Colombia.',
-      'Compra ' + et + extra + ' en SUPGO Medellín. Precio actualizado y envíos a toda Colombia.', 'Compra ' + et + ' en SUPGO. Envíos a toda Colombia.'];
-    for (var i = 0; i < opts.length; i++) if (opts[i].length <= 160) return opts[i];
-    return ('Compra ' + et).slice(0, 120).trimEnd() + ' en SUPGO. Envíos a Colombia.';
-  }
-  var UNIDAD = { lb: 'lb', lbs: 'lb', libra: 'lb', libras: 'lb', kg: 'kg', kilo: 'kg', kilos: 'kg', g: 'g', gr: 'g', grs: 'g', grm: 'g', gramo: 'g', gramos: 'g', oz: 'oz' };
-  function datos_presentacion(nombre, presentacion) {
-    var texto = nombre + ' ' + (T(presentacion) ? presentacion : ''), d = {}, m;
-    var B = '(?![A-Za-z0-9_À-ɏ])';
-    if ((m = new RegExp('(\\d+(?:[.,]\\d+)?)\\s*(lbs?|libras?|kg|kilos?|grm|gramos?|grs?|g|oz)' + B, 'i').exec(texto))) d.contenido = m[1].replace('.', ',') + ' ' + (UNIDAD[m[2].toLowerCase()] || m[2].toLowerCase());
-    if ((m = new RegExp('(\\d+)\\s*(servicios|servings?|serv|srv|ser|porciones?)' + B, 'i').exec(texto))) d.porciones = m[1];
-    if ((m = new RegExp('(\\d+)\\s*(c[aá]psulas?|capsules?|caps?|cap|tabletas?|tablets?|tabs?|softgels?|gomitas?|gummies|sachets?|sobres?|unidades?|und|veg\\s*caps)' + B, 'i').exec(texto))) {
-      var t = m[2].toLowerCase();
-      t = /^(c|veg)/.test(t) ? 'cápsulas' : /^t/.test(t) ? 'tabletas' : /^soft/.test(t) ? 'cápsulas blandas' : /^(gom|gum)/.test(t) ? 'gomitas' : /^(sach|sob)/.test(t) ? 'sobres' : 'unidades';
-      d.unidades = m[1] + ' ' + t;
-    }
-    return d;
-  }
-  function _lista_enlaces(items) { return '<ul>' + items.map(function (i) { return '<li><a href="' + esc(i.url) + '">' + esc(i.name) + '</a></li>'; }).join('') + '</ul>'; }
-  async function descripcion_html(o) {
-    var grupo = grupo_de(o.categoria), marca_txt = o.marca || 'su fabricante', cat_txt = o.categoria || 'suplementos', partes = [];
-    var intro = (await _elegir(CT.intro[grupo], o.pid)).replace(/\{nombre\}/g, esc(o.nombre)).replace(/\{marca\}/g, esc(marca_txt)).replace(/\{categoria\}/g, esc(cat_txt.toLowerCase()));
-    partes.push('<h2>' + esc(o.nombre) + '</h2><p>' + intro + ' Aquí puedes consultar el precio vigente, las presentaciones y los sabores disponibles antes de hacer tu pedido.</p>');
-    var datos = datos_presentacion(o.nombre, o.presentacion), filas = [];
-    if (o.marca) filas.push(['Marca', o.url_marca ? '<a href="' + esc(o.url_marca) + '">' + esc(o.marca) + '</a>' : esc(o.marca)]);
-    if (o.categoria) filas.push(['Categoría', o.url_categoria ? '<a href="' + esc(o.url_categoria) + '">' + esc(o.categoria) + '</a>' : esc(o.categoria)]);
-    if (T(o.presentacion) && String(o.presentacion).trim()) filas.push(['Presentación', esc(String(o.presentacion).trim())]);
-    else if (datos.contenido) filas.push(['Contenido', esc(datos.contenido)]);
-    if (datos.porciones) filas.push(['Porciones', esc(datos.porciones) + ' (según el nombre de la presentación)']);
-    if (datos.unidades) filas.push(['Unidades', esc(datos.unidades)]);
-    if (o.sabor && slug(o.sabor) !== slug(o.nombre)) filas.push(['Sabor', esc(o.sabor)]);
-    if (filas.length) partes.push('<h3>Datos de esta presentación</h3><ul>' + filas.map(function (f) { return '<li><strong>' + f[0] + ':</strong> ' + f[1] + '</li>'; }).join('') + '</ul>');
-    partes.push('<h3>Qué revisar antes de comprar</h3><ul>' + CT.revisar[grupo].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>');
-    var otros = o.variantes.filter(function (v) { return String(v.id) !== String(o.pid); });
-    if (otros.length) partes.push('<h3>Otros sabores de esta presentación</h3>' + _lista_enlaces(otros.slice(0, 8)));
-    if (o.mas_marca.length) {
-      var cola = o.url_marca ? ' <a href="' + esc(o.url_marca) + '">Ver todos los productos ' + esc(o.marca) + '</a>.' : '';
-      partes.push('<h3>Más productos ' + esc(o.marca) + '</h3>' + _lista_enlaces(o.mas_marca.slice(0, 4)) + (cola ? '<p>' + cola.trim() + '</p>' : ''));
-    }
-    if (o.alternativas.length) {
-      var cola2 = o.url_categoria ? '<p><a href="' + esc(o.url_categoria) + '">Ver toda la categoría ' + esc(o.categoria) + '</a>.</p>' : '';
-      partes.push('<h3>Otras opciones en ' + esc(cat_txt) + '</h3>' + _lista_enlaces(o.alternativas.slice(0, 4)) + cola2);
-    }
-    partes.push('<h3>Compra en Medellín y envíos a Colombia</h3><p>' + esc(await _elegir(CT.cierre, o.pid + '-cierre')) + '</p>');
-    if (grupo !== 'accesorio' && grupo !== 'snack') partes.push('<p class="seo-leyenda"><small>' + esc(CT.leyenda) + '</small></p>');
-    return '<div class="seo-auto" data-contenido="' + CT.version + '">' + partes.join('') + '</div>';
-  }
-
   /* ---------- Bloques HTML del generador ---------- */
   function stars_html(n, size) { size = size || 16; return '<span role="img" aria-label="' + n + ' de 5 estrellas" style="color:#f5b301;font-size:' + size + 'px;letter-spacing:1px">' + '★'.repeat(n) + '<span style="color:#d9d9d9">' + '★'.repeat(5 - n) + '</span></span>'; }
   function review_date(d) { var m = /^(\d+)-(\d+)-(\d+)$/.exec(d || ''); if (!m || +m[2] < 1 || +m[2] > 12) return ''; return (+m[3]) + ' de ' + MESES[+m[2] - 1] + ' de ' + (+m[1]); }
@@ -341,25 +267,6 @@
     if (!own.length) return '';
     return '<section class="pi-guides" aria-label="Guías de compra" style="margin:22px 0 0;padding-top:16px;border-top:1px solid #ececec"><h2 style="margin:0 0 10px;font:600 17px/1.3 Poppins,Arial,sans-serif">Guías de compra</h2><nav style="display:flex;flex-wrap:wrap;gap:8px">' +
       own.slice(0, 3).map(function (g) { return '<a href="' + esc(g.url) + '" style="border:1px solid #e2e2e2;border-radius:30px;padding:7px 13px;font-size:13px;text-decoration:none;color:inherit">' + esc(g.titulo) + '</a>'; }).join('') + '</nav></section>';
-  }
-  function local_seo(kind, name, description, links) {
-    var clean = plain(description), a = function (l) { return '<a href="' + esc(l[0]) + '">' + esc(l[1]) + '</a>'; };
-    var detail = clean ? '<p>' + esc(clean.slice(0, 650)) + '</p>' : '';
-    if (kind === 'applied') {
-      var cities = 'Medellín, Envigado, Itagüí, Bello, Sabaneta, Bogotá, Cali, Barranquilla, Cartagena y Bucaramanga';
-      return '<section class="seo-local-applied"><h2>' + esc(name) + ' en Medellín y Colombia</h2>' +
-        '<p>¿Buscas ' + esc(name) + ' de Applied Nutrition en Medellín? En SUPGO puedes consultar la presentación disponible, el precio vigente y las opciones de compra. Este producto forma parte del catálogo de la marca y su ficha muestra los datos publicados para ayudarte a comparar alternativas antes de realizar un pedido.</p>' +
-        detail + '<h3>Comprar Applied Nutrition en Medellín</h3><p>Atendemos consultas de clientes de ' + esc(cities) + '. La disponibilidad, el costo del envío y los tiempos de entrega se confirman según el destino y el pedido. Para elegir correctamente, revisa el nombre, el tamaño, el sabor cuando aplique y las características que aparecen en la etiqueta del fabricante. No todas las presentaciones son equivalentes.</p>' +
-        '<h3>Cómo elegir tu presentación</h3><p>Antes de comprar, compara el contenido neto, las porciones indicadas, los ingredientes y las recomendaciones de uso que figuren en el envase. Si buscas proteínas, creatina, snacks o productos para el entrenamiento, comprueba que la referencia sea la adecuada para tus preferencias y objetivos. Evita asumir que dos versiones de una misma línea tienen exactamente la misma composición.</p>' +
-        '<h3>Más opciones de Applied Nutrition</h3><p>Consulta el ' + a(links[0]) + ', y compara también ' + a(links[1]) + ', ' + a(links[2]) + ' y ' + a(links[3]) + '. Estos enlaces permiten navegar entre fichas de productos reales de la marca y revisar sus precios y presentaciones sin depender de búsquedas externas.</p>' +
-        '<h3>Pedidos desde otras ciudades</h3><p>Además de Medellín y el área metropolitana, recibimos consultas de Bogotá, Cali, Barranquilla, Cartagena y Bucaramanga, así como de otras ciudades de Colombia. Confirma los datos de entrega y el medio de pago disponible antes de finalizar tu compra. Los precios y existencias pueden cambiar, por lo que siempre conviene comprobar la información actualizada en el catálogo.</p></section>';
-    }
-    return '<section class="seo-local-bsn"><h2>' + esc(name) + ' en Medellín y Colombia</h2>' +
-      '<p>Conoce ' + esc(name) + ' de BSN en Medellín. Consulta presentación, disponibilidad y precio actualizado antes de comprar. Compara sus características con las opciones de la marca y revisa siempre la información del fabricante.</p>' +
-      detail + '<h3>BSN en Medellín y el área metropolitana</h3><p>Atendemos consultas y pedidos de Medellín, Envigado, Itagüí, Bello y Sabaneta. La disponibilidad, los tiempos y las condiciones de entrega dependen de la dirección y la confirmación del pedido.</p>' +
-      '<h3>Cómo elegir tu producto BSN</h3><p>Antes de comprar, revisa el tamaño de la presentación, la cantidad de servicios, el sabor y las instrucciones de uso que figuran en la etiqueta. Según el producto, puedes comparar proteínas, aminoácidos y fórmulas de preentrenamiento sin asumir que todos cumplen la misma función.</p>' +
-      '<h3>Productos relacionados de BSN</h3><p>Explora el ' + a(links[0]) + ', compara ' + a(links[1]) + ', ' + a(links[2]) + ' y ' + a(links[3]) + '. Estos enlaces permiten descubrir otras referencias de la misma marca y encontrar la presentación que buscas.</p>' +
-      '<h3>Envíos de BSN a Colombia</h3><p>También puedes consultar pedidos desde Bogotá, Cali, Barranquilla, Cartagena, Bucaramanga y otras ciudades de Colombia. Confirma cobertura, costo de envío, medios de pago y disponibilidad antes de finalizar tu compra. Cada ficha incluye los detalles publicados del producto para ayudarte a tomar una decisión informada.</p></section>';
   }
   function absUrl(u) { u = String(T(u) ? u : '').trim(); if (u.indexOf('//') === 0) return 'https:' + u; if (u.indexOf('/') === 0) return BASE + u; return /^https?:\/\//.test(u) ? u : ''; }
   function filtros(rows) {
@@ -418,7 +325,7 @@
     // SEO y productos relacionados se consultan simultáneamente tras identificar la ficha.
     var loaded = await Promise.all([
       catalogoCercano(encontrado), sharedPromise,
-      get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo&producto_id=eq.' + encontrado.id).catch(function () { return []; })
+      get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + encontrado.id).catch(function () { return []; })
     ]);
     var rows = loaded[0], datos = loaded[1], seoRows = loaded[2];
     var offers = datos[0], settings = datos[1], REVIEWS = datos[2];
@@ -489,10 +396,11 @@
 
   async function dibujar(row, reviews, productsById) {
     var p = row.product, seo = row._seo || {}, name = String(or(p.name, p.nombre)), pid = row.id;
-    var key = row.slug, canonical = BASE + '/producto/' + key + '/';
+    var key = row.slug, canonical = String(seo.canonical_url || '').trim();
+    if (canonical !== BASE + '/producto/' + key + '/') return mostrarError('SEO incompleto', 'El canonical guardado en Supabase no coincide con la ficha.');
     var embedded = p.seo && typeof p.seo === 'object' && !Array.isArray(p.seo) ? p.seo : {};
     var brand = String(or(p.brand, p.marca, '')), description = String(or(p.description, p.descripcion, '')).trim();
-    var image = String(or(embedded.image, seo.imagen_seo, p.image, p.imagen, '')).trim();
+    var image = String(or(seo.imagen_seo, p.image, p.imagen, '')).trim();
     if (image.indexOf('//') === 0) image = 'https:' + image; else if (image.indexOf('/') === 0) image = BASE + image; else if (image && !/^https?:\/\//.test(image)) image = '';
     var price = 'price' in p ? p.price : p.precio, promotion = active_offer(row), amount = fl(price), valid_price = isFinite(amount) && amount > 0;
     if (!isFinite(amount)) amount = 0;
@@ -500,22 +408,10 @@
     var flavor = String(or(p.flavor, p.sabor, '')).trim(), variants = row._variants || [];
     var cur = variants.find(function (v) { return String(v.id) === String(pid); });
     if (!flavor && variants.length > 1) flavor = cur ? cur.label : '';
-    var stored_title = String(or(seo.titulo_seo, embedded.title, '')).trim();
-    var wrong = titulo_no_corresponde(stored_title, name);
-    if (wrong) { seo = { producto_id: seo.producto_id, imagen_seo: seo.imagen_seo }; stored_title = ''; }
-    var stored_long = String(or(embedded.html, seo.descripcion_larga_html, '')).trim();
-    var auto_content = es_delgada(stored_long, name) && ['applied nutrition', 'bsn'].indexOf(lower(brand.trim())) < 0;
-    var auto_title = !stored_title || new RegExp('^\\s*' + name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\|\\s*supgo\\s*$', 'i').test(stored_title);
-    var title = (auto_title ? titulo_seo(name, brand) : stored_title).slice(0, 140);
-    var auto_html = '';
-    if (auto_content) {
-      var lab = slug(brand), cs = slug(category);
-      auto_html = await descripcion_html({ pid: pid, nombre: name, marca: brand, categoria: category, sabor: flavor, presentacion: presentation, variantes: variants,
-        mas_marca: row._mas_marca || [], alternativas: row._alternativas || [], url_marca: brand && LABS.has(lab) ? '/laboratorios/' + lab + '/' : '', url_categoria: category && CATS.has(cs) ? '/categorias/' + cs + '/' : '' });
-    }
-    var seo_description = plain(auto_html || seo.descripcion_larga_html || embedded.html);
-    var stored_meta = String(or(seo.meta_descripcion, '')).trim();
-    var meta = stored_meta && stored_meta.indexOf('Compra ') !== 0 && stored_meta.length >= 50 && stored_meta.length <= 170 ? stored_meta : meta_descripcion(name, brand, flavor, presentation);
+    var title = String(seo.titulo_seo || '').trim();
+    var meta = String(seo.meta_descripcion || '').trim();
+    if (!title || !meta) return mostrarError('SEO incompleto', 'Faltan título o metadescripción en Supabase.');
+    var seo_description = plain(seo.descripcion_larga_html || '');
     /* Datos estructurados (Product + BreadcrumbList) */
     var schema = { '@context': 'https://schema.org', '@type': 'Product', name: name, url: canonical, sku: String(or(embedded.sku, p.sku, pid)) };
     ['gtin', 'gtin8', 'color', 'material', 'size'].forEach(function (k) { var v = p[k]; if ((typeof v === 'string' || typeof v === 'number') && String(v).trim()) schema[k] = String(v).trim(); });
@@ -529,9 +425,8 @@
     if (T(embedded.manufacturer)) schema.manufacturer = /^https?:\/\//.test(String(embedded.manufacturer)) ? { '@type': 'Organization', name: brand, url: String(embedded.manufacturer) } : { '@type': 'Organization', name: String(embedded.manufacturer) };
     if (image) schema.image = Array.from(new Set([image].concat((row._images || []).filter(Boolean)))).slice(0, 6);
     if (category) schema.category = category;
-    schema.description = (seo_description || description || meta).slice(0, 5000);
-    if (auto_html) { var fp = /<p>([\s\S]*?)<\/p>/.exec(auto_html); if (fp) schema.description = plain(fp[1]); }
-    if (['applied nutrition', 'bsn'].indexOf(lower(brand.trim())) >= 0) schema.description = meta;
+    schema.description = (seo_description || meta).slice(0, 5000);
+    if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object' && !Array.isArray(seo.datos_estructurados)) Object.assign(schema, seo.datos_estructurados);
     ['gtin13', 'gtin12', 'gtin14', 'mpn'].forEach(function (k) { if (T(p[k])) schema[k] = String(p[k]).trim(); });
     if (promotion) amount = promotion[1];
     if (valid_price) {
@@ -569,13 +464,10 @@
     }
     if (extra) extra = '<div class="seo-offer-extras">' + extra + '</div>';
     /* Descripción larga sin scripts ni eventos */
-    var long_html = auto_html || String(or(embedded.html, seo.descripcion_larga_html, '')).trim();
+    var long_html = String(seo.descripcion_larga_html || '').trim();
     long_html = long_html.replace(/<(script|iframe|object|embed|form|style|svg)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '').replace(/<(script|iframe|object|embed|form|style|svg)\b[^>]*\/?>/gi, '')
       .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '').replace(/javascript\s*:/gi, '').replace(/<\s*\/?details\b[^>]*>/gi, '').replace(/<\s*\/?summary\b[^>]*>/gi, '');
-    var body = long_html ? long_html : '<p>' + esc(description || 'Consulta presentaciones, sabores y disponibilidad de este producto.') + '</p>';
-    var lb = lower(brand.trim());
-    if (lb === 'applied nutrition' && (row._applied_links || []).length === 3) body = local_seo('applied', name, description, [['/laboratorios/applied-nutrition/', 'catálogo Applied Nutrition']].concat(row._applied_links.map(function (x) { return [x.url, x.name]; })));
-    if (lb === 'bsn' && (row._bsn_links || []).length === 3) body = local_seo('bsn', name, description, [['/laboratorios/bsn/', 'catálogo BSN']].concat(row._bsn_links.map(function (x) { return [x.url, x.name]; })));
+    var body = long_html ? long_html : '<p>' + esc(description || meta) + '</p>';
     /* Galería, sabores, relacionados, marca y etiquetas */
     var gallery = []; [image].concat(row._images || []).forEach(function (u) { if (u && gallery.indexOf(u) < 0) gallery.push(u); });
     var gallery_html = gallery.map(function (u, i) { return '<button type="button" class="gallery-thumb' + (i === 0 ? ' active' : '') + '" data-index="' + i + '" aria-label="Ver imagen ' + (i + 1) + '"><img src="' + esc(u) + '" alt="' + esc(name) + ' - imagen ' + (i + 1) + '" loading="lazy" width="48" height="48"></button>'; }).join('');
@@ -597,12 +489,12 @@
 
     /* Encabezado de la página */
     document.title = title;
-    ['meta[name="description"]', 'meta[name="robots"]'].forEach(function (s) { var e = document.querySelector(s); if (e) e.remove(); });
-    var head = '<meta name="description" content="' + esc(meta) + '">\n<meta name="robots" content="' + (row._indexable !== false ? 'index, follow' : 'noindex, follow') + '">' +
-      '<link rel="canonical" href="' + esc(canonical) + '"><meta property="og:type" content="product"><meta property="og:title" content="' + esc(name) + '"><meta property="og:description" content="' + esc(meta) + '">' +
+    ['meta[name="description"]', 'meta[name="robots"]', 'link[rel="canonical"]', 'meta[property^="og:"]', 'meta[name^="twitter:"]', 'script[type="application/ld+json"]'].forEach(function (s) { var e = document.querySelector(s); if (e) e.remove(); });
+    var head = '<meta name="description" content="' + esc(meta) + '">\n<meta name="robots" content="' + (row._indexable !== false && seo.indexable !== false ? 'index, follow' : 'noindex, follow') + '">' +
+      '<link rel="canonical" href="' + esc(canonical) + '"><meta property="og:type" content="product"><meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(meta) + '">' +
       '<meta property="og:url" content="' + esc(canonical) + '"><meta property="og:site_name" content="SUPGO"><meta property="og:locale" content="es_CO">' +
       (image ? '<meta property="og:image" content="' + esc(image) + '"><meta property="og:image:alt" content="' + esc(name) + '"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="' + esc(image) + '">' : '<meta name="twitter:card" content="summary">') +
-      '<meta name="twitter:title" content="' + esc(name) + '"><meta name="twitter:description" content="' + esc(meta) + '">' +
+      '<meta name="twitter:title" content="' + esc(title) + '"><meta name="twitter:description" content="' + esc(meta) + '">' +
       (valid_price ? '<meta property="product:price:amount" content="' + g6(amount) + '"><meta property="product:price:currency" content="COP">' : '') +
       '<script type="application/ld+json">' + jsonLd(schema) + '</script><script type="application/ld+json">' + jsonLd(breadcrumb) + '</script>';
     document.querySelector('title').insertAdjacentHTML('afterend', head);

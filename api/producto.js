@@ -28,11 +28,23 @@ module.exports = async function handler(req, res) {
     if (!name || row.activo === false || p.__deleted || p.__private || p.adminOnly || p.hidden || p.oculto) {
       return res.status(404).send('Producto no disponible');
     }
+    const seoRows = await fetchRows('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + row.id + '&limit=2');
+    if (seoRows.length !== 1) throw new Error('SEO de producto sin registro o duplicado: ' + row.id);
+    const seo = seoRows[0];
+    const title = text(seo.titulo_seo);
+    const description = clean(seo.meta_descripcion);
+    if (!title || !description) throw new Error('SEO incompleto para producto: ' + row.id);
     const brand = text(p.brand || p.marca);
-    const canonical = 'https://supgo.co/producto/' + slug + '/';
-    const description = clean(p.seo?.meta_description || p.seo?.description || p.description || p.descripcion || ('Compra ' + name + ' en SUPGO Medellín. Envíos a Colombia.')).slice(0, 160);
-    const title = (name + ' | SUPGO').slice(0, 100);
-    const image = text(p.image || p.imagen);
+    // Las políticas de indexación provienen de las listas mantenidas en Supabase.
+    const [brandRules, seoBlocks] = await Promise.all([
+      brand ? fetchRows('lift_seo_marcas?select=habilitada&marca=ilike.' + encodeURIComponent(brand) + '&limit=2') : Promise.resolve([]),
+      fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
+    ]);
+    const canIndex = seo.indexable !== false && brandRules.length === 1 && brandRules[0].habilitada === true && seoBlocks.length === 0;
+    const canonical = text(seo.canonical_url);
+    if (canonical !== 'https://supgo.co/producto/' + slug + '/') throw new Error('Canonical no coincide con slug: ' + row.id);
+    const image = text(seo.imagen_seo || p.image || p.imagen);
+    const robots = canIndex ? 'index, follow' : 'noindex, follow';
     // Sharing crawlers read the initial HTML without executing the browser template.
     const social = [
       ['property', 'og:type', 'product'],
@@ -57,17 +69,19 @@ module.exports = async function handler(req, res) {
     ).join('\n');
     const price = Number(p.price ?? p.precio ?? 0);
     const schema = { '@context':'https://schema.org', '@type':'Product', name, description, url:canonical, brand:{'@type':'Brand',name:brand} };
+    if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object' && !Array.isArray(seo.datos_estructurados)) Object.assign(schema, seo.datos_estructurados);
     if (/^https:\/\//.test(image)) schema.image = [image];
     if (price > 0) schema.offers = {'@type':'Offer',priceCurrency:'COP',price, url:canonical};
     const initial = '<h1>' + escapeHtml(name) + '</h1>' +
       (image.startsWith('https://') ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '" loading="eager">' : '') +
       '<p>' + escapeHtml(description) + '</p>' +
+      (text(seo.descripcion_larga_html) ? '<section class="seo-ssr-descripcion"><h2>Descripción del producto</h2><p>' + escapeHtml(clean(seo.descripcion_larga_html).slice(0, 6000)) + '</p></section>' : '') +
       (price > 0 ? '<p>$' + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
     let html = template
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
-      .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="index, follow">')
+      .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + robots + '">')
       .replace('</head>', socialHtml + '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
       .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
     res.setHeader('Content-Type','text/html; charset=utf-8');
