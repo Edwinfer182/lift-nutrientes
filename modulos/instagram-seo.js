@@ -391,7 +391,32 @@ async function openSelector(){
   renderEditor();
   if(variants.length){const s=document.createElement('select');s.style.cssText='width:100%;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px';[p,...variants].forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.sabor||v.nombre+' · '+(i+1);s.append(o)});s.onchange=()=>{selected=[p,...variants][Number(s.value)];if(selected.imagen)photo.src=selected.imagen;meta.textContent=[selected.marca,formatPrice(selected.precio)].filter(Boolean).join(' · ');renderEditor()};card.append(s)}
   const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px';
-  actions.append(button('Compartir imagen',async()=>{if(!selected.id||typeof window.shareLiftProductImage!=='function'){alert('No está disponible el generador de imágenes para este producto');return}try{await window.shareLiftProductImage(selected.id)}catch(e){alert('No se pudo compartir: '+e.message)}},true),button('Ver SEO ↓',()=>editor.scrollIntoView({behavior:'smooth',block:'nearest'})));
+  actions.append(button('Compartir imagen',async()=>{
+    if(typeof window.shareLiftProductImage==='function'&&selected.id){
+      try{await window.shareLiftProductImage(selected.id);return}catch(e){console.warn('Generador de imagen no disponible:',e)}
+    }
+    const url=selected.imagen||photo?.src;
+    if(!url){alert('Este producto no tiene imagen disponible para compartir.');return}
+    try{
+      const response=await fetch(url);
+      if(!response.ok)throw new Error('No se pudo descargar la imagen');
+      const blob=await response.blob();
+      if(!blob.type.startsWith('image/'))throw new Error('El archivo no es una imagen');
+      const ext=blob.type.includes('png')?'png':blob.type.includes('webp')?'webp':'jpg';
+      const filename='supgo-producto-'+String(selected.id||'imagen').replace(/[^a-zA-Z0-9_-]/g,'')+'.'+ext;
+      const file=new File([blob],filename,{type:blob.type});
+      if(navigator.canShare?.({files:[file]})&&navigator.share){
+        try{await navigator.share({files:[file],title:selected.nombre||'Producto SUPGO'});return}catch(e){if(e.name==='AbortError')return}
+      }
+      const objectUrl=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=objectUrl;a.download=filename;document.body.append(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+    }catch(e){
+      console.warn('No se pudo compartir la imagen directamente:',e);
+      const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';document.body.append(a);a.click();a.remove();
+      alert('Se abrió la fotografía original del producto. Puedes guardarla o compartirla desde esa pestaña.');
+    }
+  },true),button('Ver SEO ↓',()=>editor.scrollIntoView({behavior:'smooth',block:'nearest'})));
   card.append(actions);preview.append(card);
  }
  function render(){results.replaceChildren();const term=norm(search.value);const found=items.filter(p=>norm(p.nombre+' '+p.marca).includes(term)).slice(0,10);if(!found.length){const msg=document.createElement('p');msg.textContent=items.length?'No hay coincidencias':'No se pudo cargar el catálogo';results.append(msg);return}found.forEach(p=>{const b=button([p.nombre,p.marca].filter(Boolean).join(' · '),()=>selectProduct(p));b.style.cssText+=';display:block;width:100%;text-align:left;margin:5px 0;background:#fafafa';results.append(b)})}
