@@ -76,23 +76,7 @@ module.exports = async function handler(req, res) {
       (image.startsWith('https://') ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '" loading="eager">' : '') +
       '<p>' + escapeHtml(description) + '</p>' +
       (text(seo.descripcion_larga_html) ? '<section class="seo-ssr-descripcion"><h2>Descripción del producto</h2><p>' + escapeHtml(clean(seo.descripcion_larga_html).slice(0, 6000)) + '</p></section>' : '') +
-      (price > 0 ? '<p>
-    let html = template
-      .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
-      .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
-      .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
-      .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + robots + '">')
-      .replace('</head>', socialHtml + '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
-      .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
-    res.setHeader('Content-Type','text/html; charset=utf-8');
-    res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
-    return res.status(200).send(html);
-  } catch (err) {
-    console.error('SUPGO product SSR error:', err.message);
-    return res.status(503).send('No se pudo cargar el producto. Intenta nuevamente.');
-  }
-};
- + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
+      (price > 0 ? '<p>$' + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
     let html = template
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
