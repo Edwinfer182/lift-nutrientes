@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101510">
+<title>Editor de contenido | SUPGO</title><link rel="icon" href="/favicon-48.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="/componentes/admin-sesion.js?v=20261104-1"></script>
+<style>
+:root{color-scheme:light;--bg:#f5f7f5;--dark:#101610;--green:#d2ff45;--line:#e2e8e2;--muted:#637063;--text:#172318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:400 13px/1.55 Poppins,system-ui,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+header{height:70px;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:0 clamp(15px,3vw,35px)}
+header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:16px}
+header .brand img{height:35px;width:35px;border-radius:8px}
+header nav{display:flex;gap:8px;align-items:center}
+header a{color:#e8f6e7;border:1px solid #394539;padding:8px 12px;border-radius:9px;font-size:12px}
+header a:hover{background:#263526}
+#login{max-width:440px;margin:12vh auto;padding:30px;background:white;border:1px solid var(--line);border-radius:18px}
+#login h1{font-size:21px;margin:0 0 10px}#login p{color:var(--muted);margin:0 0 20px}
+#app{max-width:1540px;margin:auto;padding:22px clamp(12px,2.3vw,32px)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 17px}
+.kpi strong{font-size:25px;display:block;line-height:1.3}.kpi span{font-size:11px;color:var(--muted)}
+.pagehead{display:flex;justify-content:space-between;gap:15px;align-items:center;margin:12px 0 18px}
+.pagehead h1{font-size:22px;margin:0}.pagehead p{margin:0;color:var(--muted)}
+button.primary{background:var(--dark);color:#fff;border:1px solid var(--dark)}
+button.accent{background:var(--green);color:#10210e;border:1px solid #bddf4b}
+button.secondary{background:#fff;color:var(--text);border:1px solid var(--line)}
+.btn{border-radius:10px;padding:10px 14px;font-weight:600;font-size:12px;display:inline-flex;gap:6px;align-items:center;justify-content:center}
+.btn:disabled{opacity:.48;cursor:progress}
+.shell{display:grid;grid-template-columns:minmax(260px,350px) minmax(0,1fr);gap:16px;align-items:start}
+.listpane,.editor{background:#fff;border:1px solid var(--line);border-radius:17px;overflow:hidden;min-height:620px}
+.listpane{position:sticky;top:15px}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;padding:12px;border-bottom:1px solid var(--line)}
+.tabs button{padding:11px 8px;background:#f6f8f6;border:1px solid transparent;border-radius:9px;color:#586658;font-weight:600;font-size:12px}
+.tabs button.on{background:#142215;color:#f0ffd7}
+.searchline{display:flex;gap:7px;padding:13px 12px}.searchline input{flex:1;min-width:0}
+.input{width:100%;border-radius:9px;border:1px solid #d8e0d8;padding:10px 12px;background:#fff;color:var(--text);outline:none}
+.input:focus{border-color:#7f9d44;box-shadow:0 0 0 3px #d9f4aa70}
+textarea.input{min-height:100px;resize:vertical;line-height:1.55}
+#items{max-height:calc(100dvh - 290px);min-height:290px;overflow:auto;padding:0 8px 8px}
+.item{display:flex;justify-content:space-between;align-items:center;text-align:left;gap:12px;width:100%;padding:12px 10px;border:0;border-bottom:1px solid #f0f2f0;background:#fff}
+.item:hover,.item.on{background:#f3f9ea}.item.on{box-shadow:inset 3px 0 #8bb625}
+.item b{display:block;font-size:12px;font-weight:600;overflow-wrap:anywhere}.item small{display:block;color:var(--muted);font-size:10px;margin-top:4px;overflow-wrap:anywhere}
+.thumb{width:42px;height:42px;border-radius:8px;background:#f5f6f5;object-fit:contain;flex:none;border:1px solid #e7eae7}
+.pages{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--line)}
+.pages span{font-size:11px;color:var(--muted)}
+.editor{padding:22px clamp(14px,2.2vw,28px)}
+.editorhead{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+.editorhead h2{font-size:18px;margin:0;line-height:1.3;overflow-wrap:anywhere}.editorhead p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.actionrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.section{border:1px solid var(--line);border-radius:13px;margin:14px 0 16px;padding:18px}
+.section h3{margin:0 0 13px;font-size:13px;letter-spacing:.015em}
+.section>p{color:var(--muted);font-size:11px;margin:-5px 0 14px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-weight:600;font-size:11px;color:#526052}
+.field .hint{font-size:10px;color:var(--muted)}
+.field.full{grid-column:1/-1}
+.field code{font-size:11px;color:#4b5e4a}
+pre.json{overflow:auto;padding:15px;border-radius:9px;background:#102014;color:#d4ebd4;max-height:360px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}
+#message{position:fixed;right:20px;bottom:20px;background:#102014;color:#fff;padding:13px 17px;border-radius:12px;box-shadow:0 6px 30px #0002;max-width:min(500px,calc(100vw - 35px));z-index:99}
+#message.bad{background:#9d2323}
+#empty{padding:15vh 20px;text-align:center;color:var(--muted)}#empty h2{color:var(--text);font-size:19px}
+#preview{width:100%;min-height:220px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.note{padding:12px;background:#f2f7e9;border-left:3px solid #8aa92f;border-radius:8px;margin:9px 0;color:#41503d;font-size:11px}
+.topbuttons{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+#loading{font-size:11px;color:#5c675f;min-height:20px}
+@media(max-width:850px){.shell{grid-template-columns:1fr}.listpane{position:static;min-height:0}#items{max-height:300px}.editor{min-height:400px}.kpis{grid-template-columns:repeat(2,1fr)}.pagehead{align-items:start;flex-direction:column}}
+@media(max-width:480px){header{padding:0 12px}.brand span{font-size:13px}header nav a{padding:7px}.fields{grid-template-columns:1fr}.editor{padding:14px}.section{padding:12px}.pagehead h1{font-size:18px}}
+</style></head><body>
+<header><div class="brand"><img src="/favicon.png" alt=""><span>SUPGO · Editor central</span></div><nav><a href="/panel/">← Panel de pedidos</a><a href="/home/" target="_blank" rel="noopener">Ver tienda ↗</a></nav></header>
+<section id="login" hidden><h1>Acceso administrativo</h1><p>Usa la misma clave de tu panel actual. Las modificaciones se autorizan directamente en Supabase.</p>
+<form id="loginForm"><label for="password">Contraseña administrativa</label><input class="input" id="password" type="password" autocomplete="current-password" required style="margin:8px 0 14px"><button type="submit" class="btn primary" id="enter">Entrar al editor</button></form></section>
+<div id="app" hidden>
+<div class="pagehead"><div><h1>Contenido y SEO de SUPGO</h1><p>Datos reales de Supabase, sin copias paralelas ni HTML por producto.</p></div><div class="topbuttons"><button class="btn secondary" id="refresh">↻ Actualizar</button><button class="btn accent" id="create">+ Crear producto</button></div></div>
+<div class="kpis"><div class="kpi"><strong id="kProducts">–</strong><span>Productos registrados</span></div><div class="kpi"><strong id="kActive">–</strong><span>Productos activos</span></div><div class="kpi"><strong id="kCollections">–</strong><span>Categorías y laboratorios SEO</span></div><div class="kpi"><strong id="kPages">–</strong><span>Páginas y guías</span></div></div>
+<div class="shell"><aside class="listpane"><div class="tabs"><button data-kind="products" class="on">Productos</button><button data-kind="categoria">Categorías</button><button data-kind="laboratorio">Laboratorios</button><button data-kind="pages">Páginas / Home</button></div>
+<div class="searchline"><input class="input" id="search" type="search" placeholder="Buscar en Supabase…"><button class="btn secondary" id="searchButton" title="Buscar">⌕</button></div><div id="loading"></div><div id="items"></div><div class="pages"><button class="btn secondary" id="prev">Anterior</button><span id="range">–</span><button class="btn secondary" id="next">Siguiente</button></div></aside>
+<section class="editor"><div id="empty"><h2>Selecciona un registro</h2><p>Puedes consultar y editar sus datos reales, o crear un producto nuevo.</p></div><div id="detail" hidden></div></section></div></div>
+<div id="message" hidden role="status"></div>
+<script>
+(function(){
+'use strict';
+var SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',PASS='liftAdminCloudPasswordV1';
+var $=function(id){return document.getElementById(id)},kind='products',offset=0,items=[],record=null,originalSlug='',toastTimer=null,busy=false;
+var types={products:'products',categoria:'collections',laboratorio:'collections',pages:'pages'};
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]})}
+function pass(){try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}}
+function notice(t,bad){var m=$('message');m.textContent=t;m.className=bad?'bad':'';m.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){m.hidden=true},6000)}
+function setBusy(v){busy=v;$('loading').textContent=v?'  Cargando información…':'';$('create').disabled=v||kind==='pages';document.querySelectorAll('[data-kind]').forEach(function(x){x.disabled=v})}
+async function rpc(action,payload){
+ var r=await fetch(SB+'/rest/v1/rpc/lift_editor_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({p_password:pass(),p_action:action,p_payload:payload||{}})});
+ var j=await r.json().catch(function(){return {}});
+ if(!r.ok)throw Error(j.message||('Supabase respondió '+r.status));
+ return j;
+}
+function validLogin(){var yes=!!pass();$('login').hidden=yes;$('app').hidden=!yes;if(yes){stats();loadList()}}
+async function stats(){try{var s=await rpc('stats',{});$('kProducts').textContent=Number(s.products||0).toLocaleString('es-CO');$('kActive').textContent=Number(s.active||0).toLocaleString('es-CO');$('kCollections').textContent=s.collections||0;$('kPages').textContent=s.pages||0}catch(e){notice(e.message,true)}}
+$('loginForm').addEventListener('submit',async function(e){e.preventDefault();$('enter').disabled=true;var pw=$('password').value;try{sessionStorage.setItem(PASS,pw);await rpc('stats',{});$('password').value='';validLogin()}catch(err){sessionStorage.removeItem(PASS);notice(err.message,true)}finally{$('enter').disabled=false}});
+function switchTab(v){kind=v;offset=0;record=null;$('detail').hidden=true;$('empty').hidden=false;document.querySelectorAll('[data-kind]').forEach(function(b){b.classList.toggle('on',b.dataset.kind===kind)});$('create').textContent=kind==='products'?'+ Crear producto':kind==='categoria'||kind==='laboratorio'?'+ Crear '+(kind==='categoria'?'categoría':'laboratorio'):'Páginas existentes';$('create').disabled=kind==='pages';$('search').value='';loadList()}
+document.querySelectorAll('[data-kind]').forEach(function(b){b.onclick=function(){switchTab(b.dataset.kind)}});
+$('refresh').onclick=function(){stats();loadList()};
+$('searchButton').onclick=function(){offset=0;loadList()};
+$('search').addEventListener('keydown',function(e){if(e.key==='Enter'){offset=0;loadList()}});
+$('prev').onclick=function(){offset=Math.max(0,offset-70);loadList()};
+$('next').onclick=function(){offset+=70;loadList()};
+$('create').onclick=function(){if(kind==='products'){renderProduct({product:{nombre:'',slug:'',marca:'',categoria:'',precio:0,imagen:'',activo:false,product:{},id:null},seo:{titulo_seo:'',meta_descripcion:'',descripcion_larga_html:'',imagen_seo:'',palabra_clave:'',indexable:false,datos_estructurados:null}},true)}else if(kind==='categoria'||kind==='laboratorio'){renderCollection({tipo:kind,slug:'',titulo_seo:'',meta_descripcion:'',h1:'',introduccion:'',indexable:false,datos_estructurados:null},true)}};
+function rowKey(x){return kind==='products'?String(x.id):kind==='pages'?x.ruta:x.tipo+'/'+x.slug}
+function activeKey(){if(!record)return '';return kind==='products'?String(record.product&&record.product.id):kind==='pages'?record.ruta:record.tipo+'/'+record.slug}
+async function loadList(){
+ if(busy)return;setBusy(true);
+ try{
+  var r=await rpc('list',{kind:types[kind],query:$('search').value.trim(),offset:offset});
+  items=r.items||[];
+  if(kind==='categoria'||kind==='laboratorio')items=items.filter(function(x){return x.tipo===kind});
+  $('items').innerHTML=items.length?items.map(function(x){
+   var label=kind==='products'?(x.nombre||'#'+x.id):kind==='pages'?x.ruta:x.h1||x.slug;
+   var secondary=kind==='products'?'#'+x.id+' · '+(x.marca||'Sin laboratorio')+' · '+(x.activo?'Activo':'Inactivo'):kind==='pages'?'Página / guía':x.slug;
+   var thumb=kind==='products'&&x.imagen&&/^https:\/\//.test(x.imagen)?'<img class="thumb" src="'+esc(x.imagen)+'" alt="" loading="lazy">':'';
+   return '<button class="item'+(rowKey(x)===activeKey()?' on':'')+'" data-key="'+esc(rowKey(x))+'">'+thumb+'<span style="min-width:0;flex:1"><b>'+esc(label)+'</b><small>'+esc(secondary)+'</small></span><span aria-hidden="true">›</span></button>';
+  }).join(''):'<p style="padding:16px;color:#637063">No se encontraron registros.</p>';
+  $('items').querySelectorAll('[data-key]').forEach(function(b){b.onclick=function(){openItem(b.dataset.key)}});
+  $('range').textContent=kind==='products'?String(offset+1)+'–'+String(offset+items.length):String(items.length)+' registros';
+  $('prev').disabled=kind!=='products'||offset===0;$('next').disabled=kind!=='products'||items.length<70;
+ }catch(e){notice(e.message,true);$('items').textContent='No se pudo cargar el listado.'}finally{setBusy(false)}
+}
+async function openItem(key){
+ setBusy(true);
+ try{
+  var p=kind==='products'?{kind:'products',id:Number(key)}:kind==='pages'?{kind:'pages',ruta:key}:{kind:'collections',tipo:kind,slug:key.split('/').slice(1).join('/')};
+  var r=await rpc('get',p);record=r.record;originalSlug=kind==='products'?record.product.slug:kind==='pages'?record.ruta:record.slug;
+  if(kind==='products')renderProduct(record,false);else if(kind==='pages')renderPage(record);else renderCollection(record,false);
+  document.querySelectorAll('.item').forEach(function(b){b.classList.toggle('on',b.dataset.key===key)});
+ }catch(e){notice(e.message,true)}finally{setBusy(false)}
+}
+function field(id,label,value,opts){
+ opts=opts||{};var wrap=document.createElement('div');wrap.className='field'+(opts.full?' full':'');
+ var lab=document.createElement('label');lab.textContent=label;lab.htmlFor='fld-'+id;wrap.appendChild(lab);
+ var el;
+ if(opts.options){el=document.createElement('select');opts.options.forEach(function(o){var op=document.createElement('option');op.value=o.value;op.textContent=o.label;el.appendChild(op)})}
+ else if(opts.area){el=document.createElement('textarea');el.rows=opts.rows||5}
+ else {el=document.createElement('input');el.type=opts.type||'text';if(opts.type==='number')el.min='0';if(opts.type==='url')el.placeholder='https://...'}
+ el.className='input';el.id='fld-'+id;el.dataset.field=id;el.value=value==null?'':String(value);
+ if(opts.readOnly)el.readOnly=true;wrap.appendChild(el);
+ if(opts.hint){var hint=document.createElement('small');hint.className='hint';hint.textContent=opts.hint;wrap.appendChild(hint)}
+ return wrap;
+}
+function section(title,description){var e=document.createElement('section');e.className='section';var h=document.createElement('h3');h.textContent=title;e.appendChild(h);if(description){var p=document.createElement('p');p.textContent=description;e.appendChild(p)}var g=document.createElement('div');g.className='fields';e.appendChild(g);return {el:e,fields:g}}
+function add(g,id,label,v,opts){g.appendChild(field(id,label,v,opts))}
+function formHeader(title,sub,url){$('empty').hidden=true;$('detail').hidden=false;$('detail').innerHTML='';
+ var header=document.createElement('div');header.className='editorhead';
+ var info=document.createElement('div');var h=document.createElement('h2');h.textContent=title;var p=document.createElement('p');p.textContent=sub;info.append(h,p);
+ var actions=document.createElement('div');actions.className='actionrow';
+ var save=document.createElement('button');save.className='btn primary';save.type='button';save.id='save';save.textContent='Guardar en Supabase';actions.appendChild(save);
+ if(url){var link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener';link.className='btn secondary';link.textContent='Ver página ↗';actions.appendChild(link)}
+ header.append(info,actions);$('detail').appendChild(header);
+}
+function jsonText(o){return o==null?'':JSON.stringify(o,null,2)}
+function renderProduct(r,creating){
+ record=r;var p=r.product,seo=r.seo||{},extra=p.product||{};
+ originalSlug=creating?'':p.slug;
+ formHeader(creating?'Crear producto nuevo':p.nombre||'Producto #'+p.id,creating?'Se guardará primero en Supabase. Puedes dejarlo inactivo hasta completar su SEO.':'ID '+p.id+' · Los campos adicionales del JSON original se conservan.',creating?null:('/producto/'+encodeURIComponent(p.slug)+'/'));
+ var g=section('Datos comerciales','Los datos se guardan en lift_productos; las demás propiedades del JSON original no se borran.');
+ add(g.fields,'nombre','Nombre del producto',p.nombre||extra.name);
+ add(g.fields,'slug','Slug / dirección URL',p.slug||'',{hint:'Modificarlo cambia el enlace. Úsalo solo cuando sea necesario.'});
+ add(g.fields,'marca','Laboratorio / marca',p.marca||extra.brand);
+ add(g.fields,'categoria','Categoría',p.categoria||extra.category);
+ add(g.fields,'precio','Precio COP',p.precio??extra.price??0,{type:'number'});
+ add(g.fields,'activo','Estado del producto',String(!!p.activo),{options:[{value:'true',label:'Activo'},{value:'false',label:'Inactivo'}]});
+ add(g.fields,'imagen','URL imagen principal',p.imagen||extra.image,{full:true});
+ add(g.fields,'descripcion','Descripción corta / comercial',extra.description||'',{area:true,full:true,rows:3});
+ add(g.fields,'presentacion','Presentación',extra.presentation||'');
+ add(g.fields,'sabor','Sabor',extra.flavor||'');
+ $('detail').appendChild(g.el);
+ var seoSection=section('SEO del producto · lift_producto_seo','Se publica desde Supabase, no se genera contenido en GitHub.');
+ add(seoSection.fields,'titulo_seo','Título SEO',seo.titulo_seo||'',{full:true});
+ add(seoSection.fields,'meta_descripcion','Metadescripción',seo.meta_descripcion||'',{area:true,full:true,rows:3});
+ add(seoSection.fields,'descripcion_larga_html','Descripción larga HTML',seo.descripcion_larga_html||'',{area:true,full:true,rows:9});
+ add(seoSection.fields,'palabra_clave','Palabra clave principal',seo.palabra_clave||'');
+ add(seoSection.fields,'imagen_seo','URL de imagen SEO',seo.imagen_seo||'',{full:true});
+ add(seoSection.fields,'indexable','Indexación solicitada',String(creating?false:seo.indexable!==false),{options:[{value:'true',label:'Permitir indexación (si cumple reglas)'},{value:'false',label:'No indexar'}],hint:'Los bloqueos regulatorios y de marca siguen teniendo prioridad.'});
+ add(seoSection.fields,'canonical_url','Canonical (calculado)',creating?'Al guardar: https://supgo.co/producto/slug/':seo.canonical_url||'',{full:true,readOnly:true});
+ $('detail').appendChild(seoSection.el);
+ var google=section('Google · datos estructurados','JSON-LD opcional. Los datos comerciales obligatorios como precio se sirven desde el catálogo.');
+ add(google.fields,'datos_estructurados','JSON de propiedades adicionales',jsonText(seo.datos_estructurados),{area:true,rows:8,full:true,hint:'Solo JSON válido. Deja en blanco si no necesitas propiedades adicionales.'});
+ $('detail').appendChild(google.el);
+ var managed=['id','seo','name','nombre','brand','marca','category','categoria','price','precio','image','imagen','description','descripcion','presentation','presentacion','flavor','sabor','__deleted','__private','adminOnly','hidden','oculto','visibility'];
+ var extraFields={};Object.keys(extra).forEach(function(k){if(managed.indexOf(k)<0)extraFields[k]=extra[k]});
+ var more=section('Atributos adicionales del producto','Puedes editar sabores, SKU, GTIN y otros atributos del JSONB original. Los campos comerciales de arriba siempre tienen prioridad.');
+ add(more.fields,'product_extra','Otros atributos JSON',jsonText(extraFields)||'{}',{area:true,full:true,rows:9,hint:'Objeto JSON válido. Ejemplo: {"flavors":["Vainilla"],"sku":"SKU123"}. El sistema conserva los demás campos existentes.'});
+ if(!creating){var pre=document.createElement('pre');pre.className='json';pre.textContent=JSON.stringify(extra,null,2);more.el.appendChild(pre)}
+ $('detail').appendChild(more.el);
+ if(creating){var n=$('fld-nombre'),slug=$('fld-slug');n.addEventListener('input',function(){if(!slug.dataset.edited)slug.value=slugify(n.value)});slug.addEventListener('input',function(){slug.dataset.edited='1'})}
+ $('save').onclick=function(){saveRecord('product',creating)};
+}
+function slugify(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+function renderCollection(c,creating){record=c;originalSlug=creating?'':c.slug;
+ var u=creating?null:'/'+(c.tipo==='categoria'?'categorias':'laboratorios')+'/'+c.slug+'/';
+ formHeader((creating?'Nueva ': 'Editar ')+(c.tipo==='categoria'?'categoría':'laboratorio'),creating?'Primero registra el SEO. La página pública necesita productos asociados a este grupo.':c.slug,u);
+ var general=section('Información de la colección','No crea páginas HTML individuales. Se relaciona por el nombre de la categoría o marca de los productos.');
+ add(general.fields,'tipo','Tipo',c.tipo,{options:[{value:'categoria',label:'Categoría'},{value:'laboratorio',label:'Laboratorio'}],readOnly:!creating});
+ add(general.fields,'slug','Slug',c.slug,{readOnly:!creating,hint:'En registros existentes no se cambia el slug para evitar enlaces rotos.'});
+ add(general.fields,'h1','Título visible H1',c.h1||'',{full:true});
+ add(general.fields,'titulo_seo','Título SEO',c.titulo_seo||'',{full:true});
+ add(general.fields,'meta_descripcion','Metadescripción',c.meta_descripcion||'',{area:true,full:true});
+ add(general.fields,'introduccion','Texto introductorio',c.introduccion||'',{area:true,full:true,rows:5});
+ add(general.fields,'indexable','Indexación solicitada',String(creating?false:c.indexable!==false),{options:[{value:'true',label:'Permitir indexación'},{value:'false',label:'No indexar'}]});
+ add(general.fields,'canonical_url','Canonical (calculado)',c.canonical_url||'',{readOnly:true,full:true});
+ $('detail').appendChild(general.el);
+ var schema=section('Datos estructurados','Campos personalizados de CollectionPage / ItemList; opcionales.');
+ add(schema.fields,'datos_estructurados','JSON-LD adicional',jsonText(c.datos_estructurados),{full:true,area:true,rows:8});
+ $('detail').appendChild(schema.el);$('save').onclick=function(){saveRecord('collection',creating)};
+}
+function renderPage(c){record=c;originalSlug=c.ruta;var isGuide=c.ruta.indexOf('guias/')===0;var url='/'+c.ruta+(isGuide?'.html':'/');
+ formHeader(c.ruta==='home'?'Página principal · Home':c.ruta,'Editor de lift_pagina_seo',url);
+ var g=section('SEO de la página','Metadatos de portada, guías, páginas de políticas y directorios. El canonical se conserva.');
+ add(g.fields,'ruta','Ruta',c.ruta,{readOnly:true,full:true});
+ add(g.fields,'titulo_seo','Título SEO',c.titulo_seo,{full:true});
+ add(g.fields,'meta_descripcion','Metadescripción',c.meta_descripcion,{area:true,full:true,rows:3});
+ add(g.fields,'canonical_url','Canonical',c.canonical_url,{readOnly:true,full:true});
+ add(g.fields,'indexable','Indexación solicitada',String(c.indexable!==false),{options:[{value:'true',label:'Permitir indexación'},{value:'false',label:'No indexar'}]});
+ add(g.fields,'og_titulo','Título al compartir',c.og_titulo||'');
+ add(g.fields,'og_descripcion','Descripción al compartir',c.og_descripcion||'',{area:true,rows:3});
+ add(g.fields,'og_imagen','Imagen al compartir (URL)',c.og_imagen||'',{full:true});
+ $('detail').appendChild(g.el);
+ if(c.ruta==='home'){var n=document.createElement('p');n.className='note';n.textContent='La Home ya permite editar SEO y metadatos sociales. Los banners y bloques visuales siguen en el diseño actual, y no se modifican desde aquí.';$('detail').appendChild(n)}
+ if(isGuide){var h=section('Contenido completo de la guía','El HTML principal se guarda en Supabase y se muestra en la página pública. Mantén etiquetas semánticas y enlaces correctos.');
+ add(h.fields,'contenido_seo_html','Código HTML del artículo',c.contenido_seo_html||'',{area:true,rows:14,full:true});
+ var view=document.createElement('button');view.className='btn secondary';view.textContent='Vista previa del HTML';view.type='button';h.el.appendChild(view);
+ var iframe=document.createElement('iframe');iframe.id='preview';iframe.sandbox='';iframe.hidden=true;h.el.appendChild(iframe);
+ view.onclick=function(){iframe.srcdoc='<meta charset="utf-8"><style>body{font:14px/1.7 Arial;padding:20px;max-width:800px;margin:auto}img{max-width:100%}table{width:100%}</style>'+$('fld-contenido_seo_html').value;iframe.hidden=false};
+ $('detail').appendChild(h.el)}
+ var schema=section('Datos estructurados de Google','JSON-LD existente; en guías puede ser un arreglo con Article y BreadcrumbList.');
+ add(schema.fields,'datos_estructurados','JSON-LD',jsonText(c.datos_estructurados),{area:true,rows:10,full:true});
+ $('detail').appendChild(schema.el);$('save').onclick=function(){saveRecord('page',false)};
+}
+function collect(){var v={};$('detail').querySelectorAll('[data-field]').forEach(function(e){v[e.dataset.field]=e.value});return v}
+async function saveRecord(type,creating){if(busy)return;var p=collect();
+ try{
+  p.indexable=p.indexable==='true';
+  if('activo' in p)p.activo=p.activo==='true';
+  if('precio' in p)p.precio=Number(p.precio);
+  if('datos_estructurados' in p){p.datos_estructurados=p.datos_estructurados.trim()?JSON.parse(p.datos_estructurados):null}
+  if('product_extra' in p){p.product_extra=p.product_extra.trim()?JSON.parse(p.product_extra):{}}
+  var act=type==='product'?'save_product':type==='collection'?'save_collection':'save_page';
+  if(type==='product'&&!creating){p.id=record.product.id;if(p.slug!==originalSlug&&!confirm('El slug cambió. Las URLs antiguas pueden dejar de funcionar. ¿Guardar igualmente?'))return}
+  if(type==='collection'&&!creating){p.tipo=record.tipo;p.slug=record.slug}
+  if(type==='page')p.ruta=record.ruta;
+  if(type==='product'&&creating&&p.activo){if(!confirm('Publicarás un producto nuevo inmediatamente. ¿Continuar?'))return}
+  $('save').disabled=true;$('save').textContent='Guardando…';setBusy(true);
+  var r=await rpc(act,p);notice('Guardado en Supabase. '+(r.id?'Producto #'+r.id:'Registro actualizado')+'.');
+  setBusy(false);
+  await loadListAfterSave(type,r,p);
+ }catch(e){notice(e instanceof SyntaxError?'JSON inválido en datos estructurados o atributos del producto. Corrígelo antes de guardar.':e.message,true)}
+ finally{setBusy(false);var b=$('save');if(b){b.disabled=false;b.textContent='Guardar en Supabase'}}
+}
+async function loadListAfterSave(type,r,p){await stats();await loadList();if(type==='product')await openItem(String(r.id));else if(type==='collection')await openItem(p.tipo+'/'+p.slug);else await openItem(p.ruta)}
+window.addEventListener('pageshow',function(){if(!pass()){$('login').hidden=false;$('app').hidden=true}});
+validLogin();
+})();
+</script></body></html>
