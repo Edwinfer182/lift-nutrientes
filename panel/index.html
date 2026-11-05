@@ -1120,7 +1120,7 @@ const HUB=[
   ['excel','📊','Excel / Datos','Importar y exportar']]],
  ['Herramientas',[
   ['calculadora','🧮','Calculadora',''],
-  ['calcofertas','📈','Cálculo de ofertas','Márgenes y precios de oferta'],
+  ['native:calcofertas','📈','Cálculo de ofertas','Márgenes y precios de oferta'],
   ['native:instagram','📸','Instagram SEO · Estados · TikTok','Productos, educación, estados y guiones'],
   ['herramientas','⚙️','Más herramientas','Menú de herramientas del panel anterior']]]
 ];
@@ -1148,6 +1148,7 @@ async function openInstagramTools(){
   }catch(e){toast('Instagram SEO: '+e.message,{err:true});console.error(e)}
 }
 $('hub').querySelector('[data-go="instagram"]').onclick=openInstagramTools;
+$('hub').querySelector('[data-go="calcofertas"]').onclick=()=>window.open('/panel/calculo-ofertas.html','_blank','noopener,noreferrer');
 $('logoutHub').onclick=()=>logout(false);
 
 /* ===== Inicio ===== */
