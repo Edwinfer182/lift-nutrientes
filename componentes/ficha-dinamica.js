@@ -418,7 +418,7 @@
     // SEO y productos relacionados se consultan simultáneamente tras identificar la ficha.
     var loaded = await Promise.all([
       catalogoCercano(encontrado), sharedPromise,
-      get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo&producto_id=eq.' + encontrado.id).catch(function () { return []; })
+      get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + encontrado.id).catch(function () { return []; })
     ]);
     var rows = loaded[0], datos = loaded[1], seoRows = loaded[2];
     var offers = datos[0], settings = datos[1], REVIEWS = datos[2];
@@ -489,10 +489,11 @@
 
   async function dibujar(row, reviews, productsById) {
     var p = row.product, seo = row._seo || {}, name = String(or(p.name, p.nombre)), pid = row.id;
-    var key = row.slug, canonical = BASE + '/producto/' + key + '/';
+    var key = row.slug, canonical = String(seo.canonical_url || '').trim();
+    if (canonical !== BASE + '/producto/' + key + '/') return mostrarError('SEO incompleto', 'El canonical guardado en Supabase no coincide con la ficha.');
     var embedded = p.seo && typeof p.seo === 'object' && !Array.isArray(p.seo) ? p.seo : {};
     var brand = String(or(p.brand, p.marca, '')), description = String(or(p.description, p.descripcion, '')).trim();
-    var image = String(or(embedded.image, seo.imagen_seo, p.image, p.imagen, '')).trim();
+    var image = String(or(seo.imagen_seo, p.image, p.imagen, '')).trim();
     if (image.indexOf('//') === 0) image = 'https:' + image; else if (image.indexOf('/') === 0) image = BASE + image; else if (image && !/^https?:\/\//.test(image)) image = '';
     var price = 'price' in p ? p.price : p.precio, promotion = active_offer(row), amount = fl(price), valid_price = isFinite(amount) && amount > 0;
     if (!isFinite(amount)) amount = 0;
@@ -500,22 +501,10 @@
     var flavor = String(or(p.flavor, p.sabor, '')).trim(), variants = row._variants || [];
     var cur = variants.find(function (v) { return String(v.id) === String(pid); });
     if (!flavor && variants.length > 1) flavor = cur ? cur.label : '';
-    var stored_title = String(or(seo.titulo_seo, embedded.title, '')).trim();
-    var wrong = titulo_no_corresponde(stored_title, name);
-    if (wrong) { seo = { producto_id: seo.producto_id, imagen_seo: seo.imagen_seo }; stored_title = ''; }
-    var stored_long = String(or(embedded.html, seo.descripcion_larga_html, '')).trim();
-    var auto_content = es_delgada(stored_long, name) && ['applied nutrition', 'bsn'].indexOf(lower(brand.trim())) < 0;
-    var auto_title = !stored_title || new RegExp('^\\s*' + name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\|\\s*supgo\\s*$', 'i').test(stored_title);
-    var title = (auto_title ? titulo_seo(name, brand) : stored_title).slice(0, 140);
-    var auto_html = '';
-    if (auto_content) {
-      var lab = slug(brand), cs = slug(category);
-      auto_html = await descripcion_html({ pid: pid, nombre: name, marca: brand, categoria: category, sabor: flavor, presentacion: presentation, variantes: variants,
-        mas_marca: row._mas_marca || [], alternativas: row._alternativas || [], url_marca: brand && LABS.has(lab) ? '/laboratorios/' + lab + '/' : '', url_categoria: category && CATS.has(cs) ? '/categorias/' + cs + '/' : '' });
-    }
-    var seo_description = plain(auto_html || seo.descripcion_larga_html || embedded.html);
-    var stored_meta = String(or(seo.meta_descripcion, '')).trim();
-    var meta = stored_meta && stored_meta.indexOf('Compra ') !== 0 && stored_meta.length >= 50 && stored_meta.length <= 170 ? stored_meta : meta_descripcion(name, brand, flavor, presentation);
+    var title = String(seo.titulo_seo || '').trim();
+    var meta = String(seo.meta_descripcion || '').trim();
+    if (!title || !meta) return mostrarError('SEO incompleto', 'Faltan título o metadescripción en Supabase.');
+    var seo_description = plain(seo.descripcion_larga_html || '');
     /* Datos estructurados (Product + BreadcrumbList) */
     var schema = { '@context': 'https://schema.org', '@type': 'Product', name: name, url: canonical, sku: String(or(embedded.sku, p.sku, pid)) };
     ['gtin', 'gtin8', 'color', 'material', 'size'].forEach(function (k) { var v = p[k]; if ((typeof v === 'string' || typeof v === 'number') && String(v).trim()) schema[k] = String(v).trim(); });
@@ -529,9 +518,8 @@
     if (T(embedded.manufacturer)) schema.manufacturer = /^https?:\/\//.test(String(embedded.manufacturer)) ? { '@type': 'Organization', name: brand, url: String(embedded.manufacturer) } : { '@type': 'Organization', name: String(embedded.manufacturer) };
     if (image) schema.image = Array.from(new Set([image].concat((row._images || []).filter(Boolean)))).slice(0, 6);
     if (category) schema.category = category;
-    schema.description = (seo_description || description || meta).slice(0, 5000);
-    if (auto_html) { var fp = /<p>([\s\S]*?)<\/p>/.exec(auto_html); if (fp) schema.description = plain(fp[1]); }
-    if (['applied nutrition', 'bsn'].indexOf(lower(brand.trim())) >= 0) schema.description = meta;
+    schema.description = (seo_description || meta).slice(0, 5000);
+    if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object' && !Array.isArray(seo.datos_estructurados)) Object.assign(schema, seo.datos_estructurados);
     ['gtin13', 'gtin12', 'gtin14', 'mpn'].forEach(function (k) { if (T(p[k])) schema[k] = String(p[k]).trim(); });
     if (promotion) amount = promotion[1];
     if (valid_price) {
@@ -569,13 +557,10 @@
     }
     if (extra) extra = '<div class="seo-offer-extras">' + extra + '</div>';
     /* Descripción larga sin scripts ni eventos */
-    var long_html = auto_html || String(or(embedded.html, seo.descripcion_larga_html, '')).trim();
+    var long_html = String(seo.descripcion_larga_html || '').trim();
     long_html = long_html.replace(/<(script|iframe|object|embed|form|style|svg)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '').replace(/<(script|iframe|object|embed|form|style|svg)\b[^>]*\/?>/gi, '')
       .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '').replace(/javascript\s*:/gi, '').replace(/<\s*\/?details\b[^>]*>/gi, '').replace(/<\s*\/?summary\b[^>]*>/gi, '');
-    var body = long_html ? long_html : '<p>' + esc(description || 'Consulta presentaciones, sabores y disponibilidad de este producto.') + '</p>';
-    var lb = lower(brand.trim());
-    if (lb === 'applied nutrition' && (row._applied_links || []).length === 3) body = local_seo('applied', name, description, [['/laboratorios/applied-nutrition/', 'catálogo Applied Nutrition']].concat(row._applied_links.map(function (x) { return [x.url, x.name]; })));
-    if (lb === 'bsn' && (row._bsn_links || []).length === 3) body = local_seo('bsn', name, description, [['/laboratorios/bsn/', 'catálogo BSN']].concat(row._bsn_links.map(function (x) { return [x.url, x.name]; })));
+    var body = long_html ? long_html : '<p>' + esc(description || meta) + '</p>';
     /* Galería, sabores, relacionados, marca y etiquetas */
     var gallery = []; [image].concat(row._images || []).forEach(function (u) { if (u && gallery.indexOf(u) < 0) gallery.push(u); });
     var gallery_html = gallery.map(function (u, i) { return '<button type="button" class="gallery-thumb' + (i === 0 ? ' active' : '') + '" data-index="' + i + '" aria-label="Ver imagen ' + (i + 1) + '"><img src="' + esc(u) + '" alt="' + esc(name) + ' - imagen ' + (i + 1) + '" loading="lazy" width="48" height="48"></button>'; }).join('');
@@ -597,12 +582,12 @@
 
     /* Encabezado de la página */
     document.title = title;
-    ['meta[name="description"]', 'meta[name="robots"]'].forEach(function (s) { var e = document.querySelector(s); if (e) e.remove(); });
-    var head = '<meta name="description" content="' + esc(meta) + '">\n<meta name="robots" content="' + (row._indexable !== false ? 'index, follow' : 'noindex, follow') + '">' +
-      '<link rel="canonical" href="' + esc(canonical) + '"><meta property="og:type" content="product"><meta property="og:title" content="' + esc(name) + '"><meta property="og:description" content="' + esc(meta) + '">' +
+    ['meta[name="description"]', 'meta[name="robots"]', 'link[rel="canonical"]', 'meta[property^="og:"]', 'meta[name^="twitter:"]', 'script[type="application/ld+json"]'].forEach(function (s) { var e = document.querySelector(s); if (e) e.remove(); });
+    var head = '<meta name="description" content="' + esc(meta) + '">\n<meta name="robots" content="' + (row._indexable !== false && seo.indexable !== false ? 'index, follow' : 'noindex, follow') + '">' +
+      '<link rel="canonical" href="' + esc(canonical) + '"><meta property="og:type" content="product"><meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(meta) + '">' +
       '<meta property="og:url" content="' + esc(canonical) + '"><meta property="og:site_name" content="SUPGO"><meta property="og:locale" content="es_CO">' +
       (image ? '<meta property="og:image" content="' + esc(image) + '"><meta property="og:image:alt" content="' + esc(name) + '"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="' + esc(image) + '">' : '<meta name="twitter:card" content="summary">') +
-      '<meta name="twitter:title" content="' + esc(name) + '"><meta name="twitter:description" content="' + esc(meta) + '">' +
+      '<meta name="twitter:title" content="' + esc(title) + '"><meta name="twitter:description" content="' + esc(meta) + '">' +
       (valid_price ? '<meta property="product:price:amount" content="' + g6(amount) + '"><meta property="product:price:currency" content="COP">' : '') +
       '<script type="application/ld+json">' + jsonLd(schema) + '</script><script type="application/ld+json">' + jsonLd(breadcrumb) + '</script>';
     document.querySelector('title').insertAdjacentHTML('afterend', head);
