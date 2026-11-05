@@ -35,10 +35,16 @@ module.exports = async function handler(req, res) {
     const description = clean(seo.meta_descripcion);
     if (!title || !description) throw new Error('SEO incompleto para producto: ' + row.id);
     const brand = text(p.brand || p.marca);
+    // Las políticas de indexación provienen de las listas mantenidas en Supabase.
+    const [brandRules, seoBlocks] = await Promise.all([
+      brand ? fetchRows('lift_seo_marcas?select=habilitada&marca=ilike.' + encodeURIComponent(brand) + '&limit=2') : Promise.resolve([]),
+      fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
+    ]);
+    const canIndex = seo.indexable !== false && brandRules.length === 1 && brandRules[0].habilitada === true && seoBlocks.length === 0;
     const canonical = text(seo.canonical_url);
     if (canonical !== 'https://supgo.co/producto/' + slug + '/') throw new Error('Canonical no coincide con slug: ' + row.id);
     const image = text(seo.imagen_seo || p.image || p.imagen);
-    const robots = seo.indexable === false ? 'noindex, follow' : 'index, follow';
+    const robots = canIndex ? 'index, follow' : 'noindex, follow';
     // Sharing crawlers read the initial HTML without executing the browser template.
     const social = [
       ['property', 'og:type', 'product'],
@@ -69,7 +75,24 @@ module.exports = async function handler(req, res) {
     const initial = '<h1>' + escapeHtml(name) + '</h1>' +
       (image.startsWith('https://') ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '" loading="eager">' : '') +
       '<p>' + escapeHtml(description) + '</p>' +
-      (price > 0 ? '<p>$' + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
+      (text(seo.descripcion_larga_html) ? '<section class="seo-ssr-descripcion"><h2>Descripción del producto</h2><p>' + escapeHtml(clean(seo.descripcion_larga_html).slice(0, 6000)) + '</p></section>' : '') +
+      (price > 0 ? '<p>
+    let html = template
+      .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
+      .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
+      .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
+      .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + robots + '">')
+      .replace('</head>', socialHtml + '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
+      .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
+    res.setHeader('Content-Type','text/html; charset=utf-8');
+    res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
+    return res.status(200).send(html);
+  } catch (err) {
+    console.error('SUPGO product SSR error:', err.message);
+    return res.status(503).send('No se pudo cargar el producto. Intenta nuevamente.');
+  }
+};
+ + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
     let html = template
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
