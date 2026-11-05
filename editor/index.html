@@ -88,7 +88,7 @@ var types={products:'products',categoria:'collections',laboratorio:'collections'
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]})}
 function pass(){try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}}
 function notice(t,bad){var m=$('message');m.textContent=t;m.className=bad?'bad':'';m.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){m.hidden=true},6000)}
-function setBusy(v){busy=v;$('loading').textContent=v?'  Cargando información…':'';$('create').disabled=v}
+function setBusy(v){busy=v;$('loading').textContent=v?'  Cargando información…':'';$('create').disabled=v||kind==='pages';document.querySelectorAll('[data-kind]').forEach(function(x){x.disabled=v})}
 async function rpc(action,payload){
  var r=await fetch(SB+'/rest/v1/rpc/lift_editor_admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({p_password:pass(),p_action:action,p_payload:payload||{}})});
  var j=await r.json().catch(function(){return {}});
@@ -252,7 +252,7 @@ async function saveRecord(type,creating){if(busy)return;var p=collect();
   var r=await rpc(act,p);notice('Guardado en Supabase. '+(r.id?'Producto #'+r.id:'Registro actualizado')+'.');
   setBusy(false);
   await loadListAfterSave(type,r,p);
- }catch(e){notice(e instanceof SyntaxError?'JSON de datos estructurados inválido. Corrígelo antes de guardar.':e.message,true)}
+ }catch(e){notice(e instanceof SyntaxError?'JSON inválido en datos estructurados o atributos del producto. Corrígelo antes de guardar.':e.message,true)}
  finally{setBusy(false);var b=$('save');if(b){b.disabled=false;b.textContent='Guardar en Supabase'}}
 }
 async function loadListAfterSave(type,r,p){await stats();await loadList();if(type==='product')await openItem(String(r.id));else if(type==='collection')await openItem(p.tipo+'/'+p.slug);else await openItem(p.ruta)}
