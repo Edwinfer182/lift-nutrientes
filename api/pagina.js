@@ -23,7 +23,7 @@ module.exports = async function pagina(req, res) {
     const file = path.join(process.cwd(), source);
     if (!fs.existsSync(file)) return res.status(404).send('Página no encontrada');
     const html = fs.readFileSync(file,'utf8');
-    const query = new URLSearchParams({select:'ruta,titulo_seo,meta_descripcion,canonical_url,indexable,og_titulo,og_descripcion,og_imagen,datos_estructurados',ruta:'eq.' + ruta,limit:'2'});
+    const query = new URLSearchParams({select:'ruta,titulo_seo,meta_descripcion,canonical_url,indexable,og_titulo,og_descripcion,og_imagen,datos_estructurados,contenido_seo_html',ruta:'eq.' + ruta,limit:'2'});
     const response = await fetch(SB + 'lift_pagina_seo?' + query, {headers:{apikey:KEY,Accept:'application/json'},signal:AbortSignal.timeout(9000)});
     if (!response.ok) throw Error('Supabase SEO HTTP ' + response.status);
     const rows = await response.json();
@@ -35,7 +35,13 @@ module.exports = async function pagina(req, res) {
     const headEnd = html.search(/<\/head\s*>/i);
     if (headEnd < 0) throw Error('Plantilla sin head: ' + ruta);
     let head = html.slice(0, headEnd);
-    const rest = html.slice(headEnd);
+    let rest = html.slice(headEnd);
+    if (ruta.startsWith('guias/')) {
+      const body = str(seo.contenido_seo_html);
+      if (!/^<main\b[^>]*>[\s\S]*<\/main>$/i.test(body)) throw Error('Contenido HTML de guía ausente o incompleto en Supabase: '+ruta);
+      if (!/<main\b[^>]*>[\s\S]*?<\/main>/i.test(rest)) throw Error('Plantilla de guía sin <main>: '+ruta);
+      rest = rest.replace(/<main\b[^>]*>[\s\S]*?<\/main>/i, body);
+    }
     head = head.replace(/<title\b[^>]*>[\s\S]*?<\/title\s*>/gi, '');
     head = head.replace(/<meta\b(?=[^>]*\b(?:name|property)\s*=\s*["'](?:description|robots|og:[^"']+|twitter:[^"']+)["'])[^>]*>/gi, '');
     head = head.replace(/<link\b(?=[^>]*\brel\s*=\s*["']canonical["'])[^>]*>/gi, '');
