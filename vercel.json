@@ -18,9 +18,72 @@
     },
     "api/coleccion.js": {
       "includeFiles": "{categorias,laboratorios}/plantilla.html"
+    },
+    "api/pagina.js": {
+      "includeFiles": "{home,categorias,laboratorios,ofertas,guias,politica-de-devoluciones,tratamiento-de-datos}/*.html"
     }
   },
   "rewrites": [
+    {
+      "source": "/home/",
+      "destination": "/api/pagina?ruta=home"
+    },
+    {
+      "source": "/home",
+      "destination": "/api/pagina?ruta=home"
+    },
+    {
+      "source": "/categorias/",
+      "destination": "/api/pagina?ruta=categorias"
+    },
+    {
+      "source": "/categorias",
+      "destination": "/api/pagina?ruta=categorias"
+    },
+    {
+      "source": "/laboratorios/",
+      "destination": "/api/pagina?ruta=laboratorios"
+    },
+    {
+      "source": "/laboratorios",
+      "destination": "/api/pagina?ruta=laboratorios"
+    },
+    {
+      "source": "/ofertas/",
+      "destination": "/api/pagina?ruta=ofertas"
+    },
+    {
+      "source": "/ofertas",
+      "destination": "/api/pagina?ruta=ofertas"
+    },
+    {
+      "source": "/guias/",
+      "destination": "/api/pagina?ruta=guias"
+    },
+    {
+      "source": "/guias",
+      "destination": "/api/pagina?ruta=guias"
+    },
+    {
+      "source": "/politica-de-devoluciones/",
+      "destination": "/api/pagina?ruta=politica-de-devoluciones"
+    },
+    {
+      "source": "/politica-de-devoluciones",
+      "destination": "/api/pagina?ruta=politica-de-devoluciones"
+    },
+    {
+      "source": "/tratamiento-de-datos/",
+      "destination": "/api/pagina?ruta=tratamiento-de-datos"
+    },
+    {
+      "source": "/tratamiento-de-datos",
+      "destination": "/api/pagina?ruta=tratamiento-de-datos"
+    },
+    {
+      "source": "/guias/:slug([a-z0-9-]+).html",
+      "destination": "/api/pagina?ruta=guias/:slug"
+    },
     {
       "source": "/categorias/:slug([a-z0-9-]+)/",
       "destination": "/api/coleccion?tipo=categoria&slug=:slug"
