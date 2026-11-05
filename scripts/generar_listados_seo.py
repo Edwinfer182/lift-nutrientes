@@ -434,17 +434,13 @@ def main():
                 groups.setdefault(name, 0)
                 groups[name] += 1
         write_hub(plural, {k: v for k, v in groups.items() if slug(k) not in NOINDEX_SLUGS}, logos)
-        index = 3 if kind == "categoria" else 2
-        rel = related_groups(rows, kind)
-        for name, count in groups.items():
-            dest = ROOT / plural / slug(name) / "index.html"
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            own = [item for item in items if slug(item[index]) == slug(name)]
-            dest.write_text(template(kind, name, slug(name), count, logos.get(slug(name), "") if kind == "laboratorio" else "", own, rel.get(slug(name), [])), encoding="utf-8")
+        # Las URL /categorias/<slug>/ y /laboratorios/<slug>/ ahora se sirven
+        # por las dos plantillas SSR, no por un index.html por cada grupo.
+        for name in groups:
             if slug(name) not in NOINDEX_SLUGS:
                 hub[kind].append((name, f"/{plural}/{slug(name)}/"))
-            total += 1
-    print(f"Generadas {total} páginas individuales de categorías y laboratorios.")
+                total += 1
+    print(f"Registradas {total} rutas dinámicas de categorías y laboratorios.")
     if items:
         write_all_products(items)
         write_home_block(sorted(hub["categoria"], key=lambda x: x[0].casefold()),

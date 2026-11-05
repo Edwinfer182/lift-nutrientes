@@ -34,9 +34,7 @@ PAGE_GLOBS = [
     "home/index.html",
     "productos/index.html",
     "categorias/index.html",
-    "categorias/*/index.html",
     "laboratorios/index.html",
-    "laboratorios/*/index.html",
     "ofertas/index.html",
     "politica-de-devoluciones/index.html",
     "tratamiento-de-datos/index.html",
@@ -339,6 +337,28 @@ def expand(globs):
     return found
 
 
+def dynamic_collection_urls(state):
+    """Añade al sitemap las rutas SSR publicadas en los dos índices dinámicos."""
+    out = []
+    for section in ("categorias", "laboratorios"):
+        hub = ROOT / section / "index.html"
+        if not hub.exists():
+            continue
+        html = hub.read_text(encoding="utf-8", errors="replace")
+        pattern = rf'href=["\\\']/{section}/([a-z0-9]+(?:-[a-z0-9]+)*)/["\\\']'
+        slugs = set(re.findall(pattern, html))
+        for item in sorted(slugs - {"pruebas", "venom-pharma", "lift-nutrientes"}):
+            url = f"{BASE}/{section}/{item}/"
+            # El hub generado desde Supabase refleja qué grupos siguen activos.
+            digest = hashlib.sha1((section + "/" + item).encode()).hexdigest()[:16]
+            entry = state.get(url)
+            if not entry or entry.get("h") != digest:
+                entry = {"h": digest, "d": TODAY}
+            state[url] = entry
+            out.append((url, entry["d"]))
+    return out
+
+
 def write_urlset(name, urls):
     lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     lines += [f"<url><loc>{u}</loc><lastmod>{d}</lastmod></url>" for u, d in urls]
@@ -374,6 +394,7 @@ def main():
         state[url] = entry
     problems = []
     pages = collect(expand(PAGE_GLOBS), state, problems)
+    pages.extend(dynamic_collection_urls(state))
     guides = collect(expand(GUIDE_GLOBS), state, problems)
     product_paths = [PRODUCTS / u.rsplit("/", 1)[1] for u in sorted(approved) if (PRODUCTS / u.rsplit("/", 1)[1]).exists()]
     products = collect(product_paths, state, problems)
