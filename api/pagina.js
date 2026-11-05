@@ -64,8 +64,9 @@ module.exports = async function pagina(req, res) {
       tags.push('<meta property="og:image" content="' + esc(image) + '">');
       tags.push('<meta name="twitter:image" content="' + esc(image) + '">');
     }
+    // El JSON-LD heredado del HTML no se publica: la fuente es Supabase.
+    head = head.replace(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script\s*>/gi, '');
     if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object') {
-      head = head.replace(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script\s*>/gi, '');
       tags.push('<script type="application/ld+json">' + JSON.stringify(seo.datos_estructurados).replace(/</g,'\\u003c') + '</script>');
     }
     res.setHeader('Content-Type','text/html; charset=utf-8');
