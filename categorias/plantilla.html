@@ -16,6 +16,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script type="application/ld+json">@@STRUCTURED_DATA@@</script>
+<style>
+/* Mantener enlaces HTML para Google y visitantes sin JavaScript, sin mostrarlos durante la hidratación. */
+html.js-coleccion #content > .seo-productos { display: none; }
+html.js-coleccion #content:has(> .seo-productos)::before {
+  content: "Cargando productos…";
+  display: block;
+  min-height: 180px;
+  padding: 24px 16px;
+  border-radius: 12px;
+  color: #657269;
+  background: linear-gradient(110deg,#f4f5f5 8%,#e6eae8 18%,#f4f5f5 33%);
+  background-size: 200% 100%;
+  animation: supgo-skeleton 1.6s linear infinite;
+}
+@keyframes supgo-skeleton { to { background-position-x: -200%; } }
+@media (prefers-reduced-motion: reduce) {
+  html.js-coleccion #content:has(> .seo-productos)::before { animation: none; }
+}
+</style>
+<script>document.documentElement.classList.add('js-coleccion');</script>
 </head>
 <body data-page="categoria" data-slug="@@SLUG@@">
 <main class="site">
@@ -24,6 +44,6 @@
   <div class="toolbar"><label for="sort">Ordenar:</label><select id="sort" onchange="window.supgoPages?.render()"><option value="">Nombre</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option></select></div>
   <div id="content">@@INITIAL_PRODUCTS@@</div>
 </main>
-<script defer src="/paginas/supgo-pages.js?v=20261105-dinamicas"></script>
+<script defer src="/paginas/supgo-pages.js?v=20261105-dinamicas" onerror="document.documentElement.classList.remove('js-coleccion')"></script>
 <script defer src="/componentes/header-loader.js?v=20261022-unificado"></script>
 </body></html>
