@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Prueba aislada · Instagram SEO SUPGO</title><style>body{font:14px Poppins,Arial,sans-serif;background:#f4f5f6;color:#111;margin:0;padding:32px}main{max-width:720px;margin:auto;background:#fff;border-radius:18px;padding:25px}button{background:#151515;color:#fff;border:0;border-radius:10px;padding:13px 18px;cursor:pointer}small{color:#666;display:block;margin:12px 0}</style></head>
+<body><main><h1>Prueba aislada · Instagram SEO</h1><p>Esta página solo comprueba las pestañas Productos, Educación, TikTok y Laboratorios. Usa un producto ficticio de prueba; no modifica Supabase ni publica contenido.</p><small id="status">Cargando módulo…</small><button id="launch" disabled>Abrir herramientas</button></main>
+<script>window.PRODUCTS=[{id:'demo',nombre:'Producto de prueba',marca:'SUPGO DEMO',precio:100000,imagen:'',sabor:'Sin sabor',categoria:'Prueba'}];</script>
+<script src="/modulos/instagram-seo.js"></script>
+<script>
+(function(){const btn=document.getElementById('launch'),status=document.getElementById('status');const api=window.LiftInstagramSEO;
+if(!api||typeof api.openSelector!=='function'){status.textContent='ERROR: el módulo no cargó';return;}
+const features=['Productos · Imagen y SEO','Educación · Calendario','TikTok · Guiones','Laboratorios · SEO'];
+btn.disabled=false;status.textContent='Módulo cargado. Abre cada pestaña y verifica su contenido.';
+btn.onclick=async()=>{try{await api.openSelector();const modal=document.getElementById('lift-instagram-seo-modal');if(!modal)throw Error('No abrió la ventana');const text=modal.textContent;const missing=features.filter(x=>!text.includes(x));status.textContent=missing.length?'Faltan pestañas: '+missing.join(', '):'Las cuatro pestañas se crearon. Verifica su funcionamiento visual.';}catch(e){status.textContent='ERROR: '+e.message;console.error(e)}};
+})();
+</script></body></html>
