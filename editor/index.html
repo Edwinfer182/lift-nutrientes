@@ -192,8 +192,8 @@ function renderProduct(r,creating){
 }
 function slugify(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 function renderCollection(c,creating){record=c;originalSlug=creating?'':c.slug;
- var u=creating?null:'/ '+(c.tipo==='categoria'?'categorias':'laboratorios')+'/'+c.slug+'/';
- formHeader((creating?'Nueva ': 'Editar ')+(c.tipo==='categoria'?'categoría':'laboratorio'),creating?'Primero registra el SEO. La página pública necesita productos asociados a este grupo.':c.slug,creating?null:u.replace('/ ','/'));
+ var u=creating?null:'/'+(c.tipo==='categoria'?'categorias':'laboratorios')+'/'+c.slug+'/';
+ formHeader((creating?'Nueva ': 'Editar ')+(c.tipo==='categoria'?'categoría':'laboratorio'),creating?'Primero registra el SEO. La página pública necesita productos asociados a este grupo.':c.slug,u);
  var general=section('Información de la colección','No crea páginas HTML individuales. Se relaciona por el nombre de la categoría o marca de los productos.');
  add(general.fields,'tipo','Tipo',c.tipo,{options:[{value:'categoria',label:'Categoría'},{value:'laboratorio',label:'Laboratorio'}],readOnly:!creating});
  add(general.fields,'slug','Slug',c.slug,{readOnly:!creating,hint:'En registros existentes no se cambia el slug para evitar enlaces rotos.'});
@@ -245,6 +245,7 @@ async function saveRecord(type,creating){if(busy)return;var p=collect();
   if(type==='product'&&creating&&p.activo){if(!confirm('Publicarás un producto nuevo inmediatamente. ¿Continuar?'))return}
   $('save').disabled=true;$('save').textContent='Guardando…';setBusy(true);
   var r=await rpc(act,p);notice('Guardado en Supabase. '+(r.id?'Producto #'+r.id:'Registro actualizado')+'.');
+  setBusy(false);
   await loadListAfterSave(type,r,p);
  }catch(e){notice(e instanceof SyntaxError?'JSON de datos estructurados inválido. Corrígelo antes de guardar.':e.message,true)}
  finally{setBusy(false);var b=$('save');if(b){b.disabled=false;b.textContent='Guardar en Supabase'}}
