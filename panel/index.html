@@ -1148,7 +1148,25 @@ async function openInstagramTools(){
   }catch(e){toast('Instagram SEO: '+e.message,{err:true});console.error(e)}
 }
 $('hub').querySelector('[data-go="instagram"]').onclick=openInstagramTools;
-$('hub').querySelector('[data-go="calcofertas"]').onclick=()=>window.open('/panel/calculo-ofertas.html','_blank','noopener,noreferrer');
+let offersCalculatorLoading=null;
+async function openOffersCalculator(){
+  if(!pass()){toast('Inicia sesión para usar la calculadora',{err:true});return}
+  try{
+    if(typeof window.SupgoCalculoOfertas?.open!=='function'){
+      if(!offersCalculatorLoading)offersCalculatorLoading=new Promise((resolve,reject)=>{
+        const script=document.createElement('script');
+        script.src='/modulos/calculo-ofertas.js?v=20261105';
+        script.onload=resolve;
+        script.onerror=()=>reject(new Error('No se pudo cargar la calculadora de ofertas'));
+        document.head.append(script);
+      }).catch(e=>{offersCalculatorLoading=null;throw e});
+      await offersCalculatorLoading;
+    }
+    if(typeof window.SupgoCalculoOfertas?.open!=='function')throw Error('La calculadora no está disponible');
+    window.SupgoCalculoOfertas.open();
+  }catch(e){toast('Cálculo de ofertas: '+e.message,{err:true});console.error(e)}
+}
+$('hub').querySelector('[data-go="calcofertas"]').onclick=openOffersCalculator;
 $('logoutHub').onclick=()=>logout(false);
 
 /* ===== Inicio ===== */
