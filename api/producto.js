@@ -42,6 +42,28 @@ module.exports = async function handler(req, res) {
     const description = clean(p.seo?.meta_description || p.seo?.description || p.description || p.descripcion || ('Compra ' + name + ' en SUPGO Medellín. Envíos a Colombia.')).slice(0, 160);
     const title = (name + ' | SUPGO').slice(0, 100);
     const image = text(p.image || p.imagen);
+    // Sharing crawlers read the initial HTML without executing the browser template.
+    const social = [
+      ['property', 'og:type', 'product'],
+      ['property', 'og:site_name', 'SUPGO'],
+      ['property', 'og:locale', 'es_CO'],
+      ['property', 'og:title', title],
+      ['property', 'og:description', description],
+      ['property', 'og:url', canonical],
+      ['name', 'twitter:card', /^https:\/\//.test(image) ? 'summary_large_image' : 'summary'],
+      ['name', 'twitter:title', title],
+      ['name', 'twitter:description', description]
+    ];
+    if (/^https:\/\//.test(image)) social.push(
+      ['property', 'og:image', image],
+      ['property', 'og:image:secure_url', image],
+      ['property', 'og:image:alt', name],
+      ['name', 'twitter:image', image],
+      ['name', 'twitter:image:alt', name]
+    );
+    const socialHtml = social.map(([attribute, key, value]) =>
+      '<meta ' + attribute + '="' + key + '" content="' + escapeHtml(value) + '">'
+    ).join('\n');
     const price = Number(p.price ?? p.precio ?? 0);
     const schema = { '@context':'https://schema.org', '@type':'Product', name, description, url:canonical, brand:{'@type':'Brand',name:brand} };
     if (/^https:\/\//.test(image)) schema.image = [image];
@@ -50,10 +72,12 @@ module.exports = async function handler(req, res) {
       (image.startsWith('https://') ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '" loading="eager">' : '') +
       '<p>' + escapeHtml(description) + '</p>' +
       (price > 0 ? '<p>$' + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
-    let html = template.replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
+    let html = template
+      .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
+      .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
       .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + (indexable ? 'index, follow' : 'noindex, follow') + '">')
-      .replace('</head>', '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
+      .replace('</head>', socialHtml + '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
       .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
