@@ -1119,7 +1119,7 @@ const HUB=[
   ['variaciones','🎨','Variaciones','Agrupar sabores y presentaciones'],
   ['excel','📊','Excel / Datos','Importar y exportar']]],
  ['Herramientas',[
-  ['calculadora','🧮','Calculadora',''],
+  ['native:calculadora','🧮','Calculadora','Operaciones y porcentajes'],
   ['native:calcofertas','📈','Cálculo de ofertas','Márgenes y precios de oferta'],
   ['native:instagram','📸','Instagram SEO · Estados · TikTok','Productos, educación, estados y guiones'],
   ['herramientas','⚙️','Más herramientas','Menú de herramientas del panel anterior']]]
@@ -1167,6 +1167,21 @@ async function openOffersCalculator(){
   }catch(e){toast('Cálculo de ofertas: '+e.message,{err:true});console.error(e)}
 }
 $('hub').querySelector('[data-go="calcofertas"]').onclick=openOffersCalculator;
+let simpleCalculatorLoading=null;
+async function openSimpleCalculator(){
+  if(!pass()){toast('Inicia sesión para usar la calculadora',{err:true});return}
+  try{
+    if(!window.SupgoCalculadoraNormal?.open){
+      if(!simpleCalculatorLoading)simpleCalculatorLoading=new Promise((resolve,reject)=>{
+        const script=document.createElement('script');script.src='/modulos/calculadora-normal.js?v=20261105';
+        script.onload=resolve;script.onerror=()=>reject(new Error('No se pudo cargar la calculadora'));document.head.append(script);
+      }).catch(e=>{simpleCalculatorLoading=null;throw e});
+      await simpleCalculatorLoading;
+    }
+    window.SupgoCalculadoraNormal.open();
+  }catch(e){toast('Calculadora: '+e.message,{err:true});console.error(e)}
+}
+$('hub').querySelector('[data-go="calculadora"]').onclick=openSimpleCalculator;
 $('logoutHub').onclick=()=>logout(false);
 
 /* ===== Inicio ===== */
