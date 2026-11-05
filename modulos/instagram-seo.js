@@ -198,7 +198,7 @@ async function openSelector(){
  const tiktokTab=button('TikTok · Guiones',()=>activate('tiktok'));
  const laboratoryTab=button('Laboratorios · SEO',()=>activate('laboratorios'));
  const productPanel=document.createElement('div');
- const educationPanel=document.createElement('div');educationPanel.hidden=true;
+ const educationPanel=document.createElement('div'); // Visibilidad controlada por activate()
  educationPanel.style.cssText='display:none';
  const tiktokPanel=document.createElement('div');tiktokPanel.style.display='none';
  const laboratoryPanel=document.createElement('div');laboratoryPanel.style.display='none';
