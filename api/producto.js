@@ -29,15 +29,6 @@ module.exports = async function handler(req, res) {
       return res.status(404).send('Producto no disponible');
     }
     const brand = text(p.brand || p.marca);
-    // Fail closed for SEO: uncertain brand rules remain noindex, never accidentally index blocked products.
-    let indexable = false;
-    try {
-      const [brands, blocked] = await Promise.all([
-        fetchRows('lift_seo_marcas?select=marca,habilitada&limit=5000'),
-        fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + encodeURIComponent(row.id) + '&limit=1')
-      ]);
-      indexable = brands.some(b => text(b.marca).toLowerCase() === brand.toLowerCase() && b.habilitada === true) && blocked.length === 0;
-    } catch (_) { indexable = false; }
     const canonical = 'https://supgo.co/producto/' + slug + '/';
     const description = clean(p.seo?.meta_description || p.seo?.description || p.description || p.descripcion || ('Compra ' + name + ' en SUPGO Medellín. Envíos a Colombia.')).slice(0, 160);
     const title = (name + ' | SUPGO').slice(0, 100);
@@ -76,7 +67,7 @@ module.exports = async function handler(req, res) {
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
-      .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + (indexable ? 'index, follow' : 'noindex, follow') + '">')
+      .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="index, follow">')
       .replace('</head>', socialHtml + '<style id="supgo-ssr-no-flash">#supgo-ficha:not(:has(.product-card)){visibility:hidden}</style><link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
       .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
     res.setHeader('Content-Type','text/html; charset=utf-8');
