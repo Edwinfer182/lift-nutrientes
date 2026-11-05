@@ -23,103 +23,53 @@
       "includeFiles": "{home,categorias,laboratorios,ofertas,guias,politica-de-devoluciones,tratamiento-de-datos}/*.html"
     }
   },
-  "rewrites": [
-    {
-      "source": "/home/",
-      "destination": "/api/pagina?ruta=home"
-    },
-    {
-      "source": "/home",
-      "destination": "/api/pagina?ruta=home"
-    },
-    {
-      "source": "/categorias/",
-      "destination": "/api/pagina?ruta=categorias"
-    },
-    {
-      "source": "/categorias",
-      "destination": "/api/pagina?ruta=categorias"
-    },
-    {
-      "source": "/laboratorios/",
-      "destination": "/api/pagina?ruta=laboratorios"
-    },
-    {
-      "source": "/laboratorios",
-      "destination": "/api/pagina?ruta=laboratorios"
-    },
-    {
-      "source": "/ofertas/",
-      "destination": "/api/pagina?ruta=ofertas"
-    },
-    {
-      "source": "/ofertas",
-      "destination": "/api/pagina?ruta=ofertas"
-    },
-    {
-      "source": "/guias/",
-      "destination": "/api/pagina?ruta=guias"
-    },
-    {
-      "source": "/guias",
-      "destination": "/api/pagina?ruta=guias"
-    },
-    {
-      "source": "/politica-de-devoluciones/",
-      "destination": "/api/pagina?ruta=politica-de-devoluciones"
-    },
-    {
-      "source": "/politica-de-devoluciones",
-      "destination": "/api/pagina?ruta=politica-de-devoluciones"
-    },
-    {
-      "source": "/tratamiento-de-datos/",
-      "destination": "/api/pagina?ruta=tratamiento-de-datos"
-    },
-    {
-      "source": "/tratamiento-de-datos",
-      "destination": "/api/pagina?ruta=tratamiento-de-datos"
-    },
-    {
-      "source": "/guias/:slug([a-z0-9-]+).html",
-      "destination": "/api/pagina?ruta=guias/:slug"
-    },
-    {
-      "source": "/categorias/:slug([a-z0-9-]+)/",
-      "destination": "/api/coleccion?tipo=categoria&slug=:slug"
-    },
-    {
-      "source": "/categorias/:slug([a-z0-9-]+)",
-      "destination": "/api/coleccion?tipo=categoria&slug=:slug"
-    },
-    {
-      "source": "/laboratorios/:slug([a-z0-9-]+)/",
-      "destination": "/api/coleccion?tipo=laboratorio&slug=:slug"
-    },
-    {
-      "source": "/laboratorios/:slug([a-z0-9-]+)",
-      "destination": "/api/coleccion?tipo=laboratorio&slug=:slug"
-    },
-    {
-      "source": "/producto/:slug([a-z0-9-]+)/",
-      "destination": "/api/producto?slug=:slug"
-    },
-    {
-      "source": "/producto/:slug([a-z0-9-]+)",
-      "destination": "/api/producto?slug=:slug"
-    }
-  ],
   "routes": [
     {
       "src": "^/home/?$",
       "dest": "/api/pagina?ruta=home"
     },
     {
-      "handle": "filesystem"
+      "src": "^/categorias/?$",
+      "dest": "/api/pagina?ruta=categorias"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "^/laboratorios/?$",
+      "dest": "/api/pagina?ruta=laboratorios"
+    },
+    {
+      "src": "^/ofertas/?$",
+      "dest": "/api/pagina?ruta=ofertas"
+    },
+    {
+      "src": "^/guias/?$",
+      "dest": "/api/pagina?ruta=guias"
+    },
+    {
+      "src": "^/politica-de-devoluciones/?$",
+      "dest": "/api/pagina?ruta=politica-de-devoluciones"
+    },
+    {
+      "src": "^/tratamiento-de-datos/?$",
+      "dest": "/api/pagina?ruta=tratamiento-de-datos"
+    },
+    {
+      "src": "^/guias/([a-z0-9-]+)\\.html$",
+      "dest": "/api/pagina?ruta=guias/$1"
+    },
+    {
+      "src": "^/producto/([a-z0-9-]+)/?$",
+      "dest": "/api/producto?slug=$1"
+    },
+    {
+      "src": "^/categorias/([a-z0-9-]+)/?$",
+      "dest": "/api/coleccion?tipo=categoria&slug=$1"
+    },
+    {
+      "src": "^/laboratorios/([a-z0-9-]+)/?$",
+      "dest": "/api/coleccion?tipo=laboratorio&slug=$1"
+    },
+    {
+      "handle": "filesystem"
     }
   ]
 }
