@@ -1121,7 +1121,7 @@ const HUB=[
  ['Herramientas',[
   ['calculadora','🧮','Calculadora',''],
   ['calcofertas','📈','Cálculo de ofertas','Márgenes y precios de oferta'],
-  ['instagram','📸','Instagram SEO','Textos para publicaciones'],
+  ['native:instagram','📸','Instagram SEO · Estados · TikTok','Productos, educación, estados y guiones'],
   ['herramientas','⚙️','Más herramientas','Menú de herramientas del panel anterior']]]
 ];
 $('hub').innerHTML=HUB.map(([g,list])=>'<div class="hubGroup"><h2>'+esc(g)+'</h2><div class="hubGrid">'+list.map(([k,ic,t,d])=>k.startsWith('native:')
@@ -1129,6 +1129,25 @@ $('hub').innerHTML=HUB.map(([g,list])=>'<div class="hubGroup"><h2>'+esc(g)+'</h2
   :'<a class="tile" href="/admin.html#abrir='+k+'"><span class="ic">'+ic+'</span><strong>'+esc(t)+'</strong>'+(d?'<small>'+esc(d)+'</small>':'')+'</a>').join('')+'</div></div>').join('')
   +'<button class="btn block" id="logoutHub" style="margin-top:6px">Cerrar sesión</button>';
 $('hub').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+let instagramScriptLoading=null;
+async function openInstagramTools(){
+  if(!pass()){toast('Inicia sesión para usar las herramientas',{err:true});return}
+  try{
+    if(!window.LiftInstagramSEO?.openSelector){
+      if(!instagramScriptLoading)instagramScriptLoading=new Promise((resolve,reject)=>{
+        const script=document.createElement('script');script.src='/modulos/instagram-seo.js?v=20261105';
+        script.onload=resolve;script.onerror=()=>reject(new Error('No se pudo cargar Instagram SEO'));
+        document.head.append(script);
+      }).catch(e=>{instagramScriptLoading=null;throw e});
+      await instagramScriptLoading;
+    }
+    const items=await loadCatalog();
+    window.PRODUCTS=items.map(p=>({id:p.id,nombre:p.name,marca:p.brand,categoria:p.category,imagen:p.image,sabor:p.flavor,precio:salePrice(p)}));
+    if(typeof window.LiftInstagramSEO?.openSelector!=='function')throw Error('El módulo Instagram SEO no está disponible');
+    await window.LiftInstagramSEO.openSelector();
+  }catch(e){toast('Instagram SEO: '+e.message,{err:true});console.error(e)}
+}
+$('hub').querySelector('[data-go="instagram"]').onclick=openInstagramTools;
 $('logoutHub').onclick=()=>logout(false);
 
 /* ===== Inicio ===== */
