@@ -108,5 +108,18 @@
       "source": "/producto/:slug([a-z0-9-]+)",
       "destination": "/api/producto?slug=:slug"
     }
+  ],
+  "routes": [
+    {
+      "src": "^/home/?$",
+      "dest": "/api/pagina?ruta=home"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
   ]
 }
