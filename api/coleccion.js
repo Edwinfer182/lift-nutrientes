@@ -2,6 +2,7 @@
    Mantiene HTML inicial indexable y deja las tarjetas interactivas a supgo-pages.js. */
 const fs = require('node:fs');
 const path = require('node:path');
+const SEO = require('./colecciones-seo.json');
 const SB = 'https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/';
 const API_KEY = 'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
 const str = v => String(v == null ? '' : v).trim();
@@ -42,9 +43,12 @@ module.exports = async function handler(req, res) {
     const isCategory = tipo === 'categoria';
     const base = isCategory ? 'categorias' : 'laboratorios';
     const canonical = 'https://supgo.co/' + base + '/' + requested + '/';
-    const title = (isCategory ? label + ' en Medellín | SUPGO' : 'Suplementos ' + label + ' en Medellín | SUPGO').slice(0, 100);
-    const desc = (isCategory ? 'Encuentra ' + label + ' en SUPGO: ' : 'Compra productos de ' + label + ' en SUPGO: ')
-      + rows.length + ' referencias disponibles. Consulta precios y presentaciones con envíos desde Medellín a Colombia.';
+    const custom = SEO[tipo + '/' + requested] || {};
+    const title = str(custom.title || (isCategory ? label + ' en Medellín | SUPGO' : 'Suplementos ' + label + ' en Medellín | SUPGO')).slice(0, 100);
+    const desc = str(custom.meta || ((isCategory ? 'Encuentra ' + label + ' en SUPGO: ' : 'Compra productos de ' + label + ' en SUPGO: ')
+      + rows.length + ' referencias disponibles. Consulta precios y presentaciones con envíos desde Medellín a Colombia.'));
+    const heading = str(custom.h1 || label);
+    const intro = str(custom.intro || desc);
     const initial = '<ul class="seo-productos">' + rows.slice(0, 80).map(r =>
       '<li><a href="/producto/' + esc(r.slug) + '/">' + esc(r.nombre) + '</a></li>'
     ).join('') + '</ul>';
@@ -55,7 +59,7 @@ module.exports = async function handler(req, res) {
     let html = template;
     const replacements = {
       '@@TITLE@@':esc(title), '@@DESCRIPTION@@':esc(desc), '@@CANONICAL@@':esc(canonical),
-      '@@HEADING@@':esc(label), '@@SLUG@@':esc(requested),
+      '@@HEADING@@':esc(heading), '@@INTRO@@':esc(intro), '@@SLUG@@':esc(requested),
       '@@INITIAL_PRODUCTS@@':initial, '@@STRUCTURED_DATA@@':JSON.stringify(schema).replace(/</g,'\\u003c')
     };
     for (const [token,value] of Object.entries(replacements)) html = html.replaceAll(token,value);
