@@ -15,9 +15,28 @@
   "functions": {
     "api/producto.js": {
       "includeFiles": "producto/index.html"
+    },
+    "api/coleccion.js": {
+      "includeFiles": "categorias/plantilla.html,laboratorios/plantilla.html"
     }
   },
   "rewrites": [
+    {
+      "source": "/categorias/:slug([a-z0-9-]+)/",
+      "destination": "/api/coleccion?tipo=categoria&slug=:slug"
+    },
+    {
+      "source": "/categorias/:slug([a-z0-9-]+)",
+      "destination": "/api/coleccion?tipo=categoria&slug=:slug"
+    },
+    {
+      "source": "/laboratorios/:slug([a-z0-9-]+)/",
+      "destination": "/api/coleccion?tipo=laboratorio&slug=:slug"
+    },
+    {
+      "source": "/laboratorios/:slug([a-z0-9-]+)",
+      "destination": "/api/coleccion?tipo=laboratorio&slug=:slug"
+    },
     {
       "source": "/producto/:slug([a-z0-9-]+)/",
       "destination": "/api/producto?slug=:slug"
