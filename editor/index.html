@@ -185,8 +185,12 @@ function renderProduct(r,creating){
  var google=section('Google · datos estructurados','JSON-LD opcional. Los datos comerciales obligatorios como precio se sirven desde el catálogo.');
  add(google.fields,'datos_estructurados','JSON de propiedades adicionales',jsonText(seo.datos_estructurados),{area:true,rows:8,full:true,hint:'Solo JSON válido. Deja en blanco si no necesitas propiedades adicionales.'});
  $('detail').appendChild(google.el);
- if(!creating){var more=section('Información adicional ya almacenada','Consulta del JSON completo de lift_productos.product. Los campos no incluidos arriba permanecen intactos.');
- var pre=document.createElement('pre');pre.className='json';pre.textContent=JSON.stringify(extra,null,2);more.el.appendChild(pre);$('detail').appendChild(more.el)}
+ var managed=['id','seo','name','nombre','brand','marca','category','categoria','price','precio','image','imagen','description','descripcion','presentation','presentacion','flavor','sabor','__deleted','__private','adminOnly','hidden','oculto','visibility'];
+ var extraFields={};Object.keys(extra).forEach(function(k){if(managed.indexOf(k)<0)extraFields[k]=extra[k]});
+ var more=section('Atributos adicionales del producto','Puedes editar sabores, SKU, GTIN y otros atributos del JSONB original. Los campos comerciales de arriba siempre tienen prioridad.');
+ add(more.fields,'product_extra','Otros atributos JSON',jsonText(extraFields)||'{}',{area:true,full:true,rows:9,hint:'Objeto JSON válido. Ejemplo: {"flavors":["Vainilla"],"sku":"SKU123"}. El sistema conserva los demás campos existentes.'});
+ if(!creating){var pre=document.createElement('pre');pre.className='json';pre.textContent=JSON.stringify(extra,null,2);more.el.appendChild(pre)}
+ $('detail').appendChild(more.el);
  if(creating){var n=$('fld-nombre'),slug=$('fld-slug');n.addEventListener('input',function(){if(!slug.dataset.edited)slug.value=slugify(n.value)});slug.addEventListener('input',function(){slug.dataset.edited='1'})}
  $('save').onclick=function(){saveRecord('product',creating)};
 }
@@ -238,6 +242,7 @@ async function saveRecord(type,creating){if(busy)return;var p=collect();
   if('activo' in p)p.activo=p.activo==='true';
   if('precio' in p)p.precio=Number(p.precio);
   if('datos_estructurados' in p){p.datos_estructurados=p.datos_estructurados.trim()?JSON.parse(p.datos_estructurados):null}
+  if('product_extra' in p){p.product_extra=p.product_extra.trim()?JSON.parse(p.product_extra):{}}
   var act=type==='product'?'save_product':type==='collection'?'save_collection':'save_page';
   if(type==='product'&&!creating){p.id=record.product.id;if(p.slug!==originalSlug&&!confirm('El slug cambió. Las URLs antiguas pueden dejar de funcionar. ¿Guardar igualmente?'))return}
   if(type==='collection'&&!creating){p.tipo=record.tipo;p.slug=record.slug}
