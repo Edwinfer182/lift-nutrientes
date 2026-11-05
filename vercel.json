@@ -17,7 +17,7 @@
       "includeFiles": "producto/index.html"
     },
     "api/coleccion.js": {
-      "includeFiles": "categorias/plantilla.html,laboratorios/plantilla.html"
+      "includeFiles": "{categorias,laboratorios}/plantilla.html"
     }
   },
   "rewrites": [
