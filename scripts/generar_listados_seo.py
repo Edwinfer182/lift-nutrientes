@@ -411,9 +411,21 @@ def related_groups(rows, kind):
     return out
 
 
+
+def public_group_row(row):
+    """Mismas reglas de visibilidad que las páginas SSR de colecciones."""
+    p = row.get("product") or {}
+    if row.get("activo") is False or not read(row, "name", "nombre"):
+        return False
+    for key in ("__deleted", "__private", "adminOnly", "hidden", "oculto"):
+        if p.get(key) is True or p.get(key) == "true":
+            return False
+    return p.get("visibility") != "admin" and slug(read(row, "brand", "marca")) not in HIDDEN_BRANDS
+
+
 def main():
     revisar_textos()
-    rows = load()
+    rows = [row for row in load() if public_group_row(row)]
     logos = load_logos()
     approved = approved_urls()
     BLOCKED.update(load_blocked())
