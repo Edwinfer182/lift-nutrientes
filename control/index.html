@@ -54,7 +54,7 @@ const menu=[
 ['Clientes',[['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
 ['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
 ['Catálogo',[['editor','🗃️','Editor Supabase y SEO','editor'],['productos','📦','Productos antiguos','legacy:productos'],['crear','🆕','Crear producto antiguo','legacy:crear'],['ofertas','🔥','Ofertas','legacy:ofertas'],['combos','🎁','Combos','legacy:combos'],['categorias','🏷️','Categorías','legacy:categorias'],['laboratorio','🏭','Laboratorios','legacy:laboratorio'],['variaciones','🎨','Variaciones','legacy:variaciones'],['excel','📊','Excel y datos','legacy:excel']]],
-['Contenido y gestión',[['instagram','📸','Instagram · Estados · TikTok','legacy:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
+['Contenido y gestión',[['instagram','📸','Instagram · Estados · TikTok','native:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
 const $=id=>document.getElementById(id);
 const indexed=menu.flatMap(g=>g[1]);const lookup=new Map(indexed.map(x=>[x[0],x]));
@@ -141,7 +141,7 @@ function renderMenu(){const q=$('filter').value.toLocaleLowerCase('es');$('menu'
    const i=document.createElement('i');i.textContent=it[1];const text=document.createElement('span');text.textContent=it[2];b.append(i,text);b.onclick=()=>open(it[0]);$('menu').appendChild(b)}
  }
 }
-function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/'+(t[1]==='pedidos'?'':'#'+t[1]),'native'];
+function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/'+(['pedidos','nuevo','resenas'].includes(t[1])?(t[1]==='pedidos'?'':'#'+t[1]):'#mas'),'native'];
  if(t[0]==='legacy')return ['/admin.html#abrir='+t[1],'legacy'];
  if(t[0]==='editor')return ['/editor/','editor'];
  if(t[0]==='productividad')return ['/productividad/','productividad'];return [null,'home']}
@@ -175,7 +175,10 @@ function open(id,backwards){
        if(w.supgoAbrirHerramienta(name)){adapt(details[1]);$('loading').hidden=true;return}
      }
      if(details[1]==='native' && d.readyState!=='loading'){
-       const name=it[3].split(':')[1],button=d.querySelector('[data-go="'+name+'"]');
+       const name=it[3].split(':')[1];
+       const button=['pedidos','nuevo','resenas'].includes(name)
+         ? d.querySelector('.side [data-go="'+name+'"], .nav [data-go="'+name+'"]')
+         : d.querySelector('#hub [data-go="'+name+'"]');
        if(button){button.click();adapt(details[1]);$('loading').hidden=true;return}
      }
      if(details[1]==='editor' || details[1]==='productividad'){
@@ -193,6 +196,14 @@ function open(id,backwards){
      if(!d || !d.body || d.readyState==='loading')return false;
      if(d.location.pathname!==targetPath && d.location.pathname!==targetPath.replace(/\/$/,''))return false;
      adapt(details[1]);
+     if(details[1]==='native'){
+       const name=it[3].split(':')[1];
+       if(!['pedidos','nuevo','resenas'].includes(name)){
+         const button=d.querySelector('#hub [data-go="'+name+'"]');
+         if(button)button.click();
+         else toast('No se encontró el módulo '+it[2]+' en el panel de pedidos.',true);
+       }
+     }
      $('loading').hidden=true;
      endWait();
      if(details[1]==='legacy' && !d.body.classList.contains('liftAdminUnlocked')){
