@@ -112,6 +112,9 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .mini .ic{flex:0 0 40px}.mini .ic span{display:none}
 .card{min-width:0}
 .mini .waMini{color:#128c4b;border-color:#bbf7d0;background:#f0fdf4}
+.supplierPickGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.supplierPickBtn{min-height:46px;padding:10px 8px;background:#fff;border:1px solid #d6d8dc;border-radius:12px;font-size:12px;font-weight:500;overflow-wrap:anywhere}
+.supplierPickBtn:hover,.supplierPickBtn:focus-visible{border-color:#111;background:#f7fee7}
 .card .orderTools{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .card .orderTools button{height:36px;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:12px;font-weight:600}
 .card .orderTools .chargeBtn{border-color:#bbf7d0;background:#f0fdf4;color:#128c4b}
@@ -678,6 +681,74 @@ function openChargeWa(p){
   };
 }
 
+
+/* Proveedores del pedido: selector en el panel actual, no cartera de proveedores. */
+function supplierMessage(p){
+  const items=Array.isArray(p.items)?p.items:[];
+  const lines=items.map(x=>'• '+Math.max(1,Number(x.cantidad)||1)+' × '+String(x.nombre||'Producto')+(x.marca?' · '+x.marca:''));
+  return 'Hola, ¿me confirmas disponibilidad para estos productos del pedido #'+p.id+'?\n\n'+
+    (lines.length?lines.join('\n'):'Sin productos detallados')+
+    '\n\nQuedo atento. Gracias.';
+}
+async function openSupplierPicker(p){
+  const el=sheet('<div class="sheetHead"><h2>Enviar pedido #'+esc(p.id)+' a proveedor</h2>'+
+    '<button class="iconBtn" style="background:#fff;color:#111;border-color:var(--line)" data-close aria-label="Cerrar">'+I.x+'</button></div>'+
+    '<p class="hint" style="margin:10px 0 13px">'+esc(p.nombre||'Cliente')+(p.ciudad?' · '+esc(p.ciudad):'')+'</p>'+
+    '<div id="supplierPickerBody"><p class="hint">Cargando proveedores…</p></div>');
+  const body=el.querySelector('#supplierPickerBody');
+  try{
+    // La misma lista activa que utiliza el administrador principal.
+    const url=SB+'/rest/v1/rpc/lift_proveedores_admin_lista';
+    const response=await fetch(url,{
+      method:'POST',
+      headers:{apikey:KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_password:pass()})
+    });
+    if(!response.ok)throw new Error('No fue posible obtener los proveedores ('+response.status+')');
+    const results=await response.json();
+    const suppliers=(Array.isArray(results)?results:[]).filter(x=>x&&String(x.nombre||'').trim());
+    if(!el.isConnected)return;
+    if(!suppliers.length){body.innerHTML='<p class="hint">No hay proveedores activos disponibles.</p>';return}
+    function list(){
+      body.innerHTML='<div class="supplierPickGrid">'+suppliers.map((x,i)=>
+        '<button type="button" class="supplierPickBtn" data-supplier-index="'+i+'">'+esc(x.nombre)+'</button>').join('')+'</div>'+
+        '<button class="btn dark block" style="margin-top:12px" data-close>Cancelar</button>';
+      body.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeSheet);
+    }
+    function detail(x){
+      body.innerHTML='<div class="sec"><h3>Proveedor seleccionado</h3><strong>'+esc(x.nombre)+'</strong>'+
+        '<p class="hint">El mensaje incluye los productos y cantidades del pedido, sin los precios de venta ni datos privados del cliente.</p></div>'+
+        '<div class="sec"><label class="field"><span>Mensaje editable</span><textarea class="input" id="supplierMessage" style="height:auto;min-height:180px"></textarea></label></div>'+
+        '<div class="sec"><button class="btn wa block" id="supplierSend">'+I.wa+' Abrir WhatsApp de '+esc(x.nombre)+'</button>'+
+        '<button class="btn block" style="margin-top:8px" id="supplierCopy">Copiar mensaje</button>'+
+        '<button class="btn block" style="margin-top:8px" id="supplierBack">Elegir otro proveedor</button></div>';
+      body.querySelector('#supplierMessage').value=supplierMessage(p);
+      body.querySelector('#supplierSend').onclick=function(){
+        const phone=phoneWa(x.celular),message=body.querySelector('#supplierMessage').value.trim();
+        if(!phone){toast('Este proveedor no tiene un celular válido registrado.',{err:true});return}
+        if(!message){toast('Escribe un mensaje antes de abrir WhatsApp.',{err:true});return}
+        window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(message),'_blank','noopener');
+      };
+      body.querySelector('#supplierCopy').onclick=async function(){
+        const message=body.querySelector('#supplierMessage').value;
+        toast(await copy(message)?'Mensaje del proveedor copiado.':'No se pudo copiar el mensaje.');
+      };
+      body.querySelector('#supplierBack').onclick=list;
+    }
+    body.addEventListener('click',function(e){
+      const btn=e.target.closest('[data-supplier-index]');if(!btn)return;
+      const x=suppliers[Number(btn.dataset.supplierIndex)];if(x)detail(x);
+    });
+    list();
+  }catch(err){
+    if(el.isConnected){
+      body.innerHTML='<p class="hint">No se pudo cargar la lista de proveedores. '+esc(err.message)+'</p>'+
+        '<button class="btn block" data-close>Cancelar</button>';
+      body.querySelector('[data-close]').onclick=closeSheet;
+    }
+  }
+}
+
 const byId=id=>orders.find(x=>Number(x.id)===Number(id));
 function patch(id,data){const p=byId(id);if(p)Object.assign(p,data);renderOrders();if(openId===Number(id))openDetail(id)}
 
@@ -698,7 +769,7 @@ async function act(a,id,btn){
     if(a==='open')return openDetail(id);
     if(a==='wa')return openWa(p,false);
     if(a==='charge-wa')return openChargeWa(p);
-    if(a==='suppliers'){window.open('/admin.html#abrir=proveedores','_blank','noopener');return}
+    if(a==='suppliers')return openSupplierPicker(p);
     if(a==='share')return shareOrder(orderForShare(p),btn);
     if(a==='review-link'){const u=reviewUrl(p.id,p.token_publico);toast(await copy(u)?'Enlace para calificar copiado':'Enlace: '+u);return}
     if(a==='wa-follow')return openWa(p,true);
