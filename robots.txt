@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /panel/
+Disallow: /editor/
 Disallow: /e/
 Disallow: /resena/
 Disallow: /baja/
