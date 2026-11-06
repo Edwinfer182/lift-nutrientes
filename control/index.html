@@ -105,14 +105,28 @@ const adaptNative=[
 '#vNuevo,#np{width:100%!important;max-width:1010px!important;margin-left:auto!important;margin-right:auto!important}',
 '#vNuevo .colL,#vNuevo .colR{min-width:0!important}',
 '#vPedidos,#vResenas{width:100%!important;max-width:1400px!important;margin-left:auto!important;margin-right:auto!important}',
-'#vPedidos .list,#vResenas .list{width:100%!important;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr))!important}',
+'#vPedidos .list,#vResenas .list{width:100%!important;display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(430px,100%),1fr))!important;gap:16px!important;align-items:start!important}',
+'#vPedidos .card,#vResenas .card{width:100%!important;min-width:0!important;max-width:100%!important;padding:16px!important;gap:12px!important;border-radius:15px!important;box-shadow:0 2px 6px rgba(10,30,10,.035)!important}',
+'#vPedidos .cardTop{display:flex!important;gap:12px!important;flex-wrap:wrap!important}',
+'#vPedidos .cardTop .who{min-width:175px!important;flex:1 1 55%!important}',
+'#vPedidos .cardTop .who strong{white-space:normal!important;overflow-wrap:anywhere!important}',
+'#vPedidos .cardTop .amt{flex:0 1 auto!important;min-width:90px!important}',
+'#vPedidos .card .mini{display:flex!important;flex-wrap:wrap!important;gap:7px!important}',
+'#vPedidos .card .mini button{flex:1 1 104px!important;max-width:none!important;min-width:0!important}',
+'#vPedidos .card .mini button.ic{flex:0 1 43px!important}',
+'#vPedidos .card button{max-width:100%!important}',
+'#vPedidos .card .cardTop small{white-space:normal!important}',
+'#vPedidos .card .mini button{font-size:11px!important}',
 '#vPedidos .chips,#vResenas .chips{display:flex!important;flex-flow:row wrap!important;gap:8px!important;overflow:visible!important}',
-'#vPedidos .searchRow{max-width:550px!important}',
+'#vPedidos .searchRow{max-width:640px!important}',
+'#vPedidos .chips{gap:8px!important;margin-bottom:10px!important}',
+'#vPedidos .chips button{flex:none!important}',
 '#vNuevo .np{grid-template-columns:minmax(0,1fr) minmax(280px,360px)!important}',
 '.sheet .sheetBody,.sheet .sec{max-width:960px!important;margin-left:auto!important;margin-right:auto!important}',
 'body{background:#f4f6f4!important}',
 '@media(max-width:900px){#vNuevo .np{grid-template-columns:minmax(0,1fr)!important}.app>div{width:100%!important}}',
-'@media(max-width:720px){main{padding:10px!important}#vNuevo,#np{max-width:100%!important}#vPedidos .list{grid-template-columns:minmax(0,1fr)!important}}'
+'@media(max-width:960px){#vPedidos .list,#vResenas .list{grid-template-columns:repeat(auto-fit,minmax(min(370px,100%),1fr))!important}}',
+'@media(max-width:720px){main{padding:12px!important}#vNuevo,#np{max-width:100%!important}#vPedidos .list,#vResenas .list{grid-template-columns:minmax(0,1fr)!important}#vPedidos .card{padding:13px!important}}'
 ].join('\n');
 const adaptEditor=[
 /* 300px para resultados; 820px para el formulario editable, sin expandirlo. */
@@ -155,6 +169,22 @@ function adapt(kind){
 }
 let readiness=null,activeDocument='';
 function endWait(){if(readiness){clearInterval(readiness);readiness=null}}
+function nativeNavigate(win,name,fromCache){
+  if(['pedidos','nuevo','resenas'].includes(name)){
+    if(typeof win.go !== 'function')return false;
+    win.go(name);
+    // Volver a Pedidos debe consultar sus datos nuevamente, no presentar
+    // la lista del momento en que se creó el iframe.
+    if(name==='pedidos' && fromCache && typeof win.loadOrders==='function')win.loadOrders();
+    return true;
+  }
+  if(typeof win.go !== 'function')return false;
+  win.go('mas');
+  const btn=win.document.querySelector('#hub [data-go="'+name+'"]');
+  if(!btn)return false;
+  btn.click();
+  return true;
+}
 function open(id,backwards){
  const it=lookup.get(id);if(!it)return;
  if(!backwards&&current!==id)previous.push(current);
@@ -165,62 +195,64 @@ function open(id,backwards){
  try{history.replaceState({},'','/control/#'+encodeURIComponent(id))}catch(e){}
  if(details[1]==='home'){$('view').hidden=true;$('home').hidden=false;$('loading').hidden=true;return}
  $('home').hidden=true;frame.hidden=false;$('loading').hidden=false;
- // Si ya está cargada la misma aplicación, navega dentro del iframe sin recargarla.
- // Evita volver a procesar más de un megabyte de scripts del administrador clásico.
+ // Reutilizar únicamente módulos cargados y comprobados. No confundir un
+ // documento todavía en transición con la herramienta nueva.
  if(activeDocument===details[1]){
    try{
      const w=frame.contentWindow,d=w.document;
-     if(details[1]==='legacy' && d.readyState!=='loading' && d.body.classList.contains('liftAdminUnlocked') && typeof w.supgoAbrirHerramienta==='function'){
-       const name=it[3].split(':')[1];
-       if(w.supgoAbrirHerramienta(name)){adapt(details[1]);$('loading').hidden=true;return}
-     }
-     if(details[1]==='native' && d.readyState!=='loading'){
-       const name=it[3].split(':')[1];
-       const button=['pedidos','nuevo','resenas'].includes(name)
-         ? d.querySelector('.side [data-go="'+name+'"], .nav [data-go="'+name+'"]')
-         : d.querySelector('#hub [data-go="'+name+'"]');
-       if(button){button.click();adapt(details[1]);$('loading').hidden=true;return}
-     }
-     if(details[1]==='editor' || details[1]==='productividad'){
-       adapt(details[1]);$('loading').hidden=true;return;
-     }
-   }catch(e){console.warn('Reutilización:',e)}
- }
- activeDocument=details[1];
- const destination=details[0],targetPath=destination.split('#')[0],begun=Date.now();
- function finish(){
-   if(serial!==counter)return false;
-   let d;
-   try{
-     d=frame.contentDocument;
-     if(!d || !d.body || d.readyState==='loading')return false;
-     if(d.location.pathname!==targetPath && d.location.pathname!==targetPath.replace(/\/$/,''))return false;
-     adapt(details[1]);
-     if(details[1]==='native'){
-       const name=it[3].split(':')[1];
-       if(!['pedidos','nuevo','resenas'].includes(name)){
-         const button=d.querySelector('#hub [data-go="'+name+'"]');
-         if(button)button.click();
-         else toast('No se encontró el módulo '+it[2]+' en el panel de pedidos.',true);
+     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':'/productividad/')){
+       if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1],true)){
+         adapt('native');$('loading').hidden=true;return;
+       }
+       if(details[1]==='editor'||details[1]==='productividad'){
+         adapt(details[1]);$('loading').hidden=true;return;
        }
      }
-     $('loading').hidden=true;
-     endWait();
-     if(details[1]==='legacy' && !d.body.classList.contains('liftAdminUnlocked')){
-       toast('La herramienta necesita una sesión de administrador. Inicia sesión dentro de esta vista.',true);
+   }catch(e){console.warn('Carga nueva requerida:',e)}
+ }
+ // El admin antiguo conserva modales internos; al cambiar de herramienta
+ // reiniciarlo evita que quede el modal anterior por encima del actual.
+ // El parámetro de versión invalida caché de navegación, no los datos.
+ activeDocument=details[1];
+ const raw=details[0],hashAt=raw.indexOf('#'),base=hashAt<0?raw:raw.slice(0,hashAt);
+ const hash=hashAt<0?'':raw.slice(hashAt);
+ const destination=details[1]==='legacy'
+    ? base+(base.includes('?')?'&':'?')+'control_reload='+serial+hash
+    : raw;
+ const targetPath=base,started=Date.now();
+ let completed=false;
+ function finish(){
+   if(serial!==counter || completed)return false;
+   try{
+     const d=frame.contentDocument;
+     if(!d || !d.body || d.readyState!=='complete')return false;
+     if(d.location.pathname!==targetPath && d.location.pathname!==targetPath.replace(/\/$/,''))return false;
+     const w=frame.contentWindow;
+     if(details[1]==='native' && typeof w.go!=='function')return false;
+     if(details[1]==='legacy' && typeof w.supgoAbrirHerramienta!=='function')return false;
+     completed=true;
+     adapt(details[1]);
+     if(details[1]==='native'){
+       if(!nativeNavigate(w,it[3].split(':')[1],false)){
+         toast('No se encontró el módulo '+it[2]+' en el panel.',true);
+       }
+     }
+     $('loading').hidden=true;endWait();
+     if(details[1]==='legacy'&&!d.body.classList.contains('liftAdminUnlocked')){
+       toast('Esta herramienta requiere tu sesión de administrador. Inicia sesión dentro del área central.',true);
      }
      return true;
    }catch(e){return false}
  }
  frame.onload=()=>{if(serial===counter)finish()};
- frame.onerror=()=>{if(serial!==counter)return;endWait();$('loading').hidden=true;toast('No se pudo abrir '+it[2],true)};
+ frame.onerror=()=>{if(serial!==counter)return;endWait();$('loading').hidden=true;toast('Error al abrir '+it[2],true)};
  frame.src=destination;
  readiness=setInterval(()=>{
    if(serial!==counter){endWait();return}
    if(finish())return;
-   if(Date.now()-begun>15000){
+   if(Date.now()-started>18000){
      endWait();$('loading').hidden=true;
-     toast('Esta herramienta está tardando demasiado. Pulsa ↻ para reintentar o usa el panel original.',true);
+     toast('No se pudo completar la carga. Pulsa ↻ para reintentar; el panel original sigue disponible.',true);
    }
  },250);
 }
