@@ -112,6 +112,13 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .mini .ic{flex:0 0 40px}.mini .ic span{display:none}
 .card{min-width:0}
 .mini .waMini{color:#128c4b;border-color:#bbf7d0;background:#f0fdf4}
+.card .orderTools{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.card .orderTools button{height:36px;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:12px;font-weight:600}
+.card .orderTools .chargeBtn{border-color:#bbf7d0;background:#f0fdf4;color:#128c4b}
+.payQrPreview{display:block;width:min(240px,100%);height:auto;max-height:330px;object-fit:contain;margin:8px auto;border:1px solid var(--line);border-radius:12px}
+.chargeMessage{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);border-radius:12px;resize:vertical;font-size:13px}
+.chargeActions{display:grid;gap:8px}
+.chargeActions .grid2{gap:8px}
 .empty{background:#fff;border:1px dashed #d4d6da;border-radius:var(--r);padding:34px 18px;text-align:center;color:var(--muted)}
 .skel{height:132px;border-radius:var(--r);background:linear-gradient(90deg,#eceef1,#f6f7f8,#eceef1);background-size:200% 100%;animation:sh 1.2s infinite}
 @keyframes sh{to{background-position:-200% 0}}
@@ -547,6 +554,10 @@ function cardHtml(p){
       <button class="ic" data-act="courier" data-id="${p.id}" title="Enlace del mensajero" aria-label="Enlace del mensajero ${p.id}">${I.moto}<span> Mensajero</span></button>
       <button class="ic" data-act="open" data-id="${p.id}" title="Más opciones" aria-label="Más opciones del pedido ${p.id}">${I.more}</button>
     </div>
+    <div class="orderTools">
+      <button class="chargeBtn" data-act="charge-wa" data-id="${p.id}">💳 Cobrar por WhatsApp</button>
+      <button data-act="suppliers" data-id="${p.id}">💼 Proveedores</button>
+    </div>
   </article>`;
 }
 function renderOrders(){
@@ -587,6 +598,86 @@ function openWa(p,follow){
   const n=phoneWa(p.celular);if(!n){toast('Este pedido no tiene celular.',{err:true});return}
   window.open('https://wa.me/'+n+'?text='+encodeURIComponent(waMsg(p,follow)),'_blank','noopener');
 }
+/* Cobro por WhatsApp: datos locales, sin enviar mensajes ni almacenar QR en servidores. */
+const SUPGO_PAYMENT_QR_KEY='supgoPanelQrPagoV1';
+const SUPGO_PAYMENT_ACCOUNT='36655023431';
+const SUPGO_PAYMENT_KEY='@edwin4518';
+const SUPGO_PAYMENT_OWNER='Edwin Fernando Muñoz Tobon';
+function chargeText(p){
+  const first=String(p.nombre||'').trim().split(/\s+/)[0]||'';
+  const total=money(p.total);
+  return 'Hola'+(first?' '+first:'')+', te comparto los datos para el pago de tu pedido #'+p.id+'.\n\n'+
+    '🏦 Bancolombia ahorros: '+SUPGO_PAYMENT_ACCOUNT+'\n'+
+    'Titular: '+SUPGO_PAYMENT_OWNER+'\n'+
+    '🔑 Llave Bre-B: '+SUPGO_PAYMENT_KEY+'\n\n'+
+    'Total: '+total+'\n\n'+
+    'Cuando realices el pago, envíanos el comprobante por este chat. Gracias.';
+}
+function storedPaymentQr(){try{return localStorage.getItem(SUPGO_PAYMENT_QR_KEY)||''}catch(e){return ''}}
+async function paymentQrFile(data){
+  if(!data)return null;
+  const response=await fetch(data),blob=await response.blob();
+  return new File([blob],'SUPGO-QR-BreB.png',{type:blob.type||'image/png'});
+}
+function openChargeWa(p){
+  const phone=phoneWa(p.celular);
+  if(!phone){toast('Este pedido no tiene un número de WhatsApp válido',{err:true});return}
+  const html='<div class="sheetHead"><h2>Cobrar pedido #'+esc(p.id)+'</h2><button class="iconBtn" data-close aria-label="Cerrar">'+I.x+'</button></div>'+
+    '<div class="sec"><strong>'+esc(String(p.nombre||'Cliente'))+' · '+esc(money(p.total))+'</strong>'+
+    '<p class="hint">El mensaje abrirá el WhatsApp registrado en el pedido. La imagen QR se copia o comparte aparte.</p></div>'+
+    '<div class="sec"><label class="field"><span>Mensaje para el cliente</span><textarea id="chargeMessage" class="chargeMessage"></textarea></label></div>'+
+    '<div class="sec"><strong>Imagen QR Bre-B / Bancolombia</strong><img id="chargeQrPreview" class="payQrPreview" alt="QR de pago SUPGO" hidden>'+
+    '<p class="hint" id="chargeQrHint">Carga una vez tu imagen QR en este navegador. No se publica en GitHub ni en Supabase.</p>'+
+    '<label class="btn block" style="margin-top:10px">Elegir o cambiar imagen QR<input id="chargeQrFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label></div>'+
+    '<div class="sec chargeActions">'+
+      '<button class="btn wa block" id="chargeOpenWa">Abrir WhatsApp del cliente</button>'+
+      '<div class="grid2"><button class="btn" id="chargeCopyQr">Copiar imagen QR</button><button class="btn" id="chargeShareQr">Compartir imagen y mensaje</button></div>'+
+      '<p class="hint">En WhatsApp Web: abre el chat y pega la imagen con Ctrl+V. En celular, «Compartir imagen y mensaje» te deja elegir el contacto, sin garantizar que se seleccione automáticamente el del pedido.</p>'+
+    '</div>';
+  const el=sheet(html),msg=el.querySelector('#chargeMessage'),preview=el.querySelector('#chargeQrPreview'),hint=el.querySelector('#chargeQrHint');
+  msg.value=chargeText(p);
+  function update(){const image=storedPaymentQr();preview.hidden=!image;if(image)preview.src=image;hint.textContent=image?'QR guardado en este navegador. Puedes reemplazarlo cuando cambie.':'Sube el QR una vez en este dispositivo. No se guarda en servidores.'}
+  update();
+  el.querySelector('#chargeQrFile').onchange=async function(){
+    const file=this.files&&this.files[0];if(!file)return;
+    if(!/^image\/(png|jpeg|webp)$/.test(file.type)){toast('Selecciona una imagen PNG, JPG o WEBP',{err:true});return}
+    try{
+      const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file)});
+      const im=new Image();await new Promise((resolve,reject)=>{im.onload=resolve;im.onerror=reject;im.src=data});
+      const max=1800,scale=Math.min(1,max/Math.max(im.width,im.height)),canvas=document.createElement('canvas');
+      canvas.width=Math.round(im.width*scale);canvas.height=Math.round(im.height*scale);
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(im,0,0,canvas.width,canvas.height);
+      const result=canvas.toDataURL('image/png');
+      localStorage.setItem(SUPGO_PAYMENT_QR_KEY,result);update();toast('QR guardado para futuros pedidos en este navegador');
+    }catch(e){toast('No se pudo guardar la imagen. Comprueba el almacenamiento disponible.',{err:true})}
+  };
+  el.querySelector('#chargeOpenWa').onclick=function(){
+    window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg.value),'_blank','noopener');
+    if(storedPaymentQr())toast('Chat abierto. Usa «Copiar imagen QR» y pégala en WhatsApp.');
+  };
+  el.querySelector('#chargeCopyQr').onclick=async function(){
+    const image=storedPaymentQr();
+    if(!image){toast('Primero selecciona el QR de pago',{err:true});return}
+    try{
+      if(!navigator.clipboard||!window.ClipboardItem)throw Error('clipboard unavailable');
+      // Chrome/Edge requieren image/png en el portapapeles.
+      const pic=new Image();await new Promise((ok,ko)=>{pic.onload=ok;pic.onerror=ko;pic.src=image});
+      const c=document.createElement('canvas');c.width=pic.width;c.height=pic.height;c.getContext('2d').drawImage(pic,0,0);
+      const png=await new Promise(r=>c.toBlob(r,'image/png'));if(!png)throw Error('PNG');
+      await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);
+      toast('QR copiado. Abre el chat de WhatsApp y pégalo (Ctrl+V).');
+    }catch(e){toast('Este navegador no permite copiar imágenes. Usa «Compartir imagen y mensaje».',{err:true})}
+  };
+  el.querySelector('#chargeShareQr').onclick=async function(){
+    const image=storedPaymentQr();if(!image){toast('Primero selecciona el QR de pago',{err:true});return}
+    try{
+      const file=await paymentQrFile(image);
+      if(!navigator.share||navigator.canShare&&!navigator.canShare({files:[file]}))throw Error('share unavailable');
+      await navigator.share({files:[file],text:msg.value,title:'Pago SUPGO #'+p.id});
+    }catch(e){if(e.name==='AbortError')return;toast('Compartir imagen y mensaje no está disponible en este navegador.',{err:true})}
+  };
+}
+
 const byId=id=>orders.find(x=>Number(x.id)===Number(id));
 function patch(id,data){const p=byId(id);if(p)Object.assign(p,data);renderOrders();if(openId===Number(id))openDetail(id)}
 
@@ -606,6 +697,8 @@ async function act(a,id,btn){
     busy(true);
     if(a==='open')return openDetail(id);
     if(a==='wa')return openWa(p,false);
+    if(a==='charge-wa')return openChargeWa(p);
+    if(a==='suppliers'){window.open('/admin.html#abrir=proveedores','_blank','noopener');return}
     if(a==='share')return shareOrder(orderForShare(p),btn);
     if(a==='review-link'){const u=reviewUrl(p.id,p.token_publico);toast(await copy(u)?'Enlace para calificar copiado':'Enlace: '+u);return}
     if(a==='wa-follow')return openWa(p,true);
@@ -859,6 +952,7 @@ function openDetail(id){
       <div class="kv"><span>Nombre</span><b>${esc(p.nombre||'')}</b><span>Celular</span><a href="tel:${esc(digits(p.celular))}">${esc(p.celular||'')}</a><span>Ciudad</span><span style="color:var(--ink)">${esc(p.ciudad||'')}</span><span>Dirección</span><span style="color:var(--ink)">${esc(p.direccion||'')}</span>${p.notas?'<span>Notas</span><span style="color:var(--ink)">'+esc(p.notas)+'</span>':''}</div>
       <div class="grid2" style="margin-top:10px"><button class="btn wa" data-act="wa" data-id="${p.id}">${I.wa} WhatsApp</button><button class="btn" data-act="copy-client" data-id="${p.id}">${I.link} Enlace cliente</button></div>
       <button class="btn dark block" style="margin-top:8px" data-act="share" data-id="${p.id}">${I.share} Compartir pedido con datos</button>
+      <div class="grid2" style="margin-top:8px"><button class="btn wa" data-act="charge-wa" data-id="${p.id}">💳 Cobrar por WhatsApp</button><button class="btn" data-act="suppliers" data-id="${p.id}">💼 Proveedores</button></div>
       ${st(p)==='entregado'?'<button class="btn block" style="margin-top:8px" data-act="review-link" data-id="'+p.id+'">⭐ Copiar enlace para calificar</button>':''}
     </div>
     <div class="sec"><h3>Productos</h3><div class="lines">${items||'<span style="color:var(--muted)">Sin detalle</span>'}
