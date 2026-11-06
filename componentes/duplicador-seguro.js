@@ -7,6 +7,33 @@
  const SB='https://vdxkknftyssjyfbdieqa.supabase.co';
  const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  let duplicating=false;
+ const draftIds=new Set();
+ const originalSave=window.liftCloudSaveProduct;
+ if(typeof originalSave==='function'){
+   window.liftCloudSaveProduct=async function(p){
+     if(!draftIds.has(String(p?.id)))return originalSave.apply(this,arguments);
+     const pw=(()=>{try{return sessionStorage.getItem('liftAdminCloudPasswordV1')||''}catch(e){return ''}})();
+     const extra={...p};
+     ['id','name','brand','category','price','image','description','presentation','flavor','slug'].forEach(k=>delete extra[k]);
+     const payload={
+       id:p.id,nombre:p.name,slug:p.slug,marca:p.brand,categoria:p.category,
+       precio:p.price,imagen:p.image,descripcion:p.description||'',
+       presentacion:p.presentation||'',sabor:p.flavor||'',
+       activo:false,indexable:false,titulo_seo:'',meta_descripcion:'',
+       descripcion_larga_html:'',imagen_seo:'',palabra_clave:'',
+       datos_estructurados:null,product_extra:extra
+     };
+     const r=await fetch(SB+'/rest/v1/rpc/lift_editor_admin',{
+       method:'POST',
+       headers:{apikey:KEY,Accept:'application/json','Content-Type':'application/json'},
+       body:JSON.stringify({p_password:pw,p_action:'save_product',p_payload:payload})
+     });
+     const j=await r.json().catch(()=>({}));
+     if(!r.ok||!j?.ok)throw Error(j.message||('No se pudo guardar el borrador: '+r.status));
+     return {ok:true,product:p};
+   };
+ }
+
  window.liftCardAdminDuplicate=async function(id){
    if(!document.body.classList.contains('liftAdminUnlocked'))return;
    if(duplicating)return;
@@ -24,10 +51,11 @@
      });
      const data=await res.json().catch(()=>({}));
      if(!res.ok||!data?.ok)throw Error(data.message||('Error al duplicar: '+res.status));
-     if(!data.id||!data.slug||!data.product)throw Error('La copia no devolvió los datos esperados');
+     if(!data.id||!data.slug||!data.product)throw Error('La copia se guardó, pero la respuesta está incompleta. Revisa el editor de Supabase.');
      const copy=data.product;
      copy.id=data.id;
      copy.slug=data.slug;
+     draftIds.add(String(data.id));
      if(!PRODUCTS.some(p=>String(p.id)===String(copy.id)))PRODUCTS.push(copy);
      if(typeof render==='function')render();
      if(typeof renderCart==='function')renderCart();
@@ -42,8 +70,8 @@
        '\nEstado: BORRADOR (inactivo y no indexable).'+
        '\nCompleta el nombre, SEO y revisa la ficha antes de publicarla.');
    }catch(e){
-     // No se añade una copia local cuando falla Supabase.
-     alert('No se creó el duplicado: '+(e.message||e));
+     alert('No se pudo completar la duplicación: '+(e.message||e)+
+       '\\nComprueba en el editor si el producto ya quedó guardado antes de intentar duplicarlo otra vez.');
    }finally{duplicating=false}
  };
  window.liftCardAdminDuplicate.__supgoSeguro=true;
