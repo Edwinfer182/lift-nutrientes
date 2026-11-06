@@ -708,6 +708,7 @@ async function openSupplierPicker(p){
       body.innerHTML='<div class="supplierPickGrid">'+suppliers.map((x,i)=>
         '<button type="button" class="supplierPickBtn" data-supplier-index="'+i+'">'+esc(x.nombre)+'</button>').join('')+'</div>'+
         '<button class="btn dark block" style="margin-top:12px" data-close>Cancelar</button>';
+      body.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeSheet);
     }
     function detail(x){
       body.innerHTML='<div class="sec"><h3>Proveedor seleccionado</h3><strong>'+esc(x.nombre)+'</strong>'+
@@ -735,8 +736,11 @@ async function openSupplierPicker(p){
     });
     list();
   }catch(err){
-    if(el.isConnected)body.innerHTML='<p class="hint">No se pudo cargar la lista de proveedores. '+esc(err.message)+'</p>'+
-      '<button class="btn block" data-close>Cancelar</button>';
+    if(el.isConnected){
+      body.innerHTML='<p class="hint">No se pudo cargar la lista de proveedores. '+esc(err.message)+'</p>'+
+        '<button class="btn block" data-close>Cancelar</button>';
+      body.querySelector('[data-close]').onclick=closeSheet;
+    }
   }
 }
 
