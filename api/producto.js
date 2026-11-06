@@ -29,11 +29,13 @@ module.exports = async function handler(req, res) {
       return res.status(404).send('Producto no disponible');
     }
     const seoRows = await fetchRows('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + row.id + '&limit=2');
-    if (seoRows.length !== 1) throw new Error('SEO de producto sin registro o duplicado: ' + row.id);
-    const seo = seoRows[0];
-    const title = text(seo.titulo_seo);
-    const description = clean(seo.meta_descripcion);
-    if (!title || !description) throw new Error('SEO incompleto para producto: ' + row.id);
+    if (seoRows.length > 1) throw new Error('SEO duplicado para producto: ' + row.id);
+    // El SEO incompleto nunca debe impedir abrir una ficha comercial activa.
+    const seo = seoRows[0] || {};
+    const title = text(seo.titulo_seo) || name + ' | SUPGO';
+    const description = clean(seo.meta_descripcion) ||
+      clean(p.description || p.descripcion) ||
+      ('Consulta ' + name + ' en SUPGO Medellín. Disponibilidad, precios y envíos a Colombia.');
     const brand = text(p.brand || p.marca);
     // Las políticas de indexación provienen de las listas mantenidas en Supabase.
     const [brandRules, seoBlocks] = await Promise.all([
@@ -41,8 +43,8 @@ module.exports = async function handler(req, res) {
       fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
     ]);
     const canIndex = seo.indexable !== false && brandRules.length === 1 && brandRules[0].habilitada === true && seoBlocks.length === 0;
-    const canonical = text(seo.canonical_url);
-    if (canonical !== 'https://supgo.co/producto/' + slug + '/') throw new Error('Canonical no coincide con slug: ' + row.id);
+    // La URL principal se calcula con el slug vigente; el SEO puede estar desactualizado.
+    const canonical = 'https://supgo.co/producto/' + slug + '/';
     const image = text(seo.imagen_seo || p.image || p.imagen);
     const robots = canIndex ? 'index, follow' : 'noindex, follow';
     // Sharing crawlers read the initial HTML without executing the browser template.
