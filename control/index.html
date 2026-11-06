@@ -148,8 +148,7 @@ $('authCard').addEventListener('submit',async e=>{
 $('logoutControl').addEventListener('click',signOut);
 let controlInitialized=false;
 function initControl(){
-  if(controlInitialized)return;
-  controlInitialized=true;
+  if(!controlInitialized)controlInitialized=true;
   const initial=decodeURIComponent((location.hash||'').slice(1));
   open(lookup.has(initial)?initial:'inicio',true);
 }
