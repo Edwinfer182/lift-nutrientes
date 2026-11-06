@@ -644,7 +644,7 @@ function openChargeWa(p){
     try{
       const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file)});
       const im=new Image();await new Promise((resolve,reject)=>{im.onload=resolve;im.onerror=reject;im.src=data});
-      const max=900,scale=Math.min(1,max/Math.max(im.width,im.height)),canvas=document.createElement('canvas');
+      const max=1800,scale=Math.min(1,max/Math.max(im.width,im.height)),canvas=document.createElement('canvas');
       canvas.width=Math.round(im.width*scale);canvas.height=Math.round(im.height*scale);
       const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(im,0,0,canvas.width,canvas.height);
       const result=canvas.toDataURL('image/png');
@@ -659,7 +659,6 @@ function openChargeWa(p){
     const image=storedPaymentQr();
     if(!image){toast('Primero selecciona el QR de pago',{err:true});return}
     try{
-      const file=await paymentQrFile(image);
       if(!navigator.clipboard||!window.ClipboardItem)throw Error('clipboard unavailable');
       // Chrome/Edge requieren image/png en el portapapeles.
       const pic=new Image();await new Promise((ok,ko)=>{pic.onload=ok;pic.onerror=ko;pic.src=image});
@@ -953,6 +952,7 @@ function openDetail(id){
       <div class="kv"><span>Nombre</span><b>${esc(p.nombre||'')}</b><span>Celular</span><a href="tel:${esc(digits(p.celular))}">${esc(p.celular||'')}</a><span>Ciudad</span><span style="color:var(--ink)">${esc(p.ciudad||'')}</span><span>Dirección</span><span style="color:var(--ink)">${esc(p.direccion||'')}</span>${p.notas?'<span>Notas</span><span style="color:var(--ink)">'+esc(p.notas)+'</span>':''}</div>
       <div class="grid2" style="margin-top:10px"><button class="btn wa" data-act="wa" data-id="${p.id}">${I.wa} WhatsApp</button><button class="btn" data-act="copy-client" data-id="${p.id}">${I.link} Enlace cliente</button></div>
       <button class="btn dark block" style="margin-top:8px" data-act="share" data-id="${p.id}">${I.share} Compartir pedido con datos</button>
+      <div class="grid2" style="margin-top:8px"><button class="btn wa" data-act="charge-wa" data-id="${p.id}">💳 Cobrar por WhatsApp</button><button class="btn" data-act="suppliers" data-id="${p.id}">💼 Proveedores</button></div>
       ${st(p)==='entregado'?'<button class="btn block" style="margin-top:8px" data-act="review-link" data-id="'+p.id+'">⭐ Copiar enlace para calificar</button>':''}
     </div>
     <div class="sec"><h3>Productos</h3><div class="lines">${items||'<span style="color:var(--muted)">Sin detalle</span>'}
