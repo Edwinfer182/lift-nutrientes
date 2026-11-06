@@ -1195,6 +1195,25 @@ function start(initial){
   reviewCount();
   if(initial){orders=initial;renderOrders()}else loadOrders();
 }
+// Puente explícito para SUPGO CONTROL. Las funciones go y loadOrders son
+// privadas del módulo; el contenedor no puede acceder a ellas directamente.
+window.supgoPanelBridge = {
+  ready(){return !$('app').hidden && !!pass()},
+  navigate(section){
+    if(!this.ready())return false;
+    if(['pedidos','nuevo','resenas','mas'].includes(section)){
+      go(section);
+      if(section==='pedidos')loadOrders();
+      return true;
+    }
+    go('mas');
+    const button=$('hub').querySelector('[data-go="'+section+'"]');
+    if(!button)return false;
+    button.click();
+    return true;
+  },
+  reloadOrders(){if(this.ready())loadOrders()}
+};
 if(pass())start();else logout(false);
 setInterval(()=>{if(!document.hidden&&pass()&&view==='pedidos'&&!document.querySelector('.sheet'))loadOrders()},90000);
 })();
