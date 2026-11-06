@@ -508,12 +508,41 @@
     /* Contenido (misma estructura que la ficha estática) */
     var curLabel = cur ? cur.label : '';
     root.innerHTML = '\n<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/productos/">Productos</a>' + (brand ? '<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/' + slug(brand) + '/">' + esc(brand) + '</a>' : '') + '<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">' + esc(name) + '</span></nav>\n' +
-      '<article class="product-card">\n<section class="product-gallery">' + (gallery.length > 1 ? '<div class="gallery-thumbs">' + gallery_html + '</div>' : '') + '<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">' + img + '<span class="zoom-hint">⌕ Ampliar</span></button></div></section>\n' +
+      '<article class="product-card">\n<section class="product-gallery">' + (gallery.length > 1 ? '<div class="gallery-thumbs">' + gallery_html + '</div>' : '') + '<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">' + img + '<span class="zoom-hint">⌕ Ampliar</span></button></div><button type="button" id="shareProduct" class="product-share-btn" aria-label="Compartir producto" title="Compartir producto"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"/></svg> Compartir</button></section>\n' +
       '<section class="product-info">\n' + brand_html + '<h1>' + esc(name) + '</h1>' + tags_html + '\n<!--precio-->' + rating_line(reviews) + '<div class="product-price">' + price_html + '</div>' + extra + '<!--/precio-->\n' + P.envio + '\n' +
       (variants.length > 1 ? '<div class="variant-panel"><h3>Sabor: ' + esc(curLabel) + '</h3><div class="variant-grid">' + variants_html + '</div></div>' : '') + '\n' +
       P.acciones + '\n' + P.pagos + '\n<details class="seo-description" open><summary>Descripción <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">' + body + '</div></details>\n' + P.garantias + '\n</section></article>\n' +
       '<!--relacionados-->' + reviews_html(reviews) + (related_html ? '<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">' + related_html + '</div></section>' : '') +
       guides_html(pid, or(p.category, p.categoria, '')) + '<!--/relacionados-->\n';
+    var shareButton = document.getElementById('shareProduct');
+    if (shareButton) shareButton.addEventListener('click', async function () {
+      var url = canonical;
+      var payload = { title: name + ' | SUPGO', text: name, url: url };
+      if (typeof navigator.share === 'function') {
+        try { await navigator.share(payload); return; }
+        catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+      var copied = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(url); copied = true;
+        }
+      } catch (e) {}
+      if (!copied) {
+        var input = document.createElement('textarea');
+        input.value = url; input.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(input); input.select();
+        try { copied = document.execCommand('copy'); } catch (e) {}
+        input.remove();
+      }
+      var label = shareButton.innerHTML;
+      if (copied) {
+        shareButton.textContent = '✓ Enlace copiado';
+        setTimeout(function () { if (shareButton.isConnected) shareButton.innerHTML = label; }, 2200);
+      } else {
+        window.prompt('Copia el enlace para compartirlo:', url);
+      }
+    });
     window.__supgoFichaHtml = root.innerHTML; /* copia antes de los scripts, para pruebas */
     var zp = document.getElementById('zoomPhoto'); if (zp) zp.alt = name;
     /* Scripts de la ficha (zoom, compra/favoritos, WhatsApp): los mismos de las fichas estáticas. */
