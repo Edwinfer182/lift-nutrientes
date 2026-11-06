@@ -698,10 +698,15 @@ async function openSupplierPicker(p){
   const body=el.querySelector('#supplierPickerBody');
   try{
     // La misma lista activa que utiliza el administrador principal.
-    const url=SB+'/rest/v1/lift_proveedores?select=id,nombre,celular,activo&activo=eq.true&order=nombre.asc&limit=100';
-    const response=await fetch(url,{headers:{apikey:KEY,Accept:'application/json'}});
-    if(!response.ok)throw new Error('Supabase respondió '+response.status);
-    const suppliers=(await response.json()).filter(x=>x&&String(x.nombre||'').trim());
+    const url=SB+'/rest/v1/rpc/lift_proveedores_admin_lista';
+    const response=await fetch(url,{
+      method:'POST',
+      headers:{apikey:KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_password:pass()})
+    });
+    if(!response.ok)throw new Error('No fue posible obtener los proveedores ('+response.status+')');
+    const results=await response.json();
+    const suppliers=(Array.isArray(results)?results:[]).filter(x=>x&&String(x.nombre||'').trim());
     if(!el.isConnected)return;
     if(!suppliers.length){body.innerHTML='<p class="hint">No hay proveedores activos disponibles.</p>';return}
     function list(){
