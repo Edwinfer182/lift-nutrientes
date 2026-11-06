@@ -265,21 +265,12 @@ function adapt(kind){
 }
 let readiness=null,activeDocument='';
 function endWait(){if(readiness){clearInterval(readiness);readiness=null}}
-function nativeNavigate(win,name,fromCache){
-  if(['pedidos','nuevo','resenas'].includes(name)){
-    if(typeof win.go !== 'function')return false;
-    win.go(name);
-    // Volver a Pedidos debe consultar sus datos nuevamente, no presentar
-    // la lista del momento en que se creó el iframe.
-    if(name==='pedidos' && fromCache && typeof win.loadOrders==='function')win.loadOrders();
-    return true;
-  }
-  if(typeof win.go !== 'function')return false;
-  win.go('mas');
-  const btn=win.document.querySelector('#hub [data-go="'+name+'"]');
-  if(!btn)return false;
-  btn.click();
-  return true;
+function nativeNavigate(win,name){
+  // El panel original conserva go() y loadOrders() dentro de un módulo.
+  // Usar su puente público evita esperar una función que nunca existe en window.
+  const bridge=win.supgoPanelBridge;
+  if(!bridge || typeof bridge.navigate!=='function' || !bridge.ready())return false;
+  return bridge.navigate(name);
 }
 function open(id,backwards){
  if(!storedPassword()){showLogin('Inicia sesión para continuar.');return}
@@ -298,7 +289,7 @@ function open(id,backwards){
    try{
      const w=frame.contentWindow,d=w.document;
      if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':'/productividad/')){
-       if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1],true)){
+       if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1])){
          adapt('native');$('loading').hidden=true;return;
        }
        if(details[1]==='editor'||details[1]==='productividad'){
@@ -325,12 +316,12 @@ function open(id,backwards){
      if(!d || !d.body || d.readyState!=='complete')return false;
      if(d.location.pathname!==targetPath && d.location.pathname!==targetPath.replace(/\/$/,''))return false;
      const w=frame.contentWindow;
-     if(details[1]==='native' && typeof w.go!=='function')return false;
+     if(details[1]==='native' && !w.supgoPanelBridge)return false;
      if(details[1]==='legacy' && typeof w.supgoAbrirHerramienta!=='function')return false;
      completed=true;
      adapt(details[1]);
      if(details[1]==='native'){
-       if(!nativeNavigate(w,it[3].split(':')[1],false)){
+       if(!nativeNavigate(w,it[3].split(':')[1])){
          toast('No se encontró el módulo '+it[2]+' en el panel.',true);
        }
      }
