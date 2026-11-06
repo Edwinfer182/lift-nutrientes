@@ -1090,6 +1090,8 @@ function showDone(o){
 
 /* ===== Todas las herramientas ===== */
 const HUB=[
+ ['Centro unificado',[
+  ['central','🧩','SUPGO CONTROL','Abrir todas las herramientas en una sola pantalla']]],
  ['Ventas y pedidos',[
   ['native:pedidos','📋','Pedidos','Estados, pagos, despacho y seguimiento'],
   ['native:nuevo','➕','Nuevo pedido','Crear el pedido de un cliente'],
@@ -1127,7 +1129,7 @@ const HUB=[
 ];
 $('hub').innerHTML=HUB.map(([g,list])=>'<div class="hubGroup"><h2>'+esc(g)+'</h2><div class="hubGrid">'+list.map(([k,ic,t,d])=>k.startsWith('native:')
   ?'<button class="tile native" data-go="'+k.slice(7)+'" style="text-align:left;font:inherit"><span class="ic">'+ic+'</span><strong>'+esc(t)+'</strong><small>'+esc(d)+'</small></button>'
-  :'<a class="tile" href="'+(k==='editor'?'/editor/':'/admin.html#abrir='+k)+'" target="_blank" rel="noopener noreferrer"><span class="ic">'+ic+'</span><strong>'+esc(t)+'</strong>'+(d?'<small>'+esc(d)+'</small>':'')+'</a>').join('')+'</div></div>').join('')
+  :'<a class="tile" href="'+(k==='central'?'/control/':k==='editor'?'/editor/':'/admin.html#abrir='+k)+'" target="'+(k==='central'?'_self':'_blank')+'" rel="noopener noreferrer"><span class="ic">'+ic+'</span><strong>'+esc(t)+'</strong>'+(d?'<small>'+esc(d)+'</small>':'')+'</a>').join('')+'</div></div>').join('')
   +'<button class="btn block" id="logoutHub" style="margin-top:6px">Cerrar sesión</button>';
 $('hub').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 let instagramScriptLoading=null;
