@@ -25,6 +25,10 @@
   },
   "routes": [
     {
+      "src": "^/merchant-feed\\.xml$",
+      "dest": "/api/merchant-feed"
+    },
+    {
       "src": "^/sitemap\\.xml$",
       "dest": "/api/sitemap?tipo=index"
     },
