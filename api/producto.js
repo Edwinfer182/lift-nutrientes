@@ -129,7 +129,7 @@ module.exports = async function handler(req, res) {
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
       .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + robots + '">')
       .replace('</head>', atomicLoad + socialHtml + '<link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
-      .replace(/<div class="fd-cargando" role="status">[\\s\\S]*?<\\/div><\\/div>/, initial)
+      .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial)
       .replace('<script type="application/json" id="ficha-plantilla">', bootstrap + '<script type="application/json" id="ficha-plantilla">');
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
