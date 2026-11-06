@@ -44,3 +44,19 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',revisar);else revisar();
  window.addEventListener('pagehide',revisar);
 })();
+
+/* Instalación únicamente en el administrador clásico. El script original
+ * sigue disponible; el duplicador seguro lo reemplaza al terminar de cargar. */
+(function(){
+ if(!/\/(?:admin\.html|index\.html)$/.test(location.pathname))return;
+ function loadSafeDuplicate(){
+   if(document.getElementById('supgo-duplicador-seguro-js'))return;
+   var script=document.createElement('script');
+   script.id='supgo-duplicador-seguro-js';
+   script.src='/componentes/duplicador-seguro.js?v=20261106-1';
+   script.async=false;
+   document.head.appendChild(script);
+ }
+ if(document.readyState==='complete')loadSafeDuplicate();
+ else window.addEventListener('load',loadSafeDuplicate,{once:true});
+})();
