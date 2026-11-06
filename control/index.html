@@ -36,7 +36,7 @@ main{display:flex;flex-direction:column;min-height:0;min-width:0}
 .tile:hover{border-color:#94b260;background:#fbfdf8}.tile .emoji{font-size:23px;display:block;margin-bottom:13px}
 .tile b{display:block;font-size:13px}.tile small{display:block;margin-top:3px;color:#6d7b70}
 @media(max-width:1050px){.shell{grid-template-columns:215px 1fr}#tiles{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:720px){.shell{display:block}aside{position:fixed;width:min(280px,86vw);z-index:9;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .2s;box-shadow:8px 0 30px #0003}body.menu-open aside{transform:none}
+@media(max-width:720px){.shell{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:0;overflow:hidden}main{flex:1 1 auto;height:100%;min-height:0;min-width:0}.work{flex:1 1 auto;min-height:0;overflow:hidden}#view{height:100%;min-height:0}aside{position:fixed;width:min(280px,86vw);height:100dvh;z-index:9;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .2s;box-shadow:8px 0 30px #0003}body.menu-open aside{transform:none}
 .top{padding:0 10px;height:60px}.top h1{font-size:14px}.top p{font-size:9px}#toggle{display:block}.btn{padding:8px}#home{padding:20px 12px}#tiles{gap:8px}.tile{padding:12px;min-height:108px}}
 
 /* Puerta de acceso: todas las herramientas se mantienen ocultas hasta validar la sesión. */
