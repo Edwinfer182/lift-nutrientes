@@ -38,11 +38,42 @@ main{display:flex;flex-direction:column;min-height:0;min-width:0}
 @media(max-width:1050px){.shell{grid-template-columns:215px 1fr}#tiles{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.shell{display:block}aside{position:fixed;width:min(280px,86vw);z-index:9;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .2s;box-shadow:8px 0 30px #0003}body.menu-open aside{transform:none}
 .top{padding:0 10px;height:60px}.top h1{font-size:14px}.top p{font-size:9px}#toggle{display:block}.btn{padding:8px}#home{padding:20px 12px}#tiles{gap:8px}.tile{padding:12px;min-height:108px}}
+
+/* Puerta de acceso: todas las herramientas se mantienen ocultas hasta validar la sesión. */
+#authGate{position:fixed;inset:0;z-index:100;background:#101810;display:grid;place-items:center;padding:18px}
+#authCard{width:min(100%,420px);padding:28px;background:#fff;color:#172018;border-radius:18px;box-shadow:0 20px 80px #0004}
+#authCard .authBrand{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+#authCard .authBrand img{height:42px;width:42px;border-radius:11px}
+#authCard .authBrand b{font-size:17px}
+#authCard .authBrand b span{color:#638c18}
+#authCard h2{font-size:21px;margin:0 0 7px}
+#authCard p{color:#68736b;margin:0 0 19px;font-size:12px}
+#authCard label{font-weight:600;font-size:12px;display:block;margin-bottom:8px}
+#authPassword{display:block;width:100%;height:46px;border:1px solid #cdd7cd;border-radius:9px;padding:0 12px;font:inherit;font-size:14px}
+#authPassword:focus{outline:3px solid #b9e889;outline-offset:1px}
+#authSubmit{margin-top:13px;width:100%;padding:12px 16px;border:0;border-radius:9px;background:#152316;color:white;font:600 13px Poppins,system-ui;cursor:pointer}
+#authSubmit:disabled{opacity:.65;cursor:progress}
+#authError{color:#a32222!important;font-size:12px;margin:11px 0 0!important;min-height:18px}
+#authMessage{font-size:11px;margin-top:16px;color:#5f6c61}
+#logoutControl{background:#fff;border:1px solid #d5ded5;border-radius:9px;padding:9px 12px;font-weight:600;cursor:pointer;font-size:12px}
+@media(max-width:720px){#authCard{padding:22px}#logoutControl{padding:8px}}
 </style></head><body>
-<div class="shell"><aside><div class="brand"><img src="/favicon.png" alt=""><div><strong>SUPGO <span>CONTROL</span></strong><small>Centro de administración</small></div></div>
+<section id="authGate" aria-label="Inicio de sesión administrativo">
+  <form id="authCard" autocomplete="on">
+    <div class="authBrand"><img src="/favicon.png" alt="SUPGO"><b>SUPGO <span>CONTROL</span></b></div>
+    <h2>Entrar al administrador</h2>
+    <p>Utiliza la misma contraseña con la que accedes al panel de SUPGO. No necesitas otra cuenta.</p>
+    <label for="authPassword">Contraseña administrativa</label>
+    <input id="authPassword" type="password" autocomplete="current-password" required>
+    <button id="authSubmit" type="submit">Iniciar sesión</button>
+    <p id="authError" role="alert"></p>
+    <div id="authMessage">Tu sesión se comparte con Pedidos, Catálogo, SEO y las demás herramientas de este sitio.</div>
+  </form>
+</section>
+<div class="shell" id="mainShell" hidden><aside><div class="brand"><img src="/favicon.png" alt=""><div><strong>SUPGO <span>CONTROL</span></strong><small>Centro de administración</small></div></div>
 <input id="filter" type="search" placeholder="Buscar herramienta..."><nav id="menu" aria-label="Herramientas"></nav>
 <div class="foot"><a href="/home/" target="_blank" rel="noopener">Tienda ↗</a><a href="/panel/">Panel original</a></div></aside>
-<main><header class="top"><button id="toggle" class="btn" title="Menú">☰</button><div class="title"><h1 id="title">Centro SUPGO</h1><p id="subtitle">Todas tus herramientas en una sola página.</p></div><button class="btn" id="back">←</button><button class="btn" id="refresh">↻</button></header>
+<main><header class="top"><button id="toggle" class="btn" title="Menú">☰</button><div class="title"><h1 id="title">Centro SUPGO</h1><p id="subtitle">Todas tus herramientas en una sola página.</p></div><button id="logoutControl" title="Cerrar sesión">Salir</button><button class="btn" id="back">←</button><button class="btn" id="refresh">↻</button></header>
 <div class="work"><section id="home"><h2>Tu centro de operaciones</h2><p>Ventas, catálogo, entrenadores, SEO, redes y productividad desde el mismo espacio.</p><div id="tiles"></div><p style="margin-top:25px;font-size:11px">Las funciones conservan sus datos y permisos existentes. Algunas herramientas clásicas siguen usando su código original dentro de esta vista integrada.</p></section>
 <iframe id="view" title="Herramienta SUPGO" hidden></iframe><div id="loading" hidden>Abriendo herramienta…</div><div id="notice" hidden role="status"></div></div></main></div>
 <script>
@@ -57,6 +88,72 @@ const menu=[
 ['Contenido y gestión',[['instagram','📸','Instagram · Estados · TikTok','native:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
 const $=id=>document.getElementById(id);
+const PASS='liftAdminCloudPasswordV1',UNLOCKED='liftAdminUnlockedV1';
+const SUPABASE='https://vdxkknftyssjyfbdieqa.supabase.co';
+const APIKEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+function storedPassword(){try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}}
+async function verifyPassword(password){
+  const response=await fetch(SUPABASE+'/rest/v1/rpc/lift_editor_admin',{
+    method:'POST',headers:{apikey:APIKEY,'Content-Type':'application/json',Accept:'application/json'},
+    body:JSON.stringify({p_password:password,p_action:'stats',p_payload:{}})
+  });
+  if(!response.ok){
+    const data=await response.json().catch(()=>({}));
+    throw Error(response.status===401||response.status===403?'Contraseña incorrecta.':data.message||'No se pudo verificar el acceso.');
+  }
+  return true;
+}
+function showLogin(message){
+  endWait();
+  ++counter;
+  $('view').hidden=true;
+  $('view').removeAttribute('src');
+  activeDocument='';
+  $('loading').hidden=true;
+  $('mainShell').hidden=true;
+  $('authGate').hidden=false;
+  $('authError').textContent=message||'';
+}
+function showControl(){
+  $('authGate').hidden=true;
+  $('authError').textContent='';
+  $('authPassword').value='';
+  $('mainShell').hidden=false;
+  initControl();
+}
+function signOut(){
+  try{
+    sessionStorage.removeItem(PASS);
+    sessionStorage.removeItem(UNLOCKED);
+  }catch(e){}
+  showLogin('');
+}
+$('authCard').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const pw=$('authPassword').value;
+  if(!pw)return;
+  const button=$('authSubmit');
+  button.disabled=true;button.textContent='Verificando…';$('authError').textContent='';
+  try{
+    await verifyPassword(pw);
+    sessionStorage.setItem(PASS,pw);
+    sessionStorage.setItem(UNLOCKED,'1');
+    showControl();
+  }catch(err){
+    $('authError').textContent=err.message||'No se pudo iniciar sesión.';
+  }finally{
+    button.disabled=false;button.textContent='Iniciar sesión';
+  }
+});
+$('logoutControl').addEventListener('click',signOut);
+let controlInitialized=false;
+function initControl(){
+  if(controlInitialized)return;
+  controlInitialized=true;
+  const initial=decodeURIComponent((location.hash||'').slice(1));
+  open(lookup.has(initial)?initial:'inicio',true);
+}
+
 const indexed=menu.flatMap(g=>g[1]);const lookup=new Map(indexed.map(x=>[x[0],x]));
 let current='inicio',previous=[],counter=0,noticeTimer;
 /* Anchos de edición por herramienta. Las ventanas se integran en el workspace,
@@ -186,6 +283,7 @@ function nativeNavigate(win,name,fromCache){
   return true;
 }
 function open(id,backwards){
+ if(!storedPassword()){showLogin('Inicia sesión para continuar.');return}
  const it=lookup.get(id);if(!it)return;
  if(!backwards&&current!==id)previous.push(current);
  current=id;document.body.classList.remove('menu-open');$('title').textContent=it[2];
@@ -263,7 +361,19 @@ $('refresh').onclick=()=>open(current,true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('menu-open')});
 for(const id of ['pedidos','nuevo','checkout','editor','crm','entrenadores','productividad','instagram','ofertas']){
  const it=lookup.get(id),b=document.createElement('button');b.className='tile';const emoji=document.createElement('span');emoji.className='emoji';emoji.textContent=it[1];const title=document.createElement('b');title.textContent=it[2];const sub=document.createElement('small');sub.textContent='Abrir en el área de trabajo';b.append(emoji,title,sub);b.onclick=()=>open(id);$('tiles').appendChild(b)}
-const initial=decodeURIComponent((location.hash||'').slice(1));
-open(lookup.has(initial)?initial:'inicio',true);
+// Recupera la sesión administrativa guardada por el panel original del mismo dominio.
+// Verifica siempre la contraseña guardada antes de mostrar datos administrativos.
+(async()=>{
+ const existing=storedPassword();
+ if(!existing){showLogin('');return}
+ $('authError').textContent='Verificando tu sesión existente…';
+ try{
+   await verifyPassword(existing);
+   showControl();
+ }catch(e){
+   try{sessionStorage.removeItem(PASS);sessionStorage.removeItem(UNLOCKED)}catch(err){}
+   showLogin('Tu sesión anterior venció. Vuelve a ingresar.');
+ }
+})();
 })();
 </script></body></html>
