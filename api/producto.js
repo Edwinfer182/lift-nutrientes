@@ -74,11 +74,19 @@ module.exports = async function handler(req, res) {
     if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object' && !Array.isArray(seo.datos_estructurados)) Object.assign(schema, seo.datos_estructurados);
     if (/^https:\/\//.test(image)) schema.image = [image];
     if (price > 0) schema.offers = {'@type':'Offer',priceCurrency:'COP',price, url:canonical};
-    const initial = '<h1>' + escapeHtml(name) + '</h1>' +
-      (image.startsWith('https://') ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '" loading="eager">' : '') +
-      '<p>' + escapeHtml(description) + '</p>' +
-      (text(seo.descripcion_larga_html) ? '<section class="seo-ssr-descripcion"><h2>Descripción del producto</h2><p>' + escapeHtml(clean(seo.descripcion_larga_html).slice(0, 6000)) + '</p></section>' : '') +
-      (price > 0 ? '<p>$' + escapeHtml(price.toLocaleString('es-CO')) + ' COP</p>' : '');
+    // El HTML inicial ya usa la distribución responsive de la ficha definitiva.
+    // Evita el salto visual de una imagen sin tamaño antes de que cargue el JS.
+    const initial = '<article class="product-card supgo-ssr-product">' +
+      '<section class="product-gallery"><div class="product-media">' +
+      (image.startsWith('https://') ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '" width="600" height="600" loading="eager" decoding="async" style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain">' : '') +
+      '</div></section>' +
+      '<section class="product-info">' +
+      (brand ? '<span class="product-brand">' + escapeHtml(brand) + '</span>' : '') +
+      '<h1>' + escapeHtml(name) + '</h1>' +
+      '<div class="product-price">' + (price > 0 ? '<p class="price">$' + escapeHtml(price.toLocaleString('es-CO')) + '</p>' : '<p class="price">Consultar precio</p>') + '</div>' +
+      '<details class="seo-description" open><summary>Descripción</summary><div class="product-description"><p>' + escapeHtml(description) + '</p></div></details>' +
+      '</section></article>' +
+      (text(seo.descripcion_larga_html) ? '<section class="seo-ssr-descripcion"><h2>Descripción del producto</h2><p>' + escapeHtml(clean(seo.descripcion_larga_html).slice(0, 6000)) + '</p></section>' : '');
     let html = template
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
