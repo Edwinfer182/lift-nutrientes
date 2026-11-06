@@ -4,7 +4,7 @@ const ASSET_V='20261101-anim';
 (()=>{const links=[...document.querySelectorAll('link[rel="stylesheet"][href*="/paginas/supgo-pages.css"]')];if(links.some(l=>l.href.includes('v='+ASSET_V)))return;const l=document.createElement('link');l.rel='stylesheet';l.href='/paginas/supgo-pages.css?v='+ASSET_V;l.onload=()=>links.forEach(x=>x.remove());document.head.append(l)})();
 const config={url:'https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos',key:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'};
 const $=q=>document.querySelector(q),get=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const state={rows:[],offers:get('supgoActiveOffersV1',{})};async function loadOffers(){const u=new URL(config.url.replace('/lift_productos','/lift_catalog_config'));u.searchParams.set('select','valor');u.searchParams.set('clave','eq.weekly_offers');u.searchParams.set('limit','1');const res=await fetch(u,{headers:{apikey:config.key}});if(!res.ok)throw Error('Error al cargar ofertas');const data=await res.json();let offers=data[0]?.valor||{};if(typeof offers==='string')offers=JSON.parse(offers);state.offers=offers&&typeof offers==='object'&&!Array.isArray(offers)?offers:{};save('supgoActiveOffersV1',state.offers);}const pval=(p,...k)=>{for(const x of k)if(p?.[x]!==undefined&&p[x]!==null&&p[x]!=='')return p[x];return ''};
+const state={rows:[],offers:get('supgoActiveOffersV1',{}),selectionIds:[],selected:new Set(),canCreate:false};async function loadOffers(){const u=new URL(config.url.replace('/lift_productos','/lift_catalog_config'));u.searchParams.set('select','valor');u.searchParams.set('clave','eq.weekly_offers');u.searchParams.set('limit','1');const res=await fetch(u,{headers:{apikey:config.key}});if(!res.ok)throw Error('Error al cargar ofertas');const data=await res.json();let offers=data[0]?.valor||{};if(typeof offers==='string')offers=JSON.parse(offers);state.offers=offers&&typeof offers==='object'&&!Array.isArray(offers)?offers:{};save('supgoActiveOffersV1',state.offers);}const pval=(p,...k)=>{for(const x of k)if(p?.[x]!==undefined&&p[x]!==null&&p[x]!=='')return p[x];return ''};
 const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0);
 const slug=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const HIDDEN_PUBLIC_BRANDS=new Set(['venom-pharma','lift-nutrientes']);
@@ -49,6 +49,49 @@ async function loadLabLogos(){
   else if(items&&typeof items==='object'){for(const [k,v]of Object.entries(items))add(v?.name||v?.nombre||k,v)}
 }
 const page=document.body.dataset.page,root=$('#content'),query=new URLSearchParams(location.search);
+const SELECT_API='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-selecciones';
+const selectionToken=page==='seleccion'?location.pathname.match(/^\/s\/([A-Za-z0-9_-]{12})\/?$/)?.[1]:null;
+async function selectionApi(action,payload={}){
+ const res=await fetch(SELECT_API,{method:'POST',headers:{apikey:config.key,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
+ const body=await res.json().catch(()=>({}));if(!res.ok)throw Error(body.error||'No se pudo preparar la selección');
+ return body;
+}
+async function loadSelection(){
+ if(!selectionToken)throw Error('El enlace de selección no es válido.');
+ const response=await selectionApi('get',{token:selectionToken});
+ state.selectionIds=(Array.isArray(response.productos)?response.productos:[]).map(String);
+}
+function accountToken(){try{const x=JSON.parse(localStorage.getItem('supgoCuentaV1')||'null');return /^[0-9a-f]{64}$/.test(x?.token||'')?x.token:null}catch{return null}}
+async function checkOwner(){if(page!=='favoritos'||sharedList())return;const token=accountToken();if(!token)return;try{state.canCreate=(await selectionApi('can-create',{session_token:token})).canCreate===true;if(state.canCreate)render()}catch(e){console.warn('Permisos de selección no disponibles')}}
+function selectionChosenRows(){return state.rows.filter(r=>state.selected.has(String(r.id))&&state.selectionIds.includes(String(r.id)))}
+function updateSelectionUi(){
+ document.querySelectorAll('.select-check[data-id],.select-buy[data-id]').forEach(b=>{
+  const selected=state.selected.has(String(b.dataset.id));
+  b.classList.toggle('on',selected);b.setAttribute('aria-pressed',String(selected));
+  b.textContent=b.classList.contains('select-check')?(selected?'✓':'○'):(selected?'✓ Seleccionado':'Seleccionar');
+ });
+ const btn=document.querySelector('#sendSelection');if(btn){btn.disabled=!state.selected.size;btn.textContent=state.selected.size?'Enviar mi selección por WhatsApp ('+state.selected.size+')':'Selecciona un producto para enviar'}
+}
+function toggleSelection(id){const key=String(id);state.selected.has(key)?state.selected.delete(key):state.selected.add(key);updateSelectionUi()}
+function selectionBar(){
+ const bar=document.createElement('div');bar.className='fav-bar selection-actions';
+ const b=document.createElement('button');b.type='button';b.className='fav-act wa';b.id='sendSelection';
+ b.onclick=()=>{const selected=selectionChosenRows();if(!selected.length)return;const message=selected.map(r=>name(r)+(brand(r)?' · '+brand(r):'')).join('\n');window.open('https://wa.me/573137380766?text='+encodeURIComponent(message),'_blank','noopener')};
+ bar.append(b);root.prepend(bar);updateSelectionUi();
+}
+async function createSelection(rows,b){
+ if(!rows.length){favToast('Agrega productos a tus favoritos primero');return}
+ if(rows.length>25){favToast('Puedes enviar hasta 25 productos por selección');return}
+ const session_token=accountToken();if(!session_token){favToast('Entra a tu cuenta para enviar selecciones');return}
+ const tab=window.open('about:blank','_blank');
+ b.disabled=true;try{
+   const result=await selectionApi('create',{session_token,productos:rows.map(r=>Number(r.id))});
+   const url=result.url;
+   try{await copyText(url)}catch(e){}
+   if(tab){tab.location.href='https://wa.me/?text='+encodeURIComponent(url)}
+   else favToast('Enlace creado y copiado: '+url);
+ }catch(e){if(tab)tab.close();favToast(e.message)}finally{b.disabled=false}
+}
 const isPublicRow=r=>{const p=product(r);return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(r?.slug||'')&&r?.activo!==false&&!p.__deleted&&!p.__private&&!p.adminOnly&&!p.hidden&&!p.oculto&&p.visibility!=='admin'&&!!pval(p,'name','nombre')};
 const flavorCount=r=>{const f=product(r).flavors;return Array.isArray(f)?f.filter(x=>String(x||'').trim()).length:0};
 function offerOf(r){const offer=state.offers?.[String(r.id)],regular=price(r),sale=Number(offer?.price);const end=offer?.promoUntil?Date.parse(offer.promoUntil):NaN;const active=!!offer&&regular>0&&Number.isFinite(sale)&&sale>0&&sale<regular&&(!Number.isFinite(end)||Date.now()<=end);return{offer,regular,sale,active,end}}
@@ -78,7 +121,10 @@ if(image(r)){const img=document.createElement('img');img.className='primary-phot
 media.append(photo);
 if(active&&pct>0){const badge=document.createElement('span');badge.className='badge-off';badge.textContent='-'+pct+'%';media.append(badge)}
 else if(product(r).envio_gratis){const badge=document.createElement('span');badge.className='badge-off badge-ship';badge.textContent='Envío gratis';media.append(badge)}
-const fav=document.createElement('button');fav.type='button';fav.className='fav';fav.innerHTML=ICON_HEART;fav.dataset.id=String(r.id);paintFav(fav,r.id);fav.onclick=e=>{e.preventDefault();toggleFav(r.id,fav)};media.append(fav);
+const fav=document.createElement('button');fav.type='button';fav.className='fav';fav.dataset.id=String(r.id);
+if(page==='seleccion'){fav.classList.add('select-check');fav.onclick=e=>{e.preventDefault();toggleSelection(r.id)}}
+else{fav.innerHTML=ICON_HEART;paintFav(fav,r.id);fav.onclick=e=>{e.preventDefault();toggleFav(r.id,fav)}}
+media.append(fav);
 const info=document.createElement('div');info.className='product-details';
 const lab=document.createElement('small');lab.className='brand';lab.textContent=brand(r)||' ';
 const title=document.createElement('a');title.className='name';title.href=link(r);title.textContent=name(r);title.title=name(r);
@@ -97,7 +143,12 @@ if(active&&page==='ofertas'){
  if(details.childNodes.length)info.append(details);
 }
 const actions=document.createElement('div');actions.className='actions';
-if(regular>0||active){
+if(page==='seleccion'){
+ const choose=document.createElement('button');choose.type='button';choose.className='buy select-buy';choose.dataset.id=String(r.id);choose.onclick=()=>toggleSelection(r.id);
+ const details=document.createElement('a');details.className='select-details';details.href=link(r);details.textContent='Ver ficha completa';details.target='_blank';details.rel='noopener';
+ actions.append(choose,details);
+ photo.target='_blank';photo.rel='noopener';title.target='_blank';title.rel='noopener';
+}else if(regular>0||active){
  const buy=document.createElement('button');buy.type='button';buy.className='buy';buy.dataset.id=String(r.id);paintBuy(buy,r.id);let timer=0;
  buy.onclick=()=>{const key=String(r.id),m=get('liftCartMetaV1',{});m[key]={...(m[key]||{}),name:name(r),image:image(r),price:active?sale:regular,on_offer:active,promoUntil:active?(offer.promoUntil||null):null};save('liftCartMetaV1',m);change(r.id,1);bumpCount();clearTimeout(timer);buy.classList.add('added');buy.innerHTML=ICON_CHECK+'<span>Agregado</span>';buy.setAttribute('aria-label','Agregado al carrito');timer=setTimeout(()=>{buy.classList.remove('added');paintBuy(buy,r.id)},1400)};
  actions.append(buy);
@@ -129,16 +180,18 @@ function favBar(rows,shared){
    favToast(await copyText(url)?'Enlace copiado. Pégalo en WhatsApp o donde quieras.':url);
   });
   const wa=document.createElement('a');wa.className='fav-act wa';wa.target='_blank';wa.rel='noopener';wa.href='https://wa.me/?text='+encodeURIComponent('Mira mi lista de favoritos en SUPGO: https://supgo.co/favoritos/?lista='+rows.map(r=>r.id).join(','));wa.textContent='Enviar por WhatsApp';bar.append(wa);
+  if(state.canCreate)mk('☑ Enviar selección','',b=>createSelection(rows,b));
  }
  root.prepend(bar);
 }
 function grid(rows){root.replaceChildren();if(!rows.length){root.innerHTML='<p class="empty">No hay productos para mostrar.</p>';return}const el=document.createElement('div');el.className='grid';rows.forEach(r=>el.append(card(r)));root.append(el)}
 function renderCart(){const c=cart(),entries=Object.entries(c).filter(([id,v])=>qty(v)>0);root.replaceChildren();if(!entries.length){root.innerHTML='<p class="empty">Tu carrito está vacío.</p>';return}let total=0,missing=false;for(const [key,v]of entries){const id=key.split('::')[0],r=state.rows.find(x=>String(x.id)===id),q=qty(v),regular=r?price(r):0,offer=state.offers?.[id],sale=Number(offer?.price),expiry=offer?.promoUntil?Date.parse(offer.promoUntil):NaN,offerActive=regular>0&&Number.isFinite(sale)&&sale>0&&sale<regular&&(!Number.isFinite(expiry)||Date.now()<=expiry),fallback=get('liftCartMetaV1',{})[key]||{},fallbackSale=Number(fallback.price),fallbackExpiry=fallback.promoUntil?Date.parse(fallback.promoUntil):NaN,fallbackOffer=fallback.on_offer===true&&Number.isFinite(fallbackSale)&&fallbackSale>0&&regular>fallbackSale&&(!Number.isFinite(fallbackExpiry)||Date.now()<=fallbackExpiry),cost=offerActive?sale:(fallbackOffer?fallbackSale:(regular||fallbackSale||0));if(!cost)missing=true;total+=cost*q;const row=document.createElement('div');row.className='cartrow';const img=document.createElement('img');if(r&&image(r))img.src=image(r);img.alt='';const label=document.createElement('div');label.className='name';label.textContent=r?name(r):'Producto '+id;const amount=document.createElement('strong');amount.textContent=cost?money(cost*q):'Consultar precio';const controls=document.createElement('div');controls.className='qty';const minus=document.createElement('button');minus.textContent='−';minus.setAttribute('aria-label','Reducir cantidad');minus.onclick=()=>{change(key,-1);renderCart()};const number=document.createElement('span');number.textContent=String(q);const plus=document.createElement('button');plus.textContent='+';plus.setAttribute('aria-label','Aumentar cantidad');plus.onclick=()=>{change(key,1);renderCart()};controls.append(minus,number,plus);const del=document.createElement('button');del.className='btn alt remove';del.textContent='Quitar';del.onclick=()=>{const current=cart();delete current[key];save('liftCartV2',current);window.dispatchEvent(new Event('supgo-cart-change'));updateCount();renderCart()};row.append(img,label,amount,controls,del);root.append(row)}const summary=document.createElement('div');summary.className='summary';summary.innerHTML='<span>Subtotal</span><strong>'+money(total)+'</strong>';const foot=document.createElement('p');foot.className='notice';foot.textContent=missing?'Hay productos sin precio confirmado. El checkout verificará los valores.':'El total definitivo y el envío se verifican al continuar.';const go=document.createElement('a');go.href='/checkout/';go.className='btn';go.textContent='Continuar pedido';root.append(summary,foot,go)}
 function render(){updateCount();if(page==='carrito'){renderCart();return}if(page==='categorias'||page==='laboratorios'){const mode=page==='categorias'?'category':'brand';const values=[...new Set(state.rows.map(r=>mode==='category'?category(r):brand(r)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));root.replaceChildren();const list=document.createElement('div');list.className='links';for(const v of values){const a=document.createElement('a');a.href='/'+page+'/'+slug(v)+'/';a.textContent=v;if(page==='laboratorios'){a.classList.add('labLogoCard');const alias={'basic-supplements':'basic','insane-labz':'insane','insane-labz-':'insane','optimum-nutrition':'on','hi-tech-pharmaceuticals':'hitech'};const logo=labLogoMap.get(slug(v))||labLogoMap.get(alias[slug(v)]||'');if(logo){const im=document.createElement('img');im.className='labLogo';im.src=logo;im.alt='Logo de '+v;im.loading='lazy';im.decoding='async';im.onerror=()=>im.remove();a.prepend(im)}const view=document.createElement('span');view.className='labViewButton';view.textContent='Ver productos →';a.append(view)}const small=document.createElement('small');small.textContent=state.rows.filter(r=>(mode==='category'?category(r):brand(r))===v).length+' productos';a.append(small);list.append(a)}root.append(list);return}
-let rows=state.rows;if(page==='ofertas'){rows=state.rows.filter(r=>{const o=state.offers?.[String(r.id)];if(!o||typeof o!=='object')return false;const regular=price(r),sale=Number(o.price);if(!Number.isFinite(sale)||sale<=0||sale>=regular)return false;if(o.promoUntil){const expiry=Date.parse(o.promoUntil);if(Number.isFinite(expiry)&&Date.now()>expiry)return false;}return true;});}const sharedIds=page==='favoritos'?sharedList():null;if(page==='favoritos')rows=sharedIds?sharedIds.map(id=>rows.find(r=>String(r.id)===id)).filter(Boolean):rows.filter(r=>favorites().has(String(r.id)));if(page==='buscar'){const q=query.get('q')||'';rows=q?searchRows(rows,q):[];const h=$('h1');if(h&&q)h.textContent=rows.length+' resultado'+(rows.length===1?'':'s')+' para “'+q+'”';const input=$('#searchterm');if(input)input.value=query.get('q')||''}
+let rows=state.rows;if(page==='ofertas'){rows=state.rows.filter(r=>{const o=state.offers?.[String(r.id)];if(!o||typeof o!=='object')return false;const regular=price(r),sale=Number(o.price);if(!Number.isFinite(sale)||sale<=0||sale>=regular)return false;if(o.promoUntil){const expiry=Date.parse(o.promoUntil);if(Number.isFinite(expiry)&&Date.now()>expiry)return false;}return true;});}const sharedIds=page==='favoritos'?sharedList():null;if(page==='favoritos')rows=sharedIds?sharedIds.map(id=>rows.find(r=>String(r.id)===id)).filter(Boolean):rows.filter(r=>favorites().has(String(r.id)));
+if(page==='seleccion')rows=state.selectionIds.map(id=>rows.find(r=>String(r.id)===id)).filter(Boolean);if(page==='buscar'){const q=query.get('q')||'';rows=q?searchRows(rows,q):[];const h=$('h1');if(h&&q)h.textContent=rows.length+' resultado'+(rows.length===1?'':'s')+' para “'+q+'”';const input=$('#searchterm');if(input)input.value=query.get('q')||''}
 if(page==='categoria'||page==='laboratorio'){const segment=document.body.dataset.slug||location.pathname.split('/').filter(Boolean).pop(),key=page==='categoria'?category:brand;rows=rows.filter(r=>slug(key(r))===segment);const heading=$('h1');if(rows.length&&heading)heading.textContent=key(rows[0]);if(page==='laboratorio'&&heading){const labName=rows.length?key(rows[0]):heading.textContent.trim();const logo=labLogoMap.get(slug(labName));let imageNode=document.querySelector('.supgo-lab-heading-logo');if(logo&&!imageNode){imageNode=document.createElement('img');imageNode.className='supgo-lab-heading-logo';imageNode.src=logo;imageNode.alt='Logo de '+labName;imageNode.loading='eager';imageNode.decoding='async';imageNode.onerror=()=>imageNode.remove();heading.parentNode.insertBefore(imageNode,heading)}else if(imageNode&&logo&&imageNode.src!==logo){imageNode.src=logo}}}
-const sort=$('#sort');if(sort?.value==='asc')rows.sort((a,b)=>price(a)-price(b));if(sort?.value==='desc')rows.sort((a,b)=>price(b)-price(a));if(sort?.value==='az')rows.sort((a,b)=>name(a).localeCompare(name(b),'es',{sensitivity:'base'}));if(sort?.value==='za')rows.sort((a,b)=>name(b).localeCompare(name(a),'es',{sensitivity:'base'}));grid(rows);if(page==='favoritos')favBar(rows,!!sharedIds)}
-async function boot(){const sort=$('#sort');if(sort&&!sort.querySelector('option[value="az"]')){const az=new Option('Nombre: A-Z','az');const za=new Option('Nombre: Z-A','za');sort.add(az,sort.options[1]||null);sort.add(za,sort.options[2]||null)}updateCount();if(['checkout','mis-pedidos'].includes(page))return;const cached=readCatalogCache();if(cached){state.rows=cached.rows.filter(r=>!isHiddenBrand(r)&&isPublicRow(r));for(const [k,v] of cached.logos||[])labLogoMap.set(k,v);state.extra=cached.extra||{};try{render()}catch(e){console.warn(e)}}try{const tasks=[load(),loadExtraImages().catch(()=>{}),loadOffers().catch(error=>console.warn('Usando ofertas en caché local',error))];if(page==='laboratorios'||page==='laboratorio')tasks.push(loadLabLogos().catch(e=>console.warn('Logos no disponibles',e)));await Promise.all(tasks);writeCatalogCache();render()}catch(e){if(!cached)root.textContent=e.message}}
+const sort=$('#sort');if(sort?.value==='asc')rows.sort((a,b)=>price(a)-price(b));if(sort?.value==='desc')rows.sort((a,b)=>price(b)-price(a));if(sort?.value==='az')rows.sort((a,b)=>name(a).localeCompare(name(b),'es',{sensitivity:'base'}));if(sort?.value==='za')rows.sort((a,b)=>name(b).localeCompare(name(a),'es',{sensitivity:'base'}));grid(rows);if(page==='favoritos')favBar(rows,!!sharedIds);if(page==='seleccion'){selectionBar();updateSelectionUi()}}
+async function boot(){const sort=$('#sort');if(sort&&!sort.querySelector('option[value="az"]')){const az=new Option('Nombre: A-Z','az');const za=new Option('Nombre: Z-A','za');sort.add(az,sort.options[1]||null);sort.add(za,sort.options[2]||null)}updateCount();if(['checkout','mis-pedidos'].includes(page))return;const cached=readCatalogCache();if(cached){state.rows=cached.rows.filter(r=>!isHiddenBrand(r)&&isPublicRow(r));for(const [k,v] of cached.logos||[])labLogoMap.set(k,v);state.extra=cached.extra||{};if(page!=='seleccion')try{render()}catch(e){console.warn(e)}}try{const tasks=[load(),loadExtraImages().catch(()=>{}),loadOffers().catch(error=>console.warn('Usando ofertas en caché local',error))];if(page==='seleccion')tasks.push(loadSelection());if(page==='laboratorios'||page==='laboratorio')tasks.push(loadLabLogos().catch(e=>console.warn('Logos no disponibles',e)));await Promise.all(tasks);writeCatalogCache();render();if(page==='favoritos')checkOwner()}catch(e){if(page==='seleccion'||!cached)root.textContent=e.message}}
 /* Las páginas estáticas de marca/categoría conservan un topbar antiguo.
    Sustituirlo por el mismo header global que usan Home y ofertas. */
 document.addEventListener('DOMContentLoaded',()=>{
