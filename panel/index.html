@@ -607,14 +607,11 @@ const SUPGO_PAYMENT_ACCOUNT='36655023431';
 const SUPGO_PAYMENT_KEY='@edwin4518';
 const SUPGO_PAYMENT_OWNER='Edwin Fernando Muñoz Tobon';
 function chargeText(p){
-  const first=String(p.nombre||'').trim().split(/\s+/)[0]||'';
-  const total=money(p.total);
-  return 'Hola'+(first?' '+first:'')+', te comparto los datos para el pago de tu pedido #'+p.id+'.\n\n'+
-    '🏦 Bancolombia ahorros: '+SUPGO_PAYMENT_ACCOUNT+'\n'+
-    'Titular: '+SUPGO_PAYMENT_OWNER+'\n'+
-    '🔑 Llave Bre-B: '+SUPGO_PAYMENT_KEY+'\n\n'+
-    'Total: '+total+'\n\n'+
-    'Cuando realices el pago, envíanos el comprobante por este chat. Gracias.';
+  const total=String(Math.round(Number(p.total)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return 'Titular: '+SUPGO_PAYMENT_OWNER+'\n\n'+
+    '🏦 Bancolombia ahorros\n# '+SUPGO_PAYMENT_ACCOUNT+'\n\n'+
+    '🔑 Llave  '+SUPGO_PAYMENT_KEY+'\n\n'+
+    'Total: '+total;
 }
 function storedPaymentQr(){try{return localStorage.getItem(SUPGO_PAYMENT_QR_KEY)||''}catch(e){return ''}}
 async function paymentQrFile(data){
@@ -685,10 +682,13 @@ function openChargeWa(p){
 /* Proveedores del pedido: selector en el panel actual, no cartera de proveedores. */
 function supplierMessage(p){
   const items=Array.isArray(p.items)?p.items:[];
-  const lines=items.map(x=>'• '+Math.max(1,Number(x.cantidad)||1)+' × '+String(x.nombre||'Producto')+(x.marca?' · '+x.marca:''));
-  return 'Hola, ¿me confirmas disponibilidad para estos productos del pedido #'+p.id+'?\n\n'+
-    (lines.length?lines.join('\n'):'Sin productos detallados')+
-    '\n\nQuedo atento. Gracias.';
+  const lines=items.map(x=>Math.max(1,Number(x.cantidad)||1)+' - '+String(x.nombre||'Producto')+(x.marca?' · '+x.marca:''));
+  return 'Nombre: '+String(p.nombre||'')+'\n'+
+    'Celular: '+String(p.celular||'')+'\n'+
+    'Dirección: '+String(p.direccion||'')+'\n'+
+    'Ciudad: '+String(p.ciudad||'')+
+    (p.notas?'\nNotas: '+String(p.notas):'')+
+    '\n\nPedido:\n'+(lines.length?lines.join('\n'):'Sin productos detallados');
 }
 async function openSupplierPicker(p){
   const el=sheet('<div class="sheetHead"><h2>Enviar pedido #'+esc(p.id)+' a proveedor</h2>'+
@@ -717,7 +717,7 @@ async function openSupplierPicker(p){
     }
     function detail(x){
       body.innerHTML='<div class="sec"><h3>Proveedor seleccionado</h3><strong>'+esc(x.nombre)+'</strong>'+
-        '<p class="hint">El mensaje incluye los productos y cantidades del pedido, sin los precios de venta ni datos privados del cliente.</p></div>'+
+        '<p class="hint">El mensaje incluye los datos de entrega del cliente y los productos con sus cantidades. Revisa el proveedor antes de compartirlo.</p></div>'+
         '<div class="sec"><label class="field"><span>Mensaje editable</span><textarea class="input" id="supplierMessage" style="height:auto;min-height:180px"></textarea></label></div>'+
         '<div class="sec"><button class="btn wa block" id="supplierSend">'+I.wa+' Abrir WhatsApp de '+esc(x.nombre)+'</button>'+
         '<button class="btn block" style="margin-top:8px" id="supplierCopy">Copiar mensaje</button>'+
