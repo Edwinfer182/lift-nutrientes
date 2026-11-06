@@ -28,20 +28,19 @@ module.exports = async function handler(req, res) {
     if (!name || row.activo === false || p.__deleted || p.__private || p.adminOnly || p.hidden || p.oculto) {
       return res.status(404).send('Producto no disponible');
     }
-    const seoRows = await fetchRows('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + row.id + '&limit=2');
+    const brand = text(p.brand || p.marca);
+    // Estas consultas se ejecutan en paralelo después de encontrar el producto.
+    const [seoRows, brandRules, seoBlocks] = await Promise.all([
+      fetchRows('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + row.id + '&limit=2'),
+      brand ? fetchRows('lift_seo_marcas?select=habilitada&marca=ilike.' + encodeURIComponent(brand) + '&limit=2') : Promise.resolve([]),
+      fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
+    ]);
     if (seoRows.length > 1) throw new Error('SEO duplicado para producto: ' + row.id);
-    // El SEO incompleto nunca debe impedir abrir una ficha comercial activa.
     const seo = seoRows[0] || {};
     const title = text(seo.titulo_seo) || name + ' | SUPGO';
     const description = clean(seo.meta_descripcion) ||
       clean(p.description || p.descripcion) ||
       ('Consulta ' + name + ' en SUPGO Medellín. Disponibilidad, precios y envíos a Colombia.');
-    const brand = text(p.brand || p.marca);
-    // Las políticas de indexación provienen de las listas mantenidas en Supabase.
-    const [brandRules, seoBlocks] = await Promise.all([
-      brand ? fetchRows('lift_seo_marcas?select=habilitada&marca=ilike.' + encodeURIComponent(brand) + '&limit=2') : Promise.resolve([]),
-      fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
-    ]);
     const canIndex = seo.indexable !== false && brandRules.length === 1 && brandRules[0].habilitada === true && seoBlocks.length === 0;
     // La URL principal se calcula con el slug vigente; el SEO puede estar desactualizado.
     const canonical = 'https://supgo.co/producto/' + slug + '/';
@@ -116,16 +115,22 @@ module.exports = async function handler(req, res) {
         check();
       },{once:true});
       // Si hay error o lentitud de red, nunca mantener la pantalla tapada.
-      setTimeout(reveal,8000);
+      setTimeout(reveal,2500);
     })();
     <\/script>`;
+    // Reutilizar en el navegador la misma fila ya consultada por Vercel: evita
+    // repetir dos peticiones a Supabase antes de mostrar variantes y botones.
+    const bootstrap = '<script type="application/json" id="supgo-product-bootstrap">' +
+      JSON.stringify({ slug, row, seo }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026') +
+      '</script>';
     let html = template
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
       .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + robots + '">')
       .replace('</head>', atomicLoad + socialHtml + '<link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
-      .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
+      .replace(/<div class="fd-cargando" role="status">[\\s\\S]*?<\\/div><\\/div>/, initial)
+      .replace('<script type="application/json" id="ficha-plantilla">', bootstrap + '<script type="application/json" id="ficha-plantilla">');
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
     return res.status(200).send(html);
