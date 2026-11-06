@@ -25,6 +25,18 @@
   },
   "routes": [
     {
+      "src": "^/sitemap\\.xml$",
+      "dest": "/api/sitemap?tipo=index"
+    },
+    {
+      "src": "^/sitemap-(productos|categorias|laboratorios|paginas|guias)\\.xml$",
+      "dest": "/api/sitemap?tipo=$1"
+    },
+    {
+      "src": "^/sitemaps/(productos|categorias|laboratorios|paginas|guias)\\.xml$",
+      "dest": "/api/sitemap?tipo=$1"
+    },
+    {
       "src": "^/home/?$",
       "dest": "/api/pagina?ruta=home"
     },
