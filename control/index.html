@@ -59,19 +59,73 @@ const menu=[
 const $=id=>document.getElementById(id);
 const indexed=menu.flatMap(g=>g[1]);const lookup=new Map(indexed.map(x=>[x[0],x]));
 let current='inicio',previous=[],counter=0,noticeTimer;
+/* Anchos de edición por herramienta. Las ventanas se integran en el workspace,
+ * pero sus formularios NO se estiran de extremo a extremo. */
 const adaptLegacy=[
-'#supgoBackToPanel{display:none!important}',
-'#lafBackdrop,#liftAdminBackdrop{display:none!important}',
+/* Marco del administrador de productos y sus pestañas. */
+'#supgoBackToPanel,#lafBackdrop,#liftAdminBackdrop{display:none!important}',
 '#lafPanel.open{position:fixed!important;inset:0!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:100%!important;height:100dvh!important;max-width:none!important;transform:none!important;transition:none!important;box-shadow:none!important;z-index:2147483000!important}',
-'.liftOrdersModal.open,.liftCarteraModal.open,#liftCrmModal.open,#liftClientDirectoryModal.open,#liftPaymentsAdminModal.open,#liftAbandonModal.open,#liftQuickListModal.open,#liftProviderWalletModal.open,#lift-trainer-admin-modal.lift-open,#liftLabAdminModal.open,#liftCategoryModal.open{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;background:#fff!important;border-radius:0!important;z-index:2147483001!important;align-items:stretch!important;justify-content:stretch!important;place-items:stretch!important}',
-'.liftOrdersPanel,.liftCarteraPanel,.crmBox,#lift-trainer-admin-box,.liftAbandonCard{width:100%!important;height:100%!important;min-height:100%!important;max-width:none!important;max-height:100dvh!important;margin:0!important;border-radius:0!important;box-shadow:none!important}',
-'#checkoutModal.open{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;margin:0!important;padding:0!important;place-items:stretch!important;background:#fff!important;z-index:2147483001!important}',
-'#checkoutModal.open .checkoutCard{width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;box-shadow:none!important}',
-'#lift-trainer-admin-box{overflow:auto!important}'
+'#lafPanel.open .lafBody{background:#f4f6f4!important;overflow:auto!important}',
+'#lafPanel.open .lafBody>.lafPane{width:100%!important;max-width:1080px!important;margin-inline:auto!important}',
+'#lafPanel.open .lafHead,#lafPanel.open .lafTabs{padding-left:max(16px,calc((100% - 1080px)/2))!important;padding-right:max(16px,calc((100% - 1080px)/2))!important;background:white}',
+/* Pedidos e historial: más espacio para tablas, menos para los formularios. */
+'.liftOrdersModal.open,.liftCarteraModal.open,#liftCrmModal.open,#liftClientDirectoryModal.open,#liftPaymentsAdminModal.open,#liftAbandonModal.open,#liftQuickListModal.open,#liftProviderWalletModal.open,#lift-trainer-admin-modal.lift-open,#liftLabAdminModal.open,#liftCategoryModal.open{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:14px!important;background:#f4f6f4!important;border-radius:0!important;z-index:2147483001!important;align-items:flex-start!important;justify-content:center!important;place-items:start center!important;overflow:auto!important}',
+'.liftOrdersModal.open,.liftCarteraModal.open{display:flex!important}',
+'#liftCrmModal.open,#liftProviderWalletModal.open,#lift-trainer-admin-modal.lift-open{display:flex!important}',
+'#liftClientDirectoryModal.open,#liftPaymentsAdminModal.open,#liftAbandonModal.open,#liftQuickListModal.open,#liftLabAdminModal.open,#liftCategoryModal.open{display:grid!important}',
+'.liftOrdersModal.open .liftOrdersPanel{width:min(100%,1180px)!important;max-width:1180px!important;height:auto!important;min-height:calc(100dvh - 28px)!important;max-height:none!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'.liftCarteraModal.open .liftCarteraPanel{width:min(100%,1060px)!important;max-width:1060px!important;height:auto!important;min-height:calc(100dvh - 28px)!important;max-height:none!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'#liftCrmModal.open .crmBox{width:min(100%,1040px)!important;max-width:1040px!important;height:auto!important;min-height:min(600px,calc(100dvh - 28px))!important;max-height:none!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'#liftClientDirectoryModal .liftClientDirCard{width:min(100%,1000px)!important;max-width:1000px!important;height:calc(100dvh - 28px)!important;max-height:none!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'#liftPaymentsAdminModal .liftOrderCard{width:min(100%,900px)!important;max-width:900px!important;min-height:480px!important;max-height:none!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'#liftAbandonModal .liftAbandonCard{width:min(100%,1040px)!important;max-width:1040px!important;max-height:none!important;min-height:480px!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'#liftQuickListModal .lqlCard{width:min(100%,920px)!important;max-width:920px!important;max-height:calc(100dvh - 28px)!important;min-height:min(500px,calc(100dvh - 28px))!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+'#liftProviderWalletModal .lpwBox{width:min(100%,940px)!important;max-width:940px!important;max-height:none!important;min-height:480px!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+/* Entrenadores: alta de personas y claves. */
+'#lift-trainer-admin-modal.lift-open #lift-trainer-admin-box{width:min(100%,760px)!important;max-width:760px!important;height:auto!important;max-height:none!important;min-height:420px!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important;overflow:visible!important}',
+/* Formularios pequeños de categorías y laboratorios. */
+'#liftLabAdminModal .labAdminCard,#liftCategoryModal .liftCategoryBox{width:min(100%,580px)!important;max-width:580px!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important}',
+/* Checkout de catálogo: conserva su diseño en dos columnas, centrado. */
+'#checkoutModal.open{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;margin:0!important;padding:14px!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;overflow:auto!important;background:#f4f6f4!important;z-index:2147483001!important}',
+'#checkoutModal.open .checkoutCard{position:relative!important;width:min(100%,1120px)!important;max-width:1120px!important;height:auto!important;min-height:calc(100dvh - 28px)!important;max-height:none!important;margin:0 auto!important;border-radius:14px!important;box-shadow:none!important;overflow:visible!important}',
+'#checkoutModal.open .checkoutHead{border-radius:14px 14px 0 0!important}',
+'#checkoutModal.open .checkoutBody{width:100%!important;max-width:1088px!important;margin-inline:auto!important}',
+'#checkoutModal.open .liftCustomerCheckoutGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}',
+/* Modales secundarios de edición y cotización: límite de 760px. */
+'.liftAdminModal .liftAdminCard,.liftOrderEditPanel,.liftProviderSharePanel,#liftManualProductForm{max-width:760px!important}',
+/* Pequeñas pantallas: no forzar dos columnas ni márgenes que resten espacio. */
+'@media(max-width:820px){#checkoutModal.open .liftCustomerCheckoutGrid{grid-template-columns:minmax(0,1fr)!important}#checkoutModal.open,#liftCrmModal.open,.liftOrdersModal.open,.liftCarteraModal.open,#liftClientDirectoryModal.open,#liftPaymentsAdminModal.open,#liftAbandonModal.open,#liftQuickListModal.open,#liftProviderWalletModal.open,#lift-trainer-admin-modal.lift-open,#liftLabAdminModal.open,#liftCategoryModal.open{padding:8px!important}#lafPanel.open .lafBody>.lafPane{max-width:100%!important}#checkoutModal.open .checkoutCard{width:100%!important}}'
 ].join('\n');
-const adaptNative=['aside.side,nav.nav,header.top{display:none!important}','main{width:100%!important;max-width:none!important;margin:0!important;padding:16px 20px 32px!important}','body{background:#f4f6f4!important}'].join('\n');
-const adaptEditor=['body>header{display:none!important}','#app{max-width:none!important;padding:14px!important}'].join('\n');
-const adaptProductivity=['.shell>.side{display:none!important}','.shell{display:block!important}','main{margin-left:0!important;max-width:none!important;width:100%!important}'].join('\n');
+const adaptNative=[
+/* El panel de pedidos conserva listas amplias pero limita el formulario de alta. */
+'aside.side,nav.nav,header.top{display:none!important}',
+'main{width:100%!important;max-width:none!important;margin:0!important;padding:16px 20px 32px!important}',
+'#vNuevo,#np{width:100%!important;max-width:1010px!important;margin-left:auto!important;margin-right:auto!important}',
+'#vNuevo .colL,#vNuevo .colR{min-width:0!important}',
+'#vPedidos,#vResenas{max-width:1400px!important;margin-left:auto!important;margin-right:auto!important}',
+'.sheet .sheetBody,.sheet .sec{max-width:960px!important;margin-left:auto!important;margin-right:auto!important}',
+'body{background:#f4f6f4!important}',
+'@media(max-width:720px){main{padding:10px!important}#vNuevo,#np{max-width:100%!important}}'
+].join('\n');
+const adaptEditor=[
+/* 300px para resultados; 820px para el formulario editable, sin expandirlo. */
+'body>header{display:none!important}',
+'#app{max-width:1270px!important;margin:0 auto!important;padding:16px!important}',
+'#app .shell{width:100%!important;max-width:1230px!important;margin-inline:auto!important;grid-template-columns:minmax(240px,310px) minmax(0,1fr)!important;align-items:start!important}',
+'#app .shell .editor{width:100%!important;max-width:850px!important;margin-inline:auto!important}',
+'#app .pagehead,#app .kpis{max-width:1230px!important;margin-left:auto!important;margin-right:auto!important}',
+'#app .editor .section{max-width:820px!important;margin-inline:auto!important}',
+'@media(max-width:820px){#app{padding:10px!important}#app .shell{grid-template-columns:minmax(0,1fr)!important}#app .shell .editor{max-width:100%!important}}'
+].join('\n');
+const adaptProductivity=[
+/* Estadísticas y tarjetas utilizan el ancho; formularios de resultados moderados. */
+'.shell>.side{display:none!important}',
+'.shell{display:block!important}',
+'main{margin:0 auto!important;max-width:1320px!important;width:100%!important;padding:25px clamp(12px,2vw,30px) 50px!important}',
+'.results{max-width:900px!important;margin-inline:auto!important}',
+'.results label{max-width:900px!important}',
+'@media(max-width:820px){main{padding:14px!important}.results{max-width:100%!important}}'
+].join('\n');
 function toast(m,bad){const x=$('notice');x.textContent=m;x.className=bad?'bad':'';x.hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>x.hidden=true,6500)}
 function renderMenu(){const q=$('filter').value.toLocaleLowerCase('es');$('menu').innerHTML='';
  for(const group of menu){const matches=group[1].filter(x=>x[2].toLocaleLowerCase('es').includes(q)||group[0].toLocaleLowerCase('es').includes(q));if(!matches.length)continue;
