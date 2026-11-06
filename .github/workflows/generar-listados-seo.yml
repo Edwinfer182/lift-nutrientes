@@ -1,45 +1,27 @@
-name: Generar páginas SEO de categorías y laboratorios
+name: Verificar sitemaps dinámicos SUPGO (sin generar archivos)
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/generar_listados_seo.py'
-      - 'scripts/seo_listados_textos.py'
-      - 'scripts/seo_indexacion.py'
-      - '.github/workflows/generar-listados-seo.yml'
   workflow_dispatch:
-  schedule:
-    - cron: '40 9 * * *'
 permissions:
-  contents: write
-concurrency:
-  group: seo-listados
-  cancel-in-progress: false
+  contents: read
 jobs:
-  generar:
+  verificar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Verificar sintaxis
-        run: python -m py_compile scripts/generar_listados_seo.py scripts/seo_indexacion.py
-      - name: Generar páginas
-        run: python scripts/generar_listados_seo.py
-      - name: Limpiar duplicados y generar sitemap índice
-        run: python scripts/seo_indexacion.py
-      - name: Revisar marca SUPGO (sin Lift Nutrientes)
-        run: python scripts/revisar_marca.py categorias laboratorios productos/index.html home/index.html sitemap.xml sitemaps
-      - name: Publicar páginas
+      - name: Comprobar XML publicado por Vercel
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add categorias/ laboratorios/ productos/ productos-assets/ home/index.html sitemap.xml sitemaps/ robots.txt
-          if ! git diff --cached --quiet; then
-            git commit -m "SEO: generar páginas de categorías y laboratorios"
-            git pull --rebase origin main
-            git push
-          fi
+          set -euo pipefail
+          for tipo in sitemap sitemap-productos sitemap-categorias sitemap-laboratorios sitemap-paginas sitemap-guias; do
+            echo "Comprobando ${tipo}.xml"
+            curl --fail --silent --show-error --max-time 25 "https://supgo.co/${tipo}.xml" -o "/tmp/${tipo}.xml"
+          done
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          for name in ["sitemap","sitemap-productos","sitemap-categorias","sitemap-laboratorios","sitemap-paginas","sitemap-guias"]:
+              root=ET.parse(Path("/tmp")/(name+".xml")).getroot()
+              if root.tag not in ("{http://www.sitemaps.org/schemas/sitemap/0.9}urlset","{http://www.sitemaps.org/schemas/sitemap/0.9}sitemapindex"):
+                  raise SystemExit("XML no válido: "+name)
+              if len(root)==0: raise SystemExit("Sitemap vacío: "+name)
+              print(name, "URLs:",len(root))
+          PY
