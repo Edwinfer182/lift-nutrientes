@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101410">
+<title>SUPGO CONTROL · Administrador unificado</title><link rel="icon" href="/favicon-48.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="/componentes/admin-sesion.js?v=20261104-1"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font:400 13px/1.5 Poppins,system-ui,sans-serif;background:#f4f6f4;color:#161b17}
+[hidden]{display:none!important}button,input{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);height:100dvh;overflow:hidden}
+aside{height:100%;background:#111812;color:#dbe6da;display:flex;flex-direction:column;min-height:0}
+.brand{height:68px;border-bottom:1px solid #293629;display:flex;align-items:center;padding:0 18px;gap:12px}
+.brand img{height:36px;width:36px;border-radius:9px}.brand strong{font-size:16px}.brand strong span{color:#b4f24b}.brand small{display:block;color:#96a796;font-size:10px}
+#filter{margin:14px 12px 5px;width:calc(100% - 24px);padding:11px;background:#232e24;border:1px solid #3b4c3c;border-radius:10px;color:white;outline:none;font-size:12px}
+#menu{overflow:auto;flex:1;padding:5px 9px 15px;min-height:0;scrollbar-width:thin}
+.group{padding:16px 10px 6px;color:#9baf9c;letter-spacing:1px;font-size:9px;font-weight:700;text-transform:uppercase}
+.navitem{width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:10px 12px;color:#c0cdbf;border:0;border-radius:9px;background:none;font-size:12px}
+.navitem:hover{background:#223024;color:#fff}.navitem.active{background:#2b402d;color:#b4f24b;font-weight:700}
+.navitem i{font-style:normal;font-size:15px;min-width:22px;text-align:center}
+.foot{border-top:1px solid #293629;padding:13px;display:flex;gap:8px}.foot a{flex:1;border:1px solid #39483b;border-radius:9px;text-align:center;padding:8px 6px;font-size:10px}
+main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.top{height:68px;background:#fff;border-bottom:1px solid #dfe5df;display:flex;align-items:center;padding:0 22px;gap:12px;flex:none}
+.top h1{font-size:18px;line-height:1.2;margin:0}.top p{font-size:11px;color:#69786a;margin:4px 0 0}
+.top .title{flex:1;min-width:0}.btn{background:#fff;border:1px solid #d5ded5;border-radius:9px;padding:9px 12px;font-size:12px;color:#1c2a1d;font-weight:600}
+.btn:hover{background:#f2f6f1}.btn:focus-visible,.navitem:focus-visible{outline:3px solid #9cc94f}
+#toggle{display:none}
+.work{flex:1;min-height:0;position:relative;background:#f4f6f4}
+#view{display:block;width:100%;height:100%;border:0;background:white}
+#loading{position:absolute;inset:0;background:#f4f6f4;display:grid;place-items:center;color:#4e644f;z-index:2}
+#notice{position:absolute;bottom:18px;right:16px;max-width:360px;padding:12px 15px;background:#192f1b;color:#fff;border-radius:12px;z-index:4}
+#notice.bad{background:#952a2a}
+#home{height:100%;overflow:auto;padding:35px clamp(16px,3vw,40px)}
+#home h2{font-size:27px;margin:0 0 7px}#home p{margin:0 0 24px;color:#69766b}
+#tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile{text-align:left;padding:21px;background:white;border:1px solid #dee7de;border-radius:14px;min-height:134px}
+.tile:hover{border-color:#94b260;background:#fbfdf8}.tile .emoji{font-size:23px;display:block;margin-bottom:13px}
+.tile b{display:block;font-size:13px}.tile small{display:block;margin-top:3px;color:#6d7b70}
+@media(max-width:1050px){.shell{grid-template-columns:215px 1fr}#tiles{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.shell{display:block}aside{position:fixed;width:min(280px,86vw);z-index:9;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .2s;box-shadow:8px 0 30px #0003}body.menu-open aside{transform:none}
+.top{padding:0 10px;height:60px}.top h1{font-size:14px}.top p{font-size:9px}#toggle{display:block}.btn{padding:8px}#home{padding:20px 12px}#tiles{gap:8px}.tile{padding:12px;min-height:108px}}
+</style></head><body>
+<div class="shell"><aside><div class="brand"><img src="/favicon.png" alt=""><div><strong>SUPGO <span>CONTROL</span></strong><small>Centro de administración</small></div></div>
+<input id="filter" type="search" placeholder="Buscar herramienta..."><nav id="menu" aria-label="Herramientas"></nav>
+<div class="foot"><a href="/home/" target="_blank" rel="noopener">Tienda ↗</a><a href="/panel/">Panel original</a></div></aside>
+<main><header class="top"><button id="toggle" class="btn" title="Menú">☰</button><div class="title"><h1 id="title">Centro SUPGO</h1><p id="subtitle">Todas tus herramientas en una sola página.</p></div><button class="btn" id="back">←</button><button class="btn" id="refresh">↻</button></header>
+<div class="work"><section id="home"><h2>Tu centro de operaciones</h2><p>Ventas, catálogo, entrenadores, SEO, redes y productividad desde el mismo espacio.</p><div id="tiles"></div><p style="margin-top:25px;font-size:11px">Las funciones conservan sus datos y permisos existentes. Algunas herramientas clásicas siguen usando su código original dentro de esta vista integrada.</p></section>
+<iframe id="view" title="Herramienta SUPGO" hidden></iframe><div id="loading" hidden>Abriendo herramienta…</div><div id="notice" hidden role="status"></div></div></main></div>
+<script>
+(function(){
+'use strict';
+const menu=[
+['General',[['inicio','🏠','Inicio','home'],['pedidos','📋','Pedidos','native:pedidos'],['nuevo','➕','Nuevo pedido','native:nuevo'],['resenas','⭐','Reseñas','native:resenas']]],
+['Ventas',[['checkout','🛒','Pedido con catálogo','legacy:checkout'],['listarapida','⚡','Lista rápida','legacy:listarapida'],['pagos','💳','Pagos','legacy:pagos'],['historial','🧾','Historial de pedidos','legacy:historial'],['anterior','🗂','Registrar pedido anterior','legacy:anterior'],['abandonados','🛍','Carritos abandonados','legacy:abandonados']]],
+['Clientes',[['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
+['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
+['Catálogo',[['editor','🗃️','Editor Supabase y SEO','editor'],['productos','📦','Productos antiguos','legacy:productos'],['crear','🆕','Crear producto antiguo','legacy:crear'],['ofertas','🔥','Ofertas','legacy:ofertas'],['combos','🎁','Combos','legacy:combos'],['categorias','🏷️','Categorías','legacy:categorias'],['laboratorio','🏭','Laboratorios','legacy:laboratorio'],['variaciones','🎨','Variaciones','legacy:variaciones'],['excel','📊','Excel y datos','legacy:excel']]],
+['Contenido y gestión',[['instagram','📸','Instagram · Estados · TikTok','legacy:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
+];
+const $=id=>document.getElementById(id);
+const indexed=menu.flatMap(g=>g[1]);const lookup=new Map(indexed.map(x=>[x[0],x]));
+let current='inicio',previous=[],counter=0,noticeTimer;
+const adaptLegacy=[
+'#supgoBackToPanel{display:none!important}',
+'#lafBackdrop,#liftAdminBackdrop{display:none!important}',
+'#lafPanel.open{position:fixed!important;inset:0!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:100%!important;height:100dvh!important;max-width:none!important;transform:none!important;transition:none!important;box-shadow:none!important;z-index:2147483000!important}',
+'.liftOrdersModal.open,.liftCarteraModal.open,#liftCrmModal.open,#liftClientDirectoryModal.open,#liftPaymentsAdminModal.open,#liftAbandonModal.open,#liftQuickListModal.open,#liftProviderWalletModal.open,#lift-trainer-admin-modal.lift-open,#liftLabAdminModal.open,#liftCategoryModal.open{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;background:#fff!important;border-radius:0!important;z-index:2147483001!important;align-items:stretch!important;justify-content:stretch!important;place-items:stretch!important}',
+'.liftOrdersPanel,.liftCarteraPanel,.crmBox,#lift-trainer-admin-box,.liftAbandonCard{width:100%!important;height:100%!important;min-height:100%!important;max-width:none!important;max-height:100dvh!important;margin:0!important;border-radius:0!important;box-shadow:none!important}',
+'#checkoutModal.open{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;margin:0!important;padding:0!important;place-items:stretch!important;background:#fff!important;z-index:2147483001!important}',
+'#checkoutModal.open .checkoutCard{width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;box-shadow:none!important}',
+'#lift-trainer-admin-box{overflow:auto!important}'
+].join('\n');
+const adaptNative=['aside.side,nav.nav,header.top{display:none!important}','main{width:100%!important;max-width:none!important;margin:0!important;padding:16px 20px 32px!important}','body{background:#f4f6f4!important}'].join('\n');
+const adaptEditor=['body>header{display:none!important}','#app{max-width:none!important;padding:14px!important}'].join('\n');
+const adaptProductivity=['.shell>.side{display:none!important}','.shell{display:block!important}','main{margin-left:0!important;max-width:none!important;width:100%!important}'].join('\n');
+function toast(m,bad){const x=$('notice');x.textContent=m;x.className=bad?'bad':'';x.hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>x.hidden=true,6500)}
+function renderMenu(){const q=$('filter').value.toLocaleLowerCase('es');$('menu').innerHTML='';
+ for(const group of menu){const matches=group[1].filter(x=>x[2].toLocaleLowerCase('es').includes(q)||group[0].toLocaleLowerCase('es').includes(q));if(!matches.length)continue;
+  const label=document.createElement('div');label.className='group';label.textContent=group[0];$('menu').appendChild(label);
+  for(const it of matches){const b=document.createElement('button');b.className='navitem'+(current===it[0]?' active':'');b.type='button';
+   const i=document.createElement('i');i.textContent=it[1];const text=document.createElement('span');text.textContent=it[2];b.append(i,text);b.onclick=()=>open(it[0]);$('menu').appendChild(b)}
+ }
+}
+function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/'+(t[1]==='pedidos'?'':'#'+t[1]),'native'];
+ if(t[0]==='legacy')return ['/admin.html#abrir='+t[1],'legacy'];
+ if(t[0]==='editor')return ['/editor/','editor'];
+ if(t[0]==='productividad')return ['/productividad/','productividad'];return [null,'home']}
+function adapt(kind){
+ try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
+  if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
+  style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
+  doc.querySelectorAll('a[target="_blank"]').forEach(a=>{const h=a.getAttribute('href')||'';if(/^\/(panel|editor|productividad|admin\.html)/.test(h))a.target='_self'});
+  if(kind==='legacy'&&!doc.body.classList.contains('liftAdminUnlocked'))toast('El administrador clásico necesita una sesión activa. Puedes iniciar sesión dentro de esta vista.',true);
+ }catch(e){toast('No se pudo ajustar la vista integrada: '+e.message,true)}
+}
+function open(id,backwards){
+ const it=lookup.get(id);if(!it)return;
+ if(!backwards&&current!==id)previous.push(current);
+ current=id;document.body.classList.remove('menu-open');$('title').textContent=it[2];$('subtitle').textContent='Trabaja aquí sin salir de SUPGO CONTROL';$('back').disabled=!previous.length;renderMenu();
+ const details=urlFor(it),serial=++counter;
+ try{history.replaceState({},'','/control/#'+encodeURIComponent(id))}catch(e){}
+ if(details[1]==='home'){$('view').hidden=true;$('view').removeAttribute('src');$('home').hidden=false;$('loading').hidden=true;return}
+ $('home').hidden=true;$('view').hidden=false;$('loading').hidden=false;
+ const frame=$('view');frame.onload=()=>{if(serial!==counter)return;adapt(details[1]);$('loading').hidden=true};
+ frame.onerror=()=>{if(serial!==counter)return;$('loading').hidden=true;toast('Error al abrir '+it[2],true)};
+ frame.src=details[0];
+}
+$('filter').oninput=renderMenu;
+$('toggle').onclick=()=>document.body.classList.toggle('menu-open');
+$('back').onclick=()=>{if(previous.length)open(previous.pop(),true)};
+$('refresh').onclick=()=>open(current,true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('menu-open')});
+for(const id of ['pedidos','nuevo','checkout','editor','crm','entrenadores','productividad','instagram','ofertas']){
+ const it=lookup.get(id),b=document.createElement('button');b.className='tile';const emoji=document.createElement('span');emoji.className='emoji';emoji.textContent=it[1];const title=document.createElement('b');title.textContent=it[2];const sub=document.createElement('small');sub.textContent='Abrir en el área de trabajo';b.append(emoji,title,sub);b.onclick=()=>open(id);$('tiles').appendChild(b)}
+const initial=decodeURIComponent((location.hash||'').slice(1));
+open(lookup.has(initial)?initial:'inicio',true);
+})();
+</script></body></html>
