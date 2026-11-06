@@ -301,7 +301,13 @@
       get('lift_seo_bloqueos?select=producto_id&limit=5000', 60000).catch(function () { return []; })
     ]);
     sharedPromise.catch(function () {});
-    var found = await get('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(pedido) + '&limit=2');
+    // Vercel ya consultó este registro. Reutilizarlo evita otra ida a Supabase.
+    var bootNode = document.getElementById('supgo-product-bootstrap'), boot = null;
+    if (bootNode) try { boot = JSON.parse(bootNode.textContent); } catch (e) {}
+    var bootOk = boot && boot.slug === pedido && boot.row &&
+      boot.row.slug === pedido && boot.row.activo === true;
+    var found = bootOk ? [boot.row] :
+      await get('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(pedido) + '&limit=2');
     if (found.length > 1) return mostrarError('Slug duplicado', 'Hay varios productos con esta dirección. Debe corregirse el slug en el catálogo.');
     var encontrado = found[0];
     window.__supgoSeoFilters = D.filtros || window.__supgoSeoFilters;
@@ -326,7 +332,8 @@
     // SEO y productos relacionados se consultan simultáneamente tras identificar la ficha.
     var loaded = await Promise.all([
       catalogoCercano(encontrado), sharedPromise,
-      get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + encontrado.id).catch(function () { return []; })
+      bootOk && boot.row.id === encontrado.id ? Promise.resolve(boot.seo ? [boot.seo] : []) :
+        get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + encontrado.id).catch(function () { return []; })
     ]);
     var rows = loaded[0], datos = loaded[1], seoRows = loaded[2];
     var offers = datos[0], settings = datos[1], REVIEWS = datos[2];
