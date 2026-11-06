@@ -396,8 +396,7 @@
 
   async function dibujar(row, reviews, productsById) {
     var p = row.product, seo = row._seo || {}, name = String(or(p.name, p.nombre)), pid = row.id;
-    var key = row.slug, canonical = String(seo.canonical_url || '').trim();
-    if (canonical !== BASE + '/producto/' + key + '/') return mostrarError('SEO incompleto', 'El canonical guardado en Supabase no coincide con la ficha.');
+    var key = row.slug, canonical = BASE + '/producto/' + key + '/';
     var embedded = p.seo && typeof p.seo === 'object' && !Array.isArray(p.seo) ? p.seo : {};
     var brand = String(or(p.brand, p.marca, '')), description = String(or(p.description, p.descripcion, '')).trim();
     var image = String(or(seo.imagen_seo, p.image, p.imagen, '')).trim();
@@ -408,9 +407,8 @@
     var flavor = String(or(p.flavor, p.sabor, '')).trim(), variants = row._variants || [];
     var cur = variants.find(function (v) { return String(v.id) === String(pid); });
     if (!flavor && variants.length > 1) flavor = cur ? cur.label : '';
-    var title = String(seo.titulo_seo || '').trim();
-    var meta = String(seo.meta_descripcion || '').trim();
-    if (!title || !meta) return mostrarError('SEO incompleto', 'Faltan título o metadescripción en Supabase.');
+    var title = String(seo.titulo_seo || '').trim() || name + ' | SUPGO';
+    var meta = plain(seo.meta_descripcion || '') || plain(description) || ('Consulta ' + name + ' en SUPGO Medellín. Disponibilidad, precios y envíos a Colombia.');
     var seo_description = plain(seo.descripcion_larga_html || '');
     /* Datos estructurados (Product + BreadcrumbList) */
     var schema = { '@context': 'https://schema.org', '@type': 'Product', name: name, url: canonical, sku: String(or(embedded.sku, p.sku, pid)) };
