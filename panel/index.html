@@ -604,13 +604,13 @@ const SUPGO_PAYMENT_ACCOUNT='36655023431';
 const SUPGO_PAYMENT_KEY='@edwin4518';
 const SUPGO_PAYMENT_OWNER='Edwin Fernando Muñoz Tobon';
 function chargeText(p){
-  const first=String(p.nombre||'').trim().split(/\\s+/)[0]||'';
+  const first=String(p.nombre||'').trim().split(/\s+/)[0]||'';
   const total=money(p.total);
-  return 'Hola'+(first?' '+first:'')+', te comparto los datos para el pago de tu pedido #'+p.id+'.\\n\\n'+
-    '🏦 Bancolombia ahorros: '+SUPGO_PAYMENT_ACCOUNT+'\\n'+
-    'Titular: '+SUPGO_PAYMENT_OWNER+'\\n'+
-    '🔑 Llave Bre-B: '+SUPGO_PAYMENT_KEY+'\\n\\n'+
-    'Total: '+total+'\\n\\n'+
+  return 'Hola'+(first?' '+first:'')+', te comparto los datos para el pago de tu pedido #'+p.id+'.\n\n'+
+    '🏦 Bancolombia ahorros: '+SUPGO_PAYMENT_ACCOUNT+'\n'+
+    'Titular: '+SUPGO_PAYMENT_OWNER+'\n'+
+    '🔑 Llave Bre-B: '+SUPGO_PAYMENT_KEY+'\n\n'+
+    'Total: '+total+'\n\n'+
     'Cuando realices el pago, envíanos el comprobante por este chat. Gracias.';
 }
 function storedPaymentQr(){try{return localStorage.getItem(SUPGO_PAYMENT_QR_KEY)||''}catch(e){return ''}}
@@ -640,7 +640,7 @@ function openChargeWa(p){
   update();
   el.querySelector('#chargeQrFile').onchange=async function(){
     const file=this.files&&this.files[0];if(!file)return;
-    if(!/^image\\/(png|jpeg|webp)$/.test(file.type)){toast('Selecciona una imagen PNG, JPG o WEBP',{err:true});return}
+    if(!/^image\/(png|jpeg|webp)$/.test(file.type)){toast('Selecciona una imagen PNG, JPG o WEBP',{err:true});return}
     try{
       const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file)});
       const im=new Image();await new Promise((resolve,reject)=>{im.onload=resolve;im.onerror=reject;im.src=data});
