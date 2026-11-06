@@ -580,9 +580,41 @@ function expired(u){if(!u)return false;var t=Date.parse(u);return isFinite(t)&&D
 /* Si la oferta venció después de generar la página, volver al precio del catálogo. */
 if(p.on_offer&&expired(p.promoUntil)&&p.regular>0){p.on_offer=false;p.price=p.regular;p.promoUntil=null;var box=document.querySelector('.product-price');if(box)box.innerHTML='<p class="price">'+money(p.regular)+'</p>';document.querySelectorAll('.seo-offer-extras').forEach(function(e){e.remove()})}
 document.querySelectorAll('.rel-add[data-until]').forEach(function(b){if(!expired(b.dataset.until))return;b.removeAttribute('data-sale');var card=b.closest('.rel-card'),badge=card.querySelector('.rel-badge'),pr=card.querySelector('.rel-price');if(badge)badge.remove();if(pr)pr.innerHTML='<strong>'+money(b.dataset.regular)+'</strong>'});
-function favs(){var a=get('supgo_seo_favorites',[]);return Array.isArray(a)?a:[]}
-function paint(){if(fav)fav.textContent=favs().some(function(x){return x.id===p.id})?'♥':'♡'}
-if(fav)fav.onclick=function(){var a=favs();a=a.some(function(x){return x.id===p.id})?a.filter(function(x){return x.id!==p.id}):a.concat([p]);save('supgo_seo_favorites',a);paint();note.textContent='Favoritos actualizados'};
+/* Favoritos: misma fuente que las tarjetas del catálogo y la cuenta SUPGO. */
+function favIds(){
+ var ids=get('liftFavoritesV1',[]),legacy=get('supgo_seo_favorites',[]);
+ var all=new Set((Array.isArray(ids)?ids:[]).map(Number).filter(function(n){return Number.isInteger(n)&&n>0}));
+ if(Array.isArray(legacy))legacy.forEach(function(item){var id=Number(item&&item.id);if(Number.isInteger(id)&&id>0)all.add(id)});
+ return all;
+}
+function paint(){
+ if(!fav)return;
+ var selected=favIds().has(Number(p.id));
+ fav.textContent=selected?'♥':'♡';
+ fav.classList.toggle('on',selected);
+ fav.setAttribute('aria-pressed',String(selected));
+ fav.setAttribute('aria-label',selected?'Quitar de favoritos':'Guardar en favoritos');
+ fav.title=selected?'Quitar de favoritos':'Guardar en favoritos';
+}
+if(fav)fav.onclick=function(e){
+ e.preventDefault();
+ var id=Number(p.id);if(!Number.isInteger(id)||id<=0)return;
+ var a=favIds(),selected=a.has(id);
+ selected?a.delete(id):a.add(id);
+ try{
+  localStorage.setItem('liftFavoritesV1',JSON.stringify(Array.from(a)));
+  // Se mantiene el registro viejo solo como respaldo para versiones antiguas.
+  var legacy=get('supgo_seo_favorites',[]);
+  legacy=Array.isArray(legacy)?legacy.filter(function(item){return Number(item&&item.id)!==id}):[];
+  if(!selected)legacy.push(p);
+  save('supgo_seo_favorites',legacy);
+ }catch(err){if(note)note.textContent='No se pudieron guardar tus favoritos';return}
+ paint();
+ window.dispatchEvent(new Event('supgo-favorites-change'));
+ if(note)note.textContent=selected?'Producto retirado de favoritos':'Producto guardado en favoritos';
+};
+window.addEventListener('supgo-favorites-change',paint);
+window.addEventListener('storage',function(e){if(e.key==='liftFavoritesV1')paint()});
 paint();
 /* Progreso hacia el envío gratis: 3 unidades en Medellín, 4 en el resto de Colombia. */
 function shipHint(){var c=get('liftCartV2',{}),n=0;if(c&&typeof c==='object')Object.keys(c).forEach(function(k){var v=c[k];n+=Math.max(0,Number(v&&typeof v==='object'?(v.quantity!=null?v.quantity:v.qty):v)||0)});var el=toastBox.querySelector('.pi-toast-ship'),bar=toastBox.querySelector('.pi-toast-bar i');if(!el)return;el.textContent=n<3?'Te '+(3-n===1?'falta 1 unidad':'faltan '+(3-n)+' unidades')+' para envío gratis en Medellín':n<4?'✓ Envío gratis en Medellín · 1 más y es gratis a toda Colombia':'✓ Tienes envío gratis a toda Colombia';el.classList.toggle('ok',n>=3);if(bar)bar.style.width=Math.min(100,n/3*100)+'%'}
