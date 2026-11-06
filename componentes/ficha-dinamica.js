@@ -289,6 +289,7 @@
   function mostrarError(titulo, texto) {
     document.title = titulo + ' | SUPGO';
     root.innerHTML = '<div class="fd-error"><h1>' + esc(titulo) + '</h1><p>' + esc(texto) + '</p><a href="/">Ver el catálogo</a></div>';
+    document.dispatchEvent(new CustomEvent('supgo:ficha-error'));
   }
   async function cargar() {
     var pedido = slugPedido();
