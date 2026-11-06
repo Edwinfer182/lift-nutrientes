@@ -8,6 +8,12 @@
  const KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
  let duplicating=false;
  const draftIds=new Set();
+ const draftNames=new Map();
+ function cleanSlug(name){
+   return String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+     .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
+     .slice(0,120).replace(/-$/,'');
+ }
  function installDraftGuard(){
    const originalSave=window.liftCloudSaveProduct;
    if(typeof originalSave!=='function')return false;
@@ -17,8 +23,11 @@
      const pw=(()=>{try{return sessionStorage.getItem('liftAdminCloudPasswordV1')||''}catch(e){return ''}})();
      const extra={...p};
      ['id','name','brand','category','price','image','description','presentation','flavor','slug'].forEach(k=>delete extra[k]);
+     const changedName=String(p.name||'').trim()!==draftNames.get(String(p.id));
+     const proposedSlug=changedName?cleanSlug(p.name):p.slug;
+     if(!proposedSlug)throw Error('No se puede guardar sin un nombre válido para el slug');
      const payload={
-       id:p.id,nombre:p.name,slug:p.slug,marca:p.brand,categoria:p.category,
+       id:p.id,nombre:p.name,slug:proposedSlug,marca:p.brand,categoria:p.category,
        precio:p.price,imagen:p.image,descripcion:p.description||'',
        presentacion:p.presentation||'',sabor:p.flavor||'',
        activo:false,indexable:false,titulo_seo:'',meta_descripcion:'',
@@ -32,6 +41,8 @@
      });
      const j=await r.json().catch(()=>({}));
      if(!r.ok||!j?.ok)throw Error(j.message||('No se pudo guardar el borrador: '+r.status));
+     p.slug=proposedSlug;
+     draftNames.set(String(p.id),String(p.name||'').trim());
      return {ok:true,product:p};
    };
    guarded.__supgoDraftProtected=true;
@@ -66,6 +77,7 @@
      copy.id=data.id;
      copy.slug=data.slug;
      draftIds.add(String(data.id));
+     draftNames.set(String(data.id),String(copy.name||'').trim());
      if(!PRODUCTS.some(p=>String(p.id)===String(copy.id)))PRODUCTS.push(copy);
      if(!installDraftGuard())throw Error('La copia se guardó en Supabase, pero el editor clásico no está listo; ábrela desde el Editor Supabase.');
      if(typeof render==='function')render();
