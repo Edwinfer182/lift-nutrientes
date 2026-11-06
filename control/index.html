@@ -99,13 +99,20 @@ const adaptLegacy=[
 const adaptNative=[
 /* El panel de pedidos conserva listas amplias pero limita el formulario de alta. */
 'aside.side,nav.nav,header.top{display:none!important}',
+'.app{display:block!important;grid-template-columns:none!important;width:100%!important;min-width:0!important}',
+'.app>div{display:block!important;width:100%!important;min-width:0!important;max-width:none!important}',
 'main{width:100%!important;max-width:none!important;margin:0!important;padding:16px 20px 32px!important}',
 '#vNuevo,#np{width:100%!important;max-width:1010px!important;margin-left:auto!important;margin-right:auto!important}',
 '#vNuevo .colL,#vNuevo .colR{min-width:0!important}',
-'#vPedidos,#vResenas{max-width:1400px!important;margin-left:auto!important;margin-right:auto!important}',
+'#vPedidos,#vResenas{width:100%!important;max-width:1400px!important;margin-left:auto!important;margin-right:auto!important}',
+'#vPedidos .list,#vResenas .list{width:100%!important;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr))!important}',
+'#vPedidos .chips,#vResenas .chips{display:flex!important;flex-flow:row wrap!important;gap:8px!important;overflow:visible!important}',
+'#vPedidos .searchRow{max-width:550px!important}',
+'#vNuevo .np{grid-template-columns:minmax(0,1fr) minmax(280px,360px)!important}',
 '.sheet .sheetBody,.sheet .sec{max-width:960px!important;margin-left:auto!important;margin-right:auto!important}',
 'body{background:#f4f6f4!important}',
-'@media(max-width:720px){main{padding:10px!important}#vNuevo,#np{max-width:100%!important}}'
+'@media(max-width:900px){#vNuevo .np{grid-template-columns:minmax(0,1fr)!important}.app>div{width:100%!important}}',
+'@media(max-width:720px){main{padding:10px!important}#vNuevo,#np{max-width:100%!important}#vPedidos .list{grid-template-columns:minmax(0,1fr)!important}}'
 ].join('\n');
 const adaptEditor=[
 /* 300px para resultados; 820px para el formulario editable, sin expandirlo. */
@@ -146,17 +153,65 @@ function adapt(kind){
   if(kind==='legacy'&&!doc.body.classList.contains('liftAdminUnlocked'))toast('El administrador clásico necesita una sesión activa. Puedes iniciar sesión dentro de esta vista.',true);
  }catch(e){toast('No se pudo ajustar la vista integrada: '+e.message,true)}
 }
+let readiness=null,activeDocument='';
+function endWait(){if(readiness){clearInterval(readiness);readiness=null}}
 function open(id,backwards){
  const it=lookup.get(id);if(!it)return;
  if(!backwards&&current!==id)previous.push(current);
- current=id;document.body.classList.remove('menu-open');$('title').textContent=it[2];$('subtitle').textContent='Trabaja aquí sin salir de SUPGO CONTROL';$('back').disabled=!previous.length;renderMenu();
- const details=urlFor(it),serial=++counter;
+ current=id;document.body.classList.remove('menu-open');$('title').textContent=it[2];
+ $('subtitle').textContent='Trabaja aquí sin salir de SUPGO CONTROL';$('back').disabled=!previous.length;renderMenu();
+ const details=urlFor(it),serial=++counter,frame=$('view');
+ endWait();
  try{history.replaceState({},'','/control/#'+encodeURIComponent(id))}catch(e){}
- if(details[1]==='home'){$('view').hidden=true;$('view').removeAttribute('src');$('home').hidden=false;$('loading').hidden=true;return}
- $('home').hidden=true;$('view').hidden=false;$('loading').hidden=false;
- const frame=$('view');frame.onload=()=>{if(serial!==counter)return;adapt(details[1]);$('loading').hidden=true};
- frame.onerror=()=>{if(serial!==counter)return;$('loading').hidden=true;toast('Error al abrir '+it[2],true)};
- frame.src=details[0];
+ if(details[1]==='home'){$('view').hidden=true;$('home').hidden=false;$('loading').hidden=true;return}
+ $('home').hidden=true;frame.hidden=false;$('loading').hidden=false;
+ // Si ya está cargada la misma aplicación, navega dentro del iframe sin recargarla.
+ // Evita volver a procesar más de un megabyte de scripts del administrador clásico.
+ if(activeDocument===details[1]){
+   try{
+     const w=frame.contentWindow,d=w.document;
+     if(details[1]==='legacy' && d.readyState!=='loading' && d.body.classList.contains('liftAdminUnlocked') && typeof w.supgoAbrirHerramienta==='function'){
+       const name=it[3].split(':')[1];
+       if(w.supgoAbrirHerramienta(name)){adapt(details[1]);$('loading').hidden=true;return}
+     }
+     if(details[1]==='native' && d.readyState!=='loading'){
+       const name=it[3].split(':')[1],button=d.querySelector('[data-go="'+name+'"]');
+       if(button){button.click();adapt(details[1]);$('loading').hidden=true;return}
+     }
+     if(details[1]==='editor' || details[1]==='productividad'){
+       adapt(details[1]);$('loading').hidden=true;return;
+     }
+   }catch(e){console.warn('Reutilización:',e)}
+ }
+ activeDocument=details[1];
+ const destination=details[0],targetPath=destination.split('#')[0],begun=Date.now();
+ function finish(){
+   if(serial!==counter)return false;
+   let d;
+   try{
+     d=frame.contentDocument;
+     if(!d || !d.body || d.readyState==='loading')return false;
+     if(d.location.pathname!==targetPath && d.location.pathname!==targetPath.replace(/\/$/,''))return false;
+     adapt(details[1]);
+     $('loading').hidden=true;
+     endWait();
+     if(details[1]==='legacy' && !d.body.classList.contains('liftAdminUnlocked')){
+       toast('La herramienta necesita una sesión de administrador. Inicia sesión dentro de esta vista.',true);
+     }
+     return true;
+   }catch(e){return false}
+ }
+ frame.onload=()=>{if(serial===counter)finish()};
+ frame.onerror=()=>{if(serial!==counter)return;endWait();$('loading').hidden=true;toast('No se pudo abrir '+it[2],true)};
+ frame.src=destination;
+ readiness=setInterval(()=>{
+   if(serial!==counter){endWait();return}
+   if(finish())return;
+   if(Date.now()-begun>15000){
+     endWait();$('loading').hidden=true;
+     toast('Esta herramienta está tardando demasiado. Pulsa ↻ para reintentar o usa el panel original.',true);
+   }
+ },250);
 }
 $('filter').oninput=renderMenu;
 $('toggle').onclick=()=>document.body.classList.toggle('menu-open');
