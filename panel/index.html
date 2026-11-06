@@ -711,7 +711,7 @@ async function drawOrderCanvas(o){
   const rowsH=nameLines.map(l=>Math.max(84,44+l.length*23));
   const city=[o.ciudad,o.departamento].filter(Boolean).join(', ');
   const custH=82+addr.length*23+(city?23:0)+notes.length*23;
-  const extra=(desc>0?23:0)+(o.payLabel?23:0);
+  const extra=(desc>0?23:0);
   const prodH=45+rowsH.reduce((a,b)=>a+b,0)+15+54+extra;
   const active=!['entregado','cancelado'].includes(o.estado);
   const totH=active?95:70;
@@ -750,7 +750,7 @@ async function drawOrderCanvas(o){
   txt('Subtotal',pad+ins,py,17,gray);right(money(sub),W-pad-ins,py,17);py+=23;
   if(desc>0){txt('Descuento',pad+ins,py,17,gray);right('-'+money(desc),W-pad-ins,py,17);py+=23}
   txt('Envío',pad+ins,py,17,gray);right(ship>0?money(ship):'GRATIS',W-pad-ins,py,17);py+=23;
-  if(o.payLabel){txt('Pago',pad+ins,py,17,gray);right(o.payLabel,W-pad-ins,py,17,ink,500)}
+  // El comprobante visual no muestra el medio ni el estado de pago.
   y+=prodH+7;round(pad,y,W-pad*2,totH,12,ink);
   txt('TOTAL',pad+ins,y+37,22,'#FFFFFF',700);right(money(total),W-pad-ins,y+40,30,green,700);
   if(active)txt(deliveryEstimate(o.ciudad),pad+ins,y+73,16,'#FFFFFF',500);
