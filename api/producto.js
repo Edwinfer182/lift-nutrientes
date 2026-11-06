@@ -87,12 +87,44 @@ module.exports = async function handler(req, res) {
       '<details class="seo-description" open><summary>Descripción</summary><div class="product-description"><p>' + escapeHtml(description) + '</p></div></details>' +
       '</section></article>' +
       (text(seo.descripcion_larga_html) ? '<section class="seo-ssr-descripcion"><h2>Descripción del producto</h2><p>' + escapeHtml(clean(seo.descripcion_larga_html).slice(0, 6000)) + '</p></section>' : '');
+    // Mostrar juntos el encabezado y la ficha completa; no pintar etapas intermedias.
+    // El HTML SSR permanece accesible para rastreadores y como respaldo si falla JS.
+    const atomicLoad = `<style id="supgo-atomic-style">
+      html.supgo-atomic-loading body::before{
+        content:"";position:fixed;inset:0;z-index:2147483646;background:#fff;
+      }
+      html.supgo-atomic-loading body::after{
+        content:"Cargando producto…";position:fixed;top:50%;left:50%;
+        transform:translate(-50%,-50%);z-index:2147483647;
+        color:#555;font:500 14px/1.5 Arial,sans-serif;white-space:nowrap;
+      }
+    </style><script>
+    (function(){
+      document.documentElement.classList.add('supgo-atomic-loading');
+      var productReady=false,headerReady=false,finished=false;
+      function reveal(){
+        if(finished)return;finished=true;
+        document.documentElement.classList.remove('supgo-atomic-loading');
+      }
+      function check(){if(productReady&&headerReady)requestAnimationFrame(function(){requestAnimationFrame(reveal);});}
+      document.addEventListener('supgo-ficha-lista',function(){productReady=true;check();},{once:true});
+      document.addEventListener('supgo:ficha-error',function(){productReady=true;check();},{once:true});
+      document.addEventListener('supgo:header-ready',function(){headerReady=true;check();},{once:true});
+      window.addEventListener('load',function(){
+        if(document.querySelector('#supgo-global-header'))headerReady=true;
+        if(document.querySelector('#supgo-ficha .product-card:not(.supgo-ssr-product),#supgo-ficha .fd-error'))productReady=true;
+        check();
+      },{once:true});
+      // Si hay error o lentitud de red, nunca mantener la pantalla tapada.
+      setTimeout(reveal,8000);
+    })();
+    <\/script>`;
     let html = template
       .replace(/<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + escapeHtml(title) + '</title>')
       .replace(/<meta name="description"[^>]*>/i, '<meta name="description" content="' + escapeHtml(description) + '">')
       .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="' + robots + '">')
-      .replace('</head>', socialHtml + '<link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
+      .replace('</head>', atomicLoad + socialHtml + '<link rel="canonical" href="' + escapeHtml(canonical) + '"><script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script></head>')
       .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial);
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
