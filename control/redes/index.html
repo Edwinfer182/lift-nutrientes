@@ -205,13 +205,14 @@ function edu(cat){const n=norm(cat);
  return ['Revisa la dosis por porción y la cantidad de servicios del envase.','Compara el precio por servicio entre presentaciones.','Si tomas medicamentos, consulta con un profesional antes de usarlo.']}
 function single(x,fmt,tone){
  const n=x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' de '+x.brand:''),link=utm(x.url,fmt,tone==='oferta'?'ofertas':'producto');
- const hooks={venta:['¿Buscas '+x.name+' en '+CITY+'? 👇','Llegó a SUPGO: '+n+' 💪','Tu próximo pedido: '+n+' ✅'],
+ const hooks={venta:['¿Buscas '+n+' en '+CITY+'? 👇','Llegó a SUPGO: '+n+' 💪','Tu próximo pedido: '+n+' ✅'],
   oferta:['🔥 OFERTA: '+n+' con -'+x.pct+'%','Precio especial en '+n+' ⏳','Aprovecha: '+n+' más barato esta semana 🔥'],
-  alcance:['¿Conoces '+n+'? 👀','Si buscas '+x.name+' en Colombia, mira esto 👇','Hoy te mostramos '+n+' ✨'],
-  educativo:['Antes de comprar '+x.name+', mira esto 👀','3 cosas para elegir '+(x.cat||'tu suplemento').toLowerCase()+' 🧠','¿Cómo saber si '+x.name+' es para ti?'],
-  comparar:['¿'+x.name+' o la otra opción? Te ayudamos a comparar ⚖️','Compara antes de comprar: '+x.name,'Precio por servicio: el dato que casi nadie mira 💡']};
+  alcance:['¿Conoces '+n+'? 👀','Si buscas '+n+' en Colombia, mira esto 👇','Hoy te mostramos '+n+' ✨'],
+  educativo:['Antes de comprar '+n+', mira esto 👀','3 cosas para elegir '+(x.cat||'tu suplemento').toLowerCase()+(x.brand?' (ejemplo: '+n+')':'')+' 🧠','¿Cómo saber si '+n+' es para ti?'],
+  comparar:['¿'+n+' o la otra opción? Te ayudamos a comparar ⚖️','Compara antes de comprar: '+n,'Precio por servicio de '+n+': el dato que casi nadie mira 💡']};
  const hook=pick(hooks[tone]||hooks.venta);const sp=specs(x),tips=edu(x.cat);
  const body=[hook,'',
+  x.brand?'🏷 Marca: '+x.brand:null,
   sp?'📦 '+sp+(x.flavor?' · Sabor '+x.flavor:''):null,
   x.sabores&&x.sabores.length>1?'😋 Sabores: '+x.sabores.join(', '):null,
   priceLine(x),x.gift?'🎁 Incluye regalo: '+x.gift:null,
@@ -220,10 +221,10 @@ function single(x,fmt,tone){
   pick(['👉 Pídelo en el link de la bio o escríbenos por WhatsApp.','👉 Link en la bio · supgo.co','👉 Escríbenos y te ayudamos a elegir.'],2)].filter(v=>v!==null).join('\n').replace(/\n{3,}/g,'\n\n');
  const tags=hashtags([x]);
  if(fmt==='post')return {blocks:[['Texto del post',body+'\n\n'+tags],['Nombre + marca + precio',[x.name,x.brand,x.price?cop(x.price):''].filter(Boolean).join(' - ')],['Enlace con seguimiento (bio o mensaje)',link],['Texto alternativo de la imagen',x.name+(x.brand?' de '+x.brand:'')+(sp?', '+sp:'')+'. Precio '+cop(x.price)+' en SUPGO.'],['Prompt para @Estados · publicación 4:5',estadosPrompt(x,'post')]],image:'post'};
- if(fmt==='historia')return {blocks:[['Texto corto para la historia o estado',[x.onOffer?'🔥 -'+x.pct+'% HOY':pick(['NUEVO EN SUPGO','DISPONIBLE YA','¿LO NECESITAS?']),x.name,x.price?cop(x.price):'Consulta precio','👆 Toca el enlace'].join('\n')],['Enlace para el sticker',link],['Texto del sticker',x.sabores&&x.sabores.length>1?'Ver precio y sabores':'Ver precio'],['Prompt para @Estados · estado 9:16',estadosPrompt(x,'historia')],['Mensaje para estado de WhatsApp',x.name+' — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (oferta -'+x.pct+'%)':'')+'\nPídelo aquí 👉 '+utm(x.url,'whatsapp',tone==='oferta'?'ofertas':'estado')]],image:'historia'};
+ if(fmt==='historia')return {blocks:[['Texto corto para la historia o estado',[x.onOffer?'🔥 -'+x.pct+'% HOY':pick(['NUEVO EN SUPGO','DISPONIBLE YA','¿LO NECESITAS?']),x.name,x.brand||null,x.price?cop(x.price):'Consulta precio','👆 Toca el enlace'].filter(Boolean).join('\n')],['Enlace para el sticker',link],['Texto del sticker',x.sabores&&x.sabores.length>1?'Ver precio y sabores':'Ver precio'],['Prompt para @Estados · estado 9:16',estadosPrompt(x,'historia')],['Mensaje para estado de WhatsApp',n+' — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (oferta -'+x.pct+'%)':'')+'\nPídelo aquí 👉 '+utm(x.url,'whatsapp',tone==='oferta'?'ofertas':'estado')]],image:'historia'};
  if(fmt==='reel')return {blocks:[['Guion (15–25 s)',[
    '0–3 s · Gancho (texto en pantalla): '+hook,
-   '3–8 s · Muestra el envase y di: "'+x.name+(sp?', '+sp:'')+'."',
+   '3–8 s · Muestra el envase y di: "'+n+(sp?', '+sp:'')+'."',
    '8–15 s · '+(x.onOffer?'Muestra el precio: "Antes '+cop(x.regular)+', hoy '+cop(x.price)+'."':x.perServ?'Dato: "Sale a unos '+cop(x.perServ)+' por servicio."':'Dato: "'+tips[0]+'"'),
    '15–20 s · Cierre: "Pídelo en SUPGO, envíos a toda Colombia. Link en la bio."',
    '','Sonido: tendencia del día a volumen bajo · Subtítulos siempre activos'].join('\n')],
