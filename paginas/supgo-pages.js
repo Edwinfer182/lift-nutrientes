@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const ASSET_V='20261107-col';
+const ASSET_V='20261107-col2';
 /* Garantiza que el CSS cargado corresponda a esta versión del JS (evita tarjetas rotas por caché). */
 (()=>{const links=[...document.querySelectorAll('link[rel="stylesheet"][href*="/paginas/supgo-pages.css"]')];if(links.some(l=>l.href.includes('v='+ASSET_V)))return;const l=document.createElement('link');l.rel='stylesheet';l.href='/paginas/supgo-pages.css?v='+ASSET_V;l.onload=()=>links.forEach(x=>x.remove());document.head.append(l)})();
 const config={url:'https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos',key:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'};
@@ -13,7 +13,7 @@ const product=r=>r?.product||{},name=r=>String(pval(product(r),'name','nombre')|
 const secondaryImage=r=>{const p=product(r),first=image(r);const urls=[];const add=v=>{if(typeof v==='string'){const t=v.trim();if(t.startsWith('[')||t.startsWith('{')){try{add(JSON.parse(t));return}catch{}}if(/^https?:\/\//i.test(t))urls.push(t)}else if(Array.isArray(v))v.forEach(add);else if(v&&typeof v==='object'){const u=v.url||v.src||v.image_url||v.imagen_url||v.image||v.imagen;if(u)add(u)}};['images','imagenes','gallery','galeria','image_urls','imagenes_adicionales','secondary_image','image2','imagen2','image_2','imagen_2','foto2','foto_2','tabla_nutricional'].forEach(k=>add(p[k]));return urls.find(u=>u!==first&&!TABLA.test(u))||''};
 const link=r=>'/producto/'+r.slug+'/';
 /* Imágenes que son tabla nutricional / etiqueta: no se usan como foto de la tarjeta. */
-const TABLA=/tabla|nutri|facts|etiqueta|label|ingredient/i;
+const TABLA={test:u=>/tabla|facts|nutricional|etiqueta|ingredient|label/i.test(String(u).replace(/^https?:\/\/[^/]+/i,''))};
 /* Tamaño y servicios a partir del nombre y la presentación (mismo criterio que la ficha). */
 function datos(r){const t=name(r)+' '+String(pval(product(r),'presentation','presentacion')||''),o={};
  const w=t.match(/(\d+(?:[.,]\d+)?)\s*(lbs?|libras?|kg|kilos?|g|gr|grs|grm|gramos|ml|oz)\b/i);if(w){const u=w[2].toLowerCase();o.size=w[1].replace(',','.')+' '+(/^l/.test(u)?'lb':/^k/.test(u)?'kg':/^(g|gr|grs|grm|gramos)$/.test(u)?'g':u)}
