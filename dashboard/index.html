@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101810">
+<title>Auditoría de catálogo | SUPGO CONTROL</title><link rel="icon" href="/favicon-48.png">
+<style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#18241a;background:#f5f7f4}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}a{color:#22652e}header{background:#122018;color:white;padding:23px clamp(16px,3vw,36px);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}h1{margin:3px 0;font-size:24px}h2{font-size:17px;margin:0 0 14px}.muted{color:#657469}.kicker{color:#bdf653;font-size:11px;font-weight:800;letter-spacing:2px}.headnote{font-size:12px;color:#c7d7c7}.btn{border:1px solid #cfd9cd;border-radius:9px;background:white;color:#1b3120;padding:10px 13px;font-weight:700}.btn.primary{background:#c4f65a;border-color:#c4f65a}.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #80bb39}main{padding:20px clamp(12px,3vw,36px) 65px;max-width:1650px;margin:auto}.notice{padding:14px;border-radius:10px;background:#fff3d9;color:#644b09;margin-bottom:15px}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:11px}.metric{border:1px solid #e1e8e1;border-radius:12px;background:white;padding:15px;min-height:100px;text-align:left}.metric b{font-size:28px;display:block;margin:7px 0}.metric span{font-size:12px;color:#617061}.metric.selected{outline:2px solid #65a72b;background:#f1ffdc}.metric[data-tone=warning] b{color:#bd611b}.metric[data-tone=bad] b{color:#bb3833}.panels{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:16px 0}.panel{background:white;padding:19px;border:1px solid #e2e9df;border-radius:13px;min-width:0}.barrow{display:grid;grid-template-columns:minmax(100px,1fr) 65px;gap:10px;align-items:center;margin:10px 0;font-size:12px}.track{height:8px;background:#edf2eb;border-radius:20px;overflow:hidden;margin-top:5px}.fill{height:100%;background:#8cc741;border-radius:20px}.barrow strong{text-align:right}.filters{background:white;padding:15px;border:1px solid #e1e9df;border-radius:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.filters input,.filters select{border:1px solid #ccd8cb;border-radius:8px;padding:10px;min-width:140px;max-width:100%;background:white}.filters input{flex:1;min-width:180px}.tablewrap{overflow:auto;background:white;border:1px solid #e1e9df;border-radius:13px}table{width:100%;border-collapse:collapse;font-size:12px;text-align:left;min-width:850px}th{position:sticky;top:0;background:#edf3e9;color:#455d48;white-space:nowrap}td,th{padding:11px 13px;border-bottom:1px solid #edf1eb;vertical-align:middle}td small{display:block;color:#687767;margin-top:3px}td a{font-weight:650}.pill{display:inline-block;padding:4px 8px;border-radius:50px;background:#eef1ec;color:#425245;font-size:11px;margin:2px}.pill.bad{background:#ffeded;color:#9f342b}.pill.warn{background:#fff2dc;color:#9d5b17}.pill.ok{background:#e9f7e2;color:#366c2d}.empty{padding:25px;text-align:center;color:#647568}.foot{margin:12px 0;font-size:12px;color:#65736a}#status{font-size:12px}#status.error{color:#ffb7a4}.sm{font-size:12px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:15px}.link{border:0;background:none;color:#286c37;text-decoration:underline;cursor:pointer;padding:0;text-align:left}.actions{display:flex;gap:8px;flex-wrap:wrap}.nowrap{white-space:nowrap}@media(max-width:830px){.panels,.twocol{grid-template-columns:1fr}header h1{font-size:20px}.metric b{font-size:23px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
+<body><header><div><div class="kicker">SUPGO / INTELIGENCIA DE CATÁLOGO</div><h1>Dashboard de productos y SEO</h1><div class="headnote">Auditoría de datos en Supabase · solo lectura · sin modificar indexación</div></div><div class="actions"><span id="status">Preparando conexión…</span><button id="refresh" class="btn primary">↻ Actualizar</button><button id="export" class="btn">↓ Exportar CSV</button></div></header>
+<main><div id="error" class="notice" hidden></div><section id="metrics" class="metrics" aria-label="Indicadores del catálogo"></section>
+<div class="panels"><section class="panel"><h2>Marcas y laboratorios <span class="muted sm" id="brandsTotal"></span></h2><div id="brands"></div></section><section class="panel"><h2>Categorías <span class="muted sm" id="catsTotal"></span></h2><div id="categories"></div></section></div>
+<div class="twocol" style="margin-bottom:16px"><section class="panel"><h2>Grupos y variantes</h2><div id="groups" class="sm"></div></section><section class="panel"><h2>Salud SEO de colecciones</h2><div id="collections" class="sm"></div></section></div>
+<section><h2>Diagnóstico por producto <span class="muted sm" id="matches"></span></h2>
+<div class="filters"><input id="search" placeholder="Buscar por nombre, ID, marca o slug…" aria-label="Buscar productos"><select id="issue" aria-label="Filtrar problema"><option value="all">Todos los productos</option><option value="image">Sin imagen</option><option value="seo">SEO incompleto</option><option value="seo_record">Sin registro SEO</option><option value="index">Indexables en Supabase</option><option value="noindex">No indexables</option><option value="blocked">Bloqueados por política SEO</option><option value="slug">Slug faltante o inválido</option><option value="price">Sin precio válido</option><option value="brand">Sin marca</option><option value="category">Sin categoría</option><option value="description">Sin descripción</option><option value="canonical">Canonical incorrecta</option><option value="duplicate">Slug duplicado</option><option value="inactive">Inactivos</option><option value="active">Activos</option><option value="updated">Sin actualizar hace 90 días</option></select><select id="brand" aria-label="Filtrar marca"><option value="">Todas las marcas</option></select><select id="category" aria-label="Filtrar categoría"><option value="">Todas las categorías</option></select><select id="sort" aria-label="Orden"><option value="issues">Más problemas</option><option value="name">Nombre A-Z</option><option value="recent">Más recientes</option><option value="old">Más antiguos</option></select><button class="btn" id="clear">Limpiar filtros</button></div>
+<div class="tablewrap"><table><thead><tr><th>Producto</th><th>Marca / categoría</th><th>Precio</th><th>Imagen</th><th>SEO</th><th>Indexación / bloqueo</th><th>Alertas</th><th>Acciones</th></tr></thead><tbody id="rows"><tr><td colspan="8">Cargando…</td></tr></tbody></table></div>
+<div class="foot"><span id="pagination"></span> · El dashboard muestra el estado registrado en Supabase, no garantiza que Google haya indexado una URL. Los bloqueos de INVIMA y las exclusiones deliberadas se muestran aparte.</div><div class="actions"><button class="btn" id="prev">Anterior</button><button class="btn" id="next">Siguiente</button></div></section></main>
+<script>
+(function(){
+'use strict';
+const SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',PASS='liftAdminCloudPasswordV1';
+const $=id=>document.getElementById(id);
+let data=null,products=[],filtered=[],page=0,issue='all',slugCounts=new Map(),PAGE=40;
+const text=x=>String(x??'').trim(),escape=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const validSlug=s=>/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(text(s));
+const canonical=p=>'https://supgo.co/producto/'+text(p.slug)+'/';
+const missingImage=p=>!text(p.imagen)&&!(Number(p.imagen_extra)>0);
+const incompleteSeo=p=>!p.seo_existe||!text(p.titulo_seo)||!text(p.meta_descripcion);
+const invalidCanonical=p=>p.seo_existe&&validSlug(p.slug)&&!!text(p.canonical)&&text(p.canonical)!==canonical(p);
+const blocked=p=>Number(p.bloqueos)>0;
+const issues=p=>[missingImage(p)&&'Sin imagen',incompleteSeo(p)&&'SEO incompleto',!validSlug(p.slug)&&'Slug inválido',!(Number(p.precio)>0)&&'Sin precio',!text(p.marca)&&'Sin marca',!text(p.categoria)&&'Sin categoría',!text(p.descripcion)&&'Sin descripción',invalidCanonical(p)&&'Canonical distinta',slugCounts.get(text(p.slug))>1&&'Slug duplicado'].filter(Boolean);
+const count=fn=>products.filter(fn).length;
+const fmt=n=>new Intl.NumberFormat('es-CO').format(n||0);
+const pesos=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n||0);
+const metrics=[
+ ['total','Productos',p=>true,''],['active','Activos',p=>p.activo,''],['inactive','Inactivos',p=>!p.activo,''],
+ ['image','Sin imagen',missingImage,'warning'],['seo','SEO incompleto',incompleteSeo,'warning'],['seo_record','Sin ficha SEO',p=>!p.seo_existe,'warning'],
+ ['index','Marcados indexables',p=>p.activo&&p.indexable===true&&!blocked(p),''],['noindex','No indexables',p=>p.indexable!==true,''],
+ ['blocked','Bloqueos SEO',blocked,''],['slug','Slug inválido',p=>!validSlug(p.slug),'bad'],['duplicate','Slugs duplicados',p=>slugCounts.get(text(p.slug))>1,'bad'],
+ ['price','Sin precio',p=>!(Number(p.precio)>0),'warning'],['brand','Sin marca',p=>!text(p.marca),'warning'],['category','Sin categoría',p=>!text(p.categoria),'warning'],
+ ['description','Sin descripción',p=>!text(p.descripcion),''],['canonical','Canonical distinta',invalidCanonical,'warning'],
+ ['updated','Sin actualizar 90 días',p=>!p.updated_at||Date.now()-new Date(p.updated_at).getTime()>90*864e5,'']
+];
+const condition={
+ all:()=>true,active:p=>p.activo,inactive:p=>!p.activo,image:missingImage,seo:incompleteSeo,seo_record:p=>!p.seo_existe,
+ index:p=>p.activo&&p.indexable===true&&!blocked(p),noindex:p=>p.indexable!==true,blocked,slug:p=>!validSlug(p.slug),
+ duplicate:p=>slugCounts.get(text(p.slug))>1,price:p=>!(Number(p.precio)>0),brand:p=>!text(p.marca),category:p=>!text(p.categoria),
+ description:p=>!text(p.descripcion),canonical:invalidCanonical,updated:p=>!p.updated_at||Date.now()-new Date(p.updated_at).getTime()>90*864e5
+};
+function setIssue(x){issue=x;$('issue').value=x;page=0;renderMetrics();filter()}
+function renderMetrics(){
+ $('metrics').innerHTML=metrics.map(([id,title,fn,tone])=>'<button type="button" class="metric '+(issue===id?'selected':'')+'" data-id="'+id+'" data-tone="'+tone+'"><span>'+title+'</span><b>'+fmt(count(fn))+'</b><span>Ver productos →</span></button>').join('');
+ $('metrics').querySelectorAll('button').forEach(b=>b.onclick=()=>setIssue(b.dataset.id==='total'?'all':b.dataset.id));
+}
+function breakdown(field,target,total){
+ const map=new Map();products.forEach(p=>{const k=text(p[field])||'Sin asignar';map.set(k,(map.get(k)||0)+1)});
+ const ordered=[...map.entries()].sort((a,b)=>b[1]-a[1]);$(total).textContent='('+fmt(ordered.length)+')';
+ $(target).innerHTML=ordered.slice(0,12).map(([name,n])=>'<div class="barrow"><div><button class="link" data-value="'+escape(name)+'">'+escape(name)+'</button><div class="track"><div class="fill" style="width:'+Math.round(n/Math.max(1,ordered[0][1])*100)+'%"></div></div></div><strong>'+fmt(n)+'</strong></div>').join('')||'<p class="muted">Sin datos</p>';
+ $(target).querySelectorAll('button').forEach(b=>b.onclick=()=>{$(field==='marca'?'brand':'category').value=b.dataset.value==='Sin asignar'?'':b.dataset.value;page=0;filter();document.getElementById('search').scrollIntoView({behavior:'smooth',block:'center'})});
+}
+function renderGroups(){
+ const groups=data.groups||[],cols=data.collections||[];
+ const visible=groups.filter(g=>g.visible).length;
+ $('groups').innerHTML='<p><strong>'+fmt(groups.length)+'</strong> grupos registrados · <strong>'+fmt(visible)+'</strong> visibles · <strong>'+fmt(products.reduce((n,p)=>n+Number(p.variantes||0),0))+'</strong> enlaces de variantes</p>'+
+ '<p class="muted">Estos grupos corresponden a la tabla de agrupaciones de sabores/presentaciones, no a categorías.</p>'+
+ (groups.length?groups.slice(0,8).map(g=>'<p>'+escape(g.nombre||'Sin nombre')+' <span class="pill '+(g.visible?'ok':'warn')+'">'+(g.visible?'Visible':'Oculto')+'</span></p>').join(''):'<p>Sin grupos configurados.</p>')+
+ '<p class="muted">Imágenes huérfanas: '+fmt(data.orphan_images)+' · Variantes huérfanas: '+fmt(data.orphan_variants)+'</p>';
+ const byType={};cols.forEach(c=>{const k=c.tipo||'Otro';if(!byType[k])byType[k]={total:0,indexable:0,empty:0};byType[k].total++;if(c.indexable)byType[k].indexable++;if(!text(c.titulo)||!text(c.meta))byType[k].empty++});
+ $('collections').innerHTML=Object.entries(byType).map(([k,v])=>'<p><strong>'+escape(k)+'</strong>: '+fmt(v.total)+' fichas · '+fmt(v.indexable)+' marcadas indexables · '+fmt(v.empty)+' incompletas</p>').join('')+
+ '<p><strong>'+fmt(data.pages)+'</strong> páginas SEO · <strong>'+fmt(data.private_products)+'</strong> productos privados</p>'+
+ '<p class="muted">Registros SEO de productos huérfanos: '+fmt(data.orphan_seo)+'. Una colección indexable no implica indexación confirmada en Google.</p>';
+}
+function options(id,field){
+ const current=$(id).value;const names=[...new Set(products.map(p=>text(p[field])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+ $(id).innerHTML='<option value="">Todas las '+(id==='brand'?'marcas':'categorías')+'</option>'+names.map(n=>'<option value="'+escape(n)+'">'+escape(n)+'</option>').join('');
+ $(id).value=current;
+}
+function filter(){
+ const q=text($('search').value).toLocaleLowerCase('es'),br=$('brand').value,cat=$('category').value;
+ filtered=products.filter(p=>condition[issue](p)&&(!br||p.marca===br)&&(!cat||p.categoria===cat)&&(!q||[p.nombre,p.id,p.marca,p.categoria,p.slug].some(x=>text(x).toLocaleLowerCase('es').includes(q))));
+ const sort=$('sort').value;filtered.sort((a,b)=>sort==='name'?text(a.nombre).localeCompare(text(b.nombre),'es'):sort==='recent'?new Date(b.updated_at||0)-new Date(a.updated_at||0):sort==='old'?new Date(a.updated_at||0)-new Date(b.updated_at||0):issues(b).length-issues(a).length||Number(b.id)-Number(a.id));
+ if(page*PAGE>=filtered.length)page=Math.max(0,Math.ceil(filtered.length/PAGE)-1);
+ renderRows();
+}
+function renderRows(){
+ $('matches').textContent='('+fmt(filtered.length)+' resultados)';
+ const list=filtered.slice(page*PAGE,(page+1)*PAGE);
+ $('rows').innerHTML=list.map(p=>{
+ const tags=issues(p);const productLink=validSlug(p.slug)?'/producto/'+encodeURIComponent(p.slug)+'/':null;
+ return '<tr><td><strong>'+escape(p.nombre||'Sin nombre')+'</strong><small>ID '+escape(p.id)+' · '+escape(p.slug||'Sin slug')+'</small></td>'+
+ '<td>'+escape(p.marca||'Sin marca')+'<small>'+escape(p.categoria||'Sin categoría')+'</small></td>'+
+ '<td class="nowrap">'+pesos(p.precio)+'</td><td><span class="pill '+(missingImage(p)?'bad':'ok')+'">'+(missingImage(p)?'Falta':'Disponible')+'</span></td>'+
+ '<td><span class="pill '+(incompleteSeo(p)?'bad':'ok')+'">'+(incompleteSeo(p)?'Incompleto':'Completo')+'</span><small>'+(p.seo_existe?'Ficha SEO':'Sin ficha SEO')+'</small></td>'+
+ '<td><span class="pill '+(blocked(p)?'warn':p.indexable===true?'ok':'')+'">'+(blocked(p)?'Bloqueado':p.indexable===true?'Indexable':'No indexable')+'</span><small>'+escape(p.bloqueo_motivo||(!p.activo?'Producto inactivo':''))+'</small></td>'+
+ '<td>'+(tags.slice(0,4).map(x=>'<span class="pill warn">'+escape(x)+'</span>').join('')||'<span class="pill ok">Sin alertas básicas</span>')+(tags.length>4?'<small>+'+(tags.length-4)+' más</small>':'')+'</td>'+
+ '<td><a href="/editor/" target="_blank" rel="noopener">Editar ↗</a>'+(productLink?'<small><a href="'+productLink+'" target="_blank" rel="noopener">Ver ficha ↗</a></small>':'')+'</td></tr>';
+ }).join('')||'<tr><td colspan="8" class="empty">No hay productos con estos filtros.</td></tr>';
+ $('pagination').textContent=fmt(filtered.length)?'Mostrando '+fmt(page*PAGE+1)+'–'+fmt(Math.min((page+1)*PAGE,filtered.length))+' de '+fmt(filtered.length):'Sin resultados';
+ $('prev').disabled=page===0;$('next').disabled=(page+1)*PAGE>=filtered.length;
+}
+async function load(){
+ const password=sessionStorage.getItem(PASS)||'';
+ if(!password){$('status').textContent='Acceso requerido';$('error').hidden=false;$('error').textContent='Ingresa primero a SUPGO CONTROL con la contraseña de administrador y abre esta herramienta desde el menú.';return}
+ $('status').textContent='Consultando Supabase…';$('error').hidden=true;$('refresh').disabled=true;
+ try{
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),30000);
+  let r;try{r=await fetch(SB+'/rest/v1/rpc/lift_catalog_dashboard',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({p_password:password}),signal:controller.signal})}finally{clearTimeout(timeout)}
+  if(!r.ok){const detail=await r.json().catch(()=>({}));throw Error(r.status===401||r.status===403?'La sesión ya no es válida. Ingresa nuevamente desde CONTROL.':detail.message||'Error '+r.status)}
+  data=await r.json();products=Array.isArray(data.products)?data.products:[];slugCounts=new Map();
+  products.forEach(p=>{const s=text(p.slug);if(s)slugCounts.set(s,(slugCounts.get(s)||0)+1)});
+  options('brand','marca');options('category','categoria');renderMetrics();breakdown('marca','brands','brandsTotal');breakdown('categoria','categories','catsTotal');renderGroups();filter();
+  $('status').textContent='Actualizado '+new Date().toLocaleString('es-CO');
+ }catch(e){$('status').textContent='Error al cargar';$('status').classList.add('error');$('error').hidden=false;$('error').textContent='No se pudo consultar el dashboard: '+e.message;}
+ finally{$('refresh').disabled=false}
+}
+['search','issue','brand','category','sort'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{page=0;if(id==='issue')issue=$('issue').value;renderMetrics();filter()}));
+$('clear').onclick=()=>{$('search').value='';$('brand').value='';$('category').value='';$('sort').value='issues';setIssue('all')};
+$('prev').onclick=()=>{if(page){page--;renderRows()}};$('next').onclick=()=>{if((page+1)*PAGE<filtered.length){page++;renderRows()}};
+$('refresh').onclick=load;
+$('export').onclick=()=>{
+ if(!data)return;
+ const columns=['id','nombre','slug','marca','categoria','precio','activo','imagen','seo_existe','titulo_seo','meta_descripcion','indexable','bloqueos','bloqueo_motivo','canonical','updated_at'];
+ const csv=[columns.join(';'),...filtered.map(p=>columns.map(k=>'"'+String(p[k]??'').replace(/"/g,'""')+'"').join(';'))].join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='supgo-auditoria-catalogo-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+};
+load();
+})();
+</script></body></html>
