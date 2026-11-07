@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101410">
+<title>Estudio de redes · SUPGO CONTROL</title><link rel="icon" href="/favicon-48.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="/componentes/admin-sesion.js?v=20261104-1"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font:400 13px/1.5 Poppins,system-ui,sans-serif;background:#f4f6f4;color:#161b17}
+button,input,select,textarea{font:inherit}button{cursor:pointer}[hidden]{display:none!important}
+.wrap{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:14px;padding:14px;max-width:1400px;margin:auto;min-height:100dvh}
+.card{background:#fff;border:1px solid #dee7de;border-radius:14px;padding:14px}
+h1{font-size:17px;margin:0 0 2px}h2{font-size:14px;margin:0 0 8px}.muted{color:#6b786d;font-size:11.5px}
+.pick{display:flex;flex-direction:column;gap:10px;position:sticky;top:14px;max-height:calc(100dvh - 28px)}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid #d5ded5;background:#fff;border-radius:999px;padding:6px 11px;font-size:11.5px;font-weight:600;color:#203021}
+.chip.on,.chip:hover{background:#152316;color:#b4f24b;border-color:#152316}
+#q{width:100%;padding:10px 12px;border:1px solid #cdd7cd;border-radius:10px}
+#cat{width:100%;padding:8px 10px;border:1px solid #cdd7cd;border-radius:10px;background:#fff}
+#list{overflow:auto;flex:1;min-height:160px;display:flex;flex-direction:column;gap:4px;padding-right:2px}
+.item{display:flex;gap:9px;align-items:center;text-align:left;width:100%;border:1px solid transparent;background:#fafcfa;border-radius:10px;padding:6px}
+.item:hover{border-color:#cfe0b5}.item.sel{border-color:#7fae2c;background:#f3f9e8}
+.item img{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:8px;flex:none}
+.item b{display:block;font-size:12px;font-weight:600;line-height:1.3}.item small{color:#6b786d;font-size:11px}
+.item .of{color:#b0202a;font-weight:700}
+.sel-bar{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.sel-bar span{background:#152316;color:#fff;border-radius:999px;padding:3px 9px;font-size:11px}
+.sel-bar button{border:0;background:none;color:#a32222;font-size:11px;text-decoration:underline}
+.studio{display:flex;flex-direction:column;gap:12px;min-width:0}
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.top .grow{flex:1;min-width:200px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid #d5ded5;background:#fff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600}
+.seg button.on{background:#152316;color:#fff;border-color:#152316}
+.out{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,380px);gap:12px;align-items:start}
+.txt{display:flex;flex-direction:column;gap:10px}
+.block{border:1px solid #e3eae3;border-radius:12px;padding:10px;background:#fbfcfb}
+.block header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.block header b{font-size:12px}
+textarea{width:100%;border:1px solid #d9e2d9;border-radius:9px;padding:9px;resize:vertical;min-height:70px;background:#fff;font-size:12.5px;line-height:1.5}
+.btn{border:1px solid #d5ded5;background:#fff;border-radius:9px;padding:7px 11px;font-size:11.5px;font-weight:600;color:#1c2a1d}
+.btn.dark{background:#152316;color:#fff;border-color:#152316}.btn.lime{background:#b4f24b;border-color:#9ad62e;color:#111}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.preview{display:flex;flex-direction:column;gap:8px;position:sticky;top:14px}
+canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0 6px 24px #0002}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.empty{padding:40px 10px;text-align:center;color:#6b786d}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#152316;color:#fff;border-radius:10px;padding:10px 16px;font-size:12px;z-index:9}
+.gate{max-width:420px;margin:15vh auto;text-align:center}
+.gate a{display:inline-block;margin-top:12px;background:#152316;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none}
+.hist{display:flex;gap:6px;overflow:auto;padding-bottom:2px}
+.hist button{flex:none;border:1px solid #e0e7e0;background:#fff;border-radius:9px;padding:5px 9px;font-size:11px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.preview{order:-1}.wrap{grid-template-columns:1fr;padding:10px}.pick{position:static;max-height:none}#list{max-height:300px}.out{grid-template-columns:1fr}.preview{position:static}}
+</style></head><body>
+<div id="gate" class="gate card" hidden><h1>Estudio de redes</h1><p class="muted">Inicia sesión en SUPGO CONTROL para usar esta herramienta.</p><a href="/control/">Ir a SUPGO CONTROL</a></div>
+<div class="wrap" id="app" hidden>
+ <section class="card pick" aria-label="Elegir productos">
+  <div><h1>Estudio de redes</h1><div class="muted">Elige productos y obtén textos e imágenes listos para publicar.</div></div>
+  <div class="quick">
+   <button class="chip" data-q="ofertas">🔥 Ofertas activas</button>
+   <button class="chip" data-q="top">🏆 Más vendidos</button>
+   <button class="chip" data-q="nuevos">🆕 Recientes</button>
+  </div>
+  <input id="q" type="search" placeholder="Buscar producto, marca o sabor…" autocomplete="off">
+  <select id="cat"><option value="">Todas las categorías</option></select>
+  <div class="sel-bar" id="selbar"></div>
+  <div id="list" role="listbox" aria-label="Productos"></div>
+  <div class="muted">Toca para elegir. Varios productos = carrusel o lista de ofertas.</div>
+ </section>
+ <section class="studio">
+  <div class="card">
+   <div class="top"><div class="grow"><h2>Formato</h2>
+    <div class="seg" id="fmt">
+     <button data-v="post" class="on">📸 Post</button><button data-v="historia">📱 Historia / Estado</button><button data-v="reel">🎬 Reel / TikTok</button><button data-v="carrusel">🗂 Carrusel</button><button data-v="whatsapp">💬 WhatsApp</button>
+    </div></div>
+    <div class="grow"><h2>Enfoque</h2>
+     <div class="seg" id="tone">
+      <button data-v="venta" class="on">Venta</button><button data-v="oferta">Oferta</button><button data-v="educativo">Cómo elegir</button><button data-v="comparar">Comparar</button>
+     </div></div>
+   </div>
+   <div class="row" style="margin-top:10px">
+    <button class="btn dark" id="regen">↻ Otra versión</button>
+    <button class="btn lime" id="weekly">⚡ Pack de ofertas de la semana</button>
+    <button class="btn" id="copyall">Copiar todo</button>
+   </div>
+   <div class="hist" id="hist" style="margin-top:10px"></div>
+  </div>
+  <div class="card" id="result"><div class="empty">Elige uno o varios productos a la izquierda.</div></div>
+ </section>
+</div>
+<div id="toast" hidden role="status"></div>
+<script>
+(function(){
+'use strict';
+const SB='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',BASE='https://supgo.co';
+const $=id=>document.getElementById(id);
+const pass=()=>{try{return sessionStorage.getItem('liftAdminCloudPasswordV1')||''}catch(e){return ''}};
+if(!pass()){$('gate').hidden=false;return}
+$('app').hidden=false;
+
+/* ---------- Datos ---------- */
+const S={rows:[],offers:{},top:[],sel:[],fmt:'post',tone:'venta',seed:0,filter:'',cat:''};
+const norm=v=>String(v||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const slug=v=>norm(v).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const cop=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO');
+const clean=n=>String(n||'').replace(/\s*-\s*copia\s*$/i,'').replace(/\s*[-–|·]\s*$/,'').replace(/\s{2,}/g,' ').trim();
+const nice=n=>{const s=clean(n);return s===s.toUpperCase()&&/[A-Z]{4}/.test(s)?s.toLowerCase().replace(/(^|\s|-)([a-záéíóúñ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(\d+)\s?(Lb|Lbs|Gr|G|Kg|Mg|Ml|Oz|Caps|Cap|Srv|Serv)\b/gi,(m,a,b)=>a+' '+b.toLowerCase()):s};
+async function get(path){const r=await fetch(SB+path,{headers:{apikey:KEY,Accept:'application/json'}});if(!r.ok)throw Error('Supabase '+r.status);return r.json()}
+function info(r){
+ const p=r.product||{},name=nice(p.name||p.nombre),brand=String(p.brand||p.marca||'').trim(),cat=String(p.category||p.categoria||'').trim();
+ const t=name+' '+String(p.presentation||p.presentacion||'');
+ const w=t.match(/(\d+(?:[.,]\d+)?)\s*(lbs?|libras?|kg|g|gr|grs|grm|gramos|ml|oz)\b/i);
+ const sv=t.match(/(\d+)\s*(servicios|serv|srv|porciones|servings|scoops)\b/i);
+ const un=t.match(/(\d+)\s*(c[aá]psulas|caps?|tabletas|tabs?|softgels?|gomitas|gummies|sachets?|unidades|und)\b/i);
+ const regular=Number(p.price??p.precio)||0,o=S.offers[String(r.id)]||null,sale=Number(o&&o.price),end=o&&o.promoUntil?Date.parse(o.promoUntil):NaN;
+ const onOffer=!!o&&regular>0&&sale>0&&sale<regular&&(!isFinite(end)||Date.now()<=end);
+ const price=onOffer?sale:regular,serv=sv?Number(sv[1]):0;
+ let img=String(p.image||p.imagen||'');if(!/^https:\/\//.test(img))img='';
+ return {id:r.id,slug:r.slug,name,brand:/^(varias marcas|sin laboratorio)$/i.test(brand)?'':brand,cat,regular,price,onOffer,
+  pct:onOffer?Math.round((1-sale/regular)*100):0,until:onOffer&&isFinite(end)?new Date(end):null,gift:onOffer&&o.gift?String(o.giftName||'').trim():'',
+  size:w?w[1].replace(',','.')+' '+(/^l/i.test(w[2])?'lb':/^k/i.test(w[2])?'kg':/^(g|gr|grs|grm|gramos)$/i.test(w[2])?'g':w[2].toLowerCase()):'',
+  serv,units:un?un[1]+' '+un[2].toLowerCase():'',perServ:serv>1&&price>0?price/serv:0,
+  flavor:String(p.flavor||p.sabor||'').trim(),img,url:BASE+'/producto/'+r.slug+'/',updated:r.updated_at||''};
+}
+async function load(){
+ const sel='select=id,slug,activo,updated_at,product&activo=eq.true&slug=not.is.null&order=id.asc&limit=1000';
+ const [a,b,cfg,blk]=await Promise.all([get('lift_productos?'+sel+'&offset=0'),get('lift_productos?'+sel+'&offset=1000'),
+  get('lift_catalog_config?select=valor&clave=eq.weekly_offers&limit=1').catch(()=>[]),
+  get('lift_seo_bloqueos?select=producto_id&grupo=eq.medicamento').catch(()=>[])]);
+ let offers=cfg[0]&&cfg[0].valor||{};if(typeof offers==='string')try{offers=JSON.parse(offers)}catch(e){offers={}}
+ S.offers=offers&&typeof offers==='object'?offers:{};
+ const meds=new Set(blk.map(x=>String(x.producto_id)));
+ S.rows=a.concat(b).filter(r=>{const p=r.product||{};return !meds.has(String(r.id))&&!p.__deleted&&!p.__private&&!p.adminOnly&&!p.hidden&&!p.oculto&&(p.name||p.nombre)&&!/copia\s*$/i.test(p.name||'')&&!/^(venom pharma|lift nutrientes)$/i.test(p.brand||p.marca||'')}).map(info);
+ const cats=[...new Set(S.rows.map(x=>x.cat).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'es'));
+ cats.forEach(c=>$('cat').add(new Option(c,c)));
+ try{const r=await fetch(SB+'rpc/lift_control_resumen',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass()})});if(r.ok){const j=await r.json();S.top=(j.top_productos||[]).map(x=>String(x.id))}}catch(e){}
+ renderList();restore();
+}
+
+/* ---------- Lista ---------- */
+function renderList(){
+ const q=norm($('q').value).split(/\s+/).filter(Boolean);let rows=S.rows;
+ if(S.cat)rows=rows.filter(x=>x.cat===S.cat);
+ if(S.filter==='ofertas')rows=rows.filter(x=>x.onOffer).sort((a,b)=>b.pct-a.pct);
+ if(S.filter==='top')rows=S.top.map(id=>rows.find(x=>String(x.id)===id)).filter(Boolean);
+ if(S.filter==='nuevos')rows=rows.slice().sort((a,b)=>String(b.updated).localeCompare(String(a.updated)));
+ if(q.length)rows=rows.filter(x=>{const t=norm(x.name+' '+x.brand+' '+x.flavor+' '+x.cat);return q.every(w=>t.includes(w))});
+ const L=$('list');L.replaceChildren();
+ if(!rows.length){L.innerHTML='<div class="empty">Sin resultados.</div>';return}
+ rows.slice(0,80).forEach(x=>{const b=document.createElement('button');b.type='button';b.className='item'+(S.sel.some(s=>s.id===x.id)?' sel':'');
+  b.innerHTML=(x.img?'<img loading="lazy" alt="">':'<span style="width:42px"></span>')+'<span><b></b><small></small></span>';
+  if(x.img)b.querySelector('img').src=x.img;b.querySelector('b').textContent=x.name;
+  const sm=b.querySelector('small');sm.textContent=[x.brand,x.price?cop(x.price):''].filter(Boolean).join(' · ');
+  if(x.onOffer){const o=document.createElement('span');o.className='of';o.textContent=' · -'+x.pct+'%';sm.append(o)}
+  b.onclick=()=>toggle(x);L.append(b)});
+}
+function toggle(x){const i=S.sel.findIndex(s=>s.id===x.id);if(i>=0)S.sel.splice(i,1);else{if(S.sel.length>=10)return toast('Máximo 10 productos');S.sel.push(x)}
+ if(S.sel.length>1&&['post','reel'].includes(S.fmt))setSeg('fmt','carrusel');
+ if(S.sel.length===1&&S.fmt==='carrusel')setSeg('fmt','post');
+ if(S.sel.length&&S.sel.every(s=>s.onOffer)&&S.tone==='venta')setSeg('tone','oferta');
+ S.seed=0;renderSel();renderList();build()}
+function renderSel(){const b=$('selbar');b.replaceChildren();if(!S.sel.length)return;
+ S.sel.forEach(x=>{const s=document.createElement('span');s.textContent=x.name.slice(0,28);b.append(s)});
+ const c=document.createElement('button');c.textContent='Quitar todos';c.onclick=()=>{S.sel=[];renderSel();renderList();build()};b.append(c)}
+function setSeg(id,v){S[id]=v;document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+
+/* ---------- Textos ---------- */
+const pick=(arr,k)=>arr[((S.seed+(k||0))%arr.length+arr.length)%arr.length];
+const CITY='Medellín';
+function catTag(c){const n=norm(c);if(/whey|iso|prote/.test(n))return 'Proteina';if(/creatin/.test(n))return 'Creatina';if(/pre ?entreno/.test(n))return 'Preentreno';if(/ganador/.test(n))return 'GanadorDeMasa';if(/quemador|carnitina/.test(n))return 'Quemadores';if(/vitamin|multivit|mineral/.test(n))return 'Vitaminas';if(/colageno/.test(n))return 'Colageno';if(/omega/.test(n))return 'Omega3';if(/magnesio/.test(n))return 'Magnesio';if(/amino|bcaa|eaa|glutamina/.test(n))return 'Aminoacidos';return 'Suplementos'}
+const tagify=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,' ').trim().split(' ').map(w=>!w?'':w.length<=4&&w===w.toUpperCase()?w:w[0].toUpperCase()+w.slice(1).toLowerCase()).join('');
+function hashtags(items){const set=new Set();items.forEach(x=>{if(x.brand)set.add('#'+tagify(x.brand));set.add('#'+catTag(x.cat))});
+ ['#SUPGO','#Suplementos'+CITY.normalize('NFD').replace(/[̀-ͯ]/g,''),'#SuplementosColombia','#Gym'+CITY.normalize('NFD').replace(/[̀-ͯ]/g,''),'#Fitness'].forEach(t=>set.add(t));
+ return [...set].slice(0,12).join(' ')}
+function utm(url,fmt,camp){const u=new URL(url);u.searchParams.set('utm_source',fmt==='whatsapp'?'whatsapp':fmt==='reel'?'tiktok':'instagram');u.searchParams.set('utm_medium','social');u.searchParams.set('utm_campaign',camp||'contenido');return u.toString()}
+function specs(x){return [x.size,x.serv?x.serv+' servicios':'',x.units].filter(Boolean).join(' · ')}
+function priceLine(x){if(!x.price)return 'Precio: escríbenos y te cotizamos.';if(x.onOffer)return '🔥 Antes '+cop(x.regular)+' → HOY '+cop(x.price)+' (-'+x.pct+'%)'+(x.until?' hasta el '+x.until.toLocaleDateString('es-CO',{day:'numeric',month:'long'}):'')+'.';return '💲 '+cop(x.price)+(x.perServ?' · unos '+cop(x.perServ)+' por servicio':'')+'.'}
+function edu(cat){const n=norm(cat);
+ if(/whey|iso|prote/.test(n))return ['Mira los gramos de proteína por servicio, no solo el tamaño del tarro.','Concentrada, aislada o hidrolizada: cambia el proceso y el precio, revisa cuál se ajusta a ti.','Compara el precio por servicio: así sabes cuál rinde más.'];
+ if(/creatin/.test(n))return ['El monohidrato es la forma más estudiada.','El sello Creapure indica la materia prima alemana.','Compara gramos por servicio y precio por servicio.'];
+ if(/pre ?entreno/.test(n))return ['Revisa cuánta cafeína trae por servicio.','Si eres sensible a estimulantes, empieza con media porción y lee la etiqueta.','No lo tomes tarde en la noche si te afecta el sueño.'];
+ if(/ganador/.test(n))return ['Mira la proporción de carbohidratos y proteína por servicio.','Compara calorías por servicio según tu objetivo.','El tamaño del envase define cuántas semanas te dura.'];
+ return ['Revisa la dosis por porción y la cantidad de servicios del envase.','Compara el precio por servicio entre presentaciones.','Si tomas medicamentos, consulta con un profesional antes de usarlo.']}
+function single(x,fmt,tone){
+ const n=x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' de '+x.brand:''),link=utm(x.url,fmt,tone==='oferta'?'ofertas':'producto');
+ const hooks={venta:['¿Buscas '+x.name+' en '+CITY+'? 👇','Llegó a SUPGO: '+n+' 💪','Tu próximo pedido: '+n+' ✅'],
+  oferta:['🔥 OFERTA: '+n+' con -'+x.pct+'%','Precio especial en '+n+' ⏳','Aprovecha: '+n+' más barato esta semana 🔥'],
+  educativo:['Antes de comprar '+x.name+', mira esto 👀','3 cosas para elegir '+(x.cat||'tu suplemento').toLowerCase()+' 🧠','¿Cómo saber si '+x.name+' es para ti?'],
+  comparar:['¿'+x.name+' o la otra opción? Te ayudamos a comparar ⚖️','Compara antes de comprar: '+x.name,'Precio por servicio: el dato que casi nadie mira 💡']};
+ const hook=pick(hooks[tone]||hooks.venta);const sp=specs(x),tips=edu(x.cat);
+ const body=[hook,'',
+  sp?'📦 '+sp+(x.flavor?' · Sabor '+x.flavor:''):null,
+  priceLine(x),x.gift?'🎁 Incluye regalo: '+x.gift:null,
+  tone==='educativo'||tone==='comparar'?'\n'+tips.map((t,i)=>(i+1)+'. '+t).join('\n'):null,
+  '',pick(['🚚 Entregas en '+CITY+' y envíos a toda Colombia.','🚚 Envío a toda Colombia · En '+CITY+' pedidos antes de las 2 p. m. pueden salir el mismo día.','📍 '+CITY+' y envíos nacionales.'],1),
+  pick(['👉 Pídelo en el link de la bio o escríbenos por WhatsApp.','👉 Link en la bio · supgo.co','👉 Escríbenos y te ayudamos a elegir.'],2)].filter(v=>v!==null).join('\n').replace(/\n{3,}/g,'\n\n');
+ const tags=hashtags([x]);
+ if(fmt==='post')return {blocks:[['Texto del post',body+'\n\n'+tags],['Enlace con seguimiento (bio o mensaje)',link],['Texto alternativo de la imagen',x.name+(x.brand?' de '+x.brand:'')+(sp?', '+sp:'')+'. Precio '+cop(x.price)+' en SUPGO.']],image:'post'};
+ if(fmt==='historia')return {blocks:[['Texto corto para la historia o estado',[x.onOffer?'🔥 -'+x.pct+'% HOY':pick(['NUEVO EN SUPGO','DISPONIBLE YA','¿LO NECESITAS?']),x.name,x.price?cop(x.price):'Consulta precio','👆 Toca el enlace'].join('\n')],['Enlace para el sticker',link],['Mensaje para estado de WhatsApp',x.name+' — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (oferta -'+x.pct+'%)':'')+'\nPídelo aquí 👉 '+utm(x.url,'whatsapp',tone==='oferta'?'ofertas':'estado')]],image:'historia'};
+ if(fmt==='reel')return {blocks:[['Guion (15–25 s)',[
+   '0–3 s · Gancho (texto en pantalla): '+hook,
+   '3–8 s · Muestra el envase y di: "'+x.name+(sp?', '+sp:'')+'."',
+   '8–15 s · '+(x.onOffer?'Muestra el precio: "Antes '+cop(x.regular)+', hoy '+cop(x.price)+'."':x.perServ?'Dato: "Sale a unos '+cop(x.perServ)+' por servicio."':'Dato: "'+tips[0]+'"'),
+   '15–20 s · Cierre: "Pídelo en SUPGO, envíos a toda Colombia. Link en la bio."',
+   '','Sonido: tendencia del día a volumen bajo · Subtítulos siempre activos'].join('\n')],
+   ['Descripción del video',hook+' '+priceLine(x)+' Link en la bio.\n\n'+tags],['Enlace',link]],image:'historia'};
+ if(fmt==='whatsapp')return {blocks:[['Mensaje de difusión',['Hola 👋 '+(x.onOffer?'tenemos oferta en *'+x.name+'*':'te cuento que tenemos *'+x.name+'*')+(x.brand?' de '+x.brand:'')+'.',sp?'📦 '+sp:'',priceLine(x),x.gift?'🎁 Regalo: '+x.gift:'','Puedes pedirlo aquí: '+utm(x.url,'whatsapp','difusion'),'Si tienes dudas, respóndeme este mensaje.'].filter(Boolean).join('\n')]],image:'post'};
+ return multi([x],'carrusel',tone);
+}
+function multi(items,fmt,tone){
+ const off=items.filter(x=>x.onOffer),title=tone==='oferta'||off.length===items.length?pick(['🔥 OFERTAS DE LA SEMANA EN SUPGO','Precios especiales esta semana 🔥','Lo que está en oferta hoy 👇']):tone==='comparar'?'Compara antes de comprar ⚖️':pick(['Nuestras recomendaciones de la semana 💪','Lo más pedido en SUPGO 🏆','Arma tu stack 👇']);
+ const lines=items.map((x,i)=>(i+1)+'. '+x.name+(x.brand?' ('+x.brand+')':'')+' — '+(x.onOffer?cop(x.price)+' (antes '+cop(x.regular)+')':x.price?cop(x.price):'consulta precio')+(tone==='comparar'&&x.perServ?' · '+cop(x.perServ)+'/serv.':''));
+ const camp=tone==='oferta'?'ofertas':'carrusel';
+ const caption=[title,'',...lines,'','🚚 Envíos a toda Colombia · '+CITY,'👉 Link en la bio o escríbenos por WhatsApp','',hashtags(items)].join('\n');
+ if(fmt==='whatsapp')return {blocks:[['Mensaje de difusión',['Hola 👋 '+title.replace(/[🔥💪🏆👇⚖️]/g,'').trim()+':',...items.map(x=>'• *'+x.name+'* — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (-'+x.pct+'%)':'')+'\n  '+utm(x.url,'whatsapp','difusion')),'','Respóndeme si quieres que te ayude a elegir.'].join('\n')]],image:'carrusel'};
+ if(fmt==='historia')return {blocks:[['Secuencia de historias',items.map((x,i)=>'Historia '+(i+1)+': '+x.name+' · '+(x.price?cop(x.price):'consulta')+(x.onOffer?' · -'+x.pct+'%':'')+'\nSticker: '+utm(x.url,'instagram',camp)).join('\n\n')]],image:'historia'};
+ return {blocks:[['Texto del carrusel',caption],['Portada (diapositiva 1)',title.replace(/[🔥💪🏆👇⚖️]/g,'').trim()+'\nDesliza →'],['Enlaces',items.map(x=>x.name+': '+utm(x.url,'instagram',camp)).join('\n')]],image:'carrusel'};
+}
+
+/* ---------- Imágenes ---------- */
+const imgCache=new Map();
+function loadImg(src){if(!src)return Promise.resolve(null);if(imgCache.has(src))return imgCache.get(src);
+ const p=new Promise(res=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});imgCache.set(src,p);return p}
+function wrapText(ctx,text,x,y,maxW,lh,maxLines){const words=String(text).split(/\s+/);let line='',n=0;
+ for(let i=0;i<words.length;i++){const test=line?line+' '+words[i]:words[i];if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line,x,y);y+=lh;n++;line=words[i];if(n===maxLines-1){const rest=words.slice(i).join(' ');let t=rest;while(ctx.measureText(t+'…').width>maxW&&t.length>1)t=t.slice(0,-1);ctx.fillText(t+(t!==rest?'…':''),x,y);return y+lh}}else line=test}
+ if(line){ctx.fillText(line,x,y);y+=lh}return y}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+async function drawProduct(c,x,kind,idx,total){
+ const W=1080,H=kind==='historia'?1920:1350;c.width=W;c.height=H;const ctx=c.getContext('2d');
+ const g=ctx.createRadialGradient(W*.7,H*.35,50,W*.5,H*.5,H*.8);g.addColorStop(0,'#1d4a2c');g.addColorStop(.55,'#101c15');g.addColorStop(1,'#080a09');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#b4f24b';ctx.font='800 40px Poppins';ctx.textBaseline='top';ctx.fillText('SUPGO',70,70);
+ ctx.fillStyle='#9fb4a3';ctx.font='500 26px Poppins';ctx.fillText(total>1?(idx+1)+' / '+total:'Suplementos · '+CITY,W-70-ctx.measureText(total>1?(idx+1)+' / '+total:'Suplementos · '+CITY).width,80);
+ const boxY=kind==='historia'?260:170,boxH=kind==='historia'?900:640;
+ ctx.fillStyle='#ffffff';rr(ctx,70,boxY,W-140,boxH,44);ctx.fill();
+ const im=await loadImg(x.img);if(im){const s=Math.min((W-220)/im.width,(boxH-80)/im.height);const iw=im.width*s,ih=im.height*s;ctx.drawImage(im,(W-iw)/2,boxY+(boxH-ih)/2,iw,ih)}
+ else{ctx.fillStyle='#c5cfc7';ctx.font='600 34px Poppins';ctx.fillText('Foto no disponible',W/2-150,boxY+boxH/2-20)}
+ if(x.onOffer){ctx.fillStyle='#e0262f';rr(ctx,100,boxY+30,230,90,45);ctx.fill();ctx.fillStyle='#fff';ctx.font='800 50px Poppins';ctx.fillText('-'+x.pct+'%',130,boxY+46)}
+ let y=boxY+boxH+50;ctx.fillStyle='#9fb4a3';ctx.font='600 30px Poppins';if(x.brand){ctx.fillText(x.brand.toUpperCase(),70,y);y+=48}
+ ctx.fillStyle='#ffffff';ctx.font='700 '+(kind==='historia'?66:56)+'px Poppins';y=wrapText(ctx,x.name,70,y,W-140,kind==='historia'?76:66,2)+10;
+ const sp=specs(x);if(sp){ctx.fillStyle='#c9d6cc';ctx.font='500 32px Poppins';ctx.fillText(sp,70,y);y+=56}
+ if(x.price){ctx.fillStyle='#b4f24b';ctx.font='800 '+(kind==='historia'?92:78)+'px Poppins';ctx.fillText(cop(x.price),70,y);
+  if(x.onOffer){const pw=ctx.measureText(cop(x.price)).width;ctx.fillStyle='#8a998d';ctx.font='500 40px Poppins';const t=cop(x.regular);ctx.fillText(t,90+pw,y+(kind==='historia'?40:30));const tw=ctx.measureText(t).width;ctx.fillRect(90+pw,y+(kind==='historia'?62:52),tw,4)}}
+ ctx.fillStyle='#b4f24b';rr(ctx,70,H-150,W-140,90,45);ctx.fill();ctx.fillStyle='#111';ctx.font='700 34px Poppins';const cta=kind==='historia'?'Pide en supgo.co · Envíos a toda Colombia':'supgo.co · Envíos a toda Colombia';ctx.fillText(cta,(W-ctx.measureText(cta).width)/2,H-128);
+}
+async function drawCover(c,items,title){const W=1080,H=1350;c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.fillStyle='#101410';ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#b4f24b';ctx.font='800 44px Poppins';ctx.textBaseline='top';ctx.fillText('SUPGO',70,70);
+ ctx.fillStyle='#fff';ctx.font='800 92px Poppins';let y=wrapText(ctx,title,70,200,W-140,104,4);
+ const ims=await Promise.all(items.slice(0,4).map(x=>loadImg(x.img)));const cell=(W-140-30)/2;
+ const rows=Math.ceil(ims.length/2),gridH=rows*(cell*0.8)+(rows-1)*30,top=y+Math.max(40,(H-190-y-gridH)/2);
+ ims.forEach((im,i)=>{const cx=70+(i%2)*(cell+30),cy=top+Math.floor(i/2)*(cell*0.8+30);ctx.fillStyle='#fff';rr(ctx,cx,cy,cell,cell*0.8,30);ctx.fill();if(im){const s=Math.min((cell-40)/im.width,(cell*0.8-40)/im.height);ctx.drawImage(im,cx+(cell-im.width*s)/2,cy+(cell*0.8-im.height*s)/2,im.width*s,im.height*s)}});
+ ctx.fillStyle='#b4f24b';rr(ctx,70,H-150,W-140,90,45);ctx.fill();ctx.fillStyle='#111';ctx.font='700 36px Poppins';const t='Desliza → precios y enlaces';ctx.fillText(t,(W-ctx.measureText(t).width)/2,H-127)}
+
+/* ---------- Resultado ---------- */
+let current=null;
+async function build(){
+ const R=$('result');if(!S.sel.length){R.innerHTML='<div class="empty">Elige uno o varios productos a la izquierda.</div>';current=null;return}
+ const out=S.sel.length===1?single(S.sel[0],S.fmt,S.tone):multi(S.sel,S.fmt,S.tone);current=out;
+ R.replaceChildren();const grid=document.createElement('div');grid.className='out';const txt=document.createElement('div');txt.className='txt';
+ out.blocks.forEach(([label,text])=>{const b=document.createElement('div');b.className='block';b.innerHTML='<header><b></b><button class="btn">Copiar</button></header><textarea></textarea>';
+  b.querySelector('b').textContent=label;const ta=b.querySelector('textarea');ta.value=text;ta.rows=Math.min(16,Math.max(3,text.split('\n').length+1));
+  b.querySelector('button').onclick=()=>copy(ta.value);txt.append(b)});
+ const pv=document.createElement('div');pv.className='preview';grid.append(txt,pv);R.append(grid);
+ const canvases=[];const title=(out.blocks.find(b=>/Portada/.test(b[0]))||['',''])[1].split('\n')[0];
+ if(S.sel.length>1&&out.image==='carrusel'){const c0=document.createElement('canvas');await document.fonts.ready;await drawCover(c0,S.sel,title||'Ofertas de la semana');canvases.push(c0)}
+ for(let i=0;i<S.sel.length;i++){const c=document.createElement('canvas');await drawProduct(c,S.sel[i],out.image==='historia'?'historia':'post',i,S.sel.length);canvases.push(c)}
+ canvases.slice(0,1).forEach(c=>pv.append(c));
+ const info=document.createElement('div');info.className='muted';info.textContent=canvases.length>1?canvases.length+' imágenes listas (se muestra la primera).':'Imagen lista para publicar.';
+ const row=document.createElement('div');row.className='row';
+ const dl=document.createElement('button');dl.className='btn dark';dl.textContent=canvases.length>1?'Descargar '+canvases.length+' imágenes':'Descargar imagen';dl.onclick=()=>download(canvases);
+ const sh=document.createElement('button');sh.className='btn lime';sh.textContent='Compartir (celular)';sh.onclick=()=>share(canvases,out);
+ row.append(dl);if(navigator.canShare)row.append(sh);pv.append(info,row);
+ if(canvases.length>1){const strip=document.createElement('div');strip.className='row';canvases.forEach((c,i)=>{const b=document.createElement('button');b.className='btn';b.textContent=i===0&&S.sel.length>1&&out.image==='carrusel'?'Portada':String(i+(S.sel.length>1&&out.image==='carrusel'?0:1));b.onclick=()=>{pv.replaceChild(c,pv.querySelector('canvas'))};strip.append(b)});pv.append(strip)}
+ save();
+}
+const blobOf=c=>new Promise(r=>{try{c.toBlob(b=>r(b),'image/png')}catch(e){r(null)}});
+async function download(cs){let n=0;for(const [i,c] of cs.entries()){const b=await blobOf(c);if(!b){toast('Una imagen viene de otro sitio y no se pudo exportar; súbela al panel para usarla.');continue}
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='supgo-'+slug(S.sel[Math.max(0,i-(cs.length>S.sel.length?1:0))]?.name||'post')+'-'+(i+1)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);n++;await new Promise(r=>setTimeout(r,350))}
+ if(n)toast(n===1?'Imagen descargada':n+' imágenes descargadas')}
+async function share(cs,out){const files=[];for(const [i,c] of cs.entries()){const b=await blobOf(c);if(b)files.push(new File([b],'supgo-'+(i+1)+'.png',{type:'image/png'}))}
+ const text=out.blocks[0][1];copy(text,true);
+ try{if(files.length&&navigator.canShare({files}))await navigator.share({files,text});else await navigator.share({text})}catch(e){if(e.name!=='AbortError')toast('No se pudo compartir: '+e.message)}}
+async function copy(t,quiet){try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove()}if(!quiet)toast('Copiado ✓');else toast('Texto copiado: pégalo en la publicación')}
+function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,2600)}
+
+/* ---------- Historial ---------- */
+const HK='supgoRedesHistV1';
+function save(){try{const h=JSON.parse(localStorage.getItem(HK)||'[]').filter(x=>x.ids.join()!==S.sel.map(s=>s.id).join()||x.fmt!==S.fmt);
+ h.unshift({ids:S.sel.map(s=>s.id),fmt:S.fmt,tone:S.tone,label:(S.sel.length>1?S.sel.length+' productos':S.sel[0].name)+' · '+S.fmt,t:Date.now()});localStorage.setItem(HK,JSON.stringify(h.slice(0,15)));hist()}catch(e){}}
+function hist(){const box=$('hist');box.replaceChildren();let h=[];try{h=JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){}
+ h.forEach(x=>{const b=document.createElement('button');b.textContent='↺ '+x.label;b.onclick=()=>{S.sel=x.ids.map(id=>S.rows.find(r=>r.id===id)).filter(Boolean);setSeg('fmt',x.fmt);setSeg('tone',x.tone);renderSel();renderList();build()};box.append(b)})}
+function restore(){hist();const p=new URLSearchParams(location.search).get('producto');if(p){const x=S.rows.find(r=>String(r.id)===p||r.slug===p);if(x)toggle(x)}}
+
+/* ---------- Eventos ---------- */
+document.querySelectorAll('#fmt button').forEach(b=>b.onclick=()=>{setSeg('fmt',b.dataset.v);build()});
+document.querySelectorAll('#tone button').forEach(b=>b.onclick=()=>{setSeg('tone',b.dataset.v);S.seed=0;build()});
+document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{S.filter=S.filter===b.dataset.q?'':b.dataset.q;document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.q===S.filter));renderList()});
+$('q').oninput=renderList;$('cat').onchange=()=>{S.cat=$('cat').value;renderList()};
+$('regen').onclick=()=>{S.seed++;build()};
+$('copyall').onclick=()=>{if(current)copy(current.blocks.map(b=>b[0].toUpperCase()+'\n'+b[1]).join('\n\n'))};
+$('weekly').onclick=()=>{const off=S.rows.filter(x=>x.onOffer).sort((a,b)=>b.pct-a.pct).slice(0,8);if(!off.length)return toast('No hay ofertas activas');S.sel=off;setSeg('fmt','carrusel');setSeg('tone','oferta');S.seed=0;renderSel();renderList();build()};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('q').focus()}});
+load().catch(e=>{$('list').innerHTML='<div class="empty">No se pudo cargar el catálogo: '+e.message+'</div>'});
+})();
+</script></body></html>

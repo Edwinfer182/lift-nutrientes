@@ -35,7 +35,18 @@ main{display:flex;flex-direction:column;min-height:0;min-width:0}
 .tile{text-align:left;padding:21px;background:white;border:1px solid #dee7de;border-radius:14px;min-height:134px}
 .tile:hover{border-color:#94b260;background:#fbfdf8}.tile .emoji{font-size:23px;display:block;margin-bottom:13px}
 .tile b{display:block;font-size:13px}.tile small{display:block;margin-top:3px;color:#6d7b70}
-@media(max-width:1050px){.shell{grid-template-columns:215px 1fr}#tiles{grid-template-columns:repeat(2,1fr)}}
+.homehead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}.homehead p{margin:0!important}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.kpi{text-align:left;background:#fff;border:1px solid #dee7de;border-radius:14px;padding:14px 15px;min-height:96px}
+.kpi:hover{border-color:#94b260}.kpi small{display:block;color:#6d7b70;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi b{display:block;font-size:22px;line-height:1.25;margin-top:4px}.kpi span{display:block;font-size:11px;color:#6d7b70;margin-top:2px}
+.kpi.warn{border-color:#f0c36a;background:#fffaf0}.kpi.bad{border-color:#e9a2a2;background:#fff6f6}
+.up{color:#2c7a2c!important}.down{color:#a32222!important}
+.alerts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}.alerts button{border:1px solid #e3d6b2;background:#fffaf0;border-radius:999px;padding:7px 12px;font-size:11.5px;color:#5a4612}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px}.cols h3{font-size:13px;margin:0 0 10px}
+.recent{display:flex;flex-wrap:wrap;gap:6px}.recent button{border:1px solid #dee7de;background:#fff;border-radius:999px;padding:7px 12px;font-size:12px}
+.toplist{margin:0;padding-left:18px;font-size:12px;color:#334}.toplist li{margin-bottom:5px}.toplist small{color:#6d7b70}
+@media(max-width:1050px){.shell{grid-template-columns:215px 1fr}#tiles{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
 @media(max-width:720px){.shell{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:0;overflow:hidden}main{flex:1 1 auto;height:100%;min-height:0;min-width:0}.work{flex:1 1 auto;min-height:0;overflow:hidden}#view{height:100%;min-height:0}aside{position:fixed;width:min(280px,86vw);height:100dvh;z-index:9;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .2s;box-shadow:8px 0 30px #0003}body.menu-open aside{transform:none}
 .top{padding:0 10px;height:60px}.top h1{font-size:14px}.top p{font-size:9px}#toggle{display:block}.btn{padding:8px}#home{padding:20px 12px}#tiles{gap:8px}.tile{padding:12px;min-height:108px}}
 
@@ -71,10 +82,14 @@ main{display:flex;flex-direction:column;min-height:0;min-width:0}
   </form>
 </section>
 <div class="shell" id="mainShell" hidden><aside><div class="brand"><img src="/favicon.png" alt=""><div><strong>SUPGO <span>CONTROL</span></strong><small>Centro de administración</small></div></div>
-<input id="filter" type="search" placeholder="Buscar herramienta..."><nav id="menu" aria-label="Herramientas"></nav>
+<input id="filter" type="search" placeholder="Buscar herramienta…  (Ctrl+K)"><nav id="menu" aria-label="Herramientas"></nav>
 <div class="foot"><a href="/" target="_blank" rel="noopener">Tienda ↗</a><a href="/panel/">Panel original</a></div></aside>
 <main><header class="top"><button id="toggle" class="btn" title="Menú">☰</button><div class="title"><h1 id="title">Centro SUPGO</h1><p id="subtitle">Todas tus herramientas en una sola página.</p></div><button id="logoutControl" title="Cerrar sesión">Salir</button><button class="btn" id="back">←</button><button class="btn" id="refresh">↻</button></header>
-<div class="work"><section id="home"><h2>Tu centro de operaciones</h2><p>Ventas, catálogo, entrenadores, SEO, redes y productividad desde el mismo espacio.</p><div id="tiles"></div><p style="margin-top:25px;font-size:11px">Las funciones conservan sus datos y permisos existentes. Algunas herramientas clásicas siguen usando su código original dentro de esta vista integrada.</p></section>
+<div class="work"><section id="home"><div class="homehead"><div><h2 id="greet">Tu centro de operaciones</h2><p id="updated">Cargando resumen…</p></div><button class="btn" id="kpiRefresh">↻ Actualizar</button></div>
+<div id="kpis" class="kpis" aria-live="polite"></div>
+<div id="alerts" class="alerts"></div>
+<div class="cols"><div><h3>Accesos rápidos</h3><div id="tiles"></div></div>
+<div><h3>Recientes</h3><div id="recent" class="recent"></div><h3 style="margin-top:18px">Más vendidos · 30 días</h3><ol id="topList" class="toplist"></ol></div></div><p style="margin-top:25px;font-size:11px">Las funciones conservan sus datos y permisos existentes. Algunas herramientas clásicas siguen usando su código original dentro de esta vista integrada.</p></section>
 <iframe id="view" title="Herramienta SUPGO" hidden></iframe><div id="loading" hidden>Abriendo herramienta…</div><div id="notice" hidden role="status"></div></div></main></div>
 <script>
 (function(){
@@ -85,7 +100,7 @@ const menu=[
 ['Clientes',[['atencion','🎧','Centro de atención','atencion'],['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
 ['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
 ['Catálogo',[['editor','🗃️','Editor Supabase y SEO','editor'],['productos','📦','Productos antiguos','legacy:productos'],['crear','🆕','Crear producto antiguo','legacy:crear'],['ofertas','🔥','Ofertas','legacy:ofertas'],['combos','🎁','Combos','legacy:combos'],['categorias','🏷️','Categorías','legacy:categorias'],['laboratorio','🏭','Laboratorios','legacy:laboratorio'],['variaciones','🎨','Variaciones','legacy:variaciones'],['excel','📊','Excel y datos','legacy:excel']]],
-['Contenido y gestión',[['instagram','📸','Instagram · Estados · TikTok','native:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
+['Contenido y gestión',[['redes','✨','Estudio de redes','redes'],['instagram','📸','Instagram clásico','native:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
 const $=id=>document.getElementById(id);
 const PASS='liftAdminCloudPasswordV1',UNLOCKED='liftAdminUnlockedV1';
@@ -256,9 +271,10 @@ function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/
  if(t[0]==='editor')return ['/editor/','editor'];
  if(t[0]==='productividad')return ['/productividad/','productividad'];
   if(t[0]==='atencion')return ['/atencion/','atencion'];
-  if(t[0]==='dashboard')return ['/dashboard/','dashboard'];return [null,'home']}
+  if(t[0]==='dashboard')return ['/dashboard/','dashboard'];
+  if(t[0]==='redes')return ['/control/redes/','redes'];return [null,'home']}
 function adapt(kind){
-  if(kind==='atencion'||kind==='dashboard')return; // Mantener intactas las interfaces independientes.
+  if(kind==='atencion'||kind==='dashboard'||kind==='redes')return; // Mantener intactas las interfaces independientes.
  try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
   if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
   style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
@@ -279,23 +295,23 @@ function open(id,backwards){
  if(!storedPassword()){showLogin('Inicia sesión para continuar.');return}
  const it=lookup.get(id);if(!it)return;
  if(!backwards&&current!==id)previous.push(current);
- current=id;document.body.classList.remove('menu-open');$('title').textContent=it[2];
+ current=id;remember(id);document.body.classList.remove('menu-open');$('title').textContent=it[2];
  $('subtitle').textContent='Trabaja aquí sin salir de SUPGO CONTROL';$('back').disabled=!previous.length;renderMenu();
  const details=urlFor(it),serial=++counter,frame=$('view');
  endWait();
  try{history.replaceState({},'','/control/#'+encodeURIComponent(id))}catch(e){}
- if(details[1]==='home'){$('view').hidden=true;$('home').hidden=false;$('loading').hidden=true;return}
+ if(details[1]==='home'){$('view').hidden=true;$('home').hidden=false;$('loading').hidden=true;startKpis();return}
  $('home').hidden=true;frame.hidden=false;$('loading').hidden=false;
  // Reutilizar únicamente módulos cargados y comprobados. No confundir un
  // documento todavía en transición con la herramienta nueva.
  if(activeDocument===details[1]){
    try{
      const w=frame.contentWindow,d=w.document;
-     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':'/productividad/')){
+     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':'/productividad/')){
        if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1])){
          adapt('native');$('loading').hidden=true;return;
        }
-       if(details[1]==='editor'||details[1]==='productividad'||details[1]==='dashboard'){
+       if(details[1]==='editor'||details[1]==='productividad'||details[1]==='dashboard'||details[1]==='redes'){
          adapt(details[1]);$('loading').hidden=true;return;
        }
      }
@@ -352,8 +368,49 @@ $('toggle').onclick=()=>document.body.classList.toggle('menu-open');
 $('back').onclick=()=>{if(previous.length)open(previous.pop(),true)};
 $('refresh').onclick=()=>open(current,true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('menu-open')});
-for(const id of ['pedidos','nuevo','checkout','editor','crm','entrenadores','productividad','instagram','ofertas']){
+for(const id of ['pedidos','nuevo','redes','checkout','editor','ofertas','crm','abandonados','productividad']){
  const it=lookup.get(id),b=document.createElement('button');b.className='tile';const emoji=document.createElement('span');emoji.className='emoji';emoji.textContent=it[1];const title=document.createElement('b');title.textContent=it[2];const sub=document.createElement('small');sub.textContent='Abrir en el área de trabajo';b.append(emoji,title,sub);b.onclick=()=>open(id);$('tiles').appendChild(b)}
+/* ---------- Inicio: resumen del negocio ---------- */
+const money=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO');
+const RK='supgoControlRecentV1';
+function remember(id){if(id==='inicio')return;try{const r=JSON.parse(localStorage.getItem(RK)||'[]').filter(x=>x!==id);r.unshift(id);localStorage.setItem(RK,JSON.stringify(r.slice(0,8)))}catch(e){}}
+function renderRecent(){const box=$('recent');if(!box)return;box.replaceChildren();let r=[];try{r=JSON.parse(localStorage.getItem(RK)||'[]')}catch(e){}
+ r.map(id=>lookup.get(id)).filter(Boolean).forEach(it=>{const b=document.createElement('button');b.type='button';b.textContent=it[1]+' '+it[2];b.onclick=()=>open(it[0]);box.append(b)});
+ if(!box.childNodes.length)box.innerHTML='<small style="color:#6d7b70">Aquí aparecerán las herramientas que más uses.</small>'}
+let kpiTimer=null,kpiLoading=false;
+async function loadKpis(){
+ if(kpiLoading||!storedPassword())return;kpiLoading=true;$('updated').textContent='Actualizando…';
+ try{
+  const r=await fetch(SUPABASE+'/rest/v1/rpc/lift_control_resumen',{method:'POST',headers:{apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:storedPassword()})});
+  if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();
+  const e=d.por_estado||{},atender=(e.verificando_disponibilidad||0)+(e.pendiente_pago||0)+(e.preparando||0)+(e.programado||0);
+  const sv=d.semana.ventas,pv=d.semana_anterior.ventas,delta=pv?Math.round((sv-pv)/pv*100):null;
+  const cards=[
+   ['Ventas hoy',money(d.hoy.ventas),d.hoy.pedidos+(d.hoy.pedidos===1?' pedido':' pedidos'),'pedidos',''],
+   ['Últimos 7 días',money(sv),d.semana.pedidos+' pedidos'+(delta===null?'':' · <em class="'+(delta>=0?'up':'down')+'">'+(delta>=0?'▲ ':'▼ ')+Math.abs(delta)+'% vs semana anterior</em>'),'historial',''],
+   ['Por atender',String(atender),(e.verificando_disponibilidad||0)+' verificando · '+(e.pendiente_pago||0)+' sin pago','pedidos',atender>15?'warn':''],
+   ['Comprobantes',String(d.comprobantes_por_revisar),'pagos por revisar','pagos',d.comprobantes_por_revisar?'bad':''],
+   ['En ruta',String(e.en_ruta||0),(e.preparando||0)+' preparando','pedidos',''],
+   ['Carritos 48 h',String(d.carritos_48h.total),d.carritos_48h.con_contacto+' con contacto · '+money(d.carritos_48h.valor),'abandonados',d.carritos_48h.con_contacto?'warn':''],
+   ['Seguimientos',String(d.sin_seguimiento),'entregados sin seguimiento (30 días)','crm',d.sin_seguimiento?'warn':''],
+   ['Últimos 30 días',money(d.mes.ventas),d.mes.pedidos+' pedidos','historial','']];
+  const K=$('kpis');K.replaceChildren();
+  cards.forEach(([t,v,sub,tool,cls])=>{const b=document.createElement('button');b.type='button';b.className='kpi '+cls;b.innerHTML='<small></small><b></b><span></span>';b.querySelector('small').textContent=t;b.querySelector('b').textContent=v;b.querySelector('span').innerHTML=sub;b.onclick=()=>open(tool);K.append(b)});
+  const c=d.catalogo||{},A=$('alerts');A.replaceChildren();
+  [[c.sin_foto,'productos sin foto','editor'],[c.foto_externa,'fotos todavía en otros sitios','editor'],[c.foto_tabla,'productos cuya única foto es la tabla nutricional','editor'],[c.sin_precio,'productos sin precio','editor'],[d.resenas_pendientes,'reseñas por revisar','resenas']]
+   .filter(x=>x[0]>0).forEach(([n,t,tool])=>{const b=document.createElement('button');b.type='button';b.textContent='⚠ '+n+' '+t;b.onclick=()=>open(tool);A.append(b)});
+  const T=$('topList');T.replaceChildren();(d.top_productos||[]).forEach(x=>{const li=document.createElement('li');li.textContent=x.nombre+' ';const s=document.createElement('small');s.textContent='· '+x.unidades+' u · '+money(x.ventas);li.append(s);T.append(li)});
+  if(!T.childNodes.length)T.innerHTML='<small style="color:#6d7b70">Sin ventas registradas.</small>';
+  $('updated').textContent='Actualizado a las '+new Date().toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit'});
+ }catch(err){$('updated').textContent='No se pudo cargar el resumen ('+err.message+').'}
+ finally{kpiLoading=false}
+}
+function startKpis(){const h=new Date().getHours();$('greet').textContent=(h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches')+' 👋';renderRecent();loadKpis();clearInterval(kpiTimer);kpiTimer=setInterval(()=>{if(current==='inicio'&&!document.hidden)loadKpis()},120000)}
+$('kpiRefresh').onclick=loadKpis;
+document.addEventListener('keydown',e=>{
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.body.classList.add('menu-open');$('filter').focus();$('filter').select()}
+});
+$('filter').addEventListener('keydown',e=>{if(e.key==='Enter'){const first=$('menu').querySelector('.navitem');if(first){first.click();$('filter').value='';renderMenu()}}});
 // Recupera la sesión administrativa guardada por el panel original del mismo dominio.
 // Verifica siempre la contraseña guardada antes de mostrar datos administrativos.
 (async()=>{
