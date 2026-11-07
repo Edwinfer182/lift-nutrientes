@@ -82,7 +82,7 @@ main{display:flex;flex-direction:column;min-height:0;min-width:0}
 const menu=[
 ['General',[['inicio','🏠','Inicio','home'],['pedidos','📋','Pedidos','native:pedidos'],['nuevo','➕','Nuevo pedido','native:nuevo'],['resenas','⭐','Reseñas','native:resenas']]],
 ['Ventas',[['checkout','🛒','Pedido con catálogo','legacy:checkout'],['listarapida','⚡','Lista rápida','legacy:listarapida'],['pagos','💳','Pagos','legacy:pagos'],['historial','🧾','Historial de pedidos','legacy:historial'],['anterior','🗂','Registrar pedido anterior','legacy:anterior'],['abandonados','🛍','Carritos abandonados','legacy:abandonados']]],
-['Clientes',[['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
+['Clientes',[['atencion','🎧','Centro de atención','atencion'],['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
 ['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
 ['Catálogo',[['editor','🗃️','Editor Supabase y SEO','editor'],['productos','📦','Productos antiguos','legacy:productos'],['crear','🆕','Crear producto antiguo','legacy:crear'],['ofertas','🔥','Ofertas','legacy:ofertas'],['combos','🎁','Combos','legacy:combos'],['categorias','🏷️','Categorías','legacy:categorias'],['laboratorio','🏭','Laboratorios','legacy:laboratorio'],['variaciones','🎨','Variaciones','legacy:variaciones'],['excel','📊','Excel y datos','legacy:excel']]],
 ['Contenido y gestión',[['instagram','📸','Instagram · Estados · TikTok','native:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
@@ -254,8 +254,10 @@ function renderMenu(){const q=$('filter').value.toLocaleLowerCase('es');$('menu'
 function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/'+(['pedidos','nuevo','resenas'].includes(t[1])?(t[1]==='pedidos'?'':'#'+t[1]):'#mas'),'native'];
  if(t[0]==='legacy')return ['/admin.html#abrir='+t[1],'legacy'];
  if(t[0]==='editor')return ['/editor/','editor'];
- if(t[0]==='productividad')return ['/productividad/','productividad'];return [null,'home']}
+ if(t[0]==='productividad')return ['/productividad/','productividad'];
+  if(t[0]==='atencion')return ['/atencion/','atencion'];return [null,'home']}
 function adapt(kind){
+  if(kind==='atencion')return; // Mantener intacta la interfaz del Centro de atención.
  try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
   if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
   style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
