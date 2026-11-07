@@ -75,7 +75,7 @@ def load_rows():
         return json.loads(pathlib.Path(local).read_text(encoding="utf-8"))
     rows = []
     for offset in range(0, 6000, 1000):
-        q = urllib.parse.urlencode({"select": "id,product,activo", "activo": "eq.true", "order": "id.asc", "limit": 1000, "offset": offset})
+        q = urllib.parse.urlencode({"select": "id,product,activo,slug", "activo": "eq.true", "order": "id.asc", "limit": 1000, "offset": offset})
         page = get_json(f"{SB}/rest/v1/lift_productos?{q}")
         rows.extend(page)
         if len(page) < 1000:
@@ -100,7 +100,7 @@ def approved_paths():
     path = ROOT / "sitemap-productos.xml"
     if not path.exists():
         return set()
-    return set(re.findall(r"<loc>\s*https://supgo\.co(/productos/[^<\s]+)\s*</loc>", path.read_text(encoding="utf-8")))
+    return set(re.findall(r"<loc>\s*https://supgo\.co(/producto/[^<\s]+)\s*</loc>", path.read_text(encoding="utf-8")))
 
 
 def sale_price(pid, price, offers):
@@ -157,8 +157,11 @@ def products(rows, offers):
         brand = str(p.get("brand") or p.get("marca") or "").strip()
         if not name or slug(brand) in HIDDEN_BRANDS:
             continue
-        path = f"/productos/{slug(name) or 'producto'}-{r.get('id')}.html"
-        if path in seen or (approved and path not in approved) or not (ROOT / path.lstrip("/")).exists():
+        # Fichas dinámicas: la URL vigente es /producto/<slug>/ (las /productos/*.html ya no existen).
+        if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(r.get("slug") or "")):
+            continue
+        path = f"/producto/{r.get('slug')}/"
+        if path in seen or (approved and path not in approved):
             continue
         try:
             base = float(p.get("price") or p.get("precio") or 0)

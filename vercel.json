@@ -14,7 +14,7 @@
   ],
   "functions": {
     "api/producto.js": {
-      "includeFiles": "producto/index.html"
+      "includeFiles": "{producto/index.html,scripts/fichas_heredadas.json}"
     },
     "api/coleccion.js": {
       "includeFiles": "{categorias,laboratorios}/plantilla.html"
@@ -41,8 +41,21 @@
       "dest": "/api/sitemap?tipo=$1"
     },
     {
-      "src": "^/home/?$",
+      "src": "^/$",
       "dest": "/api/pagina?ruta=home"
+    },
+    {
+      "src": "^/home/?$",
+      "dest": "/api/pagina?ruta=home&desde=home"
+    },
+    {
+      "src": "^/productos/?$",
+      "status": 301,
+      "headers": { "Location": "/categorias/" }
+    },
+    {
+      "src": "^/productos/([A-Za-z0-9._-]+?)(?:\\.html)?/?$",
+      "dest": "/api/producto?legado=$1"
     },
     {
       "src": "^/categorias/?$",
@@ -75,6 +88,11 @@
     {
       "src": "^/s/([A-Za-z0-9_-]{12})/?$",
       "dest": "/s/index.html"
+    },
+    {
+      "src": "^/producto/mind-f-cker-30-serv-tangarine/?$",
+      "status": 301,
+      "headers": { "Location": "/producto/creapure-300-gramos-100-servicios/" }
     },
     {
       "src": "^/producto/([a-z0-9-]+)/?$",

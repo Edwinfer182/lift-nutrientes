@@ -110,7 +110,7 @@ body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-u
       <div id="totals"></div>
       <div class="ship" id="ship"></div>
       <a class="cta" href="/checkout/" id="go">Continuar con el pedido</a>
-      <a class="keep" href="/home/">← Seguir comprando</a>
+      <a class="keep" href="/">← Seguir comprando</a>
       <ul class="trust">
         <li>🔒 No se cobra nada hasta confirmar disponibilidad.</li>
         <li>💳 Paga en línea, por transferencia o contraentrega en Medellín.</li>
@@ -181,7 +181,7 @@ function toast(){
 function render(){
   if(!state.lines.length){
     $('lead').hidden=true;
-    $('grid').outerHTML='<div class="empty" id="grid"><div class="icon">🛒</div><h2>Tu carrito está vacío</h2><p class="lead" style="margin:0">Encuentra proteínas, creatinas y más con envío a toda Colombia.</p><div class="links"><a class="main" href="/home/">Ver productos</a><a href="/ofertas/">Ofertas</a><a href="/categorias/">Categorías</a></div></div>';
+    $('grid').outerHTML='<div class="empty" id="grid"><div class="icon">🛒</div><h2>Tu carrito está vacío</h2><p class="lead" style="margin:0">Encuentra proteínas, creatinas y más con envío a toda Colombia.</p><div class="links"><a class="main" href="/">Ver productos</a><a href="/ofertas/">Ofertas</a><a href="/categorias/">Categorías</a></div></div>';
     $('sticky').hidden=true;return;
   }
   var q=units(),s=subtotal(),sv=savings();

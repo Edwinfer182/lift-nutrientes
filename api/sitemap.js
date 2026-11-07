@@ -34,7 +34,9 @@ async function all(table, select, extra) {
   throw new Error('Límite de paginación excedido: '+table);
 }
 function publicProduct(p) {
+  // Fichas duplicadas ("… - Copia") no se publican: redirigen a la original o quedan noindex.
   return p.activo === true && goodSlug(p.slug) && String(p.nombre||'').trim() &&
+    !/\s-\s*copia\s*$/i.test(String(p.nombre||'')) && !/-copia(?:-\d+)?$/.test(p.slug) &&
     !yes(p.del) && !yes(p.priv) && !yes(p.adm) && !yes(p.hid) &&
     !yes(p.oculto) && p.vis !== 'admin' &&
     !['venom-pharma','lift-nutrientes'].includes(norm(p.marca));
@@ -103,10 +105,13 @@ async function collectionItems(type) {
 }
 async function editorialItems(guide) {
   const pages = await all('lift_pagina_seo','ruta,titulo_seo,meta_descripcion,canonical_url,indexable,actualizado_en',{});
+  // La tienda se publica en la raíz (/); /home/ redirige allí.
+  const url = p => p.ruta === 'home' ? BASE + '/' : expectPageUrl(p.ruta);
+  const okCanonical = p => p.canonical_url === url(p) || (p.ruta === 'home' && p.canonical_url === BASE + '/home/');
   return pages.filter(p=>!!(guide?/^guias\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.ruta):EDITORIAL.has(p.ruta)) &&
     p.indexable !== false && String(p.titulo_seo||'').trim() &&
-    String(p.meta_descripcion||'').trim() && expectPageUrl(p.ruta)===p.canonical_url)
-    .map(p=>({url:p.canonical_url,lastmod:p.actualizado_en}));
+    String(p.meta_descripcion||'').trim() && okCanonical(p))
+    .map(p=>({url:url(p),lastmod:p.actualizado_en}));
 }
 module.exports = async function handler(req,res) {
   const type = typeof req.query.tipo === 'string' ? req.query.tipo : '';

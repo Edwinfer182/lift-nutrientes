@@ -292,7 +292,7 @@ window.addEventListener('supgo-favorites-change',renderFavs);
 function orderUrl(p){return '/mi-pedido/?pedido='+encodeURIComponent(p.id)+(p.token?'&token='+encodeURIComponent(p.token):'')}
 function renderOrders(){
   var box=$('p-pedidos'),list=data.pedidos||[];
-  if(!list.length){box.innerHTML='<div class="card empty">Aún no tienes pedidos con este correo.<br><small>Cuando compres usando <b>'+esc((data.cuenta||{}).email||'')+'</b> aparecerán aquí.</small><br><br><a class="btn dark" href="/home/">Ver productos</a></div>';return}
+  if(!list.length){box.innerHTML='<div class="card empty">Aún no tienes pedidos con este correo.<br><small>Cuando compres usando <b>'+esc((data.cuenta||{}).email||'')+'</b> aparecerán aquí.</small><br><br><a class="btn dark" href="/">Ver productos</a></div>';return}
   box.innerHTML=list.map(function(p){
     var st=STATUS[p.estado]||[p.estado,''],items=p.items||[];
     var guia=p.despacho_tipo==='guia'&&p.guia?'<div style="font-size:12px;margin-top:6px">🚚 '+esc(p.transportadora||'Transportadora')+' · Guía <b>'+esc(p.guia)+'</b></div>':'';
@@ -382,7 +382,7 @@ function loadCoupons(){
   C.api('coupons').then(function(j){
     couponsLoaded=true;var r=j.referido,list=j.cupones||[],html='';
     if(r){
-      var link='https://supgo.co/home/?ref='+encodeURIComponent(r.codigo);
+      var link='https://supgo.co/?ref='+encodeURIComponent(r.codigo);
       var share='¡Te regalo '+(r.tipo==='percentage'?r.valor+'%':money(r.valor))+' de descuento en tu primera compra en SUPGO! 💪 Usa mi código '+r.codigo+' aquí: '+link;
       html+='<div class="refbox"><h2>Invita a tus amigos</h2><p>Comparte tu código: tus amigos reciben '+(r.tipo==='percentage'?r.valor+'%':money(r.valor))+' de descuento en su primera compra.</p>'
         +'<div class="refcode"><b>'+esc(r.codigo)+'</b><button class="btn lime" type="button" id="copyRef">Copiar</button></div>'

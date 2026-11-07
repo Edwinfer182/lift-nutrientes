@@ -109,7 +109,7 @@ function render(){
  '<div class="supgo-side-head"><strong>'+(logo?'<img src="'+esc(logo)+'" alt="">':'')+'MENÚ</strong><button type="button" class="supgo-side-x" aria-label="Cerrar menú">×</button></div>'+
  '<div class="supgo-side-body">'+
   '<button type="button" class="supgo-row lead" data-act="cart"><span>Ver mi carrito</span><span class="r"><span class="n">'+esc(cartN)+'</span><span class="ar">→</span></span></button>'+
-  '<a class="supgo-row'+(/^\/home\/?$/.test(p)?' on':'')+'" href="/home/"><span>Inicio</span></a>'+
+  '<a class="supgo-row'+(/^\/(home\/?)?$/.test(p)?' on':'')+'" href="/"><span>Inicio</span></a>'+
   '<a class="supgo-row hot'+(/^\/ofertas/.test(p)?' on':'')+'" href="/ofertas/"><span>🔥 Ofertas</span></a>'+
   '<button type="button" class="supgo-row'+(/^\/categorias/.test(p)?' on':'')+'" data-toggle="cats"><span>Todas las categorías</span><span class="r"><span class="plus">'+plus('cats')+'</span></span></button>'+
   '<div class="supgo-sub'+(openSet.has('cats')?' open':'')+'" data-sub="cats">'+

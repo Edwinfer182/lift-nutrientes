@@ -13,10 +13,32 @@ function sourceFor(ruta) {
   return null;
 }
 function expectedUrl(ruta) {
+  if (ruta === 'home') return 'https://supgo.co/';
   return 'https://supgo.co/' + ruta + (GENERAL.has(ruta) ? '/' : '.html');
 }
+// La tienda vive en la raíz. En Supabase la fila 'home' puede seguir con /home/: se acepta y se publica "/".
+const canonicalOk = (ruta, url) => url === expectedUrl(ruta) || (ruta === 'home' && url === 'https://supgo.co/home/');
+// Parámetros que la página principal atiende por sí misma o que solo son de medición.
+const PARAMS_HOME = /^(utm_.*|fbclid|gclid|gbraid|wbraid|msclkid|ttclid|igshid|_ga|ref|diag)$/i;
+// Enlaces antiguos a la raíz con consultas (?admin=lift, ?pedido=, ?producto=...): mismo destino que antes.
+const ENRUTADOR_RAIZ = "<script>(function(){var q=new URLSearchParams(location.search);" +
+  "if((q.get('admin')||'').toLowerCase()==='lift'){location.replace('/admin.html?admin=lift');return;}" +
+  "if(q.has('pedido')||q.has('mi-pedido')){location.replace('/mi-pedido/'+location.search+location.hash);return;}" +
+  "if(Array.from(q.keys()).some(function(k){return !" + PARAMS_HOME.toString() + ".test(k);})){location.replace('/admin.html'+location.search+location.hash);}" +
+  "})();</script>";
 module.exports = async function pagina(req, res) {
   const ruta = typeof req.query.ruta === 'string' ? req.query.ruta : '';
+  if (ruta === 'home' && req.query.desde === 'home') {
+    // /home/ → / (301) conservando ?ref=, utm_ y demás parámetros.
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(req.query)) {
+      if (k === 'ruta' || k === 'desde') continue;
+      for (const x of [].concat(v)) q.append(k, x);
+    }
+    const qs = q.toString();
+    res.setHeader('Cache-Control', 'public, s-maxage=86400');
+    return res.redirect(301, '/' + (qs ? '?' + qs : ''));
+  }
   const source = sourceFor(ruta);
   if (!source) return res.status(404).send('Página no encontrada');
   try {
@@ -29,12 +51,13 @@ module.exports = async function pagina(req, res) {
     const rows = await response.json();
     if (rows.length !== 1) throw Error('SEO de página ausente o duplicado: ' + ruta);
     const seo = rows[0];
-    if (!str(seo.titulo_seo) || !str(seo.meta_descripcion) || seo.canonical_url !== expectedUrl(ruta)) {
+    if (!str(seo.titulo_seo) || !str(seo.meta_descripcion) || !canonicalOk(ruta, seo.canonical_url)) {
       throw Error('Metadatos de página incompletos o canonical incorrecto: ' + ruta);
     }
     const headEnd = html.search(/<\/head\s*>/i);
     if (headEnd < 0) throw Error('Plantilla sin head: ' + ruta);
     let head = html.slice(0, headEnd);
+    if (ruta === 'home') head = head.replace(/<head\b[^>]*>/i, m => m + ENRUTADOR_RAIZ);
     let rest = html.slice(headEnd);
     if (ruta.startsWith('guias/')) {
       const body = str(seo.contenido_seo_html);
@@ -47,7 +70,7 @@ module.exports = async function pagina(req, res) {
     head = head.replace(/<link\b(?=[^>]*\brel\s*=\s*["']canonical["'])[^>]*>/gi, '');
     const title = str(seo.titulo_seo);
     const meta = str(seo.meta_descripcion);
-    const canonical = str(seo.canonical_url);
+    const canonical = expectedUrl(ruta);
     const ogTitle = str(seo.og_titulo) || title;
     const ogMeta = str(seo.og_descripcion) || meta;
     const image = str(seo.og_imagen);

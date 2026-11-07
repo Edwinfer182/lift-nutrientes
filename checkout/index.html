@@ -171,9 +171,9 @@ details.coupon[open] summary::after{content:"−"}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <a class="logo" href="/home/">SUPGO</a>
+  <a class="logo" href="/">SUPGO</a>
   <span class="secure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Compra segura</span></span>
-  <a class="back" href="/home/">← Seguir comprando</a>
+  <a class="back" href="/">← Seguir comprando</a>
 </div></header>
 
 <main id="app" class="wrap">
@@ -388,7 +388,7 @@ function render(){
   $('totalMobile').textContent=money(total());$('totalSticky').textContent=money(total());$('countMobile').textContent=units();
 }
 function renderEmpty(){
-  $('app').innerHTML='<div class="empty"><h1>Tu carrito está vacío</h1><p class="lead">Agrega productos para hacer tu pedido.</p><a href="/home/">Ver productos</a></div>';
+  $('app').innerHTML='<div class="empty"><h1>Tu carrito está vacío</h1><p class="lead">Agrega productos para hacer tu pedido.</p><a href="/">Ver productos</a></div>';
   $('stickyBar').style.display='none';
 }
 
