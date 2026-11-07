@@ -142,4 +142,4 @@ function construirSeo(row, seo) {
   return { nombre, nombreCompleto, titulo, meta, html, copia: esCopia(p.name || p.nombre, row.slug) };
 }
 
-module.exports = { construirSeo, esCopia, limpiarNombre, esGenerico, hablaDe };
+module.exports = { construirSeo, esCopia, limpiarNombre, esGenerico, hablaDe, contextoCategoria };

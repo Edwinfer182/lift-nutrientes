@@ -17,7 +17,7 @@
       "includeFiles": "{producto/index.html,scripts/fichas_heredadas.json}"
     },
     "api/coleccion.js": {
-      "includeFiles": "{categorias,laboratorios}/plantilla.html"
+      "includeFiles": "{categorias/plantilla.html,laboratorios/plantilla.html,guias/guias.json}"
     },
     "api/pagina.js": {
       "includeFiles": "{home,categorias,laboratorios,ofertas,guias,politica-de-devoluciones,tratamiento-de-datos}/*.html"

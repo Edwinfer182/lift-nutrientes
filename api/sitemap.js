@@ -95,7 +95,13 @@ async function collectionItems(type) {
     all('lift_productos','slug,nombre,marca,categoria,activo,del:product->>__deleted,priv:product->>__private,adm:product->>adminOnly,hid:product->>hidden,oculto:product->>oculto,vis:product->>visibility',{activo:'eq.true'})
   ]);
   const key = type==='categoria'?'categoria':'marca';
-  const existing = new Set(products.filter(publicProduct).map(p=>norm(p[key])));
+  // Igual que api/coleccion.js: menos de 3 productos = noindex; categoría que es solo una marca = 301.
+  const counts = new Map(), brandsOf = new Map();
+  for (const p of products.filter(publicProduct)) {
+    const k = norm(p[key]); counts.set(k,(counts.get(k)||0)+1);
+    if(!brandsOf.has(k)) brandsOf.set(k,new Set()); brandsOf.get(k).add(norm(p.marca));
+  }
+  const existing = new Set([...counts].filter(([k,n])=>n>=3 && !(type==='categoria' && brandsOf.get(k).size===1 && brandsOf.get(k).has(k))).map(([k])=>k));
   const base = type==='categoria'?'categorias':'laboratorios';
   return groups.filter(s=>goodSlug(s.slug) && s.indexable !== false &&
     existing.has(s.slug) && String(s.titulo_seo||'').trim() &&

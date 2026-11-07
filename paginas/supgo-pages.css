@@ -156,3 +156,28 @@ body:not(:has(#supgo-global-header)):not(:has(#supgo-header-placeholder))::befor
 @keyframes supgoPhotoIn{0%{transform:scale(.94)}55%{transform:scale(1.05)}100%{transform:scale(1)}}
 @media(hover:hover) and (pointer:fine){.grid .product .product-photo:hover .photo-dots i:first-child{background:#cfcfcf;width:6px;border-radius:50%}.grid .product .product-photo:hover .photo-dots i:last-child{background:#111;width:14px;border-radius:4px}}
 @media(prefers-reduced-motion:reduce){.grid .product .product-photo .primary-photo,.grid .product .product-photo .secondary-photo{transition:none;animation:none}}
+/* Colecciones (categorías y marcas) · 2026-11-07 */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.migas{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:#777;margin:6px 0 2px}
+.migas a{color:#555;text-decoration:underline;text-underline-offset:2px}
+.migas span[aria-current]{color:#111;font-weight:500}
+body[data-page="categoria"] p.coleccion-intro,body[data-page="laboratorio"] p.coleccion-intro{font-size:13.5px;line-height:1.5;margin:0 0 10px;color:#666}
+body[data-page="categoria"] .toolbar,body[data-page="laboratorio"] .toolbar{justify-content:space-between;margin:8px 0 10px}
+.toolbar .conteo{font-size:12.5px;color:#555;font-weight:500}
+.filtros{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;scrollbar-width:none}
+.filtros::-webkit-scrollbar{display:none}
+.filtros select{flex:0 0 auto;border:1px solid #ddd;border-radius:999px;padding:8px 28px 8px 12px;font:inherit;font-size:12px;background:#fff;max-width:200px}
+.filtros .f-clear{flex:0 0 auto;border:0;background:none;font-size:12px;text-decoration:underline;color:#555;padding:8px 4px}
+.product .card-spec{font-size:11.5px;color:#666;margin:2px 0 0;line-height:1.35}
+.product .desde{display:block;font-size:11.5px;color:#666;margin-top:2px}
+.product .sabores{display:flex;flex-direction:column;gap:3px;margin:6px 0 2px;font-size:11px;color:#666}
+.product .sabor-select{border:1px solid #ddd;border-radius:8px;padding:6px 8px;font:inherit;font-size:12px;background:#fff;color:#111;width:100%}
+body[data-page="laboratorio"] .supgo-lab-heading-logo{height:44px;max-width:160px;margin:8px 0 2px}
+@media(max-width:760px){body[data-page="laboratorio"] .supgo-lab-heading-logo{height:36px;max-width:130px}}
+.coleccion-info{margin:36px 0 10px;padding-top:22px;border-top:1px solid #ececec;max-width:860px;font-size:14px;line-height:1.6;color:#333}
+.coleccion-info h2{font-size:clamp(18px,2.4vw,22px);margin:0 0 10px;letter-spacing:-.02em}
+.coleccion-info h3{font-size:15.5px;margin:20px 0 6px}
+.coleccion-info h4{font-size:14px;margin:12px 0 2px}
+.coleccion-info p{margin:0 0 8px}
+.coleccion-info ul{margin:0 0 8px;padding-left:18px}
+.coleccion-info a{text-decoration:underline;text-underline-offset:2px}
