@@ -58,6 +58,12 @@ var css=''
 +'body.supgo-tabbar-on .pi-toast,body.supgo-tabbar-on .toast,body.supgo-tabbar-on .fav-toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))!important}'
 // Ficha de producto: la barra "Agregar" queda encima de la navegación
 +'body.supgo-tabbar-on .product-page .product-info .actions{bottom:calc(78px + env(safe-area-inset-bottom,0px))!important;left:10px!important;right:10px!important;width:auto!important;border:1px solid #e8e8e8!important;border-radius:16px!important;padding:8px 10px!important}'
+// Encabezado en celular: sin cuenta ni carrito (ya están abajo) y se esconde al bajar.
++'body.supgo-tabbar-on #supgo-global-header .supgo-v2 .bar>.supgo-account-link,body.supgo-tabbar-on #supgo-global-header .supgo-v2 .bar>.cartDesktop{display:none!important}'
++'body.supgo-tabbar-on #supgo-global-header .supgo-v2 .bar{grid-template-columns:auto auto 1fr auto!important;grid-template-areas:"menu logo . fav" "search search search search"!important}'
++'body.supgo-tabbar-on #supgo-global-header{transition:transform .28s ease,box-shadow .28s ease;will-change:transform}'
++'body.supgo-tabbar-on.supgo-head-oculto #supgo-global-header{transform:translateY(-100%)}'
++'body.supgo-tabbar-on #supgo-global-header.con-sombra{box-shadow:0 6px 18px rgba(0,0,0,.18)}'
 +'body.supgo-tabbar-on.supgo-tabbar-ficha{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))!important}'
 +'}';
 
@@ -112,6 +118,26 @@ function montar(){
   var abierto=document.body.classList.contains('supgo-cart-open')||document.body.classList.contains('supgo-side-open')||document.body.classList.contains('menu-open');
   nav.classList.toggle('oculta',!!(escribiendo||abierto));
  }
+ // Encabezado tipo Instagram: se esconde al bajar y vuelve al subir un poco.
+ var ultimoY=window.scrollY,acum=0,pendiente=false;
+ function header(){return document.getElementById('supgo-global-header')}
+ function puedeOcultar(){
+  var h=header();if(!h||!window.matchMedia('(max-width:760px)').matches)return false;
+  var a=document.activeElement;if(a&&h.contains(a))return false; // escribiendo en el buscador
+  var res=h.querySelector('.searchResults');if(res&&res.offsetParent!==null&&res.childElementCount)return false;
+  var b=document.body.classList;return !(b.contains('supgo-cart-open')||b.contains('supgo-side-open'));
+ }
+ function alDesplazar(){
+  pendiente=false;var y=Math.max(0,window.scrollY),d=y-ultimoY;ultimoY=y;var h=header();if(!h)return;
+  var alto=h.offsetHeight||130;
+  if(y<=alto){document.body.classList.remove('supgo-head-oculto');h.classList.remove('con-sombra');acum=0;return}
+  acum=(d>0)===(acum>0)?acum+d:d; // distancia acumulada en la misma dirección
+  if(acum>24&&puedeOcultar())document.body.classList.add('supgo-head-oculto');
+  else if(acum<-36){document.body.classList.remove('supgo-head-oculto');h.classList.add('con-sombra')}
+ }
+ window.addEventListener('scroll',function(){if(!pendiente){pendiente=true;requestAnimationFrame(alDesplazar)}},{passive:true});
+ // Al tocar Buscar, el encabezado aparece de inmediato.
+ nav.querySelector('[data-k=buscar]').addEventListener('click',function(){document.body.classList.remove('supgo-head-oculto')});
  document.addEventListener('focusin',revisar);document.addEventListener('focusout',function(){setTimeout(revisar,50)});
  new MutationObserver(revisar).observe(document.body,{attributes:true,attributeFilter:['class']});
 }
