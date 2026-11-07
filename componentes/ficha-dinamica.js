@@ -336,6 +336,10 @@
         get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + encontrado.id).catch(function () { return []; })
     ]);
     var rows = loaded[0], datos = loaded[1], seoRows = loaded[2];
+    /* La página puede venir de la caché de la CDN: precio, foto y nombre se toman de la consulta fresca. */
+    var fresco = rows.find(function (r) { return r.id === encontrado.id; });
+    if (fresco && fresco.product) encontrado = Object.assign({}, encontrado, { activo: fresco.activo, product: Object.assign({}, encontrado.product, fresco.product) });
+    if (fresco && fresco.activo === false) return mostrarError('Producto no disponible', 'Este producto no está disponible en este momento.');
     var offers = datos[0], settings = datos[1], REVIEWS = datos[2];
     var marcasOk = new Set(datos[3].filter(function (x) { return x.habilitada === true; }).map(function (x) { return lower(String(x.marca).trim()); }));
     var bloqueados = new Set(datos[4].map(function (x) { return String(x.producto_id); }));

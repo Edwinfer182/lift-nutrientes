@@ -61,7 +61,15 @@ module.exports = async function handler(req, res) {
       if (!r.ok) throw new Error('Supabase HTTP ' + r.status);
       return r.json();
     };
-    const rows = await fetchRows('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(slug) + '&limit=2');
+    // Una sola ida a Supabase en el caso normal: producto, su SEO (por canonical), marcas y bloqueos en paralelo.
+    const canonicalUrl = 'https://supgo.co/producto/' + slug + '/';
+    const SEO_COLS = 'producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados';
+    const [rows, seoPorUrl, marcasTodas, bloqueosTodos] = await Promise.all([
+      fetchRows('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(slug) + '&limit=2'),
+      fetchRows('lift_producto_seo?select=' + SEO_COLS + '&canonical_url=eq.' + encodeURIComponent(canonicalUrl) + '&limit=2').catch(() => null),
+      fetchRows('lift_seo_marcas?select=marca,habilitada&limit=5000').catch(() => null),
+      fetchRows('lift_seo_bloqueos?select=producto_id&limit=5000').catch(() => null)
+    ]);
     if (rows.length > 1) return res.status(404).send('Producto no encontrado o slug duplicado');
     if (!rows.length) {
       // Slug viejo: slug personalizado del panel (product.seo.slug) o ID al final → 301 a la URL vigente.
@@ -81,10 +89,13 @@ module.exports = async function handler(req, res) {
     }
     const brand = text(p.brand || p.marca);
     // Estas consultas se ejecutan en paralelo después de encontrar el producto.
+    // Solo si alguna de las consultas anticipadas no sirvió se hace una segunda ida.
+    const seoOk = Array.isArray(seoPorUrl) && seoPorUrl.length === 1 && String(seoPorUrl[0].producto_id) === String(row.id);
+    const lowerBrand = brand.toLowerCase();
     const [seoRows, brandRules, seoBlocks] = await Promise.all([
-      fetchRows('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + row.id + '&limit=2'),
-      brand ? fetchRows('lift_seo_marcas?select=habilitada&marca=ilike.' + encodeURIComponent(brand) + '&limit=2') : Promise.resolve([]),
-      fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
+      seoOk ? seoPorUrl : fetchRows('lift_producto_seo?select=' + SEO_COLS + '&producto_id=eq.' + row.id + '&limit=2'),
+      !brand ? Promise.resolve([]) : marcasTodas ? Promise.resolve(marcasTodas.filter(m => String(m.marca || '').trim().toLowerCase() === lowerBrand)) : fetchRows('lift_seo_marcas?select=habilitada&marca=ilike.' + encodeURIComponent(brand) + '&limit=2'),
+      bloqueosTodos ? Promise.resolve(bloqueosTodos.filter(b => String(b.producto_id) === String(row.id))) : fetchRows('lift_seo_bloqueos?select=producto_id&producto_id=eq.' + row.id + '&limit=1')
     ]);
     if (seoRows.length > 1) throw new Error('SEO duplicado para producto: ' + row.id);
     const gen = construirSeo(row, seoRows[0] || {});
@@ -147,36 +158,9 @@ module.exports = async function handler(req, res) {
       '<section class="seo-ssr-descripcion">' + sanitize(seo.descripcion_larga_html) + '</section>';
     // Mostrar juntos el encabezado y la ficha completa; no pintar etapas intermedias.
     // El HTML SSR permanece accesible para rastreadores y como respaldo si falla JS.
-    const atomicLoad = `<style id="supgo-atomic-style">
-      html.supgo-atomic-loading body::before{
-        content:"";position:fixed;inset:0;z-index:2147483646;background:#fff;
-      }
-      html.supgo-atomic-loading body::after{
-        content:"Cargando producto…";position:fixed;top:50%;left:50%;
-        transform:translate(-50%,-50%);z-index:2147483647;
-        color:#555;font:500 14px/1.5 Arial,sans-serif;white-space:nowrap;
-      }
-    </style><script>
-    (function(){
-      document.documentElement.classList.add('supgo-atomic-loading');
-      var productReady=false,headerReady=false,finished=false;
-      function reveal(){
-        if(finished)return;finished=true;
-        document.documentElement.classList.remove('supgo-atomic-loading');
-      }
-      function check(){if(productReady&&headerReady)requestAnimationFrame(function(){requestAnimationFrame(reveal);});}
-      document.addEventListener('supgo-ficha-lista',function(){productReady=true;check();},{once:true});
-      document.addEventListener('supgo:ficha-error',function(){productReady=true;check();},{once:true});
-      document.addEventListener('supgo:header-ready',function(){headerReady=true;check();},{once:true});
-      window.addEventListener('load',function(){
-        if(document.querySelector('#supgo-global-header'))headerReady=true;
-        if(document.querySelector('#supgo-ficha .product-card:not(.supgo-ssr-product),#supgo-ficha .fd-error'))productReady=true;
-        check();
-      },{once:true});
-      // Si hay error o lentitud de red, nunca mantener la pantalla tapada.
-      setTimeout(reveal,2500);
-    })();
-    <\/script>`;
+    // Antes se tapaba la página con "Cargando producto…" hasta 2,5 s. Ahora la ficha del servidor
+    // (foto, nombre, marca, precio y descripción) se ve de inmediato y el navegador la completa.
+    const atomicLoad = '<style id="supgo-ssr-ficha">#supgo-ficha .supgo-ssr-product{animation:supgoSsrIn .18s ease-out}@keyframes supgoSsrIn{from{opacity:.4}to{opacity:1}}</style>';
     // Reutilizar en el navegador la misma fila ya consultada por Vercel: evita
     // repetir dos peticiones a Supabase antes de mostrar variantes y botones.
     const bootstrap = '<script type="application/json" id="supgo-product-bootstrap">' +
@@ -191,7 +175,8 @@ module.exports = async function handler(req, res) {
       .replace(/<div class="fd-cargando" role="status">[\s\S]*?<\/div><\/div>/, initial)
       .replace('<script type="application/json" id="ficha-plantilla">', bootstrap + '<script type="application/json" id="ficha-plantilla">');
     res.setHeader('Content-Type','text/html; charset=utf-8');
-    res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=600');
+    // Respuesta inmediata desde la CDN; se renueva en segundo plano. El navegador refresca precio y oferta.
+    res.setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=86400');
     return res.status(200).send(html);
   } catch (err) {
     console.error('SUPGO product SSR error:', err.message);

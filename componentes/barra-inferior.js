@@ -8,6 +8,23 @@ var P=location.pathname;
 // No se muestra en el pago ni en herramientas internas.
 if(/^\/(checkout|control|panel|editor|admin|dashboard|productividad|atencion|e|baja|resena)(\/|\.html|$)/.test(P)||/admin\.html$/.test(P))return;
 
+// Precarga por intención: al tocar o pasar el mouse por un producto, la ficha empieza a
+// descargarse antes del clic (en iPhone calienta la CDN; en Android/Chrome queda lista en caché).
+(function(){
+ var hechos=new Set(),soporta=false;try{soporta=document.createElement('link').relList.supports('prefetch')}catch(e){}
+ function precargar(a){
+  if(!a||!a.href)return;var u;try{u=new URL(a.href,location.href)}catch(e){return}
+  if(u.origin!==location.origin||!/^\/producto\/[a-z0-9-]+\/?$/.test(u.pathname)||u.pathname===location.pathname)return;
+  var k=u.pathname;if(hechos.has(k)||hechos.size>=30)return;hechos.add(k);
+  if(soporta){var l=document.createElement('link');l.rel='prefetch';l.href=k;l.as='document';document.head.appendChild(l)}
+  else{try{fetch(k,{credentials:'same-origin',priority:'low'}).catch(function(){})}catch(e){}}
+ }
+ var t=null;
+ document.addEventListener('touchstart',function(e){precargar(e.target.closest&&e.target.closest('a[href]'))},{passive:true,capture:true});
+ document.addEventListener('pointerdown',function(e){precargar(e.target.closest&&e.target.closest('a[href]'))},{passive:true,capture:true});
+ document.addEventListener('mouseover',function(e){var a=e.target.closest&&e.target.closest('a[href]');clearTimeout(t);if(a)t=setTimeout(function(){precargar(a)},70)},{passive:true});
+})();
+
 var ICON={
  inicio:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
  ofertas:'<path d="M12 22c4.4 0 7-2.9 7-6.6 0-3.1-1.9-5.4-3.6-7.2-.3 1.6-1.1 2.8-2.3 3.4.2-3.4-1.3-6.3-4.1-8.6.1 3-1.4 5-3 6.9C4.9 11.2 5 12.6 5 15.4 5 19.1 7.6 22 12 22z"/><path d="M12 22c-1.7 0-3-1.3-3-3.1 0-1.6 1.2-2.6 2.1-3.6.2 1 .8 1.6 1.6 1.9.1-1 .6-1.8 1.3-2.4.6 1.3 1 2.2 1 3.9 0 1.9-1.3 3.3-3 3.3z"/>',

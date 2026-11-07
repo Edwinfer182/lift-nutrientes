@@ -112,7 +112,7 @@
   // Aviso de cookies y pie legal (independiente del header).
   if(!window.SupgoCookies)loadScript(path+'privacidad.js?v=20261101-norebote').catch(function(){});
   // Barra de navegación inferior en celular (Inicio · Ofertas · Buscar · Carrito · Cuenta).
-  if(!window.__supgoBarraInferior)loadScript(path+'barra-inferior.js?v=20261107-2').catch(function(){});
+  if(!window.__supgoBarraInferior)loadScript(path+'barra-inferior.js?v=20261107-3').catch(function(){});
   window.__supgoHeaderMountPromise=new Promise(function(resolve){
     function start(){mount().catch(function(error){console.error('[SUPGO] No se pudo montar /componentes/header.html',error);}).finally(resolve);}
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
