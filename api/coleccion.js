@@ -74,7 +74,7 @@ function textos(tipo, label, rows, seo) {
     if (/^[^|]+ en medell[ií]n \| supgo$/i.test(title)) title = 'Suplementos ' + label + ' en Medellín: precios | SUPGO';
     if (!meta || GENERICA.test(meta)) meta = 'Compra suplementos ' + label + ' en SUPGO: ' + rows.length + ' productos' + (cats.length ? ' de ' + lista(cats) : '') + '. Precios' + rango + ', envíos a toda Colombia.';
   } else {
-    if (!intro || GENERICA.test(intro)) intro = label + (marcas.length ? ' de marcas como ' + lista(marcas) : ' en SUPGO') +
+    if (!intro || GENERICA.test(intro)) intro = label + (marcas.length ? ': marcas como ' + lista(marcas) : ' en SUPGO') +
       '. Precios' + (rango || ' por consultar') + ', con envío en Medellín y a toda Colombia.';
     if (!meta || GENERICA.test(meta)) meta = label + ' en SUPGO Medellín: ' + rows.length + ' productos' + (marcas.length ? ' de ' + lista(marcas.slice(0, 3)) : '') + '. Precios' + rango + ', envíos a toda Colombia.';
   }
