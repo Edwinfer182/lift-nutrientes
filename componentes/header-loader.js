@@ -4,11 +4,11 @@
   'use strict';
   if(window.__supgoHeaderMountPromise)return;
   const path='/componentes/';
-  const VERSION='20261104-header-slug-v7';
+  const VERSION='20261107-header-v2';
   // Reserva el alto del header desde el primer pintado: evita que la página "salte".
   if(!document.querySelector('header.top,#supgo-global-header,#supgo-header-placeholder')&&document.body){
     const holder=document.createElement('div');holder.id='supgo-header-placeholder';holder.setAttribute('aria-hidden','true');
-    holder.style.cssText='background:#111315;border-bottom:1px solid #171717;height:'+(window.matchMedia('(max-width:760px)').matches?'102px':'71px');
+    holder.style.cssText='background:#111315;border-bottom:1px solid #171717;height:'+(window.matchMedia('(max-width:760px)').matches?'130px':'73px');
     document.body.insertBefore(holder,document.body.firstChild);
   }
   function loadScript(src){
@@ -84,7 +84,9 @@
         order.setAttribute('aria-label','Mi pedido');
         (cart||null) ? cart.before(order) : headerBar.append(order);
       }
-      if(order){
+      const isV2=!!host.querySelector('.supgo-v2');
+      if(order && isV2){order.hidden=true;}
+      else if(order){
         order.hidden=false;
         order.style.setProperty('display','inline-flex','important');
         order.style.setProperty('align-items','center','important');
@@ -96,6 +98,8 @@
 
       // El botón del header recién montado ya existe y usa el seguimiento compartido.
       document.dispatchEvent(new CustomEvent('supgo:header-ready',{detail:{host:host}}));
+      // Panel lateral MENÚ del header v2 (categorías, laboratorios, pedido, cuenta).
+      if(isV2&&!window.__supgoMenuLateral)loadScript(path+'menu-lateral.js?v='+VERSION).catch(function(){});
       // Cuenta del cliente: ícono, favoritos sincronizados y referidos.
       if(!window.SupgoCuenta)loadScript(path+'cuenta.js?v=20261101-google').catch(function(){});
       // Sección activa del header y animaciones (toque y favoritos).
