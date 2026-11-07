@@ -100,7 +100,7 @@ const menu=[
 ['Clientes',[['atencion','🎧','Centro de atención','atencion'],['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
 ['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
 ['Catálogo',[['editor','🗃️','Editor Supabase y SEO','editor'],['productos','📦','Productos antiguos','legacy:productos'],['crear','🆕','Crear producto antiguo','legacy:crear'],['ofertas','🔥','Ofertas','legacy:ofertas'],['combos','🎁','Combos','legacy:combos'],['categorias','🏷️','Categorías','legacy:categorias'],['laboratorio','🏭','Laboratorios','legacy:laboratorio'],['variaciones','🎨','Variaciones','legacy:variaciones'],['excel','📊','Excel y datos','legacy:excel']]],
-['Contenido y gestión',[['redes','✨','Estudio de redes','redes'],['instagram','📸','Instagram clásico','native:instagram'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
+['Contenido y gestión',[['redes','✨','Estudio de redes · SEO e Instagram','redes'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
 const $=id=>document.getElementById(id);
 const PASS='liftAdminCloudPasswordV1',UNLOCKED='liftAdminUnlockedV1';
@@ -164,7 +164,7 @@ $('logoutControl').addEventListener('click',signOut);
 let controlInitialized=false;
 function initControl(){
   if(!controlInitialized)controlInitialized=true;
-  const initial=decodeURIComponent((location.hash||'').slice(1));
+  let initial=decodeURIComponent((location.hash||'').slice(1));if(initial==='instagram')initial='redes';
   open(lookup.has(initial)?initial:'inicio',true);
 }
 
@@ -364,6 +364,7 @@ function open(id,backwards){
  },250);
 }
 $('filter').oninput=renderMenu;
+window.addEventListener('hashchange',()=>{const id=decodeURIComponent(location.hash.slice(1));if(id==='instagram'){open('redes');return}if(lookup.has(id)&&id!==current&&storedPassword())open(id)});
 $('toggle').onclick=()=>document.body.classList.toggle('menu-open');
 $('back').onclick=()=>{if(previous.length)open(previous.pop(),true)};
 $('refresh').onclick=()=>open(current,true);

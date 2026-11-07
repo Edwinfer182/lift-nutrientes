@@ -1290,7 +1290,7 @@ const HUB=[
  ['Herramientas',[
   ['native:calculadora','🧮','Calculadora','Operaciones y porcentajes'],
   ['native:calcofertas','📈','Cálculo de ofertas','Márgenes y precios de oferta'],
-  ['native:instagram','📸','Instagram SEO · Estados · TikTok','Productos, educación, estados y guiones'],
+  ['native:instagram','✨','Estudio de redes · SEO e Instagram','Productos, educación, TikTok y SEO por marca'],
   ['herramientas','⚙️','Más herramientas','Menú de herramientas del panel anterior']]]
 ];
 $('hub').innerHTML=HUB.map(([g,list])=>'<div class="hubGroup"><h2>'+esc(g)+'</h2><div class="hubGrid">'+list.map(([k,ic,t,d])=>k.startsWith('native:')
@@ -1316,7 +1316,7 @@ async function openInstagramTools(){
     await window.LiftInstagramSEO.openSelector();
   }catch(e){toast('Instagram SEO: '+e.message,{err:true});console.error(e)}
 }
-$('hub').querySelector('[data-go="instagram"]').onclick=openInstagramTools;
+$('hub').querySelector('[data-go="instagram"]').onclick=()=>{try{if(window.top!==window&&window.top.location.pathname.startsWith('/control')){window.top.location.hash='redes';return}}catch(e){}location.href='/control/redes/'};
 let offersCalculatorLoading=null;
 async function openOffersCalculator(){
   if(!pass()){toast('Inicia sesión para usar la calculadora',{err:true});return}

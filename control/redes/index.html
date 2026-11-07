@@ -49,9 +49,25 @@ canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0
 .gate a{display:inline-block;margin-top:12px;background:#152316;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none}
 .hist{display:flex;gap:6px;overflow:auto;padding-bottom:2px}
 .hist button{flex:none;border:1px solid #e0e7e0;background:#fff;border-radius:9px;padding:5px 9px;font-size:11px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:14px 14px 0;max-width:1400px;margin:auto}
+.tabs button{border:1px solid #d5ded5;background:#fff;border-radius:999px;padding:9px 15px;font-size:12.5px;font-weight:600}
+.tabs button.on{background:#152316;color:#b4f24b;border-color:#152316}
+.panel2{max-width:1100px;margin:14px auto;padding:0 14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.grid2 label{font-size:11.5px;font-weight:600;color:#3c4a3e}
+.grid2 select,.grid2 input,.panel2 textarea,.panel2 input[type=text]{display:block;width:100%;margin-top:5px;padding:9px 10px;border:1px solid #cdd7cd;border-radius:9px;background:#fff}
+.hookbox{background:#f3f9e8;border:1px solid #d7e9b8;border-radius:10px;padding:10px 12px;margin:12px 0;font-weight:600}
+.slots{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.slots div{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #e6ece6;border-radius:10px;padding:8px 10px;background:#fbfcfb}
+.urls{display:flex;flex-direction:column;gap:4px;max-height:360px;overflow:auto;margin-top:8px}
+.urls div{display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #eef2ee;padding:5px 0;font-size:12px}
+.urls a{color:#1d5c1d;word-break:break-all}
 @media(max-width:900px){.preview{order:-1}.wrap{grid-template-columns:1fr;padding:10px}.pick{position:static;max-height:none}#list{max-height:300px}.out{grid-template-columns:1fr}.preview{position:static}}
 </style></head><body>
 <div id="gate" class="gate card" hidden><h1>Estudio de redes</h1><p class="muted">Inicia sesión en SUPGO CONTROL para usar esta herramienta.</p><a href="/control/">Ir a SUPGO CONTROL</a></div>
+<nav class="tabs" id="tabs" hidden aria-label="Secciones">
+ <button data-t="productos" class="on">🛍 Productos</button><button data-t="educacion">📚 Educación · Calendario</button><button data-t="tiktok">🎬 TikTok · Guiones</button><button data-t="marcas">🏷 Marcas · SEO</button>
+</nav>
 <div class="wrap" id="app" hidden>
  <section class="card pick" aria-label="Elegir productos">
   <div><h1>Estudio de redes</h1><div class="muted">Elige productos y obtén textos e imágenes listos para publicar.</div></div>
@@ -74,7 +90,7 @@ canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0
     </div></div>
     <div class="grow"><h2>Enfoque</h2>
      <div class="seg" id="tone">
-      <button data-v="venta" class="on">Venta</button><button data-v="oferta">Oferta</button><button data-v="educativo">Cómo elegir</button><button data-v="comparar">Comparar</button>
+      <button data-v="venta" class="on">Venta</button><button data-v="oferta">Oferta</button><button data-v="alcance">Alcance</button><button data-v="educativo">Cómo elegir</button><button data-v="comparar">Comparar</button>
      </div></div>
    </div>
    <div class="row" style="margin-top:10px">
@@ -87,6 +103,9 @@ canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0
   <div class="card" id="result"><div class="empty">Elige uno o varios productos a la izquierda.</div></div>
  </section>
 </div>
+<section class="panel2" id="p-educacion" hidden></section>
+<section class="panel2" id="p-tiktok" hidden></section>
+<section class="panel2" id="p-marcas" hidden></section>
 <div id="toast" hidden role="status"></div>
 <script>
 (function(){
@@ -95,7 +114,7 @@ const SB='https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/',KEY='sb_publishable
 const $=id=>document.getElementById(id);
 const pass=()=>{try{return sessionStorage.getItem('liftAdminCloudPasswordV1')||''}catch(e){return ''}};
 if(!pass()){$('gate').hidden=false;return}
-$('app').hidden=false;
+$('app').hidden=false;$('tabs').hidden=false;
 
 /* ---------- Datos ---------- */
 const S={rows:[],offers:{},top:[],sel:[],fmt:'post',tone:'venta',seed:0,filter:'',cat:''};
@@ -130,6 +149,10 @@ async function load(){
  S.offers=offers&&typeof offers==='object'?offers:{};
  const meds=new Set(blk.map(x=>String(x.producto_id)));
  S.rows=a.concat(b).filter(r=>{const p=r.product||{};return !meds.has(String(r.id))&&!p.__deleted&&!p.__private&&!p.adminOnly&&!p.hidden&&!p.oculto&&(p.name||p.nombre)&&!/copia\s*$/i.test(p.name||'')&&!/^(venom pharma|lift nutrientes)$/i.test(p.brand||p.marca||'')}).map(info);
+ // Sabores disponibles: mismos marca y nombre base (sin el sabor).
+ const base=x=>norm(x.brand)+'|'+norm(x.flavor&&norm(x.name).endsWith(norm(x.flavor))?x.name.slice(0,-x.flavor.length):x.name).replace(/[^a-z0-9]+/g,' ').trim();
+ const fam=new Map();S.rows.forEach(x=>{const k=base(x);if(!fam.has(k))fam.set(k,[]);fam.get(k).push(x)});
+ S.rows.forEach(x=>{const f=fam.get(base(x));x.sabores=f.length>1?[...new Set(f.map(y=>y.flavor).filter(Boolean))]:[]});
  const cats=[...new Set(S.rows.map(x=>x.cat).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'es'));
  cats.forEach(c=>$('cat').add(new Option(c,c)));
  try{const r=await fetch(SB+'rpc/lift_control_resumen',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass()})});if(r.ok){const j=await r.json();S.top=(j.top_productos||[]).map(x=>String(x.id))}}catch(e){}
@@ -184,18 +207,20 @@ function single(x,fmt,tone){
  const n=x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' de '+x.brand:''),link=utm(x.url,fmt,tone==='oferta'?'ofertas':'producto');
  const hooks={venta:['¿Buscas '+x.name+' en '+CITY+'? 👇','Llegó a SUPGO: '+n+' 💪','Tu próximo pedido: '+n+' ✅'],
   oferta:['🔥 OFERTA: '+n+' con -'+x.pct+'%','Precio especial en '+n+' ⏳','Aprovecha: '+n+' más barato esta semana 🔥'],
+  alcance:['¿Conoces '+n+'? 👀','Si buscas '+x.name+' en Colombia, mira esto 👇','Hoy te mostramos '+n+' ✨'],
   educativo:['Antes de comprar '+x.name+', mira esto 👀','3 cosas para elegir '+(x.cat||'tu suplemento').toLowerCase()+' 🧠','¿Cómo saber si '+x.name+' es para ti?'],
   comparar:['¿'+x.name+' o la otra opción? Te ayudamos a comparar ⚖️','Compara antes de comprar: '+x.name,'Precio por servicio: el dato que casi nadie mira 💡']};
  const hook=pick(hooks[tone]||hooks.venta);const sp=specs(x),tips=edu(x.cat);
  const body=[hook,'',
   sp?'📦 '+sp+(x.flavor?' · Sabor '+x.flavor:''):null,
+  x.sabores&&x.sabores.length>1?'😋 Sabores: '+x.sabores.join(', '):null,
   priceLine(x),x.gift?'🎁 Incluye regalo: '+x.gift:null,
   tone==='educativo'||tone==='comparar'?'\n'+tips.map((t,i)=>(i+1)+'. '+t).join('\n'):null,
   '',pick(['🚚 Entregas en '+CITY+' y envíos a toda Colombia.','🚚 Envío a toda Colombia · En '+CITY+' pedidos antes de las 2 p. m. pueden salir el mismo día.','📍 '+CITY+' y envíos nacionales.'],1),
   pick(['👉 Pídelo en el link de la bio o escríbenos por WhatsApp.','👉 Link en la bio · supgo.co','👉 Escríbenos y te ayudamos a elegir.'],2)].filter(v=>v!==null).join('\n').replace(/\n{3,}/g,'\n\n');
  const tags=hashtags([x]);
- if(fmt==='post')return {blocks:[['Texto del post',body+'\n\n'+tags],['Enlace con seguimiento (bio o mensaje)',link],['Texto alternativo de la imagen',x.name+(x.brand?' de '+x.brand:'')+(sp?', '+sp:'')+'. Precio '+cop(x.price)+' en SUPGO.']],image:'post'};
- if(fmt==='historia')return {blocks:[['Texto corto para la historia o estado',[x.onOffer?'🔥 -'+x.pct+'% HOY':pick(['NUEVO EN SUPGO','DISPONIBLE YA','¿LO NECESITAS?']),x.name,x.price?cop(x.price):'Consulta precio','👆 Toca el enlace'].join('\n')],['Enlace para el sticker',link],['Mensaje para estado de WhatsApp',x.name+' — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (oferta -'+x.pct+'%)':'')+'\nPídelo aquí 👉 '+utm(x.url,'whatsapp',tone==='oferta'?'ofertas':'estado')]],image:'historia'};
+ if(fmt==='post')return {blocks:[['Texto del post',body+'\n\n'+tags],['Nombre + marca + precio',[x.name,x.brand,x.price?cop(x.price):''].filter(Boolean).join(' - ')],['Enlace con seguimiento (bio o mensaje)',link],['Texto alternativo de la imagen',x.name+(x.brand?' de '+x.brand:'')+(sp?', '+sp:'')+'. Precio '+cop(x.price)+' en SUPGO.'],['Prompt para @Estados · publicación 4:5',estadosPrompt(x,'post')]],image:'post'};
+ if(fmt==='historia')return {blocks:[['Texto corto para la historia o estado',[x.onOffer?'🔥 -'+x.pct+'% HOY':pick(['NUEVO EN SUPGO','DISPONIBLE YA','¿LO NECESITAS?']),x.name,x.price?cop(x.price):'Consulta precio','👆 Toca el enlace'].join('\n')],['Enlace para el sticker',link],['Texto del sticker',x.sabores&&x.sabores.length>1?'Ver precio y sabores':'Ver precio'],['Prompt para @Estados · estado 9:16',estadosPrompt(x,'historia')],['Mensaje para estado de WhatsApp',x.name+' — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (oferta -'+x.pct+'%)':'')+'\nPídelo aquí 👉 '+utm(x.url,'whatsapp',tone==='oferta'?'ofertas':'estado')]],image:'historia'};
  if(fmt==='reel')return {blocks:[['Guion (15–25 s)',[
    '0–3 s · Gancho (texto en pantalla): '+hook,
    '3–8 s · Muestra el envase y di: "'+x.name+(sp?', '+sp:'')+'."',
@@ -206,6 +231,7 @@ function single(x,fmt,tone){
  if(fmt==='whatsapp')return {blocks:[['Mensaje de difusión',['Hola 👋 '+(x.onOffer?'tenemos oferta en *'+x.name+'*':'te cuento que tenemos *'+x.name+'*')+(x.brand?' de '+x.brand:'')+'.',sp?'📦 '+sp:'',priceLine(x),x.gift?'🎁 Regalo: '+x.gift:'','Puedes pedirlo aquí: '+utm(x.url,'whatsapp','difusion'),'Si tienes dudas, respóndeme este mensaje.'].filter(Boolean).join('\n')]],image:'post'};
  return multi([x],'carrusel',tone);
 }
+function estadosPrompt(x,kind){return '@Estados: Crea una imagen de '+(kind==='historia'?'estado de WhatsApp / historia de Instagram, formato vertical 9:16 (1080 × 1920 px)':'publicación de Instagram, formato vertical 4:5 (1080 × 1350 px)')+' para '+[x.name,x.brand].filter(Boolean).join(' · ')+'. Utiliza la programación y el estilo visual que ya tenemos definidos para @Estados. Conserva fielmente el envase, etiqueta, marca, colores y sabor de la fotografía original que adjunto. Diseño profesional, limpio, con poco texto, producto protagonista, sin logos inventados ni afirmaciones no verificadas. Producto: '+x.name+'. Marca: '+(x.brand||'no especificada')+'. Sabor: '+(x.flavor||'no especificado')+'. Precio: '+(x.price?cop(x.price)+(x.onOffer?' (antes '+cop(x.regular)+')':''):'no mostrar precio')+'. No agregues información nutricional que no sea visible o esté confirmada. Entrega una sola imagen lista para publicar.'}
 function multi(items,fmt,tone){
  const off=items.filter(x=>x.onOffer),title=tone==='oferta'||off.length===items.length?pick(['🔥 OFERTAS DE LA SEMANA EN SUPGO','Precios especiales esta semana 🔥','Lo que está en oferta hoy 👇']):tone==='comparar'?'Compara antes de comprar ⚖️':pick(['Nuestras recomendaciones de la semana 💪','Lo más pedido en SUPGO 🏆','Arma tu stack 👇']);
  const lines=items.map((x,i)=>(i+1)+'. '+x.name+(x.brand?' ('+x.brand+')':'')+' — '+(x.onOffer?cop(x.price)+' (antes '+cop(x.regular)+')':x.price?cop(x.price):'consulta precio')+(tone==='comparar'&&x.perServ?' · '+cop(x.perServ)+'/serv.':''));
@@ -267,10 +293,15 @@ async function build(){
  const row=document.createElement('div');row.className='row';
  const dl=document.createElement('button');dl.className='btn dark';dl.textContent=canvases.length>1?'Descargar '+canvases.length+' imágenes':'Descargar imagen';dl.onclick=()=>download(canvases);
  const sh=document.createElement('button');sh.className='btn lime';sh.textContent='Compartir (celular)';sh.onclick=()=>share(canvases,out);
- row.append(dl);if(navigator.canShare)row.append(sh);pv.append(info,row);
+ row.append(dl);if(navigator.canShare)row.append(sh);
+ if(S.sel.length===1&&S.sel[0].img){const of=document.createElement('button');of.className='btn';of.textContent='Foto original';of.onclick=()=>originalPhoto(S.sel[0]);row.append(of)}
+ pv.append(info,row);
  if(canvases.length>1){const strip=document.createElement('div');strip.className='row';canvases.forEach((c,i)=>{const b=document.createElement('button');b.className='btn';b.textContent=i===0&&S.sel.length>1&&out.image==='carrusel'?'Portada':String(i+(S.sel.length>1&&out.image==='carrusel'?0:1));b.onclick=()=>{pv.replaceChild(c,pv.querySelector('canvas'))};strip.append(b)});pv.append(strip)}
  save();
 }
+async function originalPhoto(x){try{const r=await fetch(x.img);if(!r.ok)throw Error('HTTP '+r.status);const b=await r.blob();const ext=b.type.includes('png')?'png':b.type.includes('webp')?'webp':'jpg';const file=new File([b],'supgo-'+slug(x.name)+'.'+ext,{type:b.type});
+ if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:x.name});return}catch(e){if(e.name==='AbortError')return}}
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),6000)}catch(e){window.open(x.img,'_blank','noopener')}}
 const blobOf=c=>new Promise(r=>{try{c.toBlob(b=>r(b),'image/png')}catch(e){r(null)}});
 async function download(cs){let n=0;for(const [i,c] of cs.entries()){const b=await blobOf(c);if(!b){toast('Una imagen viene de otro sitio y no se pudo exportar; súbela al panel para usarla.');continue}
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='supgo-'+slug(S.sel[Math.max(0,i-(cs.length>S.sel.length?1:0))]?.name||'post')+'-'+(i+1)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);n++;await new Promise(r=>setTimeout(r,350))}
@@ -287,7 +318,17 @@ function save(){try{const h=JSON.parse(localStorage.getItem(HK)||'[]').filter(x=
  h.unshift({ids:S.sel.map(s=>s.id),fmt:S.fmt,tone:S.tone,label:(S.sel.length>1?S.sel.length+' productos':S.sel[0].name)+' · '+S.fmt,t:Date.now()});localStorage.setItem(HK,JSON.stringify(h.slice(0,15)));hist()}catch(e){}}
 function hist(){const box=$('hist');box.replaceChildren();let h=[];try{h=JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){}
  h.forEach(x=>{const b=document.createElement('button');b.textContent='↺ '+x.label;b.onclick=()=>{S.sel=x.ids.map(id=>S.rows.find(r=>r.id===id)).filter(Boolean);setSeg('fmt',x.fmt);setSeg('tone',x.tone);renderSel();renderList();build()};box.append(b)})}
-function restore(){hist();const p=new URLSearchParams(location.search).get('producto');if(p){const x=S.rows.find(r=>String(r.id)===p||r.slug===p);if(x)toggle(x)}}
+function restore(){hist();const qs=new URLSearchParams(location.search),p=qs.get('producto'),q=qs.get('q'),t=qs.get('tab');
+ if(p){const x=S.rows.find(r=>String(r.id)===p||r.slug===p);if(x)toggle(x)}
+ if(q){$('q').value=q;renderList();const hits=$('list').querySelectorAll('.item');if(hits.length===1)hits[0].click()}
+ if(t)tab(t)}
+/* ---------- Pestañas ---------- */
+function tab(t){if(!['productos','educacion','tiktok','marcas'].includes(t))t='productos';
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ $('app').hidden=t!=='productos';['educacion','tiktok','marcas'].forEach(k=>$('p-'+k).hidden=k!==t);
+ if(t!=='productos'&&window.SupgoRedesSecciones)window.SupgoRedesSecciones.render(t)}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+window.SupgoRedes={rows:()=>S.rows,copy,toast,cop,norm,slug};
 
 /* ---------- Eventos ---------- */
 document.querySelectorAll('#fmt button').forEach(b=>b.onclick=()=>{setSeg('fmt',b.dataset.v);build()});
@@ -300,4 +341,5 @@ $('weekly').onclick=()=>{const off=S.rows.filter(x=>x.onOffer).sort((a,b)=>b.pct
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('q').focus()}});
 load().catch(e=>{$('list').innerHTML='<div class="empty">No se pudo cargar el catálogo: '+e.message+'</div>'});
 })();
-</script></body></html>
+</script>
+<script src="/control/redes/secciones.js?v=20261107"></script></body></html>
