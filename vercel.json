@@ -25,6 +25,11 @@
   },
   "routes": [
     {
+      "src": "^/img/(web/[A-Za-z0-9_-]+\\.(?:jpg|png|webp|gif|avif|svg))$",
+      "dest": "https://vdxkknftyssjyfbdieqa.supabase.co/storage/v1/object/public/lift-productos/$1",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable", "CDN-Cache-Control": "public, max-age=31536000, immutable" }
+    },
+    {
       "src": "^/merchant-feed\\.xml$",
       "dest": "/api/merchant-feed"
     },

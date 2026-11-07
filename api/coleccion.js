@@ -21,7 +21,8 @@ const FUSIONADAS = {
   'precursor-de-testoterona': '/categorias/precursores-de-testosterona/',
   'vitaminas': '/categorias/vitaminas-y-minerales/',
   'esenciales': '/categorias/vitaminas-y-minerales/',
-  'aminoacidos': '/categorias/aminoacidos-y-recuperacion/'
+  'aminoacidos': '/categorias/aminoacidos-y-recuperacion/',
+  'melatoninas-y-nootropicos': '/categorias/sueno/'
 };
 // Con menos productos que esto, la página no se indexa (contenido demasiado escaso).
 const MINIMO_INDEXABLE = 3;
@@ -118,8 +119,12 @@ module.exports = async function handler(req, res) {
   try {
     const templateName = tipo === 'categoria' ? 'categorias/plantilla.html' : 'laboratorios/plantilla.html';
     const template = fs.readFileSync(path.join(process.cwd(), templateName), 'utf8');
-    const [one, two] = await Promise.all([loadPage(0), loadPage(1000)]);
-    const records = one.concat(two).filter(publicRow);
+    const [one, two, meds] = await Promise.all([loadPage(0), loadPage(1000), fetch(SB + 'lift_seo_bloqueos?select=producto_id&grupo=eq.medicamento', {
+      headers: {apikey: API_KEY, Accept: 'application/json'}, signal: AbortSignal.timeout(9000)
+    }).then(r => r.ok ? r.json() : []).catch(() => [])]);
+    // Medicamentos con fórmula médica: no se enlazan ni se listan en el HTML que lee Google.
+    const medicamentos = new Set(meds.map(m => String(m.producto_id)));
+    const records = one.concat(two).filter(publicRow).filter(r => !medicamentos.has(String(r.id)));
     const field = tipo === 'categoria' ? 'categoria' : 'marca';
     const rows = records.filter(r => slugify(r[field]) === requested);
     if (tipo === 'categoria') {
