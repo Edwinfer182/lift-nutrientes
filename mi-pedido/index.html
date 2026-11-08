@@ -57,11 +57,11 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);flex:none}
 .status.ok .dot{background:var(--green)}
 .status.bad .dot{background:var(--red)}
-.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:16px 0 8px}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:16px 0 8px}
 .steps span{height:6px;border-radius:99px;background:#e9e9e9}
 .steps span.done{background:var(--green)}
 .steps span.current{background:var(--ink)}
-.stepNames{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;font-size:10.5px;color:var(--muted);text-align:center}
+.stepNames{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:10.5px;color:var(--muted);text-align:center}
 .stepNames .on{color:var(--ink);font-weight:600}
 /* Pago */
 .pay{border:2px solid var(--ink)}
@@ -141,7 +141,7 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 (function(){
 'use strict';
 var SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh',WA='573137380766';
-var STEPS=['Pedido','Disponible','Pago','Preparación','En ruta','Entregado'];
+var STEPS=['Pedido','Pago','Preparación','En ruta','Entregado'];
 var $=function(id){return document.getElementById(id)};
 var money=function(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Math.round(Number(n)||0))};
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
@@ -165,20 +165,19 @@ function copy(text,btn,label){var done=function(){if(btn){var o=btn.textContent;
 
 /* ---------- Estado ---------- */
 function stage(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
-  if(s==='entregado')return 5;if(s==='en_ruta')return 4;if(s==='preparando'||s==='programado')return 3;
-  if(s==='pendiente_pago'||['por_verificar','contraentrega','aprobado'].indexOf(ps)>=0)return 2;
-  if(s==='verificando_disponibilidad'||s==='sin_disponibilidad')return 1;return 0}
+  if(s==='entregado')return 4;if(s==='en_ruta')return 3;if(s==='preparando'||s==='programado')return 2;
+  if(s==='pendiente_pago'||['por_verificar','contraentrega','aprobado'].indexOf(ps)>=0)return 1;return 0}
 function info(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
   if(s==='sin_disponibilidad')return {t:'Un producto no está disponible',d:'No realices el pago todavía. Puedes esperar reposición, cambiar el producto o quitarlo.',k:'bad'};
   if(s==='verificando_disponibilidad')return {t:'Verificando tus productos',d:'Estamos confirmando la disponibilidad con la bodega. Normalmente te confirmamos en máximo 30 minutos (8 a. m. a 8 p. m.). Te avisaremos por WhatsApp y correo, y aquí mismo aparecerá el botón para pagar. No se cobra nada todavía.'};
   if(s==='pendiente_pago'&&ps==='aprobado')return {t:'Pago aprobado',d:'Estamos alistando tu pedido.',k:'ok'};
   if(s==='pendiente_pago'&&ps==='por_verificar')return {t:'Verificando tu pago',d:'Recibimos tu comprobante y lo estamos revisando.'};
   if(s==='pendiente_pago'&&ps==='contraentrega')return {t:'Pago contraentrega',d:'Pagarás en efectivo al recibir tu pedido.',k:'ok'};
-  if(s==='pendiente_pago')return {t:'Tus productos están disponibles',d:'Completa el pago para que preparemos tu pedido.'};
+  if(s==='pendiente_pago')return {t:'Completa tu pago',d:'Paga tu pedido para que lo preparemos y despachemos.'};
   if(s==='preparando'||s==='programado')return {t:'Estamos preparando tu pedido',d:'Tu pago fue aprobado. El siguiente paso es el envío.',k:'ok'};
   if(s==='en_ruta')return {t:'Tu pedido está en camino',d:'Ya salió hacia la dirección registrada.',k:'ok'};
   if(s==='entregado')return {t:'Pedido entregado',d:'¡Gracias por comprar en SUPGO!',k:'ok'};
-  return {t:'Pedido recibido',d:'El siguiente paso es confirmar la disponibilidad de tus productos.'}}
+  return {t:'Pedido recibido',d:'Estamos procesando tu pedido.'}}
 
 /* ---------- Carga ---------- */
 function show(id){var was=$(id).hidden;['loading','lookup','order'].forEach(function(x){$(x).hidden=x!==id});if(was)window.scrollTo(0,0)}
@@ -203,7 +202,7 @@ function render(img,disp){
   if(q.get('nuevo'))h+='<div class="success"><span style="font-size:22px">✓</span><div><b>¡Recibimos tu pedido!</b><span>Te enviamos la confirmación por correo. Guarda esta página para seguir tu pedido.</span></div></div>';
   h+='<div class="orderHead"><div><h1>Pedido #'+esc(c.id)+'</h1><small>'+(p.fecha?new Date(p.fecha).toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}):'')+'</small></div></div>';
   h+='<div class="card status '+(inf.k||'')+'"><h2><span class="dot"></span>'+esc(inf.t)+'</h2><p>'+esc(inf.d)+'</p>'+
-     '<div class="steps" aria-label="Etapa '+(at+1)+' de 6">'+STEPS.map(function(x,i){return '<span class="'+(i<at?'done':i===at?'current':'')+'"></span>'}).join('')+'</div>'+
+     '<div class="steps" aria-label="Etapa '+(at+1)+' de 5">'+STEPS.map(function(x,i){return '<span class="'+(i<at?'done':i===at?'current':'')+'"></span>'}).join('')+'</div>'+
      '<div class="stepNames">'+STEPS.map(function(x,i){return '<span class="'+(i===at?'on':'')+'">'+x+'</span>'}).join('')+'</div></div>';
   if(disp&&disp.tipo==='guia'&&disp.guia)h+='<div class="card"><h2>🚚 Seguimiento del envío</h2><div class="copyRow"><span><small>'+esc(disp.transportadora||'Transportadora')+'</small><strong>'+esc(disp.guia)+'</strong></span><button type="button" data-copy="'+esc(disp.guia)+'">Copiar guía</button></div></div>';
   else if(disp&&disp.tipo==='local'&&s==='en_ruta')h+='<div class="card"><h2>🛵 Tu pedido salió a ruta</h2><p class="lead" style="margin:0">El mensajero hace varias entregas; no manejamos una hora exacta de llegada.</p></div>';

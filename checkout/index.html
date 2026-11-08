@@ -139,10 +139,6 @@ details.coupon[open] summary::after{content:"−"}
   .row{grid-template-columns:1fr}
   .secure span{display:none}
 }
-.payTiming{display:flex;gap:10px;align-items:flex-start;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.45;background:#fff;border:1px solid var(--line)}
-.payTiming b{display:block;font-size:14px;margin-bottom:2px}
-.payTiming.fast{background:#f3fbe3;border-color:#cfe9a0}
-.payTiming .ic{font-size:20px;line-height:1}
 .acctBar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px}
 .acctBar a{font-weight:600;white-space:nowrap}
 .acctBar.in{background:#f3fbe3;border-color:#cfe9a0}
@@ -163,6 +159,24 @@ details.coupon[open] summary::after{content:"−"}
 .savedAddrs button{flex:0 0 auto;max-width:240px;text-align:left;border:1px solid #d6d6d6;background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer}
 .savedAddrs button b{display:block;font-size:13px}
 .savedAddrs button.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+/* Medios de pago */
+.payOpt{display:flex;gap:12px;align-items:flex-start;border:1px solid #d6d6d6;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.payOpt:last-of-type{margin-bottom:0}
+.payOpt input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--ink)}
+.payOpt b{display:block;font-size:14px;font-weight:600}
+.payOpt small{display:block;font-size:12px;color:var(--muted);line-height:1.4}
+.payOpt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.payOpt .payBody{flex:1;min-width:0}
+#po-transferencia.on{border-radius:12px 12px 0 0;margin-bottom:0}
+.payExtra{margin:0 0 10px;padding:4px 14px 14px;border:1px solid var(--ink);border-top:0;border-radius:0 0 12px 12px}
+.copyRow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--soft);border-radius:10px;padding:10px 12px;margin-top:8px}
+.copyRow small{font-size:11px}
+.copyRow strong{font-size:14px}
+.copyRow button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.holder{font-size:12px;color:var(--muted);margin-top:8px}
+.pick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border:1.5px dashed #bdbdbd;border-radius:10px;background:#fff;font-size:13px;font-weight:500;cursor:pointer;padding:8px 12px;text-align:center;margin-top:10px;position:relative}
+.pick.has{border-style:solid;border-color:var(--ink);background:var(--soft)}
+.pick input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -180,7 +194,7 @@ details.coupon[open] summary::after{content:"−"}
   <div class="grid" id="checkout">
     <section>
       <h1>Finalizar compra</h1>
-      <p class="lead">Al hacer el pedido confirmamos la disponibilidad y te enviamos cómo pagar. <b>No se cobra nada en este paso.</b></p>
+      <p class="lead">Completa tus datos, elige cómo pagar y listo.</p>
       <div class="formError" id="formError" role="alert"></div>
       <form id="form" novalidate>
         <div class="acctBar" id="acctBar" hidden></div>
@@ -235,13 +249,26 @@ details.coupon[open] summary::after{content:"−"}
             <div class="msg" id="couponMsg" aria-live="polite"></div>
           </details>
         </div>
-        <div class="payTiming" id="payTiming" hidden></div>
+        <div class="card" id="payCard">
+          <h2><span class="step">3</span>Pago</h2>
+          <label class="payOpt on" id="po-bold"><input type="radio" name="pago" value="bold" checked><span class="payBody"><b>Pagar en línea</b><small>Tarjeta, PSE, Nequi, Bancolombia y Bre-B · pago seguro con Bold</small></span></label>
+          <label class="payOpt" id="po-transferencia"><input type="radio" name="pago" value="transferencia"><span class="payBody"><b>Transferencia</b><small>Bre-B o cuenta Bancolombia</small></span></label>
+            <div class="payExtra" id="transferBox" hidden>
+              <div class="copyRow"><span><small>Valor a transferir</small><br><strong id="transferTotal">—</strong></span><button type="button" data-copy="total">Copiar valor</button></div>
+              <div class="copyRow"><span><small>Llave Bre-B (desde cualquier banco o Nequi)</small><br><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>
+              <div class="copyRow"><span><small>Bancolombia · Cuenta de ahorros</small><br><strong>366 550 234 31</strong></span><button type="button" data-copy="36655023431">Copiar cuenta</button></div>
+              <div class="holder">Titular: Edwin Fernando Muñoz Tobon</div>
+              <label class="pick" id="pickLabel"><input type="file" id="proof" accept="image/*,application/pdf"><span id="pickText">📎 Adjuntar comprobante (opcional)</span></label>
+              <div class="hint">Si aún no has transferido, puedes adjuntarlo después desde tu pedido.</div>
+            </div>
+          <label class="payOpt" id="po-efectivo" hidden><input type="radio" name="pago" value="efectivo"><span class="payBody"><b>Efectivo contraentrega</b><small>Pagas al recibir tu pedido · solo Medellín</small></span></label>
+        </div>
         <div class="card">
           <label class="check" id="c-datos"><input type="checkbox" id="datos" required><span>Autorizo el <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">tratamiento de mis datos personales</a> para gestionar mi pedido.</span></label>
           <label class="check"><input type="checkbox" id="recordar" checked><span>Guardar mis datos en este dispositivo para la próxima compra.</span></label>
           <div class="desktopCta" style="margin-top:12px">
             <button class="cta" type="submit" id="submitDesktop"><span class="spin"></span><span class="ctaText">Hacer pedido</span></button>
-            <p class="note">Verás tu pedido de inmediato y te avisaremos por correo.</p>
+            <p class="note" id="ctaNote">Te llevamos a la pasarela segura de Bold para pagar.</p>
           </div>
         </div>
       </form>
@@ -257,7 +284,7 @@ details.coupon[open] summary::after{content:"−"}
         <ul class="trust">
           <li>🚚 <span><b>Medellín:</b> pedidos confirmados antes de las 2:00 p. m. pueden salir el mismo día hábil.</span></li>
           <li>📦 <span><b>Resto del país:</b> 1 día hábil a ciudades principales y 2 a 3 días a otras zonas.</span></li>
-          <li>💳 <span>Pagas después de confirmar disponibilidad: transferencia o efectivo contraentrega en Medellín.</span></li>
+          <li>💳 <span>Paga en línea con Bold (tarjeta, PSE, Nequi), por transferencia o en efectivo contraentrega en Medellín.</span></li>
         </ul>
       </div>
     </aside>
@@ -355,19 +382,27 @@ function discount(){return state.coupon?Math.min(subtotal(),Number(state.coupon.
 function total(){var s=shipping();return Math.max(0,subtotal()-discount())+(s||0)}
 
 /* ---------- Pintar ---------- */
-function renderTiming(){
-  var el=$('payTiming');if(!el)return;var ls=okLines();
-  if(!state.loaded||!ls.length){el.hidden=true;return}
-  var direct=ls.every(function(l){var r=state.products[String(l.id)];return r&&r.pago_directo===true&&r.activo!==false});
-  el.hidden=false;el.className='payTiming'+(direct?' fast':'');
-  el.innerHTML=direct
-    ?'<span class="ic">⚡</span><div><b>Todo está disponible</b>Al hacer el pedido pasas directo a pagar y lo despachamos de una vez.</div>'
-    :'<span class="ic">🔎</span><div><b>Primero confirmamos disponibilidad</b>Verificamos tus productos con la bodega antes de cobrarte. Normalmente te confirmamos en máximo 30 minutos (8 a. m. a 8 p. m.) y te avisamos para que pagues. <b style="display:inline;font-size:13px">No se cobra nada ahora.</b></div>';
+/* ---------- Medio de pago ---------- */
+var BOLD_KEY='supgoBoldPendingV1';
+function payMethod(){var r=document.querySelector('input[name="pago"]:checked');return r?r.value:'bold'}
+function canCash(){return !!(state.city&&norm(state.city.name).indexOf('medellin')>=0)}
+function ctaLabel(){var m=payMethod();return m==='bold'?'Pagar '+money(total()):'Hacer pedido'}
+function renderPay(){
+  var cash=$('po-efectivo');cash.hidden=!canCash();
+  if(cash.hidden&&payMethod()==='efectivo'){document.querySelector('input[name="pago"][value="bold"]').checked=true}
+  var m=payMethod();
+  ['bold','transferencia','efectivo'].forEach(function(k){$('po-'+k).classList.toggle('on',k===m)});
+  $('transferBox').hidden=m!=='transferencia';
+  $('transferTotal').textContent=money(total());
+  $('ctaNote').textContent=m==='bold'?'Te llevamos a la pasarela segura de Bold para pagar.':m==='transferencia'?'Verás tu pedido de inmediato y te avisaremos por correo.':'Pagas en efectivo al recibir. Te avisaremos por correo.';
+  if(!state.sending)['submitDesktop','submitMobile'].forEach(function(id){$(id).querySelector('.ctaText').textContent=ctaLabel()});
 }
+function copyText(text,btn){var done=function(){var o=btn.textContent;btn.textContent='✓ Copiado';setTimeout(function(){btn.textContent=o},1600)};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(done,function(){prompt('Copia:',text)});else prompt('Copia:',text)}
+function fnCall(name,payload,isForm){return fetch(SB+'/functions/v1/'+name,{method:'POST',headers:isForm?{apikey:KEY}:{apikey:KEY,'Content-Type':'application/json'},body:isForm?payload:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'No se pudo completar la operación');return j})})}
 function render(){
   var lines=state.lines,box=$('items');
   if(state.loaded&&!lines.length){renderEmpty();return}
-  try{renderTiming()}catch(e){}
   box.innerHTML=lines.map(function(l){
     return '<div class="item'+(l.available?'':' unavailable')+'">'+
       (l.image?'<img class="thumb" src="'+esc(l.image)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+
@@ -386,6 +421,7 @@ function render(){
   if(state.city&&s>0){var q=units(),next=isLocal()?(q===1?7000:0):(q===1?12000:q===2?10000:0);tip='Agrega 1 producto más y el envío '+(next===0?'es <b>gratis</b>':'baja a <b>'+money(next)+'</b>')+'.'}
   $('shipTip').innerHTML=tip?'<div class="shipTip">'+tip+'</div>':'';
   $('totalMobile').textContent=money(total());$('totalSticky').textContent=money(total());$('countMobile').textContent=units();
+  try{renderPay()}catch(e){}
 }
 function renderEmpty(){
   $('app').innerHTML='<div class="empty"><h1>Tu carrito está vacío</h1><p class="lead">Agrega productos para hacer tu pedido.</p><a href="/">Ver productos</a></div>';
@@ -410,8 +446,8 @@ function pickCity(c){
 }
 function updateCity(){
   var b=$('cityBadge'),doc=$('f-documento');
-  if(!state.city){b.innerHTML='';doc.hidden=true;return}
-  var local=isLocal();doc.hidden=local;
+  if(!state.city){b.innerHTML='';doc.hidden=true;try{renderPay()}catch(e){}return}
+  var local=isLocal();doc.hidden=local;try{renderPay()}catch(e){}
   b.innerHTML=local?'<span class="badge ok">✓ Entrega local en el área metropolitana</span>':'<span class="badge">Envío nacional por transportadora</span>';
 }
 
@@ -448,7 +484,7 @@ function check(){
   return bad;
 }
 function showError(t){var e=$('formError');e.textContent=t;e.classList.toggle('show',!!t);if(t)e.scrollIntoView({behavior:'smooth',block:'center'})}
-function busy(on){state.sending=on;['submitDesktop','submitMobile'].forEach(function(id){var b=$(id);b.disabled=on;b.classList.toggle('busy',on);b.querySelector('.ctaText').textContent=on?'Enviando pedido…':'Hacer pedido'})}
+function busy(on){state.sending=on;['submitDesktop','submitMobile'].forEach(function(id){var b=$(id);b.disabled=on;b.classList.toggle('busy',on);b.querySelector('.ctaText').textContent=on?(payMethod()==='bold'?'Abriendo pago seguro…':'Enviando pedido…'):ctaLabel()})}
 
 /* ---------- Envío del pedido ---------- */
 function requestKey(){
@@ -462,6 +498,9 @@ function submit(ev){
   if(!okLines().length){showError('Tu carrito no tiene productos disponibles.');return}
   if(bad.length){var first=$(bad[0]);first.scrollIntoView({behavior:'smooth',block:'center'});var inp=first.querySelector('input');if(inp)setTimeout(function(){inp.focus({preventScroll:true})},300);
     showError(bad.length===1&&bad[0]==='c-datos'?'Para hacer el pedido debes autorizar el tratamiento de tus datos personales.':'Revisa los campos marcados en rojo.');return}
+  var proofFile=payMethod()==='transferencia'&&$('proof').files[0]||null;
+  if(proofFile&&proofFile.size>5*1024*1024){showError('El comprobante supera 5 MB. Adjunta una imagen más liviana o quítalo.');return}
+  if(payMethod()==='efectivo'&&!canCash()){showError('El efectivo contraentrega solo está disponible en Medellín. Elige otro medio de pago.');return}
   busy(true);
   var couponStep=state.coupon?api('/rest/v1/rpc/lift_validar_cupon',{method:'POST',body:JSON.stringify(couponArgs(state.coupon.code,false))}).then(function(r){if(!(r&&r.valid)){state.coupon=null;render();throw new Error('El cupón ya no es válido. Revisa el total y vuelve a intentarlo.')}state.coupon.amount=Number(r.discount_amount)||0;render()}):Promise.resolve();
   couponStep.then(function(){
@@ -489,7 +528,22 @@ function submit(ev){
     }catch(e){}
     window.dispatchEvent(new Event('supgo-cart-change'));
     saveToAccount(p);
-    location.assign(id?'/mi-pedido/?pedido='+encodeURIComponent(id)+(r.token?'&token='+encodeURIComponent(r.token):'')+'&nuevo=1':'https://supgo.co/?mi-pedido=1');
+    var go=function(){location.assign(id?'/mi-pedido/?pedido='+encodeURIComponent(id)+(r.token?'&token='+encodeURIComponent(r.token):'')+'&nuevo=1':'https://supgo.co/?mi-pedido=1')};
+    if(!id||!r.token){go();return}
+    var m=payMethod();
+    if(m==='bold'){
+      fnCall('lift-bold-pagos',{pedido_id:Number(id),token:r.token,accion:'crear',ambiente:'production'}).then(function(j){
+        if(!j.url||!/^https:\/\/checkout\.bold\.co\//.test(j.url))throw new Error('Enlace de pago no válido');
+        try{gtag('event','add_payment_info',{payment_type:'bold',currency:'COP',value:p.total})}catch(e){}
+        try{localStorage.setItem(BOLD_KEY,JSON.stringify({id:String(id),t:Date.now()}))}catch(e){}
+        location.assign(j.url);
+      }).catch(go);
+      return;
+    }
+    fnCall('lift-clientes',{action:'public-select-payment',pedido_id:Number(id),token:r.token,medio:m}).then(function(){
+      try{gtag('event','add_payment_info',{payment_type:m,currency:'COP',value:p.total})}catch(e){}
+      if(m==='transferencia'&&proofFile){var fd=new FormData();fd.append('pedido_id',id);fd.append('token',r.token);fd.append('comprobante',proofFile);return fnCall('lift-pagos',fd,true)}
+    }).catch(function(){}).then(go);
   }).catch(function(e){busy(false);showError(e.message||'No pudimos crear el pedido. Revisa tu conexión e inténtalo de nuevo.')});
 }
 
@@ -573,6 +627,9 @@ function bind(){
   $('datos').addEventListener('change',function(){$('c-datos').classList.remove('bad')});
   $('toggleSummary').addEventListener('click',function(){var s=$('summary'),open=s.classList.toggle('collapsed');this.setAttribute('aria-expanded',String(!open))});
   window.addEventListener('storage',function(e){if(e.key===CART){buildLines();render()}});
+  [].forEach.call(document.querySelectorAll('input[name="pago"]'),function(r){r.addEventListener('change',renderPay)});
+  $('payCard').addEventListener('click',function(e){var b=e.target.closest('button[data-copy]');if(!b)return;e.preventDefault();var v=b.getAttribute('data-copy');copyText(v==='total'?String(Math.round(total())):v,b)});
+  $('proof').addEventListener('change',function(){var f=this.files[0];$('pickLabel').classList.toggle('has',!!f);$('pickText').textContent=f?'✓ '+(f.name.length>34?f.name.slice(0,31)+'…':f.name)+' · cambiar':'📎 Adjuntar comprobante (opcional)'});
 }
 /* ---------- Cuenta del cliente ---------- */
 var account=null;
