@@ -78,13 +78,15 @@ body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-u
 @media (max-width:900px){
   .grid{grid-template-columns:1fr}
   .sum{position:static}
-  .sum .cta{display:none}
   .stickyBar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));gap:12px;align-items:center;box-shadow:0 -8px 24px rgba(0,0,0,.06)}
   .stickyBar .t{flex:none;line-height:1.2}
   .stickyBar .t small{display:block;font-size:11px;color:var(--muted)}
   .stickyBar .t b{font-size:17px}
   .stickyBar .cta{height:50px}
   body{padding-bottom:84px}
+  /* Con la barra inferior del sitio, la barra de compra va justo encima para que no quede tapada. */
+  body.supgo-tabbar-on .stickyBar{bottom:calc(80px + env(safe-area-inset-bottom,0px));left:12px;right:12px;padding:10px 12px;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9400}
+  html body.supgo-tabbar-on{padding-bottom:calc(160px + env(safe-area-inset-bottom,0px))!important}
 }
 @media (max-width:520px){
   .card{padding:4px 14px}
@@ -112,13 +114,13 @@ body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-u
       <a class="cta" href="/checkout/" id="go">Continuar con el pedido</a>
       <a class="keep" href="/">← Seguir comprando</a>
       <ul class="trust">
-        <li>🔒 No se cobra nada hasta confirmar disponibilidad.</li>
+        <li>🔒 Compra segura: eliges cómo pagar al finalizar.</li>
         <li>💳 Paga en línea, por transferencia o contraentrega en Medellín.</li>
       </ul>
     </aside>
   </div>
 </main>
-<div class="stickyBar" id="sticky"><div class="t"><small>Subtotal</small><b id="stickyTotal">—</b></div><a class="cta" href="/checkout/">Continuar</a></div>
+<div class="stickyBar" id="sticky"><div class="t"><small>Subtotal</small><b id="stickyTotal">—</b></div><a class="cta" href="/checkout/">Finalizar compra</a></div>
 <script>
 (function(){
 'use strict';
