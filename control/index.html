@@ -99,19 +99,19 @@ const menu=[
 ['Ventas',[['checkout','🛒','Pedido con catálogo','legacy:checkout'],['listarapida','⚡','Lista rápida','legacy:listarapida'],['pagos','💳','Pagos','legacy:pagos'],['historial','🧾','Historial de pedidos','legacy:historial'],['anterior','🗂','Registrar pedido anterior','legacy:anterior'],['abandonados','🛍','Carritos abandonados','legacy:abandonados']]],
 ['Clientes',[['atencion','🎧','Centro de atención','atencion'],['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
 ['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
-['Catálogo',[['productos','📦','Productos y precios','legacy:productos'],['crear','➕','Crear producto','legacy:crear'],['ofertas','🔥','Ofertas','legacy:ofertas'],['combos','🎁','Combos','legacy:combos'],['variaciones','🎨','Variaciones (sabores)','legacy:variaciones'],['categorias','🏷️','Categorías','legacy:categorias'],['laboratorio','🏭','Laboratorios','legacy:laboratorio'],['excel','📊','Excel y datos','legacy:excel'],['editor','🔎','SEO y contenido','editor']]],
+['Catálogo',[['productos','⚡','Productos','catalogo:productos'],['crear','➕','Nuevo producto','catalogo:nuevo'],['ofertas','🔥','Ofertas','catalogo:ofertas'],['combos','🎁','Combos','catalogo:combos'],['variaciones','🎨','Variaciones','catalogo:variaciones'],['categorias','🏷️','Categorías','catalogo:categorias'],['laboratorio','🏭','Laboratorios','catalogo:laboratorios'],['excel','📊','Excel y datos','catalogo:excel'],['editor','🔎','SEO de páginas','editor']]],
 ['Contenido y gestión',[['redes','✨','Estudio de redes · SEO e Instagram','redes'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
 const TOOL_INFO={
- productos:'Busca, cambia precios y fotos, marca agotados y mueve productos en lote',
- crear:'Crea un producto nuevo o un combo con sus sabores y fotos',
- ofertas:'Pon precio de oferta con fecha de vencimiento; al vencer vuelve al precio normal',
- combos:'Combos de varios productos con su propio precio',
- variaciones:'Agrupa productos como sabores o tamaños de una misma ficha',
- categorias:'Crea, renombra, ordena y elimina categorías',
- laboratorio:'Marcas y laboratorios con su logo',
- excel:'Importa o exporta el catálogo en Excel, CSV o JSON',
- editor:'Textos SEO de productos, categorías, laboratorios y páginas'
+ productos:'Todo el catálogo: precios, fotos, ofertas, sabores y SEO en una sola ficha',
+ crear:'Crea un producto con fotos desde el celular',
+ ofertas:'Ofertas activas, por vencer y vencidas',
+ combos:'Productos de la categoría Combos',
+ variaciones:'Productos agrupados como sabores o tamaños',
+ categorias:'Renombrar actualiza todos los productos',
+ laboratorio:'Marcas con su logo',
+ excel:'Descarga, edita en Excel y sube con vista previa',
+ editor:'Textos SEO de categorías, laboratorios y páginas'
 };
 const LAF_TOOLS=new Set(['productos','crear','ofertas','combos','variaciones','categorias','laboratorio','excel']);
 const $=id=>document.getElementById(id);
@@ -283,12 +283,13 @@ function renderMenu(){const q=$('filter').value.toLocaleLowerCase('es');$('menu'
 function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/'+(['pedidos','nuevo','resenas'].includes(t[1])?(t[1]==='pedidos'?'':'#'+t[1]):'#mas'),'native'];
  if(t[0]==='legacy')return ['/admin.html#abrir='+t[1],'legacy'];
  if(t[0]==='editor')return ['/editor/','editor'];
+ if(t[0]==='catalogo')return ['/control/catalogo/#'+t[1],'catalogo'];
  if(t[0]==='productividad')return ['/productividad/','productividad'];
   if(t[0]==='atencion')return ['/atencion/','atencion'];
   if(t[0]==='dashboard')return ['/dashboard/','dashboard'];
   if(t[0]==='redes')return ['/control/redes/','redes'];return [null,'home']}
 function adapt(kind){
-  if(kind==='atencion'||kind==='dashboard'||kind==='redes')return; // Mantener intactas las interfaces independientes.
+  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo')return; // Mantener intactas las interfaces independientes.
  try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
   if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
   style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
@@ -321,7 +322,7 @@ function open(id,backwards){
  if(activeDocument===details[1]){
    try{
      const w=frame.contentWindow,d=w.document;
-     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':'/productividad/')){
+     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':details[1]==='catalogo'?'/control/catalogo/':'/productividad/')){
        if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1])){
          adapt('native');$('loading').hidden=true;return;
        }
@@ -330,6 +331,8 @@ function open(id,backwards){
          try{w.liftLabAdminClose?.()}catch(e){}
          if(w.supgoAbrirHerramienta(it[3].split(':')[1])){adapt('legacy');$('loading').hidden=true;return}
        }
+       // Catálogo nuevo: ya está abierto, solo cambia de sección (instantáneo).
+       if(details[1]==='catalogo'){w.location.hash=it[3].split(':')[1];$('loading').hidden=true;return}
        if(details[1]==='editor'||details[1]==='productividad'||details[1]==='dashboard'||details[1]==='redes'){
          adapt(details[1]);$('loading').hidden=true;return;
        }

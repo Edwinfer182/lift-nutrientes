@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0b0f0c">
+<title>Catálogo · SUPGO CONTROL</title>
+<link rel="preconnect" href="https://vdxkknftyssjyfbdieqa.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css?v=1">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="topRow">
+      <div class="brand"><span class="logo">⚡</span><div><h1>Catálogo</h1><p id="sync" class="sync"><i></i><span>Conectando…</span></p></div></div>
+      <button class="search" id="openSearch" type="button"><svg viewBox="0 0 24 24"><path d="M10.5 3a7.5 7.5 0 0 1 5.96 12.06l4.24 4.24-1.4 1.4-4.24-4.24A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg><span>Buscar producto, marca o ID</span><kbd>Ctrl K</kbd></button>
+      <button class="btn primary" id="newProduct" type="button"><span>＋</span><b>Nuevo</b></button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <a href="#productos" data-s="productos">Productos</a>
+      <a href="#ofertas" data-s="ofertas">Ofertas</a>
+      <a href="#categorias" data-s="categorias">Categorías</a>
+      <a href="#laboratorios" data-s="laboratorios">Laboratorios</a>
+      <a href="#variaciones" data-s="variaciones">Variaciones</a>
+      <a href="#excel" data-s="excel">Excel</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- PRODUCTOS -->
+    <section class="sec" id="s-productos">
+      <div class="insights" id="insights"></div>
+      <div class="toolbar">
+        <div class="field grow"><input id="q" type="search" placeholder="Buscar en el catálogo…" autocomplete="off"></div>
+        <button class="btn fToggle" id="fToggle" type="button">⚙ Filtros</button>
+        <select id="fCat" aria-label="Categoría"><option value="">Todas las categorías</option></select>
+        <select id="fLab" aria-label="Laboratorio"><option value="">Todos los laboratorios</option></select>
+        <select id="fSort" aria-label="Ordenar">
+          <option value="name">A → Z</option><option value="new">Más recientes</option><option value="pdesc">Precio mayor</option><option value="pasc">Precio menor</option><option value="quality">Por completar primero</option>
+        </select>
+        <div class="seg" id="viewSeg"><button data-v="list" title="Lista">☰</button><button data-v="grid" title="Cuadrícula">▦</button></div>
+      </div>
+      <div class="listHead"><label class="chk"><input type="checkbox" id="selAll"><span></span></label><span id="count">—</span><button class="link" id="clearFilters" hidden>Quitar filtros</button></div>
+      <div id="plist" class="plist list"></div>
+      <div id="more" class="more"></div>
+    </section>
+
+    <!-- OFERTAS -->
+    <section class="sec" id="s-ofertas" hidden>
+      <div class="secHead"><div><h2>Ofertas</h2><p>Precio promocional con fecha de fin. Al vencer, la tienda vuelve sola al precio normal.</p></div><button class="btn" id="offerAdd">＋ Poner oferta</button></div>
+      <div class="insights" id="offerStats"></div>
+      <div id="offerList" class="cards"></div>
+    </section>
+
+    <!-- CATEGORÍAS -->
+    <section class="sec" id="s-categorias" hidden>
+      <div class="secHead"><div><h2>Categorías</h2><p>Renombrar una categoría actualiza todos sus productos.</p></div><button class="btn" id="catAdd">＋ Nueva categoría</button></div>
+      <div class="toolbar"><div class="field grow"><input id="catQ" type="search" placeholder="Buscar categoría…"></div></div>
+      <div id="catList" class="tiles"></div>
+    </section>
+
+    <!-- LABORATORIOS -->
+    <section class="sec" id="s-laboratorios" hidden>
+      <div class="secHead"><div><h2>Laboratorios</h2><p>Marcas con su logo. Renombrar actualiza todos sus productos.</p></div><button class="btn" id="labAdd">＋ Nuevo laboratorio</button></div>
+      <div class="toolbar"><div class="field grow"><input id="labQ" type="search" placeholder="Buscar laboratorio…"></div></div>
+      <div id="labList" class="tiles"></div>
+    </section>
+
+    <!-- VARIACIONES -->
+    <section class="sec" id="s-variaciones" hidden>
+      <div class="secHead"><div><h2>Variaciones</h2><p>Productos agrupados como sabores o tamaños de una misma ficha.</p></div><button class="btn" id="grpAdd">＋ Agrupar productos</button></div>
+      <div class="toolbar"><div class="field grow"><input id="grpQ" type="search" placeholder="Buscar grupo…"></div></div>
+      <div id="grpList" class="cards"></div>
+    </section>
+
+    <!-- EXCEL -->
+    <section class="sec" id="s-excel" hidden>
+      <div class="secHead"><div><h2>Excel y datos</h2><p>Descarga el catálogo, cámbialo en Excel y vuelve a subirlo. Antes de aplicar verás exactamente qué cambia.</p></div></div>
+      <div class="xgrid">
+        <div class="panel"><h3>⬇ Descargar</h3><p>Archivo CSV que abre directo en Excel o Google Sheets.</p><div class="row"><button class="btn primary" id="expAll">Todo el catálogo</button><button class="btn" id="expFiltered">Solo lo filtrado en Productos</button></div></div>
+        <div class="panel"><h3>⬆ Subir cambios</h3><p>Usa el mismo archivo descargado. Columnas que se aplican: <b>precio</b>, <b>precio_entrenador</b>, <b>estado</b>, <b>categoria</b>, <b>laboratorio</b>, <b>nombre</b>.</p>
+          <label class="drop" id="impDrop"><input type="file" id="impFile" accept=".csv,text/csv"><span>Suelta aquí el CSV o <u>elígelo</u></span></label></div>
+      </div>
+      <div id="impPreview"></div>
+    </section>
+  </main>
+
+  <div class="bulk" id="bulk" hidden>
+    <span class="bulkN" id="bulkN">0</span>
+    <div class="bulkActs">
+      <button data-b="on">✓ Disponible</button><button data-b="out">⦸ Agotado</button><button data-b="price">± Precio</button><button data-b="offer">🔥 Oferta</button><button data-b="cat">🏷 Categoría</button><button data-b="lab">🏭 Laboratorio</button><button data-b="group">🎨 Agrupar</button><button data-b="del" class="danger">🗑</button>
+    </div>
+    <button class="x" data-b="clear" title="Quitar selección">✕</button>
+  </div>
+</div>
+
+<!-- FICHA DE PRODUCTO -->
+<div class="sheetWrap" id="sheet" hidden>
+  <div class="sheetBg" data-close></div>
+  <aside class="sheetCard" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <div class="shHead">
+      <button class="iconBtn" data-close title="Cerrar (Esc)">✕</button>
+      <div class="shTitle"><h2 id="shTitle">Producto</h2><p id="shSub"></p></div>
+      <a class="iconBtn" id="shView" target="_blank" rel="noopener" title="Ver en la tienda">↗</a>
+    </div>
+    <div class="score" id="shScore"></div>
+    <nav class="shTabs" id="shTabs"><button data-t="general" class="on">General</button><button data-t="oferta">Oferta</button><button data-t="fotos">Fotos</button><button data-t="sabores">Sabores</button><button data-t="seo">SEO</button></nav>
+    <div class="shBody" id="shBody">
+      <div class="pane on" data-p="general">
+        <label class="f"><span>Nombre</span><input id="e_name" maxlength="160"></label>
+        <div class="two"><label class="f"><span>Laboratorio</span><input id="e_brand" list="dlLabs"></label><label class="f"><span>Categoría</span><input id="e_category" list="dlCats"></label></div>
+        <div class="two"><label class="f"><span>Precio público</span><div class="money"><i>$</i><input id="e_price" inputmode="numeric"></div></label><label class="f"><span>Precio entrenador</span><div class="money"><i>$</i><input id="e_trainer" inputmode="numeric" placeholder="Opcional"></div></label></div>
+        <div class="two"><label class="f"><span>Presentación</span><input id="e_presentation" placeholder="Ej: 2 Lb, 60 caps"></label>
+          <div class="f"><span>Estado</span><div class="seg wide" id="e_status"><button data-v="on" type="button">Disponible</button><button data-v="out" type="button">Agotado</button></div></div></div>
+        <label class="f"><span>Descripción <em id="descCount"></em></span><textarea id="e_description" rows="7" placeholder="Beneficios, cómo se toma, ingredientes…"></textarea></label>
+        <p class="meta" id="e_meta"></p>
+      </div>
+      <div class="pane" data-p="oferta">
+        <div class="offerBox">
+          <div class="two"><label class="f"><span>Precio de oferta</span><div class="money"><i>$</i><input id="o_price" inputmode="numeric" placeholder="Sin oferta"></div></label><label class="f"><span>Vence</span><input id="o_until" type="date"></label></div>
+          <div class="chips" id="o_quick"><button data-d="7">+7 días</button><button data-d="15">+15 días</button><button data-d="30">+30 días</button><button data-d="eom">Fin de mes</button></div>
+          <div class="chips" id="o_pct"><button data-p="5">-5%</button><button data-p="10">-10%</button><button data-p="15">-15%</button><button data-p="20">-20%</button><button data-p="25">-25%</button></div>
+          <div class="offerInfo" id="o_info"></div>
+          <label class="f"><span>Nota visible (opcional)</span><input id="o_note" maxlength="120" placeholder="Ej: Lleva shaker gratis"></label>
+          <button class="btn danger ghost" id="o_remove" type="button">Quitar oferta</button>
+        </div>
+      </div>
+      <div class="pane" data-p="fotos">
+        <label class="drop big" id="phDrop"><input type="file" id="phFile" accept="image/*" multiple><span><b>📷 Subir fotos</b><br>Toma una foto, elige de la galería o arrástralas aquí. Se optimizan solas.</span></label>
+        <div class="row"><input id="phUrl" type="url" placeholder="…o pega una URL de imagen"><button class="btn" id="phAddUrl" type="button">Agregar</button></div>
+        <div class="photos" id="photos"></div>
+        <p class="hint">La primera es la foto principal. Usa las flechas para ordenar.</p>
+      </div>
+      <div class="pane" data-p="sabores">
+        <p class="hint">Sabores o versiones que se muestran en la ficha. Para que cada sabor tenga su propio precio y foto, agrúpalos en <b>Variaciones</b>.</p>
+        <div class="row"><input id="flIn" placeholder="Escribe un sabor y presiona Enter"><button class="btn" id="flAdd" type="button">Agregar</button></div>
+        <div class="tags" id="flavors"></div>
+        <div id="flGroup"></div>
+      </div>
+      <div class="pane" data-p="seo">
+        <div class="gprev" id="gprev"></div>
+        <label class="f"><span>Título SEO <em id="seoTc"></em></span><input id="s_title" maxlength="80"></label>
+        <label class="f"><span>Meta descripción <em id="seoMc"></em></span><textarea id="s_meta" rows="3" maxlength="200"></textarea></label>
+        <label class="f"><span>URL (slug)</span><div class="row"><input id="s_slug"><button class="btn" id="s_auto" type="button">Generar</button></div></label>
+        <button class="btn" id="s_fill" type="button">✨ Completar SEO automáticamente</button>
+      </div>
+    </div>
+    <div class="shFoot">
+      <div class="left"><button class="iconBtn danger" id="shDel" title="Eliminar">🗑</button><button class="iconBtn" id="shDup" title="Duplicar">⧉</button></div>
+      <span class="dirty" id="shDirty"></span>
+      <button class="btn primary" id="shSave">Guardar <kbd>Ctrl S</kbd></button>
+    </div>
+  </aside>
+</div>
+
+<!-- Búsqueda global -->
+<div class="cmdk" id="cmdk" hidden><div class="cmdkBg" data-cclose></div><div class="cmdkBox"><input id="cmdkIn" placeholder="Busca por nombre, marca, ID o sabor…" autocomplete="off"><div id="cmdkRes"></div><p class="cmdkHint">↑↓ para moverte · Enter para abrir · Esc para cerrar</p></div></div>
+
+<!-- Diálogo genérico -->
+<div class="dlgWrap" id="dlg" hidden><div class="dlgBg"></div><div class="dlg"><h3 id="dlgT"></h3><div id="dlgB"></div><div class="dlgA"><button class="btn" id="dlgNo">Cancelar</button><button class="btn primary" id="dlgOk">Aceptar</button></div></div></div>
+
+<!-- Acceso -->
+<div class="lock" id="lock" hidden><form class="lockBox" id="lockForm"><span class="logo big">⚡</span><h2>Catálogo SUPGO</h2><p>Ingresa la clave de administración</p><input id="lockPw" type="password" autocomplete="current-password" placeholder="Clave"><button class="btn primary">Entrar</button><p class="err" id="lockErr"></p></form></div>
+
+<button class="fab" id="fab" type="button" aria-label="Nuevo producto">＋</button>
+<div class="toasts" id="toasts"></div>
+<datalist id="dlCats"></datalist><datalist id="dlLabs"></datalist>
+<script src="app.js?v=1"></script>
+</body>
+</html>
