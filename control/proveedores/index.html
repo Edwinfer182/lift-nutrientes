@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../catalogo/app.css?v=2">
-<link rel="stylesheet" href="app.css?v=1">
+<link rel="stylesheet" href="app.css?v=2">
 </head>
 <body>
 <div id="app">
@@ -20,12 +20,16 @@
       <div class="field grow searchIn"><input id="q" type="search" placeholder="Buscar proveedor, cliente o referencia…" autocomplete="off"></div>
       <button class="btn primary" id="newProv" type="button"><span>＋</span><b>Proveedor</b></button>
     </div>
-    <nav class="tabs" id="tabs"><a href="#cuentas" data-s="cuentas">Cuentas</a><a href="#movimientos" data-s="movimientos">Movimientos</a></nav>
+    <nav class="tabs" id="tabs"><a href="#cuentas" data-s="cuentas">Cuentas</a><a href="#movimientos" data-s="movimientos">Movimientos</a><a href="#catalogos" data-s="catalogos">Catálogos PDF</a></nav>
   </header>
   <main>
     <section class="sec" id="s-cuentas">
       <div class="insights" id="stats"></div>
       <div id="provList" class="plist"></div>
+    </section>
+    <section class="sec" id="s-catalogos" hidden>
+      <div class="secHead"><div><h2>Catálogos y listas de precios</h2><p>PDF y enlaces de cada proveedor, siempre a mano para cotizar.</p></div></div>
+      <div id="catList" class="cards"></div>
     </section>
     <section class="sec" id="s-movimientos" hidden>
       <div class="toolbar">
@@ -58,10 +62,11 @@
       <button data-t="ajuste"><i>±</i>Ajuste</button>
       <button data-t="estado"><i>📤</i>Enviar estado</button>
     </div>
-    <nav class="shTabs" id="pTabs"><button data-t="hist" class="on">Historial</button><button data-t="ped">Pedidos</button><button data-t="datos">Datos</button></nav>
+    <nav class="shTabs" id="pTabs"><button data-t="hist" class="on">Historial</button><button data-t="ped">Pedidos</button><button data-t="cat">Catálogos</button><button data-t="datos">Datos</button></nav>
     <div class="shBody">
       <div class="pane on" data-p="hist"><div id="pHist"></div></div>
       <div class="pane" data-p="ped"><div id="pPed"></div></div>
+      <div class="pane" data-p="cat"><div id="pCat"></div></div>
       <div class="pane" data-p="datos">
         <label class="f"><span>Nombre</span><input id="d_nombre" maxlength="80"></label>
         <label class="f"><span>Celular (WhatsApp)</span><input id="d_cel" inputmode="tel" placeholder="57300…"></label>
@@ -77,6 +82,7 @@
 <div class="lock" id="lock" hidden><form class="lockBox" id="lockForm"><span class="logo big">💼</span><h2>Proveedores</h2><p>Ingresa la clave de administración</p><input id="lockPw" type="password" autocomplete="current-password" placeholder="Clave"><button class="btn primary">Entrar</button><p class="err" id="lockErr"></p></form></div>
 <button class="fab" id="fab" type="button" aria-label="Nuevo proveedor">＋</button>
 <div class="toasts" id="toasts"></div>
-<script src="app.js?v=1"></script>
+<input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden>
+<script src="app.js?v=2"></script>
 </body>
 </html>

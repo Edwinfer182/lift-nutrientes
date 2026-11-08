@@ -1,0 +1,35 @@
+main{padding-top:16px}
+.filt{margin:0 0 12px}
+.pv .due{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:4px}
+.due.late{background:var(--redBg);color:var(--red)}.due.soon{background:var(--amberBg);color:var(--amber)}.due.ok{background:#eef1ed;color:var(--muted)}.due.paid{background:var(--greenBg);color:var(--green)}
+.pv.late .av{background:var(--redBg);color:var(--red)}
+.pv.paid .av{background:var(--greenBg);color:var(--green)}
+.balCard .pbar{height:6px;border-radius:9px;background:rgba(255,255,255,.12);margin-top:10px;overflow:hidden}
+.balCard .pbar i{display:block;height:100%;background:var(--lime);border-radius:9px}
+.balCard.late b{color:#fca5a5}
+.quick.two3{grid-template-columns:repeat(3,1fr)}
+.debt{border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff}
+.debt.paid{opacity:.65}
+.debt .dh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.debt .dh b{font-size:14.5px}
+.debt .dh small{display:block;font-size:12px;color:var(--muted)}
+.debt .dh .r{text-align:right}
+.debt .dh .r strong{display:block;font-size:17px;letter-spacing:-.02em}
+.debt .bar{height:5px;border-radius:9px;background:#eceff0;margin:10px 0 8px;overflow:hidden}
+.debt .bar i{display:block;height:100%;background:linear-gradient(90deg,#84cc16,#c6f432)}
+.debt .row2{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.debt .row2 button{height:32px;padding:0 10px;border:1px solid var(--line2);border-radius:9px;background:#fff;font-size:12px;font-weight:600}
+.debt details{margin-top:8px}
+.debt summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.debt .items,.debt .abs{margin:6px 0 0;padding:0;list-style:none;font-size:12.5px}
+.debt .items li,.debt .abs li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.debt .abs li em{font-style:normal;color:var(--muted)}
+.debt .abs .undo{border:0;background:none;color:var(--red);font-weight:600;font-size:11.5px;padding:0;margin-left:8px}
+.debt .note{font-size:12px;color:var(--muted);background:#f6f8f5;border-radius:10px;padding:8px 10px;margin-top:8px;white-space:pre-line}
+.medios{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+.medios button{height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line2);background:#fff;font-weight:600;font-size:12.5px}
+.medios button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+@media (max-width:760px){
+  .embedded .topRow{display:flex}
+  .quick.two3 button{font-size:11.5px}
+}

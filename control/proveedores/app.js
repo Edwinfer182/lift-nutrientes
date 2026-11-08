@@ -23,7 +23,7 @@ const TIPOS={
   ajuste_deuda:{ic:'➕',label:'Ajuste de deuda',bg:'#fff1e6'}
 };
 const signed=m=>m.tipo==='compra_credito'||m.tipo==='ajuste_deuda'?Number(m.valor)||0:m.tipo==='pago_proveedor'||m.tipo==='ajuste_favor'?-(Number(m.valor)||0):m.tipo==='efectivo_cobrado'?(Number(m.costo_proveedor)||0)-(Number(m.valor_cobrado)||0):0;
-const S={provs:[],movs:[],peds:[],open:null,section:'cuentas'};
+const S={provs:[],movs:[],peds:[],open:null,section:'cuentas',pdf:null,uploading:''};
 
 /* ---------- Red ---------- */
 async function call(body){
@@ -44,10 +44,10 @@ async function load(){
 const lastMov=id=>S.movs.find(m=>m.proveedor_id===id);
 const prov=id=>S.provs.find(p=>p.id===id);
 function render(){
-  const s=location.hash.slice(1)==='movimientos'?'movimientos':'cuentas';S.section=s;
-  $('s-cuentas').hidden=s!=='cuentas';$('s-movimientos').hidden=s!=='movimientos';
+  const h=location.hash.slice(1),s=['movimientos','catalogos'].includes(h)?h:'cuentas';S.section=s;
+  ['cuentas','movimientos','catalogos'].forEach(x=>$('s-'+x).hidden=x!==s);
   [...$('tabs').children].forEach(a=>a.classList.toggle('on',a.dataset.s===s));
-  if(s==='cuentas')renderCuentas();else renderMovs();
+  if(s==='cuentas')renderCuentas();else if(s==='movimientos')renderMovs();else renderCatalogs();
 }
 function renderCuentas(){
   const debt=S.provs.filter(p=>p.balance>0).reduce((a,p)=>a+p.balance,0),fav=S.provs.filter(p=>p.balance<0).reduce((a,p)=>a-p.balance,0);
@@ -94,8 +94,60 @@ function fillSheet(){
   $('pHist').innerHTML=html||'<div class="empty"><b>Sin movimientos</b>Registra una compra o un pago con los botones de arriba.</div>';
   const pn=norm(p.nombre),peds=S.peds.filter(x=>norm(x.proveedor_disponibilidad_nombre)===pn);
   $('pPed').innerHTML=peds.length?peds.map(x=>`<div class="pd"><div><b>Pedido #${x.id}</b><br><small>${fdate(x.created_at)} · ${esc(String(x.estado_operativo||'').replace(/_/g,' '))}</small></div><b>${money(x.total)}</b></div>`).join(''):'<div class="empty">No hay pedidos asignados a este proveedor.</div>';
+  renderProvCatalogs(p);
   $('d_nombre').value=p.nombre;$('d_cel').value=p.celular||'';$('d_notas').value=p.notas||'';
   $('d_arch').disabled=p.balance!==0;$('d_arch').title=p.balance!==0?'Primero deja la cuenta en cero':'';
+}
+
+/* ---------- Catálogos PDF (función lift-catalogos-pdf) ---------- */
+async function pdfCall(body){
+  const r=await fetch(SB+'/functions/v1/lift-catalogos-pdf',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({password:pw(),...body})});
+  const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||'Error '+r.status);return j;
+}
+async function loadPdf(force){
+  if(S.pdf&&!force)return S.pdf;
+  try{S.pdf=await pdfCall({action:'list'})}catch(e){S.pdf={catalogos:[],enlaces:[],error:e.message}}
+  return S.pdf;
+}
+function provDocs(nombre){const d=S.pdf||{catalogos:[],enlaces:[]};return {files:d.catalogos.filter(x=>x.nombre===nombre).sort((a,b)=>String(b.actualizado_en).localeCompare(String(a.actualizado_en))),links:d.enlaces.filter(x=>x.nombre===nombre)}}
+function docsHTML(nombre){
+  const {files,links}=provDocs(nombre);
+  const f=files.map(x=>{const old=Date.now()-new Date(x.actualizado_en)>60*864e5;return `<div class="file${old?' old':''}"><span class="fi">PDF</span><div class="fx"><b>${esc(x.archivo_nombre||'Catálogo.pdf')}</b><small>${old?'⚠️ ':''}Subido ${fdate(x.actualizado_en)} · ${ago(x.actualizado_en).toLowerCase()}</small></div><button data-open="${x.id}" data-n="${esc(nombre)}" title="Abrir">↗</button><button data-delpdf="${x.id}" data-n="${esc(nombre)}" title="Eliminar">🗑</button></div>`}).join('');
+  const l=links.map(x=>`<div class="file link"><span class="fi">🔗</span><div class="fx"><b>${esc(x.titulo)}</b><small>${esc(x.url.replace(/^https:\/\//,'').slice(0,40))}</small></div><a class="btn" style="width:34px;height:34px;padding:0" href="${esc(x.url)}" target="_blank" rel="noopener">↗</a><button data-dellink="${x.id}" data-n="${esc(nombre)}" title="Quitar">🗑</button></div>`).join('');
+  return `<div class="files">${f+l||'<p class="upl">Sin catálogos todavía.</p>'}${S.uploading===nombre?'<p class="upl">Subiendo PDF…</p>':''}</div><div class="acts"><button class="btn" data-up="${esc(nombre)}">⬆ Subir PDF</button><button class="btn" data-addlink="${esc(nombre)}">🔗 Agregar enlace</button></div>`;
+}
+async function renderCatalogs(){
+  if(!S.pdf){$('catList').innerHTML='<div class="skel"></div><div class="skel"></div>';await loadPdf()}
+  if(S.pdf.error){$('catList').innerHTML='<div class="empty"><b>No pude cargar los catálogos</b>'+esc(S.pdf.error)+'</div>';return}
+  const q=norm($('q').value);
+  const names=S.provs.map(p=>p.nombre).filter(n=>!q||norm(n).includes(q)||provDocs(n).files.some(f=>norm(f.archivo_nombre).includes(q)));
+  names.sort((a,b)=>{const A=provDocs(a),B=provDocs(b);return (B.files.length+B.links.length>0)-(A.files.length+A.links.length>0)||a.localeCompare(b,'es')});
+  $('catList').innerHTML=names.map(n=>`<div class="card pc"><h4>${esc(n)}</h4>${docsHTML(n)}</div>`).join('')||'<div class="empty"><b>Sin resultados</b></div>';
+}
+async function renderProvCatalogs(p){if(!S.pdf){$('pCat').innerHTML='<div class="skel"></div>';await loadPdf()}if(S.open===p.id)$('pCat').innerHTML=docsHTML(p.nombre)}
+function refreshDocs(){if(S.section==='catalogos')renderCatalogs();const p=prov(S.open);if(p)renderProvCatalogs(p)}
+let upFor='';
+async function uploadPdf(nombre,file){
+  if(!file)return;if(file.size>25*1024*1024){toast('El PDF debe pesar menos de 25 MB','err');return}
+  S.uploading=nombre;refreshDocs();sync('busy');
+  try{
+    const u=await pdfCall({action:'upload',nombre,archivo_nombre:file.name.toLowerCase().endsWith('.pdf')?file.name:file.name+'.pdf'});
+    const put=await fetch(u.upload_url,{method:'PUT',headers:{'Content-Type':'application/pdf','x-upsert':'false'},body:file});
+    if(!put.ok)throw new Error('No se pudo subir el archivo');
+    await pdfCall({action:'save',nombre,path:u.path,archivo_nombre:file.name});
+    toast('Catálogo subido ✓');S.uploading='';await loadPdf(true);sync('ok');
+  }catch(e){S.uploading='';sync('err');toast(e.message,'err')}
+  refreshDocs();
+}
+async function docsClick(e){
+  const b=e.target.closest('button[data-open],button[data-delpdf],button[data-dellink],button[data-up],button[data-addlink]');if(!b)return;
+  const n=b.dataset.n||b.dataset.up||b.dataset.addlink;
+  if(b.dataset.open){const w=window.open('','_blank');try{const j=await pdfCall({action:'open',nombre:n,id:b.dataset.open});if(w)w.location=j.url;else location.href=j.url}catch(x){if(w)w.close();toast(x.message,'err')}return}
+  if(b.dataset.up){upFor=b.dataset.up;$('pdfFile').value='';$('pdfFile').click();return}
+  if(b.dataset.addlink){const r=await formDlg('Enlace · '+n,'<label class="f"><span>Título</span><input id="l_t" placeholder="Ej: Lista de precios noviembre"></label><label class="f"><span>Enlace (https://…)</span><input id="l_u" type="url" placeholder="https://drive.google.com/…"></label>','Guardar',()=>{const t=$('l_t').value.trim(),u=$('l_u').value.trim();return t&&/^https:\/\//.test(u)?{titulo:t,url:u}:null});
+    if(r){try{await pdfCall({action:'add_link',nombre:n,...r});toast('Enlace guardado ✓');await loadPdf(true);refreshDocs()}catch(x){toast(x.message,'err')}}return}
+  if(b.dataset.delpdf||b.dataset.dellink){if(!(await confirmDlg('¿Eliminar?',b.dataset.delpdf?'El PDF se borra definitivamente.':'Se quita el enlace.','Eliminar')))return;
+    try{await pdfCall({action:b.dataset.delpdf?'delete':'delete_link',nombre:n,id:b.dataset.delpdf||b.dataset.dellink});toast('Eliminado ✓');await loadPdf(true);refreshDocs()}catch(x){toast(x.message,'err')}}
 }
 
 /* ---------- Movimientos ---------- */
@@ -197,6 +249,8 @@ $('quick').onclick=e=>{const b=e.target.closest('[data-t]');if(b&&!b.disabled)mo
 $('pHist').onclick=async e=>{const b=e.target.closest('[data-undo]');if(!b)return;if(!(await confirmDlg('¿Anular este movimiento?','Se borra y el saldo se recalcula. Úsalo solo para corregir errores.','Anular')))return;await run(()=>call({action:'movement-delete',id:Number(b.dataset.undo)}),'Movimiento anulado')};
 $('d_save').onclick=()=>run(()=>call({action:'provider-update',id:S.open,nombre:$('d_nombre').value,celular:$('d_cel').value,notas:$('d_notas').value}),'Datos guardados ✓');
 $('d_arch').onclick=async()=>{const p=prov(S.open);if(!(await confirmDlg('¿Archivar a '+p.nombre+'?','Deja de aparecer en la lista. Si lo vuelves a crear con el mismo nombre, se reactiva con su historial.','Archivar')))return;const id=S.open;closeSheet();await run(()=>call({action:'provider-update',id,archivar:true}),'Proveedor archivado')};
+$('catList').onclick=docsClick;$('pCat').onclick=docsClick;
+$('pdfFile').onchange=e=>uploadPdf(upFor,e.target.files[0]);
 $('newProv').onclick=newProvider;$('fab').onclick=newProvider;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('dlg').hidden&&dlgResolve)dlgResolve(null);else if(S.open)closeSheet()}});
 $('lockForm').onsubmit=async e=>{e.preventDefault();const v=$('lockPw').value;try{sessionStorage.setItem(PASS,v)}catch(x){}$('lockErr').textContent='Verificando…';try{await call({action:'providers'});$('lock').hidden=true;load()}catch(x){$('lockErr').textContent=/Clave/.test(x.message)?'Clave incorrecta':'Sin conexión'}};
