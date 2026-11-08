@@ -291,7 +291,7 @@ function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/
   if(t[0]==='dashboard')return ['/dashboard/','dashboard'];
   if(t[0]==='redes')return ['/control/redes/','redes'];return [null,'home']}
 function adapt(kind){
-  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo')return; // Mantener intactas las interfaces independientes.
+  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo'||kind==='productividad')return; // Mantener intactas las interfaces independientes.
  try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
   if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
   style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
