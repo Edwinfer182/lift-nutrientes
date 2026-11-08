@@ -15187,7 +15187,7 @@ body.liftAdminUnlocked #supgoBackToPanel{display:inline-flex}
  var T={
   productos:function(){return laf('products')},crear:function(){return laf('create')},ofertas:function(){return laf('offers')},combos:function(){return laf('combos')},
   categorias:function(){return laf('categories')},variaciones:function(){return laf('variants')},excel:function(){return laf('excel')},
-  laboratorio:function(){if(typeof window.openOff==='function')window.openOff('filters');return click('.labAdminNew')},
+  laboratorio:function(){return laf('labs')},
   pedidos:function(){return orders('')},historial:function(){return orders('history')},anterior:function(){return orders('old')},
   entrenadores:function(){if(!orders(''))return false;setTimeout(function(){click('#lift-trainer-admin-open')},700);return true},
   pagos:function(){if(typeof window.liftOpenPaymentsAdmin!=='function')return false;window.liftOpenPaymentsAdmin();return true},
@@ -15334,6 +15334,7 @@ body.liftAdminUnlocked .supgo-legible table td,body.liftAdminUnlocked .supgo-leg
  var m0=$('liftAdminAccessModal');if(m0&&m0.classList.contains('open'))render();
 })();
 </script>
+<script src="/componentes/catalogo-admin.js?v=20261107-2" defer></script>
 </body>
 </html>
 
