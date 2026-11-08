@@ -123,7 +123,7 @@ details.coupon[open] summary::after{content:"−"}
 .mobileToggle{display:none}
 .stickyBar{display:none}
 @media (max-width:900px){
-  .grid{grid-template-columns:1fr;gap:0;padding-top:16px}
+  .grid{grid-template-columns:minmax(0,1fr);gap:0;padding-top:16px}
   .summary{position:static;order:-1}
   .summary .card{margin-bottom:16px}
   .mobileToggle{display:flex;width:100%;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;font-weight:500;cursor:pointer;margin-bottom:12px}
@@ -153,7 +153,8 @@ details.coupon[open] summary::after{content:"−"}
 .check.naAuth{padding:0 0 10px;font-size:12px}.check.naAuth input{width:18px;height:18px}
 .naGoogle.off{opacity:.45;pointer-events:none}
 .naGw{position:relative}.naGw.off::after{content:"";position:absolute;inset:0;cursor:pointer}
-.savedAddrs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
+.grid>section,.grid>aside{min-width:0}
+.savedAddrs{display:flex;max-width:100%;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
 .savedAddrs button{flex:0 0 auto;max-width:240px;text-align:left;border:1px solid #d6d6d6;background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer}
 .savedAddrs button b{display:block;font-size:13px}
 .savedAddrs button.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
