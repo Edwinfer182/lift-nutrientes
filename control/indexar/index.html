@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Indexar en Google · SUPGO CONTROL</title>
+<link rel="icon" type="image/png" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../catalogo/app.css?v=2">
+<link rel="stylesheet" href="app.css?v=1">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="topRow">
+      <div class="brand"><span class="logo">🚀</span><div><h1>Indexar en Google</h1><p id="sync" class="sync"><i></i><span>Cargando sitemap…</span></p></div></div>
+      <div class="field grow searchIn"><input id="q" type="search" placeholder="Buscar página o producto…" autocomplete="off"></div>
+    </div>
+  </header>
+  <main>
+    <section class="hero" id="hero">
+      <div class="heroL">
+        <p class="eyebrow">Siguiente en la fila</p>
+        <h2 id="nextTitle">—</h2>
+        <p class="nextUrl" id="nextUrl"></p>
+        <div class="heroBtns"><button class="btn lime" id="goNext">🚀 Indexar siguiente</button><button class="btn ghostW" id="skipNext">Saltar</button></div>
+        <p class="howto" id="howto"></p>
+      </div>
+      <div class="quota"><div class="qRing"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="t"/><circle cx="50" cy="50" r="42" class="p" id="qProg"/></svg><div><b id="qNum">0</b><small>de <span id="qMax">10</span> hoy</small></div></div><p>Google deja pedir unas 10 indexaciones al día por cuenta.</p></div>
+    </section>
+
+    <section class="gcard" id="gcard"></section>
+
+    <div class="insights" id="stats"></div>
+    <div class="chips filt" id="filt">
+      <button data-f="prio" class="on">Por hacer</button><button data-f="no">Sin indexar</button><button data-f="sol">Solicitadas</button><button data-f="ok">Indexadas</button><button data-f="all">Todas</button>
+    </div>
+    <div class="chips filt" id="tipos">
+      <button data-t="" class="on">Todo</button><button data-t="producto">Productos</button><button data-t="categoria">Categorías</button><button data-t="laboratorio">Laboratorios</button><button data-t="pagina">Páginas y guías</button>
+    </div>
+    <div id="list"></div>
+    <div class="more" id="more"></div>
+  </main>
+</div>
+<div class="dlgWrap" id="dlg" hidden><div class="dlgBg"></div><div class="dlg"><h3 id="dlgT"></h3><div id="dlgB"></div><div class="dlgA"><button class="btn" id="dlgNo">Cerrar</button><button class="btn primary" id="dlgOk">Aceptar</button></div></div></div>
+<div class="lock" id="lock" hidden><form class="lockBox" id="lockForm"><span class="logo big">🚀</span><h2>Indexar en Google</h2><p>Ingresa la clave de administración</p><input id="lockPw" type="password" autocomplete="current-password" placeholder="Clave"><button class="btn primary">Entrar</button><p class="err" id="lockErr"></p></form></div>
+<div class="toasts" id="toasts"></div>
+<script src="app.js?v=1"></script>
+</body>
+</html>

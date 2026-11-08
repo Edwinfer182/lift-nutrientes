@@ -1,0 +1,62 @@
+main{padding-top:16px}
+.searchIn{max-width:520px;margin-left:auto}
+.searchIn input{height:44px;border-radius:14px}
+.hero{display:flex;gap:20px;align-items:center;padding:20px;border-radius:22px;margin-bottom:14px;color:#fff;background:radial-gradient(120% 140% at 100% 0%,#2a4a1f 0%,#131b14 45%,#0b0f0c 85%);box-shadow:var(--sh2)}
+.heroL{flex:1;min-width:0}
+.eyebrow{margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--lime)}
+.hero h2{margin:6px 0 2px;font-size:20px;letter-spacing:-.02em;line-height:1.25}
+.nextUrl{margin:0 0 14px;font-size:12.5px;color:#a8b3a9;word-break:break-all}
+.heroBtns{display:flex;gap:8px;flex-wrap:wrap}
+.btn.lime{background:var(--lime);border-color:var(--lime);color:var(--ink);height:48px;padding:0 20px;font-size:15px}
+.btn.ghostW{background:transparent;color:#fff;border-color:rgba(255,255,255,.25);height:48px}
+.howto{margin:12px 0 0;font-size:12.5px;color:#c9d1ca;line-height:1.5}
+.howto b{color:#fff}
+.quota{flex:none;width:170px;text-align:center}
+.quota p{margin:8px 0 0;font-size:11.5px;color:#a8b3a9}
+.qRing{position:relative;width:110px;height:110px;margin:0 auto}
+.qRing svg{width:100%;height:100%;transform:rotate(-90deg)}
+.qRing circle{fill:none;stroke-width:9}
+.qRing .t{stroke:rgba(255,255,255,.12)}
+.qRing .p{stroke:var(--lime);stroke-linecap:round;stroke-dasharray:263.9;stroke-dashoffset:263.9;transition:stroke-dashoffset .5s}
+.qRing>div{position:absolute;inset:0;display:grid;place-content:center}
+.qRing b{font-size:30px;letter-spacing:-.03em;line-height:1}.qRing small{font-size:11px;color:#a8b3a9}
+.gcard{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;box-shadow:var(--sh)}
+.gcard .gi{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#eef3ff;font-size:20px;flex:none}
+.gcard .gt{flex:1;min-width:220px}
+.gcard .gt b{display:block;font-size:14px}.gcard .gt span{font-size:12.5px;color:var(--muted)}
+.gcard .prog{height:6px;border-radius:9px;background:#e6ebe5;overflow:hidden;margin-top:8px}
+.gcard .prog i{display:block;height:100%;background:var(--ink);width:0;transition:width .2s}
+.filt{margin:0 0 10px}
+.ux{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.ux .ti{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#f1f4f0;font-size:17px}
+.ux b{display:block;font-size:13.5px;line-height:1.3}
+.ux .u{font-size:11.5px;color:var(--muted);word-break:break-all}
+.ux .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tg{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:#eef1ed;color:var(--ink2)}
+.tg.ok{background:var(--greenBg);color:var(--green)}.tg.no{background:var(--redBg);color:var(--red)}.tg.warn{background:var(--amberBg);color:var(--amber)}.tg.sold{background:#fff1e6;color:#c2410c}.tg.sol{background:#eef3ff;color:#1d4ed8}
+.ux .acts{display:flex;gap:6px}
+.ux .acts button{height:38px;border-radius:11px;border:1px solid var(--line2);background:#fff;font-weight:600;font-size:12.5px;padding:0 12px;white-space:nowrap}
+.ux .acts .go{background:var(--ink);border-color:var(--ink);color:#fff}
+.ux.done{opacity:.7}
+@media (max-width:760px){
+  .embedded .topRow{display:flex}
+  .embedded .brand{display:none}
+  .searchIn{max-width:none;margin:0}
+  .hero{flex-direction:column;align-items:stretch;padding:16px;gap:14px}
+  .quota{width:auto;display:flex;align-items:center;gap:12px;text-align:left}
+  .qRing{width:76px;height:76px;margin:0}.qRing b{font-size:22px}
+  .quota p{margin:0}
+  .heroBtns .btn{flex:1}
+  .ux{grid-template-columns:34px minmax(0,1fr);}
+  .ux .ti{width:34px;height:34px}
+  .ux .acts{grid-column:1/-1}
+  .ux .acts button{flex:1}
+  .ux .acts button[data-a=copy]{flex:0 0 52px}
+  .ux .acts button{padding:8px 10px;min-height:38px}
+  .topRow{flex-wrap:wrap}
+  .brand h1{font-size:18px;white-space:nowrap}
+  .searchIn{flex:1 1 100%}
+  #stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:visible}
+  .qRing small{font-size:9px}
+  .insights .ins i{display:none}
+}
