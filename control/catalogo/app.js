@@ -615,8 +615,8 @@ function go(s){if(location.hash!=='#'+s)location.hash=s;else renderSection()}
 function renderSection(){
   let s=decodeURIComponent(location.hash.slice(1));
   // Atajos desde CONTROL: #nuevo abre la ficha vacía, #combos filtra los combos.
-  if(s==='nuevo'||s==='combos'){
-    if(s==='combos'){S.filters.flags=new Set(['combo'])}else S.wantNew=true;
+  if(s==='nuevo'||s==='combos'||s.startsWith('f-')){
+    if(s==='combos'){S.filters.flags=new Set(['combo'])}else if(s.startsWith('f-')){S.filters.flags=new Set([s.slice(2)])}else S.wantNew=true;
     history.replaceState(null,'','#productos');s='productos';
   }
   if(!SECTIONS.includes(s))s='productos';S.section=s;
