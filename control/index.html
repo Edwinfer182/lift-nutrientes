@@ -98,7 +98,7 @@ const menu=[
 ['General',[['inicio','🏠','Inicio','home'],['dashboard','📊','Dashboard de catálogo','dashboard'],['pedidos','📋','Pedidos','native:pedidos'],['nuevo','➕','Nuevo pedido','native:nuevo'],['resenas','⭐','Reseñas','native:resenas']]],
 ['Ventas',[['checkout','🛒','Pedido con catálogo','legacy:checkout'],['listarapida','⚡','Lista rápida','legacy:listarapida'],['pagos','💳','Pagos','legacy:pagos'],['historial','🧾','Historial de pedidos','legacy:historial'],['anterior','🗂','Registrar pedido anterior','legacy:anterior'],['abandonados','🛍','Carritos abandonados','legacy:abandonados']]],
 ['Clientes',[['atencion','🎧','Centro de atención','atencion'],['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
-['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','legacy:proveedores'],['pdf','📄','PDF proveedores','legacy:pdf']]],
+['Finanzas',[['cartera','💰','Cartera clientes','legacy:cartera'],['proveedores','💼','Cartera proveedores','proveedores:cuentas'],['pdf','📄','PDF proveedores','legacy:pdf']]],
 ['Catálogo',[['productos','⚡','Catálogo','catalogo:productos']]],
 ['Contenido y gestión',[['editor','🔎','SEO de páginas','editor'],['redes','✨','Estudio de redes · SEO e Instagram','redes'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
@@ -111,6 +111,7 @@ const TOOL_INFO={
  categorias:'Renombrar actualiza todos los productos',
  laboratorio:'Marcas con su logo',
  excel:'Descarga, edita en Excel y sube con vista previa',
+ proveedores:'Lo que debes, pagos, compras a crédito y estado de cuenta por WhatsApp',
  editor:'Textos SEO de categorías, laboratorios y páginas'
 };
 const LAF_TOOLS=new Set(['productos','crear','ofertas','combos','variaciones','categorias','laboratorio','excel']);
@@ -286,12 +287,13 @@ function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/
  if(t[0]==='legacy')return ['/admin.html#abrir='+t[1],'legacy'];
  if(t[0]==='editor')return ['/editor/','editor'];
  if(t[0]==='catalogo')return ['/control/catalogo/#'+t[1],'catalogo'];
+ if(t[0]==='proveedores')return ['/control/proveedores/#'+t[1],'proveedores'];
  if(t[0]==='productividad')return ['/productividad/','productividad'];
   if(t[0]==='atencion')return ['/atencion/','atencion'];
   if(t[0]==='dashboard')return ['/dashboard/','dashboard'];
   if(t[0]==='redes')return ['/control/redes/','redes'];return [null,'home']}
 function adapt(kind){
-  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo'||kind==='productividad')return; // Mantener intactas las interfaces independientes.
+  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo'||kind==='productividad'||kind==='proveedores')return; // Mantener intactas las interfaces independientes.
  try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
   if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
   style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
@@ -324,7 +326,7 @@ function open(id,backwards){
  if(activeDocument===details[1]){
    try{
      const w=frame.contentWindow,d=w.document;
-     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':details[1]==='catalogo'?'/control/catalogo/':'/productividad/')){
+     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':details[1]==='catalogo'?'/control/catalogo/':details[1]==='proveedores'?'/control/proveedores/':'/productividad/')){
        if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1])){
          adapt('native');$('loading').hidden=true;return;
        }
@@ -334,7 +336,7 @@ function open(id,backwards){
          if(w.supgoAbrirHerramienta(it[3].split(':')[1])){adapt('legacy');$('loading').hidden=true;return}
        }
        // Catálogo nuevo: ya está abierto, solo cambia de sección (instantáneo).
-       if(details[1]==='catalogo'){w.location.hash=it[3].split(':')[1];$('loading').hidden=true;return}
+       if(details[1]==='catalogo'||details[1]==='proveedores'){w.location.hash=it[3].split(':')[1];$('loading').hidden=true;return}
        if(details[1]==='editor'||details[1]==='productividad'||details[1]==='dashboard'||details[1]==='redes'){
          adapt(details[1]);$('loading').hidden=true;return;
        }
