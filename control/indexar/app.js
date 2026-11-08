@@ -109,7 +109,7 @@ function renderNext(){
   $('nextTitle').textContent=n?n.title:'¡Todo pedido! 🎉';$('nextUrl').textContent=n?n.url:'No quedan URLs prioritarias pendientes.';
   $('goNext').disabled=!n;$('skipNext').disabled=!n;
   const viaLink=n&&S.links[n.url];
-  $('howto').innerHTML=n?(viaLink?'Se abre Search Console con la página ya inspeccionada. Toca <b>“Solicitar indexación”</b> y vuelve aquí.':'Copio la URL y abro Search Console: pégala en la barra de arriba (<b>Inspeccionar URL</b>), presiona Enter y toca <b>“Solicitar indexación”</b>.'):'';
+  $('howto').innerHTML=n?'Se abre Search Console con la página ya cargada (no pegues nada). Espera el resultado, toca <b>“Solicitar indexación”</b> y vuelve aquí.':'';
 }
 function renderQuota(){
   const n=Math.min(S.today,DAILY);$('qNum').textContent=S.today;$('qMax').textContent=DAILY;
@@ -183,10 +183,10 @@ async function request(u){
   const link=S.links[u.url];
   const prop=S.prop||'sc-domain:supgo.co';
   await copy(u.url);
-  window.open(link||'https://search.google.com/search-console/inspect?resource_id='+encodeURIComponent(prop),'_blank','noopener');
+  window.open(link||'https://search.google.com/search-console/inspect?resource_id='+encodeURIComponent(prop)+'&id='+encodeURIComponent(u.url),'_blank','noopener');
   if(status(u)==='ok')return;
   try{await rpc('solicitado',{url:u.url});const s=st(u);S.state.set(u.url,{...s,solicitado_en:new Date().toISOString(),veces_solicitado:(s.veces_solicitado||0)+1});S.today++;
-    toast(link?'Abierta en Search Console · toca “Solicitar indexación”':'URL copiada · pégala en Search Console y pide la indexación');
+    toast('Abierta en Search Console · toca “Solicitar indexación”');
     if(S.today===DAILY)toast('Llegaste a '+DAILY+' hoy. Google puede rechazar más pedidos hasta mañana.','err');
     render();
   }catch(e){toast(e.message,'err')}
