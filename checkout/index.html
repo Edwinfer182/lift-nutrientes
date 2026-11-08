@@ -129,13 +129,11 @@ details.coupon[open] summary::after{content:"−"}
   .mobileToggle{display:flex;width:100%;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;font-weight:500;cursor:pointer;margin-bottom:12px}
   .mobileToggle b{font-size:16px}
   .summary.collapsed .card{display:none}
-  .desktopCta{display:none}
-  .stickyBar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));gap:12px;align-items:center;box-shadow:0 -8px 24px rgba(0,0,0,.06)}
   .stickyBar .tot{flex:none;line-height:1.2}
   .stickyBar .tot small{display:block;font-size:11px;color:var(--muted)}
   .stickyBar .tot b{font-size:17px}
   .stickyBar .cta{height:50px}
-  body{padding-bottom:84px}
+  body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
   .row{grid-template-columns:1fr}
   .secure span{display:none}
 }
@@ -166,6 +164,7 @@ details.coupon[open] summary::after{content:"−"}
 .payOpt b{display:block;font-size:14px;font-weight:600}
 .payOpt small{display:block;font-size:12px;color:var(--muted);line-height:1.4}
 .payOpt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+#payCard.bad{border-color:var(--red)}
 .payOpt .payBody{flex:1;min-width:0}
 #po-transferencia.on{border-radius:12px 12px 0 0;margin-bottom:0}
 .payExtra{margin:0 0 10px;padding:4px 14px 14px;border:1px solid var(--ink);border-top:0;border-radius:0 0 12px 12px}
@@ -251,7 +250,7 @@ details.coupon[open] summary::after{content:"−"}
         </div>
         <div class="card" id="payCard">
           <h2><span class="step">3</span>Pago</h2>
-          <label class="payOpt on" id="po-bold"><input type="radio" name="pago" value="bold" checked><span class="payBody"><b>Pagar en línea</b><small>Tarjeta, PSE, Nequi, Bancolombia y Bre-B · pago seguro con Bold</small></span></label>
+          <label class="payOpt" id="po-bold"><input type="radio" name="pago" value="bold"><span class="payBody"><b>Pagar en línea</b><small>Tarjeta, PSE, Nequi, Bancolombia y Bre-B · pago seguro con Bold</small></span></label>
           <label class="payOpt" id="po-transferencia"><input type="radio" name="pago" value="transferencia"><span class="payBody"><b>Transferencia</b><small>Bre-B o cuenta Bancolombia</small></span></label>
             <div class="payExtra" id="transferBox" hidden>
               <div class="copyRow"><span><small>Valor a transferir</small><br><strong id="transferTotal">—</strong></span><button type="button" data-copy="total">Copiar valor</button></div>
@@ -266,7 +265,7 @@ details.coupon[open] summary::after{content:"−"}
         <div class="card">
           <label class="check" id="c-datos"><input type="checkbox" id="datos" required><span>Autorizo el <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">tratamiento de mis datos personales</a> para gestionar mi pedido.</span></label>
           <label class="check"><input type="checkbox" id="recordar" checked><span>Guardar mis datos en este dispositivo para la próxima compra.</span></label>
-          <div class="desktopCta" style="margin-top:12px">
+          <div class="desktopCta" id="payCta" style="margin-top:12px" hidden>
             <button class="cta" type="submit" id="submitDesktop"><span class="spin"></span><span class="ctaText">Hacer pedido</span></button>
             <p class="note" id="ctaNote">Te llevamos a la pasarela segura de Bold para pagar.</p>
           </div>
@@ -384,16 +383,17 @@ function total(){var s=shipping();return Math.max(0,subtotal()-discount())+(s||0
 /* ---------- Pintar ---------- */
 /* ---------- Medio de pago ---------- */
 var BOLD_KEY='supgoBoldPendingV1';
-function payMethod(){var r=document.querySelector('input[name="pago"]:checked');return r?r.value:'bold'}
+function payMethod(){var r=document.querySelector('input[name="pago"]:checked');return r?r.value:''}
 function canCash(){return !!(state.city&&norm(state.city.name).indexOf('medellin')>=0)}
 function ctaLabel(){var m=payMethod();return m==='bold'?'Pagar '+money(total()):'Hacer pedido'}
 function renderPay(){
   var cash=$('po-efectivo');cash.hidden=!canCash();
-  if(cash.hidden&&payMethod()==='efectivo'){document.querySelector('input[name="pago"][value="bold"]').checked=true}
+  if(cash.hidden&&payMethod()==='efectivo'){document.querySelector('input[name="pago"][value="efectivo"]').checked=false}
   var m=payMethod();
   ['bold','transferencia','efectivo'].forEach(function(k){$('po-'+k).classList.toggle('on',k===m)});
   $('transferBox').hidden=m!=='transferencia';
   $('transferTotal').textContent=money(total());
+  $('payCta').hidden=!m;$('payCard').classList.remove('bad');
   $('ctaNote').textContent=m==='bold'?'Te llevamos a la pasarela segura de Bold para pagar.':m==='transferencia'?'Verás tu pedido de inmediato y te avisaremos por correo.':'Pagas en efectivo al recibir. Te avisaremos por correo.';
   if(!state.sending)['submitDesktop','submitMobile'].forEach(function(id){$(id).querySelector('.ctaText').textContent=ctaLabel()});
 }
@@ -500,6 +500,7 @@ function submit(ev){
     showError(bad.length===1&&bad[0]==='c-datos'?'Para hacer el pedido debes autorizar el tratamiento de tus datos personales.':'Revisa los campos marcados en rojo.');return}
   var proofFile=payMethod()==='transferencia'&&$('proof').files[0]||null;
   if(proofFile&&proofFile.size>5*1024*1024){showError('El comprobante supera 5 MB. Adjunta una imagen más liviana o quítalo.');return}
+  if(!payMethod()){$('payCard').classList.add('bad');$('payCard').scrollIntoView({behavior:'smooth',block:'center'});showError('Elige cómo quieres pagar.');return}
   if(payMethod()==='efectivo'&&!canCash()){showError('El efectivo contraentrega solo está disponible en Medellín. Elige otro medio de pago.');return}
   busy(true);
   var couponStep=state.coupon?api('/rest/v1/rpc/lift_validar_cupon',{method:'POST',body:JSON.stringify(couponArgs(state.coupon.code,false))}).then(function(r){if(!(r&&r.valid)){state.coupon=null;render();throw new Error('El cupón ya no es válido. Revisa el total y vuelve a intentarlo.')}state.coupon.amount=Number(r.discount_amount)||0;render()}):Promise.resolve();
