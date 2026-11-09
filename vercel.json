@@ -27,7 +27,28 @@
     {
       "src": "^/img/(web/[A-Za-z0-9_-]+\\.(?:jpg|png|webp|gif|avif|svg))$",
       "dest": "https://vdxkknftyssjyfbdieqa.supabase.co/storage/v1/object/public/lift-productos/$1",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable", "CDN-Cache-Control": "public, max-age=31536000, immutable" }
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "CDN-Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "^/catalogo\\.pdf$",
+      "dest": "https://vdxkknftyssjyfbdieqa.supabase.co/storage/v1/object/public/supgo-catalogo-publico/supgo-catalogo.pdf",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "CDN-Cache-Control": "public, max-age=60",
+        "Content-Disposition": "inline"
+      }
+    },
+    {
+      "src": "^/catalogo-entrenador\\.pdf$",
+      "dest": "https://vdxkknftyssjyfbdieqa.supabase.co/storage/v1/object/public/supgo-catalogo-publico/supgo-catalogo-entrenador.pdf",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "CDN-Cache-Control": "public, max-age=60",
+        "Content-Disposition": "inline"
+      }
     },
     {
       "src": "^/merchant-feed\\.xml$",
@@ -56,7 +77,9 @@
     {
       "src": "^/productos/?$",
       "status": 301,
-      "headers": { "Location": "/categorias/" }
+      "headers": {
+        "Location": "/categorias/"
+      }
     },
     {
       "src": "^/productos/([A-Za-z0-9._-]+?)(?:\\.html)?/?$",
@@ -97,7 +120,9 @@
     {
       "src": "^/producto/mind-f-cker-30-serv-tangarine/?$",
       "status": 301,
-      "headers": { "Location": "/producto/creapure-300-gramos-100-servicios/" }
+      "headers": {
+        "Location": "/producto/creapure-300-gramos-100-servicios/"
+      }
     },
     {
       "src": "^/producto/([a-z0-9-]+)/?$",

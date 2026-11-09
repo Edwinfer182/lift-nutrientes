@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Mi catálogo PDF · SUPGO CONTROL</title>
+<link rel="icon" type="image/png" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../catalogo/app.css?v=2">
+<link rel="stylesheet" href="app.css?v=2">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="topRow">
+      <div class="brand"><span class="logo">📕</span><div><h1>Mi catálogo PDF</h1><p id="sync" class="sync"><i></i><span>Cargando productos…</span></p></div></div>
+    </div>
+  </header>
+  <main>
+    <section class="links" id="links"></section>
+
+    <section class="panel">
+      <h3>1 · ¿Qué precio mostrar?</h3>
+      <div class="seg" id="ver">
+        <button data-v="publico" class="on"><b>Público</b><small>Para clientes · con ofertas</small></button>
+        <button data-v="entrenador"><b>Entrenador</b><small>Precio especial de entrenador</small></button>
+      </div>
+
+      <h3>2 · ¿Qué productos?</h3>
+      <div class="rowF">
+        <label class="fld"><span>Categorías</span><button type="button" class="btn pickBtn" id="catBtn">Todas</button></label>
+        <label class="fld"><span>Ordenar</span><select id="orden"><option value="cat">Por categoría</option><option value="marca">Por marca</option></select></label>
+      </div>
+      <div class="opts">
+        <label class="tgl"><input type="checkbox" id="soloFoto" checked><span>Solo productos con foto</span></label>
+        <label class="tgl"><input type="checkbox" id="soloOferta"><span>Solo productos en oferta</span></label>
+        <label class="tgl"><input type="checkbox" id="unirSabores" checked><span>Unir sabores del mismo producto</span></label>
+      </div>
+      <div class="sum" id="sum"></div>
+
+      <h3>3 · Generar</h3>
+      <div class="gen">
+        <button class="btn primary big" id="genBtn">⚡ Generar PDF</button>
+        <div class="prog" id="prog" hidden><div class="bar"><i id="progBar"></i></div><span id="progTxt">Preparando…</span></div>
+      </div>
+      <div class="result" id="result" hidden>
+        <div class="resInfo"><span class="ok">✓</span><div><b id="resT">PDF listo</b><small id="resS"></small></div></div>
+        <div class="resBtns">
+          <button class="btn" id="viewBtn">👁 Ver</button>
+          <button class="btn" id="dlBtn">⬇ Descargar</button>
+          <button class="btn lime" id="pubBtn">🌐 Publicar en el enlace</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="dlgWrap" id="catDlg" hidden><div class="dlgBg"></div><div class="dlg"><h3>Categorías</h3><div class="catTools"><button class="btn" id="catAll">Todas</button><button class="btn" id="catNone">Ninguna</button></div><div class="catList" id="catList"></div><div class="dlgA"><button class="btn primary" id="catOk">Listo</button></div></div></div>
+<div class="lock" id="lock" hidden><form class="lockBox" id="lockForm"><span class="logo big">📕</span><h2>Mi catálogo PDF</h2><p>Ingresa la clave de administración</p><input id="lockPw" type="password" autocomplete="current-password" placeholder="Clave"><button class="btn primary">Entrar</button><p class="err" id="lockErr"></p></form></div>
+<div class="toasts" id="toasts"></div>
+<script src="pdf-lib.min.js?v=1.17.1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
