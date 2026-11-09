@@ -64,9 +64,9 @@ const STOP=new Set(['de','y','con','sabor','sabores','x','and','the','by']);
 /* Separa un nombre en: base (para agrupar), tamaño y sabor. */
 function parse(r,hint){
   const p=r.product||{},name=pname(r),pres=String(p.presentation||p.presentacion||'');
-  const sizes=sizesIn(name),peso=sizes.filter(x=>/ (lb|kg|g|oz|ml)$/.test(x));const tam=(hint&&hint.tamano)||(peso.length?peso[0]:sizes.length?sizes[0]:(pres&&pres.length<24?pres:''));
+  const sizes=sizesIn(name),peso=sizes.filter(x=>/ (lb|kg|g|oz|ml)$/.test(x)),pz=sizesIn(pres);const tam=peso[0]||sizes[0]||(hint&&hint.tamano)||pz[0]||(pres&&pres.length<24&&!/[a-z]{4,}\s+[a-z]{4,}/i.test(pres)?pres:'');
   const rest=name.replace(SIZE_RE,' ').replace(/[()|/\-–,+%]+/g,' ');
-  const ownFl=new Set(norm(p.flavor||(hint&&hint.sabor)||'').split(/[^a-z0-9]+/).filter(Boolean));
+  const ownFl=new Set(norm((p.flavor||'')+' '+((hint&&hint.sabor)||'')).split(/[^a-z0-9]+/).filter(w=>w&&!/^\d/.test(w)));
   const words=rest.split(/\s+/).filter(Boolean);
   // El sabor va al final del nombre: se toman las palabras de sabor del final hacia atrás.
   const W=words.map(w=>({w,n:norm(w).replace(/[^a-z0-9]/g,'')})).filter(x=>x.n);
@@ -85,6 +85,7 @@ function suggest(){
   const hints=new Map();S.groups.filter(g=>!g.slug).forEach(g=>{const gw=new Set(norm(g.nombre).split(/[^a-z0-9]+/));(g.variantes||[]).forEach(v=>{
     let sab=String(v.sabor||'').split(/\s+/).filter(w=>!gw.has(norm(w).replace(/[^a-z0-9]/g,''))).join(' ').trim()||String(v.sabor||'').trim();
     if(/^(variación|variacion)\s*\d+$/i.test(sab))sab='';
+    if(sizesIn(sab).length||sab.length>32)sab='';
     hints.set(String(v.producto_id),{sabor:sab,tamano:v.tamano||sizesIn(g.presentacion+' '+g.nombre)[0]||''})})});
   const fam=new Map();
   S.prods.forEach((r,id)=>{
@@ -107,6 +108,7 @@ function suggest(){
     const taken=s=>used.has(s)||[...S.prods.values()].some(r=>r.slug===s&&!ids.has(String(r.id)));
     if(taken(slug)){let n=2;while(taken(slug+'-'+n))n++;slug=slug+'-'+n}
     used.add(slug);
+    if(f.items.some(i=>i.sabor))f.items.forEach(i=>{if(!i.sabor)i.sabor='Original'});
     const pairs=new Map();f.items.forEach(i=>{const p=norm(i.tamano)+'|'+norm(i.sabor);pairs.set(p,(pairs.get(p)||0)+1)});
     const dups=[...pairs.values()].some(n=>n>1);
     const cat=Object.entries(f.cats).sort((a,b)=>b[1]-a[1])[0][0];
@@ -314,5 +316,6 @@ $('nueva').addEventListener('click',e=>{if(e.target.closest('[data-nclose]'))$('
 $('nOk').onclick=createVar;
 $('sugMore').textContent='';new IntersectionObserver(es=>{if(es[0].isIntersecting&&S.list&&S.shown<S.list.length)moreSugs()},{rootMargin:'500px'}).observe($('sugMore'));
 $('lockForm').onsubmit=async e=>{e.preventDefault();try{sessionStorage.setItem(PASS,$('lockPw').value)}catch(x){}$('lockErr').textContent='Verificando…';try{await rpc('list');$('lock').hidden=true;load()}catch(x){$('lockErr').textContent=/Clave/.test(x.message)?'Clave incorrecta':'Sin conexión'}};
+window.supgoVariables={S,suggest,parse};
 if(!pw())lock();else load();
 })();
