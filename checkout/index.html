@@ -508,6 +508,7 @@ function submit(ev){
   couponStep.then(function(){
     var nombre=$('nombre').value.trim(),celular=$('celular').value.trim(),email=$('email').value.trim().toLowerCase(),notas=$('notas').value.trim();
     if(!$('f-documento').hidden)notas=[notas,'Documento: '+$('documento').value.trim()].filter(Boolean).join(' | ');
+    var geo=window.SupgoGeo&&window.SupgoGeo.link();if(geo)notas=[notas,'📍 Ubicación: '+geo].filter(Boolean).join(' | ');
     var ls=okLines(),payload={action:'public-save-order',request_key:requestKey(),nombre:nombre,celular:celular,direccion:$('direccion').value.trim(),
       ciudad:state.city.name,departamento:state.city.department||'',notas:notas,email:email,email_notificaciones:true,
       tratamiento_datos:true,tratamiento_datos_fecha:new Date().toISOString(),tratamiento_datos_version:'LIFT-DATOS-2026-10-06-v1',marketing_autorizado:false,
@@ -724,7 +725,7 @@ function saveToAccount(p){
   try{if(state.coupon&&C.refCode&&state.coupon.code===C.refCode())C.clearRef()}catch(e){}
   if(!C.get())return;
   try{
-    C.api('address-save',{address:{direccion:p.direccion,ciudad:p.ciudad,departamento:p.departamento,notas:$('notas').value.trim()}}).catch(function(){});
+    C.api('address-save',{address:{direccion:p.direccion,ciudad:p.ciudad,departamento:p.departamento,notas:[$('notas').value.trim(),window.SupgoGeo&&window.SupgoGeo.link()?'📍 Ubicación: '+window.SupgoGeo.link():''].filter(Boolean).join(' | ')}}).catch(function(){});
     var c=account&&account.cuenta||{};
     if(!c.nombre||!c.celular)C.api('profile',{nombre:c.nombre||p.nombre,celular:c.celular||p.celular}).catch(function(){});
   }catch(e){}
@@ -744,5 +745,6 @@ function start2(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
+<script src="/checkout/direccion-mapa.js?v=1" defer></script>
 </body>
 </html>
