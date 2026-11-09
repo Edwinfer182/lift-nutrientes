@@ -484,6 +484,15 @@
   }
 
   /* ---------- Producto variable: elegir tamaño y sabor sin cambiar de página ---------- */
+  /* Descuento por cantidad (mismo cálculo que carrito y checkout). */
+  function volStrip() {
+    if (!document.getElementById('vol-css')) {
+      var st = document.createElement('style'); st.id = 'vol-css';
+      st.textContent = '.pi-vol{display:flex;align-items:center;gap:10px;margin:10px 0 4px;padding:10px 12px;border:1px dashed #a3c94a;border-radius:12px;background:#fbfef3;font-family:Poppins,Arial,sans-serif}.pi-vol-ico{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:10px;background:#c6f432;font-size:16px}.pi-vol-t{flex:1;min-width:0;font-size:12.5px;line-height:1.35;color:#374151}.pi-vol-t b{color:#111}.pi-vol-tiers{display:flex;gap:6px;flex:none}.pi-vol-tiers span{display:grid;text-align:center;border-radius:9px;background:#fff;border:1px solid #e3eccb;padding:4px 8px;font-size:10.5px;color:#4b5563;line-height:1.2}.pi-vol-tiers span b{font-size:15px;color:#111}.pi-vol-tiers span.hot{background:#111;border-color:#111;color:#d9dcd9}.pi-vol-tiers span.hot b{color:#c6f432}@media(max-width:420px){.pi-vol{flex-wrap:wrap}.pi-vol-tiers{width:100%}.pi-vol-tiers span{flex:1}}';
+      document.head.appendChild(st);
+    }
+    return '<div class="pi-vol" role="note"><span class="pi-vol-ico" aria-hidden="true">🛒</span><div class="pi-vol-t"><b>Lleva más y ahorra</b><br>Mezcla los productos que quieras. El descuento se aplica solo en el carrito.</div><div class="pi-vol-tiers"><span><b>3%</b>3 productos</span><span class="hot"><b>7%</b>6 productos</span></div></div>';
+  }
   /* Compra, envíos y pagos (reemplaza la pieza estática con emojis). */
   var ICO = {
     ok: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.2 2.2 4.3-4.6"/>',
@@ -701,7 +710,7 @@
     var curLabel = cur ? cur.label : '';
     root.innerHTML = '\n<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/categorias/">Categorías</a>' + (brand ? '<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/' + slug(brand) + '/">' + esc(brand) + '</a>' : '') + '<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">' + esc(name) + '</span></nav>\n' +
       '<article class="product-card">\n<section class="product-gallery">' + (gallery.length > 1 ? '<div class="gallery-thumbs">' + gallery_html + '</div>' : '') + '<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">' + img + '<span class="zoom-hint">⌕ Ampliar</span></button></div><button type="button" id="shareProduct" class="product-share-btn" aria-label="Compartir producto" title="Compartir producto"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"/></svg> Compartir</button></section>\n' +
-      '<section class="product-info">\n' + brand_html + '<h1>' + esc(seo.nombre_visible || name) + '</h1>' + tags_html + '\n<!--precio-->' + rating_line(reviews) + '<div class="product-price">' + price_html + '</div>' + extra + '<!--/precio-->\n' + P.envio + '\n' +
+      '<section class="product-info">\n' + brand_html + '<h1>' + esc(seo.nombre_visible || name) + '</h1>' + tags_html + '\n<!--precio-->' + rating_line(reviews) + '<div class="product-price">' + price_html + '</div>' + extra + '<!--/precio-->\n' + P.envio + volStrip() + '\n' +
       (G ? opcionesHtml(G, pid) : variants.length > 1 ? '<div class="variant-panel"><h3>Sabor: ' + esc(curLabel) + '</h3><div class="variant-grid">' + variants_html + '</div></div>' : '') + '\n' +
       P.acciones + '\n' + P.pagos + '\n<details class="seo-description"><summary>Descripción <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">' + body + '</div></details>\n' + garantiasHtml(G ? G.nombre : name) + '\n</section></article>\n' +
       '<!--relacionados-->' + reviews_html(reviews) + (related_html ? '<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">' + related_html + '</div></section>' : '') +
