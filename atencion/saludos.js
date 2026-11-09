@@ -100,7 +100,19 @@
   });
   $('name').addEventListener('input', function () { if (extras.length) aplicarExtras(); });
   $('phone').addEventListener('paste', function () { setTimeout(function () { var d = $('phone').value.replace(/\D/g, ''); if (d.length === 12 && d.indexOf('57') === 0) d = d.slice(2); $('phone').value = d; }, 0); });
-  var send = $('send'); if (send) send.addEventListener('click', guardarReciente, true);
+  /* WhatsApp no se deja abrir dentro de un iframe (CONTROL): se abre en una pestaña nueva. */
+  var send = $('send');
+  if (send) send.onclick = function () {
+    var message = $('message').value.trim(), digits = $('phone').value.replace(/\D/g, '');
+    if (!message) { $('status').textContent = 'Escribe el mensaje'; return; }
+    if (digits.length < 10 || digits.length > 15) { $('status').textContent = 'Ingresa un celular válido'; return; }
+    guardarReciente();
+    var url = 'https://wa.me/' + (digits.length === 10 ? '57' + digits : digits) + '?text=' + encodeURIComponent(message);
+    $('status').textContent = 'Abriendo WhatsApp';
+    var w = window.open(url, '_blank');
+    if (w) { try { w.opener = null; } catch (e) {} return; }
+    try { window.top.location.href = url; } catch (e) { location.href = url; }
+  };
   var copy = $('copy'); if (copy) copy.addEventListener('click', function () { if (($('phone').value || '').replace(/\D/g, '').length >= 10) guardarReciente(); }, true);
   drawRecent();
   if (!elegirPorHora()) { render(); refresh(true); }
