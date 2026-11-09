@@ -66,7 +66,7 @@ canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0
 </style></head><body>
 <div id="gate" class="gate card" hidden><h1>Estudio de redes</h1><p class="muted">Inicia sesión en SUPGO CONTROL para usar esta herramienta.</p><a href="/control/">Ir a SUPGO CONTROL</a></div>
 <nav class="tabs" id="tabs" hidden aria-label="Secciones">
- <button data-t="productos" class="on">🛍 Productos</button><button data-t="educacion">📚 Educación · Calendario</button><button data-t="tiktok">🎬 TikTok · Guiones</button><button data-t="marcas">🏷 Marcas · SEO</button>
+ <button data-t="productos" class="on">🛍 Productos</button><button data-t="educacion">📚 Educación · Calendario</button><button data-t="tiktok">🎬 TikTok · Guiones</button><button data-t="marcas">🏷 Marcas · SEO</button><button data-t="google">🔎 Instagram en Google</button>
 </nav>
 <div class="wrap" id="app" hidden>
  <section class="card pick" aria-label="Elegir productos">
@@ -105,6 +105,7 @@ canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0
 </div>
 <section class="panel2" id="p-educacion" hidden></section>
 <section class="panel2" id="p-tiktok" hidden></section>
+<section class="panel2" id="p-google" hidden></section>
 <section class="panel2" id="p-marcas" hidden></section>
 <div id="toast" hidden role="status"></div>
 <script>
@@ -142,17 +143,21 @@ function info(r){
 }
 async function load(){
  const sel='select=id,slug,activo,updated_at,product&activo=eq.true&slug=not.is.null&order=id.asc&limit=1000';
- const [a,b,cfg,blk]=await Promise.all([get('lift_productos?'+sel+'&offset=0'),get('lift_productos?'+sel+'&offset=1000'),
+ const [a,b,cfg,blk,famRows]=await Promise.all([get('lift_productos?'+sel+'&offset=0'),get('lift_productos?'+sel+'&offset=1000'),
   get('lift_catalog_config?select=valor&clave=eq.weekly_offers&limit=1').catch(()=>[]),
-  get('lift_seo_bloqueos?select=producto_id&grupo=eq.medicamento').catch(()=>[])]);
+  get('lift_seo_bloqueos?select=producto_id&grupo=eq.medicamento').catch(()=>[]),
+  get('lift_familias_publicas?select=producto_id,slug,nombre,sabor,tamano&limit=5000').catch(()=>[])]);
+ const famPub=new Map((famRows||[]).map(f=>[String(f.producto_id),f]));
  let offers=cfg[0]&&cfg[0].valor||{};if(typeof offers==='string')try{offers=JSON.parse(offers)}catch(e){offers={}}
  S.offers=offers&&typeof offers==='object'?offers:{};
  const meds=new Set(blk.map(x=>String(x.producto_id)));
  S.rows=a.concat(b).filter(r=>{const p=r.product||{};return !meds.has(String(r.id))&&!p.__deleted&&!p.__private&&!p.adminOnly&&!p.hidden&&!p.oculto&&(p.name||p.nombre)&&!/copia\s*$/i.test(p.name||'')&&!/^(venom pharma|lift nutrientes)$/i.test(p.brand||p.marca||'')}).map(info);
+ // Productos variables: la URL pública es la del producto padre (?v= elige la variación).
+ S.rows.forEach(x=>{const f=famPub.get(String(x.id));if(!f)return;x.url=BASE+'/producto/'+f.slug+'/?v='+x.id;x.famSlug=f.slug;x.famName=f.nombre||'';if(!x.flavor&&f.sabor)x.flavor=f.sabor;if(!x.size&&f.tamano)x.size=f.tamano});
  // Sabores disponibles: mismos marca y nombre base (sin el sabor).
  const base=x=>norm(x.brand)+'|'+norm(x.flavor&&norm(x.name).endsWith(norm(x.flavor))?x.name.slice(0,-x.flavor.length):x.name).replace(/[^a-z0-9]+/g,' ').trim();
  const fam=new Map();S.rows.forEach(x=>{const k=base(x);if(!fam.has(k))fam.set(k,[]);fam.get(k).push(x)});
- S.rows.forEach(x=>{const f=fam.get(base(x));x.sabores=f.length>1?[...new Set(f.map(y=>y.flavor).filter(Boolean))]:[]});
+ S.rows.forEach(x=>{const f=x.famSlug?S.rows.filter(y=>y.famSlug===x.famSlug):fam.get(base(x));x.sabores=f.length>1?[...new Set(f.map(y=>y.flavor).filter(Boolean))]:[]});
  const cats=[...new Set(S.rows.map(x=>x.cat).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'es'));
  cats.forEach(c=>$('cat').add(new Option(c,c)));
  try{const r=await fetch(SB+'rpc/lift_control_resumen',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass()})});if(r.ok){const j=await r.json();S.top=(j.top_productos||[]).map(x=>String(x.id))}}catch(e){}
@@ -193,7 +198,7 @@ function catTag(c){const n=norm(c);if(/whey|iso|prote/.test(n))return 'Proteina'
 const tagify=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,' ').trim().split(' ').map(w=>!w?'':w.length<=4&&w===w.toUpperCase()?w:w[0].toUpperCase()+w.slice(1).toLowerCase()).join('');
 function hashtags(items){const set=new Set();items.forEach(x=>{if(x.brand)set.add('#'+tagify(x.brand));set.add('#'+catTag(x.cat))});
  ['#SUPGO','#Suplementos'+CITY.normalize('NFD').replace(/[̀-ͯ]/g,''),'#SuplementosColombia','#Gym'+CITY.normalize('NFD').replace(/[̀-ͯ]/g,''),'#Fitness'].forEach(t=>set.add(t));
- return [...set].slice(0,12).join(' ')}
+ return [...set].slice(0,7).join(' ')}
 function utm(url,fmt,camp){const u=new URL(url);u.searchParams.set('utm_source',fmt==='whatsapp'?'whatsapp':fmt==='reel'?'tiktok':'instagram');u.searchParams.set('utm_medium','social');u.searchParams.set('utm_campaign',camp||'contenido');return u.toString()}
 function specs(x){return [x.size,x.serv?x.serv+' servicios':'',x.units].filter(Boolean).join(' · ')}
 function priceLine(x){if(!x.price)return 'Precio: escríbenos y te cotizamos.';if(x.onOffer)return '🔥 Antes '+cop(x.regular)+' → HOY '+cop(x.price)+' (-'+x.pct+'%)'+(x.until?' hasta el '+x.until.toLocaleDateString('es-CO',{day:'numeric',month:'long'}):'')+'.';return '💲 '+cop(x.price)+(x.perServ?' · unos '+cop(x.perServ)+' por servicio':'')+'.'}
@@ -203,6 +208,16 @@ function edu(cat){const n=norm(cat);
  if(/pre ?entreno/.test(n))return ['Revisa cuánta cafeína trae por servicio.','Si eres sensible a estimulantes, empieza con media porción y lee la etiqueta.','No lo tomes tarde en la noche si te afecta el sueño.'];
  if(/ganador/.test(n))return ['Mira la proporción de carbohidratos y proteína por servicio.','Compara calorías por servicio según tu objetivo.','El tamaño del envase define cuántas semanas te dura.'];
  return ['Revisa la dosis por porción y la cantidad de servicios del envase.','Compara el precio por servicio entre presentaciones.','Si tomas medicamentos, consulta con un profesional antes de usarlo.']}
+/* Google indexa las publicaciones públicas de cuentas profesionales (desde julio de 2025):
+   lee el texto (sobre todo la primera línea), el texto alternativo, los hashtags y la ubicación. */
+const PLACE=CITY+', Antioquia';
+function catWord(c){const n=norm(c);if(/creatin/.test(n))return 'creatina';if(/whey|iso|prote/.test(n))return 'proteína';if(/pre ?entreno/.test(n))return 'pre-entreno';if(/ganador/.test(n))return 'ganador de masa';if(/quemador|carnitina/.test(n))return 'quemador de grasa';if(/omega/.test(n))return 'omega 3';if(/colageno/.test(n))return 'colágeno';if(/magnesio/.test(n))return 'magnesio';if(/vitamin|multivit|mineral/.test(n))return 'vitaminas';if(/amino|bcaa|eaa|glutamina/.test(n))return 'aminoácidos';return String(c||'suplementos').toLowerCase()}
+function spNew(x){return [x.size,x.serv?x.serv+' servicios':'',x.units].filter(v=>v&&!norm(x.name).replace(/\s+/g,'').includes(norm(v).replace(/\s+/g,''))).join(' · ')}
+function seoLine(x){const sp=spNew(x);return x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' de '+x.brand:'')+(sp?' ('+sp+')':'')+(x.flavor&&!norm(x.name).includes(norm(x.flavor))?', sabor '+x.flavor:'')+': '+catWord(x.cat)+' en '+CITY+' con envío a toda Colombia.'}
+function altText(x){const sp=spNew(x);return 'Envase de '+x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' de '+x.brand:'')+(x.flavor&&!norm(x.name).includes(norm(x.flavor))?' sabor '+x.flavor:'')+(sp?', '+sp:'')+'. '+catWord(x.cat).replace(/^./,c=>c.toUpperCase())+' disponible en SUPGO, tienda de suplementos en '+CITY+'.'}
+function googleTips(kind){return ['1. Pega el texto tal cual: la primera línea nombra el producto, porque es lo que Google muestra.',
+ kind==='reel'?'2. En el video, di en voz alta el nombre completo del producto y activa los subtítulos.':'2. Antes de publicar: Configuración avanzada → Accesibilidad → Escribir texto alternativo, y pega el de arriba.',
+ '3. Agrega la ubicación: '+PLACE+'.','4. Publica desde la cuenta profesional y pública de SUPGO.'].join('\n')}
 function single(x,fmt,tone){
  const n=x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' de '+x.brand:''),link=utm(x.url,fmt,tone==='oferta'?'ofertas':'producto');
  const hooks={venta:['¿Buscas '+n+' en '+CITY+'? 👇','Llegó a SUPGO: '+n+' 💪','Tu próximo pedido: '+n+' ✅'],
@@ -211,7 +226,7 @@ function single(x,fmt,tone){
   educativo:['Antes de comprar '+n+', mira esto 👀','3 cosas para elegir '+(x.cat||'tu suplemento').toLowerCase()+(x.brand?' (ejemplo: '+n+')':'')+' 🧠','¿Cómo saber si '+n+' es para ti?'],
   comparar:['¿'+n+' o la otra opción? Te ayudamos a comparar ⚖️','Compara antes de comprar: '+n,'Precio por servicio de '+n+': el dato que casi nadie mira 💡']};
  const hook=pick(hooks[tone]||hooks.venta);const sp=specs(x),tips=edu(x.cat);
- const body=[hook,'',
+ const body=[hook,seoLine(x),'',
   x.brand?'🏷 Marca: '+x.brand:null,
   sp?'📦 '+sp+(x.flavor?' · Sabor '+x.flavor:''):null,
   x.sabores&&x.sabores.length>1?'😋 Sabores: '+x.sabores.join(', '):null,
@@ -220,7 +235,7 @@ function single(x,fmt,tone){
   '',pick(['🚚 Entregas en '+CITY+' y envíos a toda Colombia.','🚚 Envío a toda Colombia · En '+CITY+' pedidos antes de las 2 p. m. pueden salir el mismo día.','📍 '+CITY+' y envíos nacionales.'],1),
   pick(['👉 Pídelo en el link de la bio o escríbenos por WhatsApp.','👉 Link en la bio · supgo.co','👉 Escríbenos y te ayudamos a elegir.'],2)].filter(v=>v!==null).join('\n').replace(/\n{3,}/g,'\n\n');
  const tags=hashtags([x]);
- if(fmt==='post')return {blocks:[['Texto del post',body+'\n\n'+tags],['Nombre + marca + precio',[x.name,x.brand,x.price?cop(x.price):''].filter(Boolean).join(' - ')],['Enlace con seguimiento (bio o mensaje)',link],['Texto alternativo de la imagen',x.name+(x.brand?' de '+x.brand:'')+(sp?', '+sp:'')+'. Precio '+cop(x.price)+' en SUPGO.'],['Prompt para @Estados · publicación 4:5',estadosPrompt(x,'post')]],image:'post'};
+ if(fmt==='post')return {blocks:[['Texto del post',body+'\n\n'+tags],['Nombre + marca + precio',[x.name,x.brand,x.price?cop(x.price):''].filter(Boolean).join(' - ')],['Enlace con seguimiento (bio o mensaje)',link],['Texto alternativo de la imagen (para Google)',altText(x)],['Ubicación para etiquetar',PLACE],['Cómo publicarlo para que salga en Google',googleTips('post')],['Prompt para @Estados · publicación 4:5',estadosPrompt(x,'post')]],image:'post'};
  if(fmt==='historia')return {blocks:[['Texto corto para la historia o estado',[x.onOffer?'🔥 -'+x.pct+'% HOY':pick(['NUEVO EN SUPGO','DISPONIBLE YA','¿LO NECESITAS?']),x.name,x.brand||null,x.price?cop(x.price):'Consulta precio','👆 Toca el enlace'].filter(Boolean).join('\n')],['Enlace para el sticker',link],['Texto del sticker',x.sabores&&x.sabores.length>1?'Ver precio y sabores':'Ver precio'],['Prompt para @Estados · estado 9:16',estadosPrompt(x,'historia')],['Mensaje para estado de WhatsApp',n+' — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (oferta -'+x.pct+'%)':'')+'\nPídelo aquí 👉 '+utm(x.url,'whatsapp',tone==='oferta'?'ofertas':'estado')]],image:'historia'};
  if(fmt==='reel')return {blocks:[['Guion (15–25 s)',[
    '0–3 s · Gancho (texto en pantalla): '+hook,
@@ -228,7 +243,7 @@ function single(x,fmt,tone){
    '8–15 s · '+(x.onOffer?'Muestra el precio: "Antes '+cop(x.regular)+', hoy '+cop(x.price)+'."':x.perServ?'Dato: "Sale a unos '+cop(x.perServ)+' por servicio."':'Dato: "'+tips[0]+'"'),
    '15–20 s · Cierre: "Pídelo en SUPGO, envíos a toda Colombia. Link en la bio."',
    '','Sonido: tendencia del día a volumen bajo · Subtítulos siempre activos'].join('\n')],
-   ['Descripción del video',hook+' '+priceLine(x)+' Link en la bio.\n\n'+tags],['Enlace',link]],image:'historia'};
+   ['Descripción del video',hook+'\n'+seoLine(x)+'\n'+priceLine(x)+' Link en la bio.\n\n'+tags],['Texto en pantalla del primer segundo',x.name+(x.brand&&!norm(x.name).includes(norm(x.brand))?' · '+x.brand:'')],['Enlace',link],['Ubicación para etiquetar',PLACE],['Cómo publicarlo para que salga en Google',googleTips('reel')]],image:'historia'};
  if(fmt==='whatsapp')return {blocks:[['Mensaje de difusión',['Hola 👋 '+(x.onOffer?'tenemos oferta en *'+x.name+'*':'te cuento que tenemos *'+x.name+'*')+(x.brand?' de '+x.brand:'')+'.',sp?'📦 '+sp:'',priceLine(x),x.gift?'🎁 Regalo: '+x.gift:'','Puedes pedirlo aquí: '+utm(x.url,'whatsapp','difusion'),'Si tienes dudas, respóndeme este mensaje.'].filter(Boolean).join('\n')]],image:'post'};
  return multi([x],'carrusel',tone);
 }
@@ -237,10 +252,11 @@ function multi(items,fmt,tone){
  const off=items.filter(x=>x.onOffer),title=tone==='oferta'||off.length===items.length?pick(['🔥 OFERTAS DE LA SEMANA EN SUPGO','Precios especiales esta semana 🔥','Lo que está en oferta hoy 👇']):tone==='comparar'?'Compara antes de comprar ⚖️':pick(['Nuestras recomendaciones de la semana 💪','Lo más pedido en SUPGO 🏆','Arma tu stack 👇']);
  const lines=items.map((x,i)=>(i+1)+'. '+x.name+(x.brand?' ('+x.brand+')':'')+' — '+(x.onOffer?cop(x.price)+' (antes '+cop(x.regular)+')':x.price?cop(x.price):'consulta precio')+(tone==='comparar'&&x.perServ?' · '+cop(x.perServ)+'/serv.':''));
  const camp=tone==='oferta'?'ofertas':'carrusel';
- const caption=[title,'',...lines,'','🚚 Envíos a toda Colombia · '+CITY,'👉 Link en la bio o escríbenos por WhatsApp','',hashtags(items)].join('\n');
+ const cw=[...new Set(items.map(x=>catWord(x.cat)))],seo=(cw.length===1?cw[0].replace(/^./,c=>c.toUpperCase()):'Suplementos')+' en '+CITY+': '+items.slice(0,3).map(x=>x.name).join(', ')+(items.length>3?' y más':'')+'.';
+ const caption=[title,seo,'',...lines,'','🚚 Envíos a toda Colombia · '+CITY,'👉 Link en la bio o escríbenos por WhatsApp','',hashtags(items)].join('\n');
  if(fmt==='whatsapp')return {blocks:[['Mensaje de difusión',['Hola 👋 '+title.replace(/[🔥💪🏆👇⚖️]/g,'').trim()+':',...items.map(x=>'• *'+x.name+'* — '+(x.price?cop(x.price):'consulta precio')+(x.onOffer?' (-'+x.pct+'%)':'')+'\n  '+utm(x.url,'whatsapp','difusion')),'','Respóndeme si quieres que te ayude a elegir.'].join('\n')]],image:'carrusel'};
  if(fmt==='historia')return {blocks:[['Secuencia de historias',items.map((x,i)=>'Historia '+(i+1)+': '+x.name+' · '+(x.price?cop(x.price):'consulta')+(x.onOffer?' · -'+x.pct+'%':'')+'\nSticker: '+utm(x.url,'instagram',camp)).join('\n\n')]],image:'historia'};
- return {blocks:[['Texto del carrusel',caption],['Portada (diapositiva 1)',title.replace(/[🔥💪🏆👇⚖️]/g,'').trim()+'\nDesliza →'],['Enlaces',items.map(x=>x.name+': '+utm(x.url,'instagram',camp)).join('\n')]],image:'carrusel'};
+ return {blocks:[['Texto del carrusel',caption],['Portada (diapositiva 1)',title.replace(/[🔥💪🏆👇⚖️]/g,'').trim()+'\nDesliza →'],['Enlaces',items.map(x=>x.name+': '+utm(x.url,'instagram',camp)).join('\n')],['Texto alternativo de cada diapositiva (para Google)',items.map((x,i)=>'Diapositiva '+(i+2)+': '+altText(x)).join('\n\n')],['Ubicación para etiquetar',PLACE],['Cómo publicarlo para que salga en Google',googleTips('post')]],image:'carrusel'};
 }
 
 /* ---------- Imágenes ---------- */
@@ -305,7 +321,7 @@ async function originalPhoto(x){try{const r=await fetch(x.img);if(!r.ok)throw Er
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),6000)}catch(e){window.open(x.img,'_blank','noopener')}}
 const blobOf=c=>new Promise(r=>{try{c.toBlob(b=>r(b),'image/png')}catch(e){r(null)}});
 async function download(cs){let n=0;for(const [i,c] of cs.entries()){const b=await blobOf(c);if(!b){toast('Una imagen viene de otro sitio y no se pudo exportar; súbela al panel para usarla.');continue}
- const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='supgo-'+slug(S.sel[Math.max(0,i-(cs.length>S.sel.length?1:0))]?.name||'post')+'-'+(i+1)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);n++;await new Promise(r=>setTimeout(r,350))}
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);const it=S.sel[Math.max(0,i-(cs.length>S.sel.length?1:0))];a.download=slug([it?.name||'post',it&&!norm(it.name).includes(norm(it.brand))?it.brand:'',CITY].join(' '))+'-supgo-'+(i+1)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);n++;await new Promise(r=>setTimeout(r,350))}
  if(n)toast(n===1?'Imagen descargada':n+' imágenes descargadas')}
 async function share(cs,out){const files=[];for(const [i,c] of cs.entries()){const b=await blobOf(c);if(b)files.push(new File([b],'supgo-'+(i+1)+'.png',{type:'image/png'}))}
  const text=out.blocks[0][1];copy(text,true);
@@ -324,12 +340,12 @@ function restore(){hist();const qs=new URLSearchParams(location.search),p=qs.get
  if(q){$('q').value=q;renderList();const hits=$('list').querySelectorAll('.item');if(hits.length===1)hits[0].click()}
  if(t)tab(t)}
 /* ---------- Pestañas ---------- */
-function tab(t){if(!['productos','educacion','tiktok','marcas'].includes(t))t='productos';
+function tab(t){if(!['productos','educacion','tiktok','marcas','google'].includes(t))t='productos';
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
- $('app').hidden=t!=='productos';['educacion','tiktok','marcas'].forEach(k=>$('p-'+k).hidden=k!==t);
+ $('app').hidden=t!=='productos';['educacion','tiktok','marcas','google'].forEach(k=>$('p-'+k).hidden=k!==t);
  if(t!=='productos'&&window.SupgoRedesSecciones)window.SupgoRedesSecciones.render(t)}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
-window.SupgoRedes={rows:()=>S.rows,copy,toast,cop,norm,slug};
+window.SupgoRedes={rows:()=>S.rows,top:()=>S.top,copy,toast,cop,norm,slug,altText,catWord,seoLine,CITY};
 
 /* ---------- Eventos ---------- */
 document.querySelectorAll('#fmt button').forEach(b=>b.onclick=()=>{setSeg('fmt',b.dataset.v);build()});
@@ -343,4 +359,4 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLower
 load().catch(e=>{$('list').innerHTML='<div class="empty">No se pudo cargar el catálogo: '+e.message+'</div>'});
 })();
 </script>
-<script src="/control/redes/secciones.js?v=20261107"></script></body></html>
+<script src="/control/redes/secciones.js?v=20261109"></script></body></html>

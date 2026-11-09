@@ -154,7 +154,53 @@ ${items.map(x=>'- ID '+x.id+' · '+x.name+(x.flavor?' · sabor '+x.flavor:'')+' 
  update();
 }
 
+/* ================= Instagram en Google ================= */
+function renderGoogle(box){
+ const r=R(),rows=r.rows(),city=r.CITY;
+ const card=(title,sub,...kids)=>el('div',{class:'card',style:'margin-bottom:12px'},el('h2',{text:title}),sub?el('div',{class:'muted',text:sub}):null,...kids);
+ // 1. Revisión de la cuenta
+ const checks=[
+  ['Cuenta profesional (Empresa o Creador) y pública','Solo las publicaciones públicas de cuentas profesionales de mayores de 18 años aparecen en Google.'],
+  ['Indexación activada','Configuración → Privacidad de la cuenta → "Permitir que las fotos y videos públicos aparezcan en los resultados de búsqueda". Viene activada; confirma que no la hayas apagado.'],
+  ['Nombre del perfil con lo que vendes','El campo "Nombre" (no el usuario) es lo que Google muestra como título. Usa una de las opciones de abajo.'],
+  ['Bio con ciudad y categoría','Di qué vendes y dónde, en palabras que la gente busca.'],
+  ['Enlace de la bio a supgo.co con seguimiento','Así ves en Analytics cuántas visitas y ventas llegan desde Instagram.'],
+  ['Categoría y dirección del negocio','Elige "Tienda de suplementos" o similar y pon '+city+' como ciudad.'],
+  ['Historias destacadas: no cuentan','Las historias y destacadas no aparecen en Google. Lo que posiciona son posts, carruseles y reels.']];
+ const KEY='supgo-ig-google-checks';let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+ const list=el('div',{style:'display:grid;gap:8px;margin-top:10px'},...checks.map(([t,d],i)=>{const cb=el('input',{type:'checkbox'});cb.checked=!!done[i];cb.onchange=()=>{done[i]=cb.checked;try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}};
+  return el('label',{style:'display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #e5e7eb;border-radius:12px;cursor:pointer'},cb,el('span',{},el('b',{text:t}),el('div',{class:'muted',text:d})))}));
+ box.append(card('1 · Revisa tu cuenta','Desde julio de 2025 Google muestra publicaciones de Instagram en sus resultados. Marca lo que ya tengas listo.',list));
+ // 2. Nombre y bio
+ const names=['SUPGO · Suplementos '+city,'SUPGO Suplementos '+city,'SUPGO | Tienda de suplementos'].filter(n=>n.length<=30);
+ const bios=['Tienda de suplementos en '+city+' 💪 Proteína, creatina, pre-entreno y más.\nEnvíos a toda Colombia 🚚\n👇 Compra aquí',
+  'Suplementos deportivos en '+city+' · Proteína, creatina, vitaminas.\nEntregas rápidas en '+city+' · Envíos a Colombia\n👇 supgo.co',
+  '💪 Suplementos en '+city+' y toda Colombia\nAsesoría por WhatsApp · Pagos seguros\n👇 Pide aquí'];
+ const link='https://supgo.co/?utm_source=instagram&utm_medium=bio&utm_campaign=perfil';
+ const opts=(arr,lim)=>el('div',{style:'display:grid;gap:8px;margin-top:8px'},...arr.map(t=>el('div',{style:'display:flex;gap:8px;align-items:flex-start;border:1px solid #e5e7eb;border-radius:12px;padding:10px'},el('pre',{style:'flex:1;margin:0;white-space:pre-wrap;font:inherit',text:t}),el('small',{class:'muted',text:t.length+'/'+lim}),el('button',{class:'btn',text:'Copiar',onclick:()=>r.copy(t)}))));
+ box.append(card('2 · Nombre del perfil y bio','El nombre (máx. 30 caracteres) y la bio (máx. 150) son lo primero que lee Google de tu cuenta.',
+  el('b',{text:'Nombre del perfil',style:'display:block;margin-top:10px'}),opts(names,30),el('b',{text:'Bio',style:'display:block;margin-top:12px'}),opts(bios,150),
+  el('b',{text:'Enlace de la bio',style:'display:block;margin-top:12px'}),opts([link],999)));
+ // 3. Palabras clave
+ const cats=new Map();rows.forEach(x=>{const w=r.catWord(x.cat);cats.set(w,(cats.get(w)||0)+1)});
+ const brands=new Map();rows.forEach(x=>{if(x.brand)brands.set(x.brand,(brands.get(x.brand)||0)+1)});
+ const topCats=[...cats.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]),topBrands=[...brands.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]);
+ const kw=['tienda de suplementos '+city,'suplementos '+city,...topCats.flatMap(c=>[c+' '+city,c+' precio Colombia']),...topBrands.map(b=>b+' Colombia')];
+ const kwBox=el('div',{style:'display:flex;flex-wrap:wrap;gap:6px;margin-top:10px'},...kw.map(k=>el('button',{class:'btn',text:k,onclick:()=>r.copy(k)})));
+ box.append(card('3 · Palabras clave para tus publicaciones','Usa una de estas en la primera línea del texto y en el texto alternativo. Así busca la gente: producto + ciudad, o marca + Colombia. Toca para copiar.',kwBox));
+ // 4. Publicaciones viejas
+ const q=el('input',{type:'search',placeholder:'Busca el producto de una publicación vieja…',style:'width:100%;margin-top:10px'});
+ const out=el('div',{style:'display:grid;gap:8px;margin-top:8px'});
+ const draw=()=>{const t=r.norm(q.value).split(/\s+/).filter(Boolean);const top=new Set(r.top());
+  const L=(t.length?rows.filter(x=>t.every(w=>r.norm(x.name+' '+x.brand+' '+x.flavor).includes(w))):(rows.filter(x=>top.has(String(x.id))||x.onOffer).length?rows.filter(x=>top.has(String(x.id))||x.onOffer):rows)).slice(0,12);
+  out.replaceChildren(...(L.length?L.map(x=>{const a=r.altText(x),l=r.seoLine(x);return el('div',{style:'border:1px solid #e5e7eb;border-radius:12px;padding:10px'},el('b',{text:x.name}),
+   el('div',{class:'muted',text:'Primera línea del texto: '+l,style:'margin-top:4px'}),el('div',{class:'muted',text:'Texto alternativo: '+a,style:'margin-top:4px'}),
+   el('div',{class:'row',style:'margin-top:6px'},el('button',{class:'btn',text:'Copiar primera línea',onclick:()=>r.copy(l)}),el('button',{class:'btn dark',text:'Copiar texto alternativo',onclick:()=>r.copy(a)})))}):[el('div',{class:'muted',text:'Sin resultados.'})]))};
+ q.oninput=draw;draw();
+ box.append(card('4 · Arregla tus publicaciones viejas','Google también puede mostrar publicaciones antiguas. Abre cada una → ⋯ → Editar → agrega la primera línea al inicio del texto y, en "Editar texto alternativo", pega el de aquí. Empieza por tus productos más vendidos y en oferta.',q,out));
+}
+
 window.SupgoRedesSecciones={render(t){if(rendered[t])return;const box=document.getElementById('p-'+t);if(!box||!R())return;
- if((t==='marcas'||t==='educacion')&&!R().rows().length){box.innerHTML='<div class="card empty">Cargando catálogo…</div>';setTimeout(()=>{box.replaceChildren();this.render(t)},700);return}
- rendered[t]=true;box.replaceChildren();({educacion:renderEducacion,tiktok:renderTiktok,marcas:renderMarcas})[t](box)}};
+ if((t==='marcas'||t==='educacion'||t==='google')&&!R().rows().length){box.innerHTML='<div class="card empty">Cargando catálogo…</div>';setTimeout(()=>{box.replaceChildren();this.render(t)},700);return}
+ rendered[t]=true;box.replaceChildren();({educacion:renderEducacion,tiktok:renderTiktok,marcas:renderMarcas,google:renderGoogle})[t](box)}};
 })();
