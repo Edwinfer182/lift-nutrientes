@@ -88,13 +88,14 @@
       var fam = new Map(); res[1].forEach(function (f) { fam.set(String(f.producto_id), f); });
       var groups = new Map(), counts = new Map();
       res[0].forEach(function (r) {
-        if (!r.nombre || yes(r.del) || yes(r.priv) || yes(r.adm) || yes(r.hid) || yes(r.oc) || / - ?copia\s*$/i.test(r.nombre)) return;
+        if (!r.nombre || yes(r.del) || / - ?copia\s*$/i.test(r.nombre)) return;
+        var privado = yes(r.priv) || yes(r.adm) || yes(r.hid) || yes(r.oc);
         var f = fam.get(String(r.id)), key = f ? 'g:' + f.slug : 'p:' + r.id;
         var price = Number(r.precio) || 0, o = offers[String(r.id)], sale = 0;
         if (o && Number(o.price) > 0 && Number(o.price) < price && !(o.promoUntil && Date.parse(o.promoUntil) < Date.now())) sale = Number(o.price);
         var label = f ? [f.tamano, f.sabor].filter(Boolean).join(' · ') : [r.pres || r.pres2, r.fl || r.sab].filter(Boolean).join(' · ');
-        var m = { id: r.id, label: label, price: price, sale: sale, image: r.imagen || '', orden: f ? Number(f.orden) || 0 : 0,
-          url: f ? SITE + '/producto/' + f.slug + '/?v=' + r.id : SITE + '/producto/' + r.slug + '/' };
+        var m = { id: r.id, privado: privado, label: label, price: price, sale: sale, image: r.imagen || '', orden: f ? Number(f.orden) || 0 : 0,
+          url: privado ? '' : f ? SITE + '/producto/' + f.slug + '/?v=' + r.id : SITE + '/producto/' + r.slug + '/' };
         var it = groups.get(key);
         if (!it) {
           it = { key: key, name: f ? (f.nombre || r.nombre) : r.nombre, brand: r.marca || '', cat: (r.categoria || '').trim(), image: r.imagen || '', members: [], principal: f ? String(f.principal_id) : '' };
@@ -102,7 +103,7 @@
         }
         if (it.principal === String(r.id) && r.imagen) it.image = r.imagen;
         if (!it.image && r.imagen) it.image = r.imagen;
-        it.members.push(m);
+        it.members.push(m); if (privado) it.privado = true;
       });
       ITEMS = Array.from(groups.values());
       ITEMS.forEach(function (it) {
@@ -153,7 +154,7 @@
       var nums = sel.map(function (s, k) { return s.it === it ? k + 1 : 0; }).filter(Boolean);
       var price = it.min ? (it.min < it.max ? 'Desde ' : '') + cop(it.min) : 'Consultar';
       return '<button type="button" class="ep-card' + (nums.length ? ' on' : '') + '" data-k="' + i + '">' + (nums.length ? '<span class="ep-n">' + nums.join(',') + '</span>' : '') +
-        (it.image ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=ep-ph></div>\'">' : '<div class="ep-ph"></div>') + '<small>' + esc(it.brand) + '</small><b>' + esc(it.name) + '</b>' +
+        (it.image ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=ep-ph></div>\'">' : '<div class="ep-ph"></div>') + '<small>' + esc(it.brand) + (it.privado ? ' · <span style="color:#b45309;font-weight:700">Privado</span>' : '') + '</small><b>' + esc(it.name) + '</b>' +
         (it.members.length > 1 ? '<u>' + it.members.length + ' opciones</u>' : (it.members[0].label ? '<small>' + esc(it.members[0].label) + '</small>' : '')) + '<em>' + price + '</em></button>';
     }).join('');
     $('epGrid').querySelectorAll('[data-k]').forEach(function (b) {
@@ -241,7 +242,7 @@
     var nombre = (($('name') || {}).value || '').trim().split(/\s+/)[0];
     var t = (nombre ? 'Hola ' + nombre + ', te' : 'Te') + ' comparto estas opciones:\n';
     sel.forEach(function (s, i) {
-      t += '\n' + (i + 1) + '. ' + s.it.name + (s.m.label ? ' · ' + s.m.label : '') + '\n' + (s.m.price ? cop(s.m.sale || s.m.price) : 'Consultar precio') + '\n' + s.m.url + '\n';
+      t += '\n' + (i + 1) + '. ' + s.it.name + (s.m.label ? ' · ' + s.m.label : '') + '\n' + (s.m.price ? cop(s.m.sale || s.m.price) : 'Consultar precio') + '\n' + (s.m.url ? s.m.url + '\n' : '');
     });
     return t + '\n¿Cuál te gusta más?';
   }
