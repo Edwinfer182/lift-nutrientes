@@ -99,7 +99,7 @@ const menu=[
 ['Ventas',[['checkout','🛒','Pedido con catálogo','legacy:checkout'],['listarapida','⚡','Lista rápida','legacy:listarapida'],['pagos','💳','Pagos','legacy:pagos'],['historial','🧾','Historial de pedidos','legacy:historial'],['anterior','🗂','Registrar pedido anterior','legacy:anterior'],['abandonados','🛍','Carritos abandonados','legacy:abandonados']]],
 ['Clientes',[['atencion','🎧','Centro de atención','atencion'],['clientes','👥','Clientes','legacy:clientes'],['crm','💬','CRM y seguimiento','legacy:crm'],['entrenadores','🏋️','Entrenadores','legacy:entrenadores']]],
 ['Finanzas',[['cartera','💰','Cartera clientes','cartera:'],['proveedores','💼','Cartera proveedores','proveedores:cuentas'],['pdf','📄','Catálogos de proveedores','proveedores:catalogos']]],
-['Catálogo',[['productos','⚡','Catálogo','catalogo:productos'],['micatalogo','📕','Mi catálogo PDF','micatalogo:']]],
+['Catálogo',[['productos','⚡','Catálogo','catalogo:productos'],['variables','🧬','Productos variables','variables:'],['micatalogo','📕','Mi catálogo PDF','micatalogo:']]],
 ['Contenido y gestión',[['editor','🔎','SEO de páginas','editor'],['indexar','🚀','Indexar en Google','indexar:'],['redes','✨','Estudio de redes · SEO e Instagram','redes'],['productividad','📈','Productividad','productividad'],['herramientas','⚙️','Más herramientas','legacy:herramientas'],['calculadora','🧮','Calculadora','native:calculadora'],['calcofertas','📉','Calculadora ofertas','native:calcofertas']]]
 ];
 const TOOL_INFO={
@@ -109,7 +109,8 @@ const TOOL_INFO={
  crear:'Crea un producto con fotos desde el celular',
  ofertas:'Ofertas activas, por vencer y vencidas',
  combos:'Productos de la categoría Combos',
- variaciones:'Productos agrupados como sabores o tamaños',
+ variaciones:'Un producto con una sola URL y sus tamaños y sabores',
+ variables:'Un producto con una sola URL y sus tamaños y sabores, como WooCommerce',
  categorias:'Renombrar actualiza todos los productos',
  laboratorio:'Marcas con su logo',
  excel:'Descarga, edita en Excel y sube con vista previa',
@@ -187,7 +188,7 @@ function initControl(){
 
 const indexed=menu.flatMap(g=>g[1]);const lookup=new Map(indexed.map(x=>[x[0],x]));
 // Accesos directos a secciones del Catálogo (no salen en el menú; los usan Inicio y enlaces guardados).
-[['crear','➕','Nuevo producto','catalogo:nuevo'],['ofertas','🔥','Ofertas','catalogo:ofertas'],['combos','🎁','Combos','catalogo:combos'],['variaciones','🎨','Variaciones','catalogo:variaciones'],['categorias','🏷️','Categorías','catalogo:categorias'],['laboratorio','🏭','Laboratorios','catalogo:laboratorios'],['excel','📊','Excel y datos','catalogo:excel'],['sinfoto','📷','Productos sin foto','catalogo:f-nophoto'],['sinprecio','💲','Productos sin precio','catalogo:f-noprice']].forEach(x=>lookup.set(x[0],x));
+[['crear','➕','Nuevo producto','catalogo:nuevo'],['ofertas','🔥','Ofertas','catalogo:ofertas'],['combos','🎁','Combos','catalogo:combos'],['variaciones','🧬','Variaciones','variables:'],['categorias','🏷️','Categorías','catalogo:categorias'],['laboratorio','🏭','Laboratorios','catalogo:laboratorios'],['excel','📊','Excel y datos','catalogo:excel'],['sinfoto','📷','Productos sin foto','catalogo:f-nophoto'],['sinprecio','💲','Productos sin precio','catalogo:f-noprice']].forEach(x=>lookup.set(x[0],x));
 let current='inicio',previous=[],counter=0,noticeTimer;
 /* Anchos de edición por herramienta. Las ventanas se integran en el workspace,
  * pero sus formularios NO se estiran de extremo a extremo. */
@@ -292,13 +293,13 @@ function urlFor(it){const t=it[3].split(':');if(t[0]==='native')return ['/panel/
  if(t[0]==='editor')return ['/editor/','editor'];
  if(t[0]==='catalogo')return ['/control/catalogo/#'+t[1],'catalogo'];
  if(t[0]==='proveedores')return ['/control/proveedores/#'+t[1],'proveedores'];
- if(t[0]==='cartera')return ['/control/cartera/','cartera']; if(t[0]==='indexar')return ['/control/indexar/','indexar']; if(t[0]==='micatalogo')return ['/control/mi-catalogo/','micatalogo'];
+ if(t[0]==='cartera')return ['/control/cartera/','cartera']; if(t[0]==='indexar')return ['/control/indexar/','indexar']; if(t[0]==='micatalogo')return ['/control/mi-catalogo/','micatalogo']; if(t[0]==='variables')return ['/control/variables/','variables'];
  if(t[0]==='productividad')return ['/productividad/','productividad'];
   if(t[0]==='atencion')return ['/atencion/','atencion'];
   if(t[0]==='dashboard')return ['/dashboard/','dashboard'];
   if(t[0]==='redes')return ['/control/redes/','redes'];return [null,'home']}
 function adapt(kind){
-  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo'||kind==='productividad'||kind==='proveedores'||kind==='cartera'||kind==='indexar'||kind==='micatalogo')return; // Mantener intactas las interfaces independientes.
+  if(kind==='atencion'||kind==='dashboard'||kind==='redes'||kind==='catalogo'||kind==='productividad'||kind==='proveedores'||kind==='cartera'||kind==='indexar'||kind==='micatalogo'||kind==='variables')return; // Mantener intactas las interfaces independientes.
  try{const win=$('view').contentWindow,doc=win.document;let style=doc.getElementById('supgo-control-embedded');
   if(!style){style=doc.createElement('style');style.id='supgo-control-embedded';doc.head.appendChild(style)}
   style.textContent=kind==='legacy'?adaptLegacy:kind==='native'?adaptNative:kind==='editor'?adaptEditor:adaptProductivity;
@@ -331,7 +332,7 @@ function open(id,backwards){
  if(activeDocument===details[1]){
    try{
      const w=frame.contentWindow,d=w.document;
-     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':details[1]==='catalogo'?'/control/catalogo/':details[1]==='proveedores'?'/control/proveedores/':details[1]==='cartera'?'/control/cartera/':details[1]==='indexar'?'/control/indexar/':details[1]==='micatalogo'?'/control/mi-catalogo/':'/productividad/')){
+     if(d.readyState==='complete' && d.body && d.location.pathname === (details[1]==='legacy'?'/admin.html':details[1]==='native'?'/panel/':details[1]==='editor'?'/editor/':details[1]==='dashboard'?'/dashboard/':details[1]==='redes'?'/control/redes/':details[1]==='catalogo'?'/control/catalogo/':details[1]==='proveedores'?'/control/proveedores/':details[1]==='cartera'?'/control/cartera/':details[1]==='indexar'?'/control/indexar/':details[1]==='micatalogo'?'/control/mi-catalogo/':details[1]==='variables'?'/control/variables/':'/productividad/')){
        if(details[1]==='native' && nativeNavigate(w,it[3].split(':')[1])){
          adapt('native');$('loading').hidden=true;return;
        }

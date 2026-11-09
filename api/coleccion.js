@@ -119,7 +119,9 @@ module.exports = async function handler(req, res) {
   try {
     const templateName = tipo === 'categoria' ? 'categorias/plantilla.html' : 'laboratorios/plantilla.html';
     const template = fs.readFileSync(path.join(process.cwd(), templateName), 'utf8');
-    const [one, two, meds] = await Promise.all([loadPage(0), loadPage(1000), fetch(SB + 'lift_seo_bloqueos?select=producto_id&grupo=eq.medicamento', {
+    const [one, two, familias, meds] = await Promise.all([loadPage(0), loadPage(1000),
+      fetch(SB + 'lift_familias_publicas?select=producto_id,slug,nombre&limit=5000', { headers: {apikey: API_KEY, Accept: 'application/json'}, signal: AbortSignal.timeout(9000) }).then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch(SB + 'lift_seo_bloqueos?select=producto_id&grupo=eq.medicamento', {
       headers: {apikey: API_KEY, Accept: 'application/json'}, signal: AbortSignal.timeout(9000)
     }).then(r => r.ok ? r.json() : []).catch(() => [])]);
     // Medicamentos con fórmula médica: no se enlazan ni se listan en el HTML que lee Google.
@@ -153,16 +155,24 @@ module.exports = async function handler(req, res) {
     if (!t.h1) t.h1 = label;
     const indexable = seoRows.length === 1 && seo.indexable !== false && rows.length >= MINIMO_INDEXABLE;
 
-    const initial = '<ul class="seo-productos">' + rows.map(r =>
-      '<li><a href="/producto/' + esc(r.slug) + '/">' + esc(cleanName(r.nombre)) + '</a></li>'
+    // Productos variables: un solo enlace al producto padre en vez de uno por sabor o tamaño.
+    const famById = new Map(familias.map(f => [String(f.producto_id), f]));
+    const enlaces = [], vistos = new Set();
+    for (const r of rows) {
+      const f = famById.get(String(r.id)), url = f ? f.slug : r.slug;
+      if (vistos.has(url)) continue; vistos.add(url);
+      enlaces.push({ slug: url, nombre: f ? f.nombre : cleanName(r.nombre) });
+    }
+    const initial = '<ul class="seo-productos">' + enlaces.map(r =>
+      '<li><a href="/producto/' + esc(r.slug) + '/">' + esc(r.nombre) + '</a></li>'
     ).join('') + '</ul>';
     const crumbs = [['Inicio', BASE + '/'], [isCategory ? 'Categorías' : 'Marcas', BASE + '/' + base + '/'], [label, canonical]];
     const breadcrumb = '<nav class="migas" aria-label="Ruta de navegación">' + crumbs.map(([n, u], i) =>
       i === crumbs.length - 1 ? '<span aria-current="page">' + esc(n) + '</span>' : '<a href="' + esc(u.replace(BASE, '') || '/') + '">' + esc(n) + '</a>'
     ).join('<span aria-hidden="true">›</span>') + '</nav>';
     const schema = [{'@context':'https://schema.org','@type':'CollectionPage',name:t.h1,url:canonical,description:t.meta,
-      mainEntity:{'@type':'ItemList',numberOfItems:rows.length,itemListElement:rows.map((r,i)=>({
-        '@type':'ListItem',position:i+1,name:cleanName(r.nombre),url:BASE+'/producto/'+r.slug+'/'
+      mainEntity:{'@type':'ItemList',numberOfItems:enlaces.length,itemListElement:enlaces.map((r,i)=>({
+        '@type':'ListItem',position:i+1,name:r.nombre,url:BASE+'/producto/'+r.slug+'/'
       }))}},
       {'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:crumbs.map(([n,u],i)=>({'@type':'ListItem',position:i+1,name:n,item:u}))}];
     if (seo.datos_estructurados && typeof seo.datos_estructurados === 'object' && !Array.isArray(seo.datos_estructurados)) Object.assign(schema[0],seo.datos_estructurados);

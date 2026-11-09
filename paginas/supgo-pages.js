@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const ASSET_V='20261107-col2';
+const ASSET_V='20261109-pv1';
 /* Garantiza que el CSS cargado corresponda a esta versión del JS (evita tarjetas rotas por caché). */
 (()=>{const links=[...document.querySelectorAll('link[rel="stylesheet"][href*="/paginas/supgo-pages.css"]')];if(links.some(l=>l.href.includes('v='+ASSET_V)))return;const l=document.createElement('link');l.rel='stylesheet';l.href='/paginas/supgo-pages.css?v='+ASSET_V;l.onload=()=>links.forEach(x=>x.remove());document.head.append(l)})();
 const config={url:'https://vdxkknftyssjyfbdieqa.supabase.co/rest/v1/lift_productos',key:'sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh'};
@@ -11,7 +11,11 @@ const HIDDEN_PUBLIC_BRANDS=new Set(['venom-pharma','lift-nutrientes']);
 const isHiddenBrand=r=>HIDDEN_PUBLIC_BRANDS.has(slug(brand(r)));
 const product=r=>r?.product||{},name=r=>String(pval(product(r),'name','nombre')||'Producto').replace(/\s*-\s*copia\s*$/i,'').replace(/\s*[-–|·]\s*$/,'').replace(/\s{2,}/g,' '),brand=r=>String(pval(product(r),'brand','marca')||''),category=r=>String(pval(product(r),'category','categoria')||''),price=r=>Number(pval(product(r),'price','precio')||0),image=r=>{let v=pval(product(r),'image','imagen','image_url','imagen_url','foto','url_imagen');if(!v&&Array.isArray(product(r).images))v=product(r).images[0];if(v&&typeof v==='object')v=v.url;return typeof v==='string'&&/^https?:\/\//.test(v)?v:''};
 const secondaryImage=r=>{const p=product(r),first=image(r);const urls=[];const add=v=>{if(typeof v==='string'){const t=v.trim();if(t.startsWith('[')||t.startsWith('{')){try{add(JSON.parse(t));return}catch{}}if(/^https?:\/\//i.test(t))urls.push(t)}else if(Array.isArray(v))v.forEach(add);else if(v&&typeof v==='object'){const u=v.url||v.src||v.image_url||v.imagen_url||v.image||v.imagen;if(u)add(u)}};['images','imagenes','gallery','galeria','image_urls','imagenes_adicionales','secondary_image','image2','imagen2','image_2','imagen_2','foto2','foto_2','tabla_nutricional'].forEach(k=>add(p[k]));return urls.find(u=>u!==first&&!TABLA.test(u))||''};
-const link=r=>'/producto/'+r.slug+'/';
+/* Productos variables: cada sabor/tamaño vive dentro de la URL de su producto padre. */
+const FAMS=new Map();const famOf=r=>FAMS.get(String(r&&r.id));
+function setFamilias(list){FAMS.clear();(list||[]).forEach(f=>FAMS.set(String(f.producto_id),f))}
+async function loadFamilias(){const u=new URL(config.url.replace('/lift_productos','/lift_familias_publicas'));u.searchParams.set('select','producto_id,grupo_id,slug,nombre,principal_id,tamano,sabor,orden');u.searchParams.set('limit','5000');const res=await fetch(u,{headers:{apikey:config.key}});if(!res.ok)throw Error('familias');const d=await res.json();state.extra=Object.assign(state.extra||{},{familias:d});setFamilias(d)}
+const link=r=>{const f=famOf(r);if(f)return '/producto/'+f.slug+'/'+(String(f.principal_id)===String(r.id)?'':'?v='+r.id);return '/producto/'+r.slug+'/'};
 /* Imágenes que son tabla nutricional / etiqueta: no se usan como foto de la tarjeta. */
 const TABLA={test:u=>/tabla|facts|nutricional|etiqueta|ingredient|label/i.test(String(u).replace(/^https?:\/\/[^/]+/i,''))};
 /* Tamaño y servicios a partir del nombre y la presentación (mismo criterio que la ficha). */
@@ -22,10 +26,10 @@ function datos(r){const t=name(r)+' '+String(pval(product(r),'presentation','pre
  return o}
 const perServing=r=>{const d=datos(r),{regular,sale,active}=offerOf(r),p=active?sale:regular;return d.serv>1&&p>0?p/d.serv:Infinity};
 /* Familias de sabores: misma marca + nombre sin el sabor (equivalente a family_key de la ficha). */
-function familyKey(r){const p=product(r),b=slug(brand(r)),parent=String(pval(p,'parent_id','producto_padre_id','id_padre_sabor')||'').trim();if(parent)return 'p|'+b+'|'+parent;
+function familyKey(r){const fm=famOf(r);if(fm)return 'g|'+fm.grupo_id;const p=product(r),b=slug(brand(r)),parent=String(pval(p,'parent_id','producto_padre_id','id_padre_sabor')||'').trim();if(parent)return 'p|'+b+'|'+parent;
  let n=slug(pval(p,'name','nombre'));const fl=slug(pval(p,'flavor','sabor'));if(fl){if(n.endsWith('-'+fl))n=n.slice(0,-(fl.length+1));else{const w=fl.split('-');for(let c=w.length-1;c>0;c--){const sh=w.slice(0,c).join('-');if(n.endsWith('-'+sh)){n=n.slice(0,-(sh.length+1));break}}}}
  return 'n|'+b+'|'+n}
-function flavorLabel(r,fam){const p=product(r);let l=String(pval(p,'flavor','sabor')||'').trim();if(l)return l;const words=fam.map(x=>name(x)+' '+String(x.slug||'').replace(/-/g,' '));
+function flavorLabel(r,fam){const fm=famOf(r);if(fm&&(fm.tamano||fm.sabor))return [fm.tamano,fm.sabor].filter(Boolean).join(' · ');const p=product(r);let l=String(pval(p,'flavor','sabor')||'').trim();if(l)return l;const words=fam.map(x=>name(x)+' '+String(x.slug||'').replace(/-/g,' '));
  /* Lo que no comparten los nombres/slugs de la familia es el sabor. */const toks=x=>slug(x).split('-').filter(Boolean);const all=words.map(toks),mine=toks(name(r)+' '+String(r.slug||'').replace(/-/g,' '));const common=all.reduce((a,t)=>a.filter(w=>t.includes(w)));const diff=[...new Set(mine.filter(w=>!common.includes(w)))];return diff.length&&diff.length<5?diff.map(w=>w[0].toUpperCase()+w.slice(1)).join(' '):name(r)}
 function groupFamilies(rows){const m=new Map();for(const r of rows){const k=familyKey(r);if(!m.has(k))m.set(k,[]);m.get(k).push(r)}
  /* Segunda pasada: productos sueltos que solo cambian en la última palabra (el sabor) y cuestan lo mismo. */
@@ -149,7 +153,7 @@ else{fav.innerHTML=ICON_HEART;paintFav(fav,r.id);fav.onclick=e=>{e.preventDefaul
 media.append(fav);
 const info=document.createElement('div');info.className='product-details';
 const lab=document.createElement('small');lab.className='brand';lab.textContent=brand(r)||' ';
-const title=document.createElement('a');title.className='name';title.href=link(r);title.textContent=name(r);title.title=name(r);
+const title=document.createElement('a');title.className='name';title.href=link(r);title.textContent=famOf(r)?famOf(r).nombre:name(r);title.title=title.textContent;
 const amount=document.createElement('div');amount.className='price';
 if(active){const now=document.createElement('strong');now.textContent=money(sale);const old=document.createElement('del');old.className='old-price';old.textContent=money(regular);old.setAttribute('aria-label','Antes '+money(regular));amount.append(now,old)}
 else{const now=document.createElement('strong');now.textContent=regular>0?money(regular):'Consultar precio';if(!(regular>0))now.className='ask';amount.append(now)}
@@ -162,7 +166,7 @@ if(fam&&fam.length>1){const prices=fam.map(x=>{const o=offerOf(x);return o.activ
  const sel=document.createElement('select');sel.className='sabor-select';sel.setAttribute('aria-label','Sabor de '+name(r));
  fam.forEach(x=>{const o=new Option(flavorLabel(x,fam),String(x.id));if(String(x.id)===String(r.id))o.selected=true;sel.add(o)});
  sel.onchange=()=>{const nx=fam.find(x=>String(x.id)===sel.value);if(nx)el.replaceWith(card(nx,fam))};
- const wrap=document.createElement('label');wrap.className='sabores';const tx=document.createElement('span');tx.textContent=fam.length+' sabores';wrap.append(tx,sel);info.append(wrap)}
+ const wrap=document.createElement('label');wrap.className='sabores';const tx=document.createElement('span');tx.textContent=fam.length+(fam.some(x=>famOf(x)&&famOf(x).tamano)?' opciones':' sabores');wrap.append(tx,sel);info.append(wrap)}
 const meta=document.createElement('div');meta.className='card-meta';
 if(active){const original=Number(offer.originalPrice),base=Number.isFinite(original)&&original>sale?original:regular,savings=Math.max(0,base-sale);if(savings>0){const saving=document.createElement('span');saving.className='saving';saving.textContent='Ahorras '+money(savings);meta.append(saving)}}
 const nf=flavorCount(r);if(nf>1&&!(fam&&fam.length>1)){const fl=document.createElement('span');fl.className='flavors';fl.textContent=nf+' sabores';meta.append(fl)}
@@ -237,7 +241,7 @@ const sort=$('#sort');let groups=coleccion?groupFamilies(rows):null;const sorter
 if(sorter){rows.sort(sorter);if(groups)groups.sort((x,y)=>sorter(x.r,y.r))}
 if(coleccion){const c=$('#conteo');if(c){const n=groups.length;c.textContent=n+(n===1?' producto':' productos')+(rows.length>n?' · '+rows.length+' presentaciones':'')}}
 grid(rows,groups);if(page==='favoritos')favBar(rows,!!sharedIds);if(page==='seleccion'){selectionBar();updateSelectionUi()}}
-async function boot(){const sort=$('#sort');if(sort&&!sort.querySelector('option[value="az"]')){const az=new Option('Nombre: A-Z','az');const za=new Option('Nombre: Z-A','za');sort.add(az,sort.options[1]||null);sort.add(za,sort.options[2]||null)}updateCount();if(['checkout','mis-pedidos'].includes(page))return;const cached=readCatalogCache();if(cached){state.rows=cached.rows.filter(r=>!isHiddenBrand(r)&&isPublicRow(r));for(const [k,v] of cached.logos||[])labLogoMap.set(k,v);state.extra=cached.extra||{};if(page!=='seleccion')try{render()}catch(e){console.warn(e)}}try{const tasks=[load(),loadExtraImages().catch(()=>{}),loadOffers().catch(error=>console.warn('Usando ofertas en caché local',error))];if(page==='seleccion')tasks.push(loadSelection());if(page==='laboratorios'||page==='laboratorio')tasks.push(loadLabLogos().catch(e=>console.warn('Logos no disponibles',e)));await Promise.all(tasks);writeCatalogCache();render();if(page==='favoritos')checkOwner()}catch(e){if(page==='seleccion'||!cached)root.textContent=e.message}}
+async function boot(){const sort=$('#sort');if(sort&&!sort.querySelector('option[value="az"]')){const az=new Option('Nombre: A-Z','az');const za=new Option('Nombre: Z-A','za');sort.add(az,sort.options[1]||null);sort.add(za,sort.options[2]||null)}updateCount();if(['checkout','mis-pedidos'].includes(page))return;const cached=readCatalogCache();if(cached){state.rows=cached.rows.filter(r=>!isHiddenBrand(r)&&isPublicRow(r));for(const [k,v] of cached.logos||[])labLogoMap.set(k,v);state.extra=cached.extra||{};setFamilias(state.extra.familias);if(page!=='seleccion')try{render()}catch(e){console.warn(e)}}try{const tasks=[load(),loadFamilias().catch(e=>console.warn('Familias no disponibles',e)),loadExtraImages().catch(()=>{}),loadOffers().catch(error=>console.warn('Usando ofertas en caché local',error))];if(page==='seleccion')tasks.push(loadSelection());if(page==='laboratorios'||page==='laboratorio')tasks.push(loadLabLogos().catch(e=>console.warn('Logos no disponibles',e)));await Promise.all(tasks);writeCatalogCache();render();if(page==='favoritos')checkOwner()}catch(e){if(page==='seleccion'||!cached)root.textContent=e.message}}
 /* Las páginas estáticas de marca/categoría conservan un topbar antiguo.
    Sustituirlo por el mismo header global que usan Home y ofertas. */
 document.addEventListener('DOMContentLoaded',()=>{

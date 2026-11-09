@@ -121,7 +121,7 @@ function suggest(){
  const {products,groups,total}=searchCatalog(raw,6);
  for(const g of groups){const a=document.createElement('a');a.className='supgo-search-item supgo-search-group';a.href=g.href;a.setAttribute('role','option');const ic=document.createElement('span');ic.className='supgo-search-icon';ic.textContent=g.type==='Laboratorio'?'🏷️':'📂';const c=document.createElement('span');c.className='supgo-search-content';const t=document.createElement('span');t.className='supgo-search-title';t.textContent=g.label;const sm=document.createElement('small');sm.className='supgo-search-type';sm.textContent=g.type+' · '+g.count+' productos';c.append(t,sm);a.append(ic,c);results.append(a)}
  for(const {item,name} of products){
-  const p=item.product||{};const a=document.createElement('a');a.className='supgo-search-item';a.href='/producto/'+item.slug+'/';a.setAttribute('role','option');
+  const p=item.product||{};const a=document.createElement('a');a.className='supgo-search-item';a.href=productHref(item);a.setAttribute('role','option');
   const src=field(p,'image','imagen','image_url','imagen_url','foto','url_imagen');const photo=document.createElement('img');photo.className='supgo-search-photo';photo.alt='';photo.loading='lazy';if(typeof src==='string'&&/^https?:\/\//i.test(src))photo.src=src;else photo.style.visibility='hidden';photo.onerror=()=>{photo.style.visibility='hidden'};a.append(photo);
   const content=document.createElement('span');content.className='supgo-search-content';
   const title=document.createElement('span');title.className='supgo-search-title';title.textContent=name;content.append(title);
@@ -314,7 +314,14 @@ const LIGHT='id,slug,activo,name:product->>name,brand:product->>brand,category:p
 const lightRow=r=>({id:r.id,slug:r.slug,activo:r.activo,product:{name:r.name,brand:r.brand,category:r.category,price:Number(r.price)||0,image:r.image,__deleted:r.del==='true',__private:r.priv==='true',adminOnly:r.adm==='true',hidden:r.hid==='true',visibility:r.vis}});
 let catalogReady=false,catalogPromise=null;
 function setCatalog(rows){catalog.length=0;catalog.push(...rows.filter(isPublicItem));catalogReady=true;window.__supgoCatalogRows=catalog;try{document.dispatchEvent(new Event('supgo:catalog'))}catch(e){}if(!popup.hidden)draw(popup.querySelector('[data-tab].active').dataset.tab);if(search&&document.activeElement===search&&search.value.trim().length>=2)suggest();}
+/* Productos variables: los sabores/tamaños se abren en la URL de su producto padre. */
+const SEARCH_FAMS=new Map();let famsLoaded=false;
+function loadSearchFams(){if(famsLoaded)return;famsLoaded=true;try{const c=JSON.parse(localStorage.getItem('supgoFamsV1')||'null');if(c&&Date.now()-c.t<20*60*1000){c.d.forEach(f=>SEARCH_FAMS.set(String(f.producto_id),f));return}}catch{}
+ const u=new URL(url.replace('/lift_productos','/lift_familias_publicas'));u.searchParams.set('select','producto_id,slug,principal_id');u.searchParams.set('limit','5000');
+ fetch(u.href,{headers:{apikey:apiKey}}).then(r=>r.ok?r.json():[]).then(d=>{d.forEach(f=>SEARCH_FAMS.set(String(f.producto_id),f));try{localStorage.setItem('supgoFamsV1',JSON.stringify({t:Date.now(),d}))}catch{}}).catch(()=>{})}
+function productHref(item){const f=SEARCH_FAMS.get(String(item.id));return f?'/producto/'+f.slug+'/'+(String(f.principal_id)===String(item.id)?'':'?v='+item.id):'/producto/'+item.slug+'/'}
 function ensureCatalog(){
+ loadSearchFams();
  if(catalogPromise)return catalogPromise;
  try{const c=JSON.parse(localStorage.getItem(INDEX_KEY)||'null');if(c&&Array.isArray(c.rows)&&Date.now()-c.t<INDEX_TTL){setCatalog(c.rows);return catalogPromise=Promise.resolve()}}catch{}
  try{const full=JSON.parse(localStorage.getItem('supgoCatalogV2Slug')||'null');if(full&&Array.isArray(full.rows)&&full.rows.length)setCatalog(full.rows)}catch{}

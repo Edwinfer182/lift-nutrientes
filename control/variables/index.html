@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Productos variables · SUPGO CONTROL</title>
+<link rel="icon" type="image/png" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../catalogo/app.css?v=2">
+<link rel="stylesheet" href="app.css?v=1">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="topRow">
+      <div class="brand"><span class="logo">🧬</span><div><h1>Productos variables</h1><p id="sync" class="sync"><i></i><span>Cargando…</span></p></div></div>
+      <div class="field grow searchIn"><input id="q" type="search" placeholder="Buscar producto, marca o sabor…" autocomplete="off"></div>
+    </div>
+    <nav class="tabs" id="tabs"><a href="#productos" data-s="productos" class="on">Productos <b id="nP"></b></a><a href="#sugerencias" data-s="sugerencias">Sugerencias <b id="nS"></b></a></nav>
+  </header>
+  <main>
+    <section id="s-productos">
+      <div class="intro">Un producto con <b>una sola URL</b> y adentro sus <b>tamaños y sabores</b>, como en WooCommerce. Las URLs viejas de cada sabor redirigen solas a la nueva.</div>
+      <div class="insights" id="stats"></div>
+      <div id="list"></div>
+    </section>
+    <section id="s-sugerencias" hidden>
+      <div class="intro">Productos que parecen el mismo en otro sabor o tamaño. Revisa cada sugerencia: <b>Publicar</b> crea el producto con una sola URL; <b>Editar</b> te deja ajustar nombre, tamaños y sabores antes.</div>
+      <div class="sugBar"><label class="tgl"><input type="checkbox" id="soloSeguras" checked><span>Solo las que no tienen dudas</span></label><button class="btn" id="pubSel" disabled>Publicar seleccionadas</button></div>
+      <div id="sugs"></div>
+      <div class="more" id="sugMore"></div>
+    </section>
+  </main>
+  <button class="fab" id="fab" title="Nuevo producto variable">＋</button>
+</div>
+
+<div class="sheetWrap" id="sheet" hidden>
+  <div class="sheetBg" data-close></div>
+  <aside class="sheetCard" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <div class="shHead">
+      <button class="iconBtn" data-close title="Cerrar">✕</button>
+      <div class="shTitle"><h2 id="shTitle">Producto variable</h2><p id="shSub"></p></div>
+      <a class="iconBtn" id="shView" target="_blank" rel="noopener" title="Ver en la tienda">↗</a>
+    </div>
+    <div class="shBody" id="shBody">
+      <label class="f"><span>Nombre del producto <em>sin sabor ni tamaño</em></span><input id="g_nombre" maxlength="140" placeholder="Ej: ISO 100 Dymatize"></label>
+      <label class="f"><span>URL <em id="slugMsg"></em></span><div class="urlIn"><i>supgo.co/producto/</i><input id="g_slug" maxlength="90" placeholder="iso-100-dymatize"></div></label>
+      <div class="two"><label class="f"><span>Marca</span><input id="g_marca" list="dlMarcas"></label><label class="f"><span>Categoría</span><input id="g_categoria" list="dlCats"></label></div>
+
+      <div class="vHead"><h3>Variaciones <small id="vCount"></small></h3><div class="vTools"><button class="btn sm" id="addExisting">＋ Agregar productos</button><button class="btn sm" id="addNew">＋ Nueva variación</button></div></div>
+      <p class="hint">★ = la que se muestra primero. El precio se guarda en cada variación. Toca <b>⇣</b> en un precio para copiarlo a todas las del mismo tamaño.</p>
+      <div id="vars"></div>
+
+      <details class="adv"><summary>Foto, descripción y SEO</summary>
+        <label class="f"><span>Foto principal <em>toca una foto de las variaciones</em></span></label>
+        <div class="photos" id="photos"></div>
+        <label class="f"><span>Descripción <em>la misma para todas las variaciones</em></span><textarea id="g_desc" rows="5" placeholder="Si la dejas vacía se usa la de la variación principal."></textarea></label>
+        <label class="f"><span>Título en Google <em id="tCount"></em></span><input id="g_titulo" maxlength="80" placeholder="Automático: nombre + marca | SUPGO"></label>
+        <label class="f"><span>Descripción en Google <em id="mCount"></em></span><textarea id="g_meta" rows="3" maxlength="170" placeholder="Automático con tamaños, precio y envío."></textarea></label>
+        <label class="tgl"><input type="checkbox" id="g_visible" checked><span>Publicado en la tienda</span></label>
+      </details>
+    </div>
+    <div class="shFoot">
+      <div class="left"><button class="iconBtn danger" id="shDel" title="Deshacer producto variable">🗑</button></div>
+      <span class="dirty" id="shDirty"></span>
+      <button class="btn primary" id="shSave">Guardar</button>
+    </div>
+  </aside>
+</div>
+
+<div class="dlgWrap" id="pick" hidden><div class="dlgBg" data-pclose></div><div class="dlg pickDlg"><h3>Agregar productos</h3><input id="pickQ" type="search" placeholder="Buscar por nombre, marca o ID…" autocomplete="off"><div class="pickList" id="pickList"></div><div class="dlgA"><button class="btn" data-pclose>Cancelar</button><button class="btn primary" id="pickOk">Agregar</button></div></div></div>
+<div class="dlgWrap" id="nueva" hidden><div class="dlgBg" data-nclose></div><div class="dlg"><h3>Nueva variación</h3><p class="hint">Se crea copiando la ficha de <b id="nBase"></b> (marca, categoría, foto y descripción).</p><div class="two"><label class="f"><span>Tamaño</span><input id="nTam" placeholder="Ej: 5 lb"></label><label class="f"><span>Sabor</span><input id="nSab" placeholder="Ej: Chocolate"></label></div><label class="f"><span>Precio</span><div class="money"><i>$</i><input id="nPre" inputmode="numeric"></div></label><div class="dlgA"><button class="btn" data-nclose>Cancelar</button><button class="btn primary" id="nOk">Crear</button></div></div></div>
+<datalist id="dlMarcas"></datalist><datalist id="dlCats"></datalist><datalist id="dlTam"></datalist><datalist id="dlSab"></datalist>
+<div class="lock" id="lock" hidden><form class="lockBox" id="lockForm"><span class="logo big">🧬</span><h2>Productos variables</h2><p>Ingresa la clave de administración</p><input id="lockPw" type="password" autocomplete="current-password" placeholder="Clave"><button class="btn primary">Entrar</button><p class="err" id="lockErr"></p></form></div>
+<div class="toasts" id="toasts"></div>
+<script src="app.js?v=1"></script>
+</body>
+</html>

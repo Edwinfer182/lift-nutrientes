@@ -25,12 +25,15 @@ const element=(key,value)=>'<'+key+'>'+esc(value)+'</'+key+'>';
 module.exports=async function handler(req,res){
  if(!['GET','HEAD'].includes(req.method))return res.status(405).send('Método no permitido');
  try {
-  const [products,seo,brands,blocks]=await Promise.all([
+  const [products,seo,brands,blocks,familias]=await Promise.all([
    all('lift_productos','id,slug,activo,nombre,marca,precio,imagen,product',{activo:'eq.true',order:'id.asc'}),
    all('lift_producto_seo','producto_id,titulo_seo,meta_descripcion,imagen_seo,indexable',{}),
    all('lift_seo_marcas','marca,habilitada',{}),
-   all('lift_seo_bloqueos','producto_id',{})
+   all('lift_seo_bloqueos','producto_id',{}),
+   all('lift_familias_publicas','producto_id,grupo_id,slug,tamano',{}).catch(()=>[])
   ]);
+  // Productos variables: cada variación es un artículo del mismo grupo y enlaza a la URL del padre.
+  const famById=new Map(familias.map(f=>[String(f.producto_id),f]));
   const seoById=new Map(seo.map(x=>[String(x.producto_id),x]));
   const enabledBrands=new Map();
   for(const b of brands){
@@ -53,7 +56,8 @@ module.exports=async function handler(req,res){
       p.__deleted||p.__private||p.adminOnly||p.hidden||p.oculto||
       p.visibility==='admin'||s.indexable===false||blocked.has(String(row.id))||
       enabledBrands.get(brand.toLocaleLowerCase('es'))!==true)continue;
-   const link=BASE+'/producto/'+slug+'/';
+   const fam=famById.get(String(row.id));
+   const link=fam?BASE+'/producto/'+fam.slug+'/?v='+row.id:BASE+'/producto/'+slug+'/';
    // La marca y el bloqueo coinciden con las verificaciones de indexación de la ficha SSR.
    const fields=[
     element('g:id',row.id),
@@ -67,6 +71,7 @@ module.exports=async function handler(req,res){
     element('g:brand',brand),
     element('g:identifier_exists','no')
    ];
+   if(fam){fields.push(element('g:item_group_id','supgo-'+fam.grupo_id));if(str(fam.tamano))fields.push(element('g:size',fam.tamano))}
    items.push('<item>'+fields.join('')+'</item>');
   }
   if(!items.length)throw new Error('No hay artículos válidos; no se publica una fuente vacía');

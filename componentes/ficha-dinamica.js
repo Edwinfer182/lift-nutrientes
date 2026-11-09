@@ -304,8 +304,11 @@
     // Vercel ya consultó este registro. Reutilizarlo evita otra ida a Supabase.
     var bootNode = document.getElementById('supgo-product-bootstrap'), boot = null;
     if (bootNode) try { boot = JSON.parse(bootNode.textContent); } catch (e) {}
-    var bootOk = boot && boot.slug === pedido && boot.row &&
-      boot.row.slug === pedido && boot.row.activo === true;
+    /* Producto variable: la URL es la del padre y la fila es la variación elegida (?v=). */
+    var grupo = boot && boot.grupo && boot.slug === pedido && boot.row && Array.isArray(boot.miembros) ? boot : null;
+    if (grupo) { var vq = new URLSearchParams(location.search).get('v'); var elegido = vq && grupo.miembros.find(function (m) { return String(m.id) === vq; }); if (elegido) boot.row = { id: elegido.id, activo: true, slug: elegido.slug, product: elegido.product }; }
+    var bootOk = grupo || (boot && boot.slug === pedido && boot.row &&
+      boot.row.slug === pedido && boot.row.activo === true);
     var found = bootOk ? [boot.row] :
       await get('lift_productos?select=id,activo,slug,product&slug=eq.' + encodeURIComponent(pedido) + '&limit=2');
     if (found.length > 1) return mostrarError('Slug duplicado', 'Hay varios productos con esta dirección. Debe corregirse el slug en el catálogo.');
@@ -324,7 +327,7 @@
       if (!porSeo.length) history.replaceState(null, '', '/producto/' + encodeURIComponent(encontrado.slug) + '/' + location.hash);
     }
     if (!allowed(encontrado)) return mostrarError('Producto no disponible', 'Este producto no está disponible en este momento.');
-    if (location.search) {
+    if (location.search && !grupo) {
       var seoSlug = (encontrado.product.seo || {}).slug;
       var cleanSlug = pedido === encontrado.slug || pedido === seoSlug ? pedido : encontrado.slug;
       history.replaceState(null, '', '/producto/' + encodeURIComponent(cleanSlug) + '/' + location.hash);
@@ -332,10 +335,11 @@
     // SEO y productos relacionados se consultan simultáneamente tras identificar la ficha.
     var loaded = await Promise.all([
       catalogoCercano(encontrado), sharedPromise,
+      grupo ? get('lift_productos?select=id,activo,slug,product&id=in.(' + grupo.miembros.map(function (m) { return m.id; }).join(',') + ')').catch(function () { return []; }) : Promise.resolve(null),
       bootOk && boot.row.id === encontrado.id ? Promise.resolve(boot.seo ? [boot.seo] : []) :
         get('lift_producto_seo?select=producto_id,titulo_seo,meta_descripcion,descripcion_larga_html,imagen_seo,canonical_url,indexable,datos_estructurados&producto_id=eq.' + encontrado.id).catch(function () { return []; })
     ]);
-    var rows = loaded[0], datos = loaded[1], seoRows = loaded[2];
+    var rows = loaded[0], datos = loaded[1], frescos = loaded[2], seoRows = loaded[3];
     /* La página puede venir de la caché de la CDN: precio, foto y nombre se toman de la consulta fresca. */
     var fresco = rows.find(function (r) { return r.id === encontrado.id; });
     if (fresco && fresco.product) encontrado = Object.assign({}, encontrado, { activo: fresco.activo, product: Object.assign({}, encontrado.product, fresco.product) });
@@ -361,8 +365,24 @@
     if (vi >= 0) valid[vi] = Object.assign(valid[vi], { product: row.product }); else valid.push(row);
     var entries = valid.map(function (item) { return { item: item, d: info(item) }; });
     var fam = familias(entries);
-    var me = entries.find(function (e) { return e.item.id === row.id; });
+    var me = entries.find(function (e) { return e.item.id === row.id; }) || { item: row, d: info(row) };
     var variants = fam.byId.get(String(row.id));
+    if (grupo) {
+      /* Variaciones del producto padre (precio y oferta frescos). */
+      var fr = {}; (frescos || []).forEach(function (r) { fr[String(r.id)] = r; });
+      var miembros = grupo.miembros.map(function (m) {
+        var f = fr[String(m.id)], it = { id: m.id, activo: f ? f.activo : true, slug: m.slug, product: f && f.product ? f.product : m.product, _offer: offers[String(m.id)] };
+        if (String(m.id) === String(row.id)) { it.product = row.product; }
+        return { item: it, d: info(it), sabor: String(m.sabor || '').trim(), tamano: String(m.tamano || '').trim() };
+      }).filter(function (m) { return allowed(m.item); });
+      if (!miembros.some(function (m) { return String(m.item.id) === String(row.id); }) && miembros.length) {
+        var m0 = miembros[0].item; row = Object.assign(row, { id: m0.id, slug: m0.slug, product: m0.product, _offer: m0._offer });
+      }
+      miembros.forEach(function (m) { m.d.label = [m.tamano, m.sabor].filter(Boolean).join(' · ') || m.d.name; });
+      variants = miembros.map(function (m) { return m.d; });
+      row._grupo = { slug: grupo.slug, nombre: grupo.grupo.nombre, imagen: grupo.grupo.imagen, miembros: miembros, productsById: productsById };
+      me = { item: row, d: info(row) };
+    }
     /* Si el nombre trae un sabor distinto al guardado, mostrar el del nombre. */
     if (variants.length > 1) {
       var gk = fam.keyOf.get(variants);
@@ -386,6 +406,13 @@
       if (it.id === row.id) break;
     }
     row._images = procesadas[String(row.id)] || [];
+    if (row._grupo) {
+      /* Galería del producto variable: fotos de todas sus variaciones, sin repetir. */
+      var todas = [];
+      row._grupo.miembros.forEach(function (m) { [absUrl(or(m.item.product.image, m.item.product.imagen, ''))].concat(imgs[String(m.item.id)] || []).forEach(function (u) { if (u && todas.indexOf(u) < 0) todas.push(u); }); });
+      var prim0 = absUrl(or(row.product.image, row.product.imagen, ''));
+      row._images = todas.filter(function (u) { return u !== prim0; });
+    }
     var excluded = new Set(ids.map(String)), p = row.product;
     var cat = lower(String(or(p.category, p.categoria, ''))), brandL = lower(me.d.brand);
     row._related = entries.filter(function (e) { return !excluded.has(String(e.d.id)) && cat && lower(String(or(e.item.product.category, e.item.product.categoria, ''))) === cat; }).map(function (e) { return e.d; }).slice(0, 12);
@@ -406,9 +433,113 @@
     await dibujar(row, revs, productsById);
   }
 
+  /* Precio, oferta y regalo de una variación (también se usa al cambiar de sabor o tamaño). */
+  function precioBloque(row, productsById) {
+    var p = row.product, price = 'price' in p ? p.price : p.precio, promotion = active_offer(row), amount = fl(price), valid_price = isFinite(amount) && amount > 0;
+    if (!isFinite(amount)) amount = 0;
+    if (promotion) amount = promotion[1];
+    var price_html = valid_price ? '<p class="price">' + cop(amount) + '</p>' : '<p class="price price-ask">Consultar precio</p>', extra = '';
+    if (promotion) {
+      var pct = roundEven((1 - promotion[1] / promotion[0]) * 100);
+      price_html = '<div class="seo-offer-price"><span class="seo-offer-label">-' + pct + '%</span><strong>' + cop(promotion[1]) + '</strong><del aria-label="Precio anterior ' + cop(promotion[0]) + '">' + cop(promotion[0]) + '</del></div>';
+      var bits = '<span class="seo-offer-saving">Ahorras ' + cop(Math.max(0, promotion[0] - promotion[1])) + '</span>', dl2 = offer_deadline(row);
+      if (dl2) bits += '<span class="seo-offer-until">Oferta válida hasta el ' + dl2.day + ' de ' + MESES[dl2.month - 1] + '</span>';
+      price_html += '<div class="pi-offer-meta">' + bits + '</div>';
+      var od = row._offer || {};
+      if (T(od.gift)) {
+        var gid = String(or(od.giftProductId, '')).trim(), gp = (productsById || {})[gid] || {};
+        var gname = String(or(od.giftName, gp.name, gp.nombre, '')).trim(), gimg = absUrl(or(gp.image, gp.imagen, ''));
+        var gqty = parseInt(or(od.giftQty, 1), 10); if (!isFinite(gqty)) gqty = 1; gqty = Math.max(1, gqty);
+        if (gname) extra += '<div class="seo-offer-gift">' + (gimg ? '<img src="' + esc(gimg) + '" alt="' + esc(gname) + '" loading="lazy" width="54" height="54">' : '') + '<div><span class="seo-gift-tag">REGALO INCLUIDO</span><strong>' + gqty + ' × ' + esc(gname) + '</strong></div></div>';
+      }
+    }
+    if (extra) extra = '<div class="seo-offer-extras">' + extra + '</div>';
+    return { html: price_html, extra: extra, amount: amount, valid: valid_price, promotion: promotion };
+  }
+
+  /* ---------- Producto variable: elegir tamaño y sabor sin cambiar de página ---------- */
+  function pvCss() {
+    if (document.getElementById('pv-css')) return;
+    var st = document.createElement('style'); st.id = 'pv-css';
+    st.textContent = '.pv-opts{margin:14px 0 6px;display:grid;gap:12px}.pv-h{font-size:13.5px;color:#555;margin:0 0 7px}.pv-h b{color:#111}' +
+      '.pv-chips{display:flex;flex-wrap:wrap;gap:7px}.pv-chip{position:relative;border:1.5px solid #d9d9d9;background:#fff;color:#111;border-radius:10px;min-height:40px;padding:8px 13px;font:600 13px/1.2 Poppins,Arial,sans-serif;cursor:pointer;transition:border-color .15s,box-shadow .15s}' +
+      '.pv-chip:hover{border-color:#111}.pv-chip.on{border-color:#111;box-shadow:inset 0 0 0 1px #111;background:#f6f6f4}.pv-chip.off{color:#aaa;border-style:dashed;background:#fafafa}.pv-chip.off:hover{border-color:#bbb}' +
+      '.pv-chip i{position:absolute;top:-6px;right:-6px;background:#c6f432;color:#111;font:700 9px/1 Poppins,Arial,sans-serif;font-style:normal;padding:3px 5px;border-radius:6px}' +
+      '.pv-chip small{display:block;font-weight:500;font-size:11px;color:#777;margin-top:2px}';
+    document.head.appendChild(st);
+  }
+  function pvDims(G) {
+    var T = [], S = [];
+    G.miembros.forEach(function (m) { if (m.tamano && T.indexOf(m.tamano) < 0) T.push(m.tamano); if (m.sabor && S.indexOf(m.sabor) < 0) S.push(m.sabor); });
+    return { T: T, S: S };
+  }
+  function opcionesHtml(G, pid) {
+    pvCss();
+    var D2 = pvDims(G), cur = G.miembros.find(function (m) { return String(m.item.id) === String(pid); }) || G.miembros[0], out = '';
+    var price = function (m) { return m.d.sale || m.d.price; };
+    function chip(k, val, on, off, oferta, sub) { return '<button type="button" class="pv-chip' + (on ? ' on' : '') + (off ? ' off' : '') + '" data-k="' + k + '" data-val="' + esc(val) + '" aria-pressed="' + on + '"' + (off ? ' title="No disponible en este tamaño"' : '') + '>' + esc(val) + (sub ? '<small>' + sub + '</small>' : '') + (oferta ? '<i>OFERTA</i>' : '') + '</button>'; }
+    if (D2.T.length > 1) {
+      out += '<div class="pv-row"><p class="pv-h">Tamaño: <b>' + esc(cur.tamano) + '</b></p><div class="pv-chips">' + D2.T.map(function (t) {
+        var ms = G.miembros.filter(function (m) { return m.tamano === t; }), min = Math.min.apply(null, ms.map(price).filter(function (n) { return n > 0; }).concat([Infinity]));
+        return chip('tamano', t, cur.tamano === t, false, ms.some(function (m) { return m.d.on_offer; }), isFinite(min) ? cop(min) : '');
+      }).join('') + '</div></div>';
+    } else if (D2.T.length === 1) out += '<div class="pv-row"><p class="pv-h">Tamaño: <b>' + esc(D2.T[0]) + '</b></p></div>';
+    if (D2.S.length > 1 || (D2.S.length === 1 && D2.T.length < 2 && G.miembros.length > 1)) {
+      var mismos = D2.T.length > 1 ? G.miembros.filter(function (m) { return m.tamano === cur.tamano; }) : G.miembros;
+      out += '<div class="pv-row"><p class="pv-h">Sabor: <b>' + esc(cur.sabor || '—') + '</b></p><div class="pv-chips">' + D2.S.map(function (sv) {
+        var m = mismos.find(function (x) { return x.sabor === sv; });
+        return chip('sabor', sv, cur.sabor === sv, !m, m && m.d.on_offer);
+      }).join('') + '</div></div>';
+    } else if (D2.S.length === 1) out += '<div class="pv-row"><p class="pv-h">Sabor: <b>' + esc(D2.S[0]) + '</b></p></div>';
+    if (!D2.T.length && !D2.S.length && G.miembros.length > 1) {
+      out += '<div class="pv-row"><p class="pv-h">Opción: <b>' + esc(cur.d.name) + '</b></p><div class="pv-chips">' + G.miembros.map(function (m) { return chip('id', m.d.name, m === cur, false, m.d.on_offer).replace('data-val="', 'data-id="' + esc(m.item.id) + '" data-val="'); }).join('') + '</div></div>';
+    }
+    return out ? '<div class="pv-opts" id="pv-opts">' + out + '</div>' : '';
+  }
+  function activarOpciones(G, pid) {
+    var box = document.getElementById('pv-opts'); if (!box) return;
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('.pv-chip'); if (!b) return;
+      var cur = G.miembros.find(function (m) { return String(m.item.id) === String(window.__supgoFicha && window.__supgoFicha.id); }) || G.miembros[0], k = b.dataset.k, val = b.dataset.val, next = null;
+      var precio = function (m) { return m.d.sale || m.d.price || 0; };
+      if (k === 'id') next = G.miembros.find(function (m) { return String(m.item.id) === b.dataset.id; });
+      else if (k === 'tamano') { var ms = G.miembros.filter(function (m) { return m.tamano === val; }); next = ms.find(function (m) { return m.sabor === cur.sabor; }) || ms.find(function (m) { return precio(m) > 0; }) || ms[0]; }
+      else if (k === 'sabor') { next = G.miembros.find(function (m) { return m.sabor === val && m.tamano === cur.tamano; }) || G.miembros.find(function (m) { return m.sabor === val; }); }
+      if (next && next !== cur) elegirVariacion(G, next);
+    });
+  }
+  function elegirVariacion(G, m) {
+    var it = m.item, p = it.product, pb = precioBloque(it, G.productsById);
+    var box = document.querySelector('#supgo-ficha .product-price'); if (box) box.innerHTML = pb.html;
+    document.querySelectorAll('#supgo-ficha .seo-offer-extras').forEach(function (e) { e.remove(); });
+    if (pb.extra && box) box.insertAdjacentHTML('afterend', pb.extra);
+    var u = absUrl(or(p.image, p.imagen, ''));
+    if (u) {
+      var gal = window.__supgoGallery || [], ix = gal.indexOf(u), th = ix >= 0 && document.querySelector('.gallery-thumb[data-index="' + ix + '"]');
+      if (th) th.click(); else { var im = document.querySelector('#openZoom img'); if (im) { im.src = u; im.removeAttribute('srcset'); } }
+    }
+    var tags = document.querySelector('#supgo-ficha .pi-tags');
+    function setTag(label, value) {
+      if (!tags) return; var li = Array.prototype.find.call(tags.querySelectorAll('.pi-tag'), function (x) { var bb = x.querySelector('b'); return bb && bb.textContent === label; });
+      if (!value) { if (li) (li.closest('li') || li).remove(); return; }
+      if (!li) { tags.insertAdjacentHTML('afterbegin', '<li class="pi-tag"><b>' + esc(label) + '</b> ' + esc(value) + '</li>'); return; }
+      li.innerHTML = '<b>' + esc(label) + '</b> ' + esc(value);
+    }
+    setTag('Sabor', m.sabor); setTag('Presentación', m.tamano || String(or(p.presentation, p.presentacion, '')).trim());
+    var regular = fl(or(p.price, p.precio, 0)); if (!isFinite(regular)) regular = 0;
+    Object.assign(window.__supgoFicha || (window.__supgoFicha = {}), { id: String(it.id), name: String(or(p.name, p.nombre, G.nombre)), image: u || (window.__supgoFicha || {}).image, price: pb.amount, regular: regular,
+      on_offer: !!pb.promotion, promoUntil: pb.promotion ? (it._offer || {}).promoUntil : null });
+    var ob = document.getElementById('pv-opts'); if (ob) { ob.outerHTML = opcionesHtml(G, it.id); activarOpciones(G, it.id); }
+    try { history.replaceState(null, '', '/producto/' + G.slug + '/?v=' + encodeURIComponent(it.id) + location.hash); } catch (e) {}
+    window.dispatchEvent(new Event('supgo-favorites-change'));
+    document.dispatchEvent(new CustomEvent('supgo-variacion', { detail: { id: it.id, slug: G.slug } }));
+  }
+
   async function dibujar(row, reviews, productsById) {
     var p = row.product, seo = row._seo || {}, name = String(or(p.name, p.nombre)), pid = row.id;
-    var key = row.slug, canonical = BASE + '/producto/' + key + '/';
+    var G = row._grupo || null;
+    var key = G ? G.slug : row.slug, canonical = BASE + '/producto/' + key + '/';
+    var cartName = name; if (G) name = G.nombre;
     var embedded = p.seo && typeof p.seo === 'object' && !Array.isArray(p.seo) ? p.seo : {};
     var brand = String(or(p.brand, p.marca, '')), description = String(or(p.description, p.descripcion, '')).trim();
     var image = String(or(seo.imagen_seo, p.image, p.imagen, '')).trim();
@@ -457,22 +588,7 @@
     }
     /* Precio, oferta y regalo */
     var img = image ? '<img src="' + esc(image) + '" alt="' + esc(or(embedded.alt1, name)) + '" loading="eager" fetchpriority="high" decoding="async" width="600" height="600">' : '';
-    var price_html = valid_price ? '<p class="price">' + cop(amount) + '</p>' : '<p class="price price-ask">Consultar precio</p>', extra = '';
-    if (promotion) {
-      var pct = roundEven((1 - promotion[1] / promotion[0]) * 100);
-      price_html = '<div class="seo-offer-price"><span class="seo-offer-label">-' + pct + '%</span><strong>' + cop(promotion[1]) + '</strong><del aria-label="Precio anterior ' + cop(promotion[0]) + '">' + cop(promotion[0]) + '</del></div>';
-      var bits = '<span class="seo-offer-saving">Ahorras ' + cop(Math.max(0, promotion[0] - promotion[1])) + '</span>', dl2 = offer_deadline(row);
-      if (dl2) bits += '<span class="seo-offer-until">Oferta válida hasta el ' + dl2.day + ' de ' + MESES[dl2.month - 1] + '</span>';
-      price_html += '<div class="pi-offer-meta">' + bits + '</div>';
-      var od = row._offer || {};
-      if (T(od.gift)) {
-        var gid = String(or(od.giftProductId, '')).trim(), gp = productsById[gid] || {};
-        var gname = String(or(od.giftName, gp.name, gp.nombre, '')).trim(), gimg = absUrl(or(gp.image, gp.imagen, ''));
-        var gqty = parseInt(or(od.giftQty, 1), 10); if (!isFinite(gqty)) gqty = 1; gqty = Math.max(1, gqty);
-        if (gname) extra += '<div class="seo-offer-gift">' + (gimg ? '<img src="' + esc(gimg) + '" alt="' + esc(gname) + '" loading="lazy" width="54" height="54">' : '') + '<div><span class="seo-gift-tag">REGALO INCLUIDO</span><strong>' + gqty + ' × ' + esc(gname) + '</strong></div></div>';
-      }
-    }
-    if (extra) extra = '<div class="seo-offer-extras">' + extra + '</div>';
+    var pb = precioBloque(row, productsById), price_html = pb.html, extra = pb.extra;
     /* Descripción larga sin scripts ni eventos */
     var long_html = String(seo.descripcion_larga_html || '').trim();
     long_html = long_html.replace(/<(script|iframe|object|embed|form|style|svg)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '').replace(/<(script|iframe|object|embed|form|style|svg)\b[^>]*\/?>/gi, '')
@@ -488,6 +604,8 @@
     var related_html = (row._related || []).map(related_card).join('');
     var bs = slug(brand), brand_html = brand && LABS.has(bs) ? '<a class="pi-brand" href="/laboratorios/' + esc(bs) + '/">' + esc(brand) + '</a>' : brand ? '<span class="pi-brand">' + esc(brand) + '</span>' : '';
     flavor = String(or(p.flavor, p.sabor, '')).trim(); if (!flavor && variants.length > 1) flavor = cur ? cur.label : '';
+    var gm = G ? G.miembros.find(function (m) { return String(m.item.id) === String(pid); }) : null;
+    if (G) { flavor = gm ? gm.sabor : ''; if (gm && gm.tamano) presentation = gm.tamano; cartName = String(or(p.name, p.nombre)); }
     var tags = [];
     if (T(presentation) && String(presentation).trim()) tags.push('<li class="pi-tag"><b>Presentación</b> ' + esc(String(presentation).trim()) + '</li>');
     if (flavor && lower(flavor) !== lower(name)) tags.push('<li class="pi-tag"><b>Sabor</b> ' + esc(flavor) + '</li>');
@@ -495,7 +613,7 @@
     var tags_html = tags.length ? '<ul class="pi-tags">' + tags.join('') + '</ul>' : '';
     var regular = valid_price ? fl(or(p.price, p.precio, 0)) : 0; if (!isFinite(regular)) regular = 0;
     window.__supgoGallery = gallery;
-    window.__supgoFicha = { id: String(pid), name: name, image: image, price: amount, regular: regular, url: canonical, on_offer: !!promotion, promoUntil: promotion ? (row._offer || {}).promoUntil : null };
+    window.__supgoFicha = { id: String(pid), name: cartName, image: image, price: amount, regular: regular, url: canonical, on_offer: !!promotion, promoUntil: promotion ? (row._offer || {}).promoUntil : null };
 
     /* Encabezado de la página */
     document.title = title;
@@ -514,7 +632,7 @@
     root.innerHTML = '\n<nav class="seo-breadcrumb" aria-label="Ruta de navegación"><a href="/">SUPGO</a><span aria-hidden="true">›</span><a href="/categorias/">Categorías</a>' + (brand ? '<span aria-hidden="true">›</span><a class="seo-breadcrumb-brand" href="/laboratorios/' + slug(brand) + '/">' + esc(brand) + '</a>' : '') + '<span aria-hidden="true">›</span><span class="seo-breadcrumb-current" aria-current="page">' + esc(name) + '</span></nav>\n' +
       '<article class="product-card">\n<section class="product-gallery">' + (gallery.length > 1 ? '<div class="gallery-thumbs">' + gallery_html + '</div>' : '') + '<div class="product-media"><button type="button" id="openZoom" class="zoom-image" aria-label="Ampliar imagen del producto">' + img + '<span class="zoom-hint">⌕ Ampliar</span></button></div><button type="button" id="shareProduct" class="product-share-btn" aria-label="Compartir producto" title="Compartir producto"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"/></svg> Compartir</button></section>\n' +
       '<section class="product-info">\n' + brand_html + '<h1>' + esc(seo.nombre_visible || name) + '</h1>' + tags_html + '\n<!--precio-->' + rating_line(reviews) + '<div class="product-price">' + price_html + '</div>' + extra + '<!--/precio-->\n' + P.envio + '\n' +
-      (variants.length > 1 ? '<div class="variant-panel"><h3>Sabor: ' + esc(curLabel) + '</h3><div class="variant-grid">' + variants_html + '</div></div>' : '') + '\n' +
+      (G ? opcionesHtml(G, pid) : variants.length > 1 ? '<div class="variant-panel"><h3>Sabor: ' + esc(curLabel) + '</h3><div class="variant-grid">' + variants_html + '</div></div>' : '') + '\n' +
       P.acciones + '\n' + P.pagos + '\n<details class="seo-description" open><summary>Descripción <span class="seo-chevron" aria-hidden="true"></span></summary><div class="product-description">' + body + '</div></details>\n' + P.garantias + '\n</section></article>\n' +
       '<!--relacionados-->' + reviews_html(reviews) + (related_html ? '<section class="related pi-related" aria-label="Más de esta categoría"><div class="related-heading"><h2>Más de esta categoría</h2><div class="related-controls"><button type="button" class="related-prev" aria-label="Anteriores">‹</button><button type="button" class="related-next" aria-label="Siguientes">›</button></div></div><div class="pi-rel-track">' + related_html + '</div></section>' : '') +
       guides_html(pid, or(p.category, p.categoria, '')) + '<!--/relacionados-->\n';
@@ -554,7 +672,8 @@
       var src = document.getElementById(id); if (!src) return;
       var s = document.createElement('script'); s.textContent = src.textContent; document.body.appendChild(s);
     });
-    document.dispatchEvent(new CustomEvent('supgo-ficha-lista', { detail: { id: pid, slug: row.slug } }));
+    if (G) activarOpciones(G, pid);
+    document.dispatchEvent(new CustomEvent('supgo-ficha-lista', { detail: { id: pid, slug: key } }));
   }
 
   cargar().catch(function (e) {

@@ -60,12 +60,16 @@ function expectPageUrl(route) {
   return null;
 }
 async function productItems() {
-  const [products,seo,brands,blocks] = await Promise.all([
+  const [products,seo,brands,blocks,familias] = await Promise.all([
     all('lift_productos','id,slug,nombre,marca,activo,updated_at,del:product->>__deleted,priv:product->>__private,adm:product->>adminOnly,hid:product->>hidden,oculto:product->>oculto,vis:product->>visibility',{activo:'eq.true',order:'id.asc'}),
     all('lift_producto_seo','producto_id,titulo_seo,meta_descripcion,canonical_url,indexable,actualizado_en',{order:'producto_id.asc'}),
     all('lift_seo_marcas','marca,habilitada',{}),
-    all('lift_seo_bloqueos','producto_id',{})
+    all('lift_seo_bloqueos','producto_id',{}),
+    all('lift_familias_publicas','producto_id,slug',{})
   ]);
+  // Productos variables: sus sabores y tamaños no tienen URL propia; se publica la del producto padre.
+  const famById = new Map(familias.map(f=>[String(f.producto_id),f.slug]));
+  const padres = new Map();
   const seoById = new Map(seo.map(s=>[String(s.producto_id),s]));
   const validBrands = new Map();
   for (const b of brands) {
@@ -77,6 +81,13 @@ async function productItems() {
   const grouped = new Map();
   for(const p of products) {
     if(!publicProduct(p)) continue;
+    const fam = famById.get(String(p.id));
+    if (fam) {
+      if (blocked.has(String(p.id)) || validBrands.get(String(p.marca||'').trim().toLocaleLowerCase('es')) !== true) continue;
+      const prev = padres.get(fam);
+      if (!prev || day(p.updated_at) > day(prev.lastmod)) padres.set(fam, {url:BASE+'/producto/'+fam+'/',lastmod:p.updated_at});
+      continue;
+    }
     const s = seoById.get(String(p.id));
     const canonical = BASE+'/producto/'+p.slug+'/';
     if(!s || s.indexable === false || blocked.has(String(p.id)) ||
@@ -87,6 +98,7 @@ async function productItems() {
     if(!grouped.has(p.slug)) grouped.set(p.slug,[]);
     grouped.get(p.slug).push(item);
   }
+  for (const [slug,item] of padres) if (!grouped.has(slug)) grouped.set(slug,[item]);
   return [...grouped.values()].filter(arr=>arr.length===1).map(arr=>arr[0]);
 }
 async function collectionItems(type) {

@@ -34,8 +34,8 @@ async function load(){
     const [rows,off,grupos,vars,est]=await Promise.all([
       allProducts(),
       rest('lift_catalog_config?select=valor&clave=eq.weekly_offers&limit=1').catch(()=>[]),
-      rest('lift_producto_grupos?select=id,nombre,marca,presentacion,imagen,categoria,visible_publico').catch(()=>[]),
-      rest('lift_producto_variantes?select=grupo_id,producto_id,sabor,orden,activo&activo=eq.true').catch(()=>[]),
+      rest('lift_producto_grupos?select=id,nombre,slug,marca,presentacion,imagen,categoria,visible_publico').catch(()=>[]),
+      rest('lift_producto_variantes?select=grupo_id,producto_id,sabor,tamano,orden,activo&activo=eq.true').catch(()=>[]),
       fn('estado').catch(e=>{if(/Clave/.test(e.message))throw e;return {estado:{}}})
     ]);
     let o=off&&off[0]&&off[0].valor||{};if(typeof o==='string'){try{o=JSON.parse(o)}catch(e){o={}}}
@@ -78,9 +78,9 @@ function items(){
   byGroup.forEach((ms,k)=>{
     const g=S.groups.get(k);ms.sort((a,b)=>(a.v.orden||0)-(b.v.orden||0));
     const prices=ms.map(m=>shown(m.r)),min=Math.min(...prices),cheap=ms[prices.indexOf(min)].r;
-    const fl=[...new Set(ms.map(m=>String(m.v.sabor||'').trim()||m.r.flavors[0]||'').filter(Boolean))];
-    out.push({name:String(g.nombre||cheap.name),brand:String(g.marca||cheap.brand),cat:cheap.cat,pres:String(g.presentacion||cheap.pres||''),flavors:fl,
-      img:/^(https?:|data:image\/)/.test(String(g.imagen||''))?g.imagen:(ms.find(m=>m.r.img)||{r:{}}).r.img||'',slug:(ms.find(m=>m.r.slug)||{r:{}}).r.slug||'',
+    const fl=[...new Set(ms.map(m=>String(m.v.sabor||'').trim()||m.r.flavors[0]||'').filter(Boolean))],sizes=[...new Set(ms.map(m=>String(m.v.tamano||'').trim()).filter(Boolean))];
+    out.push({name:String(g.nombre||cheap.name),brand:String(g.marca||cheap.brand),cat:cheap.cat,pres:sizes.length>1?sizes.join(' · '):String(g.presentacion||sizes[0]||cheap.pres||''),flavors:fl,
+      img:/^(https?:|data:image\/)/.test(String(g.imagen||''))?g.imagen:(ms.find(m=>m.r.img)||{r:{}}).r.img||'',slug:g.slug||(ms.find(m=>m.r.slug)||{r:{}}).r.slug||'',
       price:min,old:!ent&&cheap.offer?cheap.price:0,from:Math.max(...prices)>min});
   });
   let R=out.filter(x=>(!soloFoto||x.img)&&(!soloOferta||x.old));

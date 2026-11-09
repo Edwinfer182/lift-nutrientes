@@ -628,7 +628,7 @@ function renderSection(){
   if(s==='ofertas')renderOffers();
   if(s==='categorias')renderTiles('cat');
   if(s==='laboratorios')renderTiles('lab');
-  if(s==='variaciones')renderGroups();
+  if(s==='variaciones'){location.href='/control/variables/';return}
   if(s!=='productos')$('bulk').hidden=true;else updateSelAll();
   if(S.wantNew){S.wantNew=false;if(!S.edit)openSheet(null,true)}
 }
