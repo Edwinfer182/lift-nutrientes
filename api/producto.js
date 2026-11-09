@@ -81,7 +81,7 @@ function render(res, template, o) {
     '<h1>' + escapeHtml(o.h1 || name) + '</h1>' +
     '<div class="product-price">' + priceHtml + '</div>' +
     (o.opcionesHtml || '') +
-    '<details class="seo-description" open><summary>Descripción</summary><div class="product-description"><p>' + escapeHtml(description) + '</p></div></details>' +
+    '<details class="seo-description"><summary>Descripción</summary><div class="product-description"><p>' + escapeHtml(description) + '</p></div></details>' +
     '</section></article>' +
     '<section class="seo-ssr-descripcion">' + sanitize(o.seo.descripcion_larga_html) + '</section>';
   // Mostrar juntos el encabezado y la ficha completa; no pintar etapas intermedias.
