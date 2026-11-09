@@ -6215,7 +6215,7 @@ window.shareLiftProductImage=async function(id){
   <section id="laf-products" class="lafPane on">
   <div class="lafTools">
     <input id="lafSearch" class="lafInput" type="search" name="laf_buscar_producto" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" placeholder="Buscar producto, marca, categoría..." oninput="lafRenderProducts()">
-    <select id="lafStatusFilter" class="lafSelect" onchange="lafRenderProducts()"><option value="">Todos</option><option value="available">Disponibles</option><option value="out">Agotados</option><option value="offer">En oferta</option></select>
+    <select id="lafStatusFilter" class="lafSelect" onchange="lafRenderProducts()"><option value="">Todos</option><option value="available">Disponibles</option><option value="out">Agotados</option><option value="offer">En oferta</option><option value="noimg">Sin imagen</option></select>
   </div>
   <div class="lafBulkTools">
     <label class="lafBulkSelectAll"><input id="lafBulkAll" type="checkbox" onchange="lafBulkToggleVisible(this.checked)"> Seleccionar visibles</label>
@@ -6393,6 +6393,7 @@ window.shareLiftProductImage=async function(id){
    if(f==='out')a=a.filter(p=>m.out?.[p.id]);
    if(f==='offer')a=a.filter(p=>typeof WEEKLY_OFFERS!=='undefined'&&WEEKLY_OFFERS[p.id]);
    if(f==='available')a=a.filter(p=>!m.out?.[p.id]);
+   if(f==='noimg')a=a.filter(p=>!/^(https?:\/\/|\/|data:image\/)/i.test(String(p.image||'').trim()));
    $('lafCount').textContent=`${a.length} productos · ${PRODUCTS.length} en total`;
    $('lafProductList').innerHTML=a.slice(0,350).map(p=>`<div class="lafRow lafBulkRow">
      <label class="lafBulkCheckWrap" title="Seleccionar"><input class="lafBulkCheck" type="checkbox" value="${esc(p.id)}" ${window.LIFT_BULK_SELECTED.has(String(p.id))?'checked':''} onchange="lafBulkToggle(this.value,this.checked)"></label>
@@ -15334,7 +15335,7 @@ body.liftAdminUnlocked .supgo-legible table td,body.liftAdminUnlocked .supgo-leg
  var m0=$('liftAdminAccessModal');if(m0&&m0.classList.contains('open'))render();
 })();
 </script>
-<script src="/componentes/catalogo-admin.js?v=20261107-2" defer></script>
+<script src="/componentes/catalogo-admin.js?v=20261109-1" defer></script>
 </body>
 </html>
 

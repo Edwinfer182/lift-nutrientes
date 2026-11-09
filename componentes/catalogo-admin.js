@@ -13,6 +13,10 @@
 if(window.__supgoCatalogoAdmin)return;window.__supgoCatalogoAdmin=true;
 
 var CSS=`
+#lafPanel .scaUp{display:inline-flex;align-items:center;margin-top:6px;height:30px;padding:0 12px;border-radius:999px;border:1px solid #a9d12f;background:#c8f34b;color:#111;font:700 12px Poppins,Arial,sans-serif;cursor:pointer;white-space:nowrap}#lafPanel .scaUp:disabled{opacity:.7}
+#lafPanel .scaUp.ok{background:#15803d;color:#fff;border-color:#15803d}
+#lafPanel .lafRow.scaNoImg > img{visibility:visible!important;background:#f4f6f4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a8a3' stroke-width='1.6'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Ccircle cx='9' cy='10' r='1.6'/%3E%3Cpath d='m21 16-5-5-8 8'/%3E%3C/svg%3E") center/55% no-repeat;border-radius:8px}
+#lafPanel .lafRow.scaDrop{outline:2px dashed #15803d;outline-offset:-2px;background:#f0fbe6}
 #lafPanel{--c-ink:#111;--c-muted:#6b6f6b;--c-line:#e4e7e4;--c-soft:#f4f6f4;--c-green:#15803d;--c-lime:#c8f34b;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
 #lafPanel .lafBody{background:var(--c-soft)}
 /* Pestañas */
@@ -176,7 +180,30 @@ function renderLabs(){
 }
 
 /* ---------- Productos ---------- */
-var FILTERS=[['','Todos'],['available','Disponibles'],['out','Agotados'],['offer','En oferta']];
+var FILTERS=[['','Todos'],['available','Disponibles'],['out','Agotados'],['offer','En oferta'],['noimg','📷 Sin imagen']];
+function sinImagen(p){return !/^(https?:\/\/|\/|data:image\/)/i.test(String(p&&p.image||'').trim())}
+function contarSinImagen(){var b=document.querySelector('.scaChips [data-f="noimg"]');if(!b||!window.PRODUCTS)return;var n=window.PRODUCTS.filter(sinImagen).length;b.textContent='📷 Sin imagen'+(n?' ('+n+')':'')}
+/* Subir foto directo desde la fila: comprime, sube a Supabase y guarda la fila. */
+var SBF='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-catalogo-imagen',SBK='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+function comprimir(file){return new Promise(function(ok,ko){var i=new Image();i.onload=function(){var k=Math.min(1,1600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);var t=c.toDataURL('image/webp',.86);if(t.indexOf('data:image/webp')!==0)t=c.toDataURL('image/jpeg',.88);URL.revokeObjectURL(i.src);ok(t)};i.onerror=function(){ko(new Error('No se pudo leer la imagen'))};i.src=URL.createObjectURL(file)})}
+async function subirFoto(row,id,file){
+  var btn=row.querySelector('.scaUp'),main=document.getElementById('liftMainUrl_'+id);
+  if(!file||!/^image\//.test(file.type)){alert('Elige una imagen (JPG, PNG o WebP)');return}
+  var pw='';try{pw=sessionStorage.getItem('liftAdminCloudPasswordV1')||''}catch(e){}
+  if(!pw){pw=prompt('Clave de administración para subir la foto')||'';if(!pw)return}
+  if(btn){btn.disabled=true;btn.textContent='Subiendo…'}
+  try{
+    var data=await comprimir(file),type=data.slice(5,data.indexOf(';'));
+    var r=await fetch(SBF,{method:'POST',headers:{apikey:SBK,'Content-Type':'application/json'},body:JSON.stringify({password:pw,data:data,type:type,producto_id:String(id)})});
+    var j=await r.json().catch(function(){return{}});
+    if(!r.ok||!j.url)throw new Error(j.error||('Error '+r.status));
+    if(main){main.value=j.url;main.dispatchEvent(new Event('input',{bubbles:true}))}
+    var img=row.querySelector(':scope > img');if(img){img.style.visibility='';img.src=j.url}
+    var save=row.querySelector('.scaSave')||row.querySelector('button[title^="Guardar"]');if(save)save.click();
+    if(btn){btn.textContent='✓ Foto subida';btn.classList.add('ok')}
+    setTimeout(contarSinImagen,2500);
+  }catch(e){alert('No se subió la foto: '+e.message);if(btn){btn.disabled=false;btn.textContent='⬆ Subir foto'}}
+}
 function setupProducts(){
   var pane=$('laf-products'),tools=pane&&pane.querySelector('.lafTools'),search=$('lafSearch'),sel=$('lafStatusFilter');
   if(!tools||tools.querySelector('.scaChips'))return;
@@ -215,7 +242,18 @@ function decorateProducts(){
     if(save){save.classList.add('scaSave');save.title='Guardar precio e imágenes (Enter)';if(window.matchMedia('(max-width:700px)').matches)save.textContent='Guardar'}
     var ph=document.createElement('button');ph.type='button';ph.className='lafIcon scaPhotos';ph.textContent='📷 Fotos';ph.title='Ver y editar las URL de las fotos';
     acts.insertBefore(ph,acts.firstChild);
+    var cb=r.querySelector('.lafBulkCheck'),id=cb&&cb.value,p=id&&window.PRODUCTS&&window.PRODUCTS.find(function(x){return String(x.id)===String(id)});
+    if(p&&sinImagen(p)&&!r.querySelector('.scaUp')){
+      var up=document.createElement('button');up.type='button';up.className='scaUp';up.textContent='⬆ Subir foto';up.title='Subir una foto desde tu equipo o celular (también puedes arrastrarla a la fila)';
+      var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.hidden=true;
+      up.onclick=function(){fi.click()};fi.onchange=function(){if(fi.files[0])subirFoto(r,id,fi.files[0]);fi.value=''};
+      var info=r.querySelector('.lafName');(info?info.parentNode:acts).appendChild(up);acts.appendChild(fi);r.classList.add('scaNoImg');
+      r.addEventListener('dragover',function(e){e.preventDefault();r.classList.add('scaDrop')});
+      r.addEventListener('dragleave',function(){r.classList.remove('scaDrop')});
+      r.addEventListener('drop',function(e){e.preventDefault();r.classList.remove('scaDrop');var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)subirFoto(r,id,f)});
+    }
   });
+  contarSinImagen();
   var pane=$('laf-products'),sel=window.LIFT_BULK_SELECTED;
   if(pane&&sel&&sel.size&&!pane.classList.contains('scaBulkOn'))setBulk(true);
   var shown=list.querySelectorAll('.lafRow').length,count=$('lafCount'),old=list.querySelector('.scaMore');if(old)old.remove();
