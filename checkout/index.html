@@ -107,7 +107,7 @@ details.coupon[open] summary::after{content:"−"}
 .totals{border-top:1px solid var(--line);margin-top:6px;padding-top:12px;font-size:14px}
 .totals div{display:flex;justify-content:space-between;padding:4px 0}
 .totals .free{color:var(--green);font-weight:600}
-.totals .disc{color:var(--green)}
+.totals .disc{color:var(--green)}.totals .volTip{display:block!important;font-size:12.5px;color:#3f6212;background:#f1f8df;border-radius:10px;padding:8px 10px;margin:6px 0}
 .totals .grand{font-size:18px;font-weight:700;border-top:1px solid var(--line);margin-top:8px;padding-top:12px}
 .shipTip{background:var(--green-soft);color:var(--green);border-radius:10px;padding:10px 12px;font-size:12px;margin-top:10px}
 .trust{list-style:none;margin:14px 0 0;padding:0;font-size:12px;color:var(--muted);display:grid;gap:8px}
@@ -378,7 +378,15 @@ function shipping(){
   if(isLocal())return q===1?11000:q===2?7000:0;
   return q===1?15000:q===2?12000:q===3?10000:0;
 }
-function discount(){return state.coupon?Math.min(subtotal(),Number(state.coupon.amount)||0):0}
+/* Descuento por cantidad: 3+ productos 3%, 6+ productos 7% (cualquier mezcla).
+   Los productos que ya están en oferta cuentan para llegar, pero no se descuentan otra vez. */
+var VOL_TIERS=[[6,7],[3,3]];
+function volPct(q){for(var i=0;i<VOL_TIERS.length;i++)if(q>=VOL_TIERS[i][0])return VOL_TIERS[i][1];return 0}
+function volNext(q){var t=VOL_TIERS.slice().reverse().find(function(x){return q<x[0]});return t?{falta:t[0]-q,pct:t[1]}:null}
+function volBase(){return okLines().reduce(function(n,l){return n+(l.offer?0:l.price*l.qty)},0)}
+function volDiscount(){return Math.round(volBase()*volPct(units())/10000)*100}
+function couponDiscount(){return state.coupon?Math.min(subtotal(),Number(state.coupon.amount)||0):0}
+function discount(){return Math.min(subtotal(),couponDiscount()+volDiscount())}
 function total(){var s=shipping();return Math.max(0,subtotal()-discount())+(s||0)}
 
 /* ---------- Pintar ---------- */
@@ -413,10 +421,12 @@ function render(){
       (l.available?'<div><span class="qty"><button type="button" data-k="'+esc(l.key)+'" data-d="-1" aria-label="Quitar una unidad">−</button><span>'+l.qty+'</span><button type="button" data-k="'+esc(l.key)+'" data-d="1" aria-label="Agregar una unidad">+</button></span><button type="button" class="remove" data-k="'+esc(l.key)+'" data-d="0">Eliminar</button></div>':'<div class="imeta" style="color:var(--red)">No disponible · no se incluirá</div><button type="button" class="remove" data-k="'+esc(l.key)+'" data-d="0">Quitar</button>')+
       '</div><div class="iprice">'+(l.offer?'<del>'+money(l.regular*l.qty)+'</del>':'')+(l.price>0?money(l.price*l.qty):'—')+'</div></div>';
   }).join('');
-  var s=shipping(),d=discount();
+  var s=shipping(),d=couponDiscount(),vd=volDiscount(),vn=volNext(units());
   $('totals').innerHTML='<div><span>Subtotal ('+units()+' '+(units()===1?'producto':'productos')+')</span><span>'+money(subtotal())+'</span></div>'+
     '<div><span>Envío</span><span class="'+(s===0?'free':'')+'">'+(s===null?'<small style="color:var(--muted)">Elige tu ciudad</small>':s===0?'Gratis':money(s))+'</span></div>'+
+    (vd>0?'<div class="disc"><span>Descuento por cantidad ('+volPct(units())+'%)</span><span>− '+money(vd)+'</span></div>':'')+
     (d>0?'<div class="disc"><span>Cupón '+esc(state.coupon.code)+'</span><span>− '+money(d)+'</span></div>':'')+
+    (vn&&units()>0?'<div class="volTip">Agrega '+vn.falta+' producto'+(vn.falta>1?'s':'')+' más y ahorras <b>'+vn.pct+'%</b></div>':'')+
     '<div class="grand"><span>Total</span><span>'+money(total())+'</span></div>';
   var tip='';
   if(state.city&&s>0){var q=units(),next=isLocal()?(q===1?7000:0):(q===1?12000:q===2?10000:0);tip='Agrega 1 producto más y el envío '+(next===0?'es <b>gratis</b>':'baja a <b>'+money(next)+'</b>')+'.'}
@@ -463,7 +473,7 @@ function applyCoupon(){
   if(!code){msg.textContent='Escribe el código.';msg.className='msg bad';return}
   btn.disabled=true;msg.textContent='Validando…';msg.className='msg';
   api('/rest/v1/rpc/lift_validar_cupon',{method:'POST',body:JSON.stringify(couponArgs(code,false))}).then(function(r){
-    if(r&&r.valid){state.coupon={code:r.code||code,amount:Number(r.discount_amount)||0};msg.textContent='✓ Cupón aplicado: − '+money(discount());msg.className='msg ok'}
+    if(r&&r.valid){state.coupon={code:r.code||code,amount:Number(r.discount_amount)||0};msg.textContent='✓ Cupón aplicado: − '+money(couponDiscount());msg.className='msg ok'}
     else{state.coupon=null;var reason=r&&r.reason;msg.textContent=reason==='minimum_not_met'?'La compra mínima para este cupón es '+money(r.minimum)+'.':(REASONS[reason]||'No fue posible aplicar este cupón.');msg.className='msg bad'}
     render();
   }).catch(function(){state.coupon=null;msg.textContent='No pudimos validar el cupón. Inténtalo de nuevo.';msg.className='msg bad';render()}).then(function(){btn.disabled=false});
@@ -507,7 +517,7 @@ function submit(ev){
   var couponStep=state.coupon?api('/rest/v1/rpc/lift_validar_cupon',{method:'POST',body:JSON.stringify(couponArgs(state.coupon.code,false))}).then(function(r){if(!(r&&r.valid)){state.coupon=null;render();throw new Error('El cupón ya no es válido. Revisa el total y vuelve a intentarlo.')}state.coupon.amount=Number(r.discount_amount)||0;render()}):Promise.resolve();
   couponStep.then(function(){
     var nombre=$('nombre').value.trim(),celular=$('celular').value.trim(),email=$('email').value.trim().toLowerCase(),notas=$('notas').value.trim();
-    if(!$('f-documento').hidden)notas=[notas,'Documento: '+$('documento').value.trim()].filter(Boolean).join(' | ');
+    if(!$('f-documento').hidden)notas=[notas,'Documento: '+$('documento').value.trim()].filter(Boolean).join(' | ');if(volDiscount()>0)notas=[notas,'Descuento por cantidad '+volPct(units())+'%: -'+money(volDiscount())].filter(Boolean).join(' | ');
     var ls=okLines(),payload={action:'public-save-order',request_key:requestKey(),nombre:nombre,celular:celular,direccion:$('direccion').value.trim(),
       ciudad:state.city.name,departamento:state.city.department||'',notas:notas,email:email,email_notificaciones:true,
       tratamiento_datos:true,tratamiento_datos_fecha:new Date().toISOString(),tratamiento_datos_version:'LIFT-DATOS-2026-10-06-v1',marketing_autorizado:false,
