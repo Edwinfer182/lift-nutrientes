@@ -195,9 +195,15 @@ module.exports = async function handler(req, res) {
     if (delPadre.length) return await padre(req, res, template, fetchRows, slug, delPadre, marcasTodas, bloqueosTodos);
     const comoVariacion = familia.find(f => f.producto_slug === slug && f.slug !== slug);
     if (comoVariacion) {
-      // La URL vieja de un sabor/tamaño lleva a la del producto con esa variación elegida.
+      // Las variaciones ya no tienen página propia: su URL vieja se da por eliminada (410)
+      // para que Google la retire. La variación sigue existiendo dentro de la ficha del producto.
       res.setHeader('Cache-Control', 'public, s-maxage=3600');
-      return res.redirect(301, '/producto/' + comoVariacion.slug + '/?v=' + comoVariacion.producto_id);
+      res.setHeader('X-Robots-Tag', 'noindex');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      const destino = '/producto/' + comoVariacion.slug + '/?v=' + comoVariacion.producto_id;
+      return res.status(410).send('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Esta página ya no existe | SUPGO</title>' +
+        '<style>body{font-family:system-ui,Arial,sans-serif;display:grid;place-items:center;min-height:90vh;margin:0;padding:20px;text-align:center;color:#111}a{display:inline-block;margin-top:14px;background:#111;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600}</style></head>' +
+        '<body><div><h1>Esta página ya no existe</h1><p>Ahora este sabor y tamaño están dentro de la ficha del producto.</p><a href="' + destino + '" rel="nofollow">Ver el producto</a></div></body></html>');
     }
     if (rows.length > 1) return res.status(404).send('Producto no encontrado o slug duplicado');
     if (!rows.length) {
