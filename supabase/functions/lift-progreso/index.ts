@@ -39,14 +39,20 @@ const NIVELES = [
 // ---------------- Cálculo de calorías ----------------
 const FACTOR: Record<string, number> = { sedentario: 1.2, ligero: 1.375, moderado: 1.55, alto: 1.725, muy_alto: 1.9 };
 const SUPERAVIT: Record<string, number> = { suave: 250, moderado: 450 };
+const DEFICIT: Record<string, number> = { suave: 300, moderado: 500 };
+// Mínimo de calorías al bajar de peso (no se recomienda comer menos sin supervisión).
+const PISO: Record<string, number> = { h: 1500, m: 1200 };
+const imc = (peso: number, cm: number) => peso / ((cm / 100) ** 2);
 function edad(nac: string) { const n = new Date(nac + "T12:00:00Z"), h = new Date(today() + "T12:00:00Z"); let a = h.getUTCFullYear() - n.getUTCFullYear(); if (h.getUTCMonth() < n.getUTCMonth() || (h.getUTCMonth() === n.getUTCMonth() && h.getUTCDate() < n.getUTCDate())) a--; return a; }
 function plan(p: any, peso: number, objetivo: string, ritmo: string) {
   const e = edad(p.fecha_nacimiento), h = Number(p.estatura_cm), g = p.grasa_pct == null ? null : Number(p.grasa_pct);
   const tmb = g != null ? 370 + 21.6 * peso * (1 - g / 100) : 10 * peso + 6.25 * h - 5 * e + (p.sexo === "h" ? 5 : -161);
   const mant = tmb * (FACTOR[p.actividad] || 1.2);
-  const cal = Math.round((mant + (objetivo === "ganar" ? SUPERAVIT[ritmo] || 250 : 0)) / 10) * 10;
-  const prot = Math.round(peso * (objetivo === "ganar" ? 2 : 1.8));
-  const gra = Math.round(peso * 0.9);
+  const ajuste = objetivo === "ganar" ? SUPERAVIT[ritmo] || 250 : objetivo === "bajar" ? -(DEFICIT[ritmo] || 300) : 0;
+  let cal = Math.round((mant + ajuste) / 10) * 10;
+  if (objetivo === "bajar") cal = Math.max(cal, PISO[p.sexo] || 1200);
+  const prot = Math.round(peso * (objetivo === "mantener" ? 1.8 : 2));
+  const gra = Math.round(peso * (objetivo === "bajar" ? 0.8 : 0.9));
   const carb = Math.max(0, Math.round((cal - prot * 4 - gra * 9) / 4));
   return { tmb: Math.round(tmb), mantenimiento: Math.round(mant / 10) * 10, calorias: cal, proteina_g: prot, grasa_g: gra, carbos_g: carb, formula: g != null ? "Katch-McArdle" : "Mifflin-St Jeor" };
 }
@@ -103,6 +109,7 @@ async function sync(c: any, acct: any, regs: any[]) {
     const despues = regs.filter((r) => r.fecha >= creada);
     let ok = false;
     if (meta.objetivo === "ganar") ok = dias >= 21 && despues.length > 0 && despues[0].peso_kg >= Number(meta.peso_meta);
+    else if (meta.objetivo === "bajar") ok = dias >= 21 && despues.length > 0 && despues[0].peso_kg <= Number(meta.peso_meta);
     else {
       // Mantener: 4 semanas distintas con registros dentro de ±1,5 kg de la meta, desde hace al menos 28 días.
       const semanas = new Set(despues.filter((r) => Math.abs(r.peso_kg - Number(meta.peso_meta)) <= 1.5).map((r) => weekOf(r.fecha)));
@@ -145,7 +152,7 @@ async function load(c: any, acct: any, avisos: string[] = []) {
     registros: regs.slice(0, 180),
     meta: activa,
     metas: metas.data || [],
-    plan_actual: p && ultimo ? { mantener: plan(p, ultimo, "mantener", "suave"), ganar_suave: plan(p, ultimo, "ganar", "suave"), ganar_moderado: plan(p, ultimo, "ganar", "moderado") } : null,
+    plan_actual: p && ultimo ? { bajar_suave: plan(p, ultimo, "bajar", "suave"), bajar_moderado: plan(p, ultimo, "bajar", "moderado"), mantener: plan(p, ultimo, "mantener", "suave"), ganar_suave: plan(p, ultimo, "ganar", "suave"), ganar_moderado: plan(p, ultimo, "ganar", "moderado") } : null,
     racha: racha(regs),
     puntos: { saldo, historial: lista.slice(0, 40) },
     canjes: canj,
@@ -220,7 +227,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "meta-save") {
-      const objetivo = b.objetivo === "ganar" ? "ganar" : b.objetivo === "mantener" ? "mantener" : null;
+      const objetivo = ["ganar", "mantener", "bajar"].includes(b.objetivo) ? String(b.objetivo) : null;
       const ritmo = b.ritmo === "moderado" ? "moderado" : "suave";
       if (!objetivo) throw new Fail("Elige tu objetivo.");
       const { data: perfil } = await c.from("lift_fit_perfil").select("*").eq("cuenta_id", acct.id).maybeSingle();
@@ -232,6 +239,14 @@ Deno.serve(async (req) => {
       if (!metaPeso) throw new Fail("Escribe tu peso meta.");
       if (objetivo === "ganar" && metaPeso <= actual) throw new Fail("Para ganar masa, el peso meta debe ser mayor a tu peso actual (" + actual + " kg).");
       if (objetivo === "ganar" && metaPeso > actual * 1.3) throw new Fail("Esa meta es muy alta para un solo plan. Ponte una meta intermedia.");
+      if (objetivo === "bajar") {
+        const est = Number(perfil.estatura_cm);
+        if (imc(actual, est) < 18.5) throw new Fail("Con tu peso y estatura actuales no recomendamos bajar más. Habla con un profesional de la salud.");
+        if (metaPeso >= actual) throw new Fail("Para bajar de peso, el peso meta debe ser menor a tu peso actual (" + actual + " kg).");
+        const minimo = Math.ceil(18.5 * (est / 100) ** 2 * 10) / 10;
+        if (metaPeso < minimo) throw new Fail("Esa meta queda por debajo de un peso saludable para tu estatura. El mínimo recomendado es " + minimo + " kg.");
+        if (metaPeso < actual * 0.85) throw new Fail("Esa meta es muy baja para un solo plan. Ponte una meta intermedia.");
+      }
       const limite = isDate(b.fecha_limite) && b.fecha_limite > today() ? b.fecha_limite : null;
       const pl = plan(perfil, actual, objetivo, ritmo);
       await c.from("lift_fit_metas").update({ estado: "cancelada", cerrada_en: new Date().toISOString() }).eq("cuenta_id", acct.id).eq("estado", "activa");
