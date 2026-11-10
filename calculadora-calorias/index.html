@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadora de calorías para ganar masa muscular o mantener tu peso | SUPGO</title>
+<meta name="description" content="Calcula gratis tus calorías de mantenimiento y de superávit para ganar masa muscular, con proteína, carbohidratos y grasas. Guarda tu meta, registra tu peso y gana puntos SUPGO.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://supgo.co/calculadora-calorias/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SUPGO">
+<meta property="og:title" content="Calculadora de calorías para ganar masa muscular | SUPGO">
+<meta property="og:description" content="Tus calorías de mantenimiento y de superávit, con macros. Guarda tu meta y gana puntos para descuentos.">
+<meta property="og:url" content="https://supgo.co/calculadora-calorias/">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=supgo-rounded-2">
+<link rel="icon" type="image/png" sizes="256x256" href="/favicon.png?v=supgo-rounded-2">
+<link rel="apple-touch-icon" href="/favicon.png?v=supgo-rounded-2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>window.SUPGO_GA=1;window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});gtag('js',new Date());gtag('config','G-GZL00MPW16');</script>
+<script src="/componentes/privacidad.js?v=20261101-norebote" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","@id":"https://supgo.co/calculadora-calorias/#app","name":"Calculadora de calorías SUPGO","url":"https://supgo.co/calculadora-calorias/","applicationCategory":"HealthApplication","operatingSystem":"Web","inLanguage":"es-CO","offers":{"@type":"Offer","price":"0","priceCurrency":"COP"},"publisher":{"@id":"https://supgo.co/#organization"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cuántas calorías necesito para ganar masa muscular?","acceptedAnswer":{"@type":"Answer","text":"Las de mantenimiento más un superávit pequeño: entre 250 y 450 kcal al día. Así ganas alrededor de 0,25 a 0,5 kg por semana, con menos grasa que un superávit grande."}},{"@type":"Question","name":"¿Cómo se calculan las calorías de mantenimiento?","acceptedAnswer":{"@type":"Answer","text":"Se calcula el metabolismo basal con la fórmula Mifflin-St Jeor (o Katch-McArdle si conoces tu % de grasa) y se multiplica por un factor según tu nivel de actividad, de 1,2 a 1,9."}},{"@type":"Question","name":"¿Cuánta proteína necesito para ganar masa?","acceptedAnswer":{"@type":"Answer","text":"Entre 1,6 y 2,2 g por kilo de peso al día. La calculadora usa 2 g/kg para ganar masa y 1,8 g/kg para mantener."}}]}]}</script>
+<style>
+:root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--lime:#c8f34b;--green:#15803d;--green-soft:#eaf7ee;--red:#b42318;--red-soft:#fff4f2;--amber:#8a5a00;--amber-soft:#fff6db;--radius:14px;--p:#2563eb;--c:#d97706;--g:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:820px;margin:0 auto;padding:22px 16px 90px}
+h1{font-size:clamp(24px,4.6vw,34px);letter-spacing:-.03em;line-height:1.15;margin:6px 0 8px}
+h2{font-size:19px;letter-spacing:-.02em;margin:0 0 12px}
+h3{font-size:15px;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 20px;font-size:14.5px}
+.kicker{display:inline-block;background:var(--lime);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.label small{font-weight:400;color:var(--muted)}
+.input{width:100%;height:48px;border:1px solid #d6d6d6;border-radius:10px;padding:0 14px;background:#fff;font-size:16px}
+select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#111 50%),linear-gradient(135deg,#111 50%,transparent 50%);background-position:calc(100% - 20px) 21px,calc(100% - 15px) 21px;background-size:5px 5px;background-repeat:no-repeat;padding-right:36px}
+.input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,17,17,.08)}
+.unit{position:relative}.unit .input{padding-right:46px}.unit span{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.field{margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;background:var(--soft);border-radius:12px;padding:4px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;padding:6px;line-height:1.25}
+.seg label small{font-size:11px;font-weight:400;color:var(--muted)}
+.seg input:checked+label{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg input:focus-visible+label{outline:2px solid var(--ink)}
+.cta{width:100%;height:52px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;cursor:pointer}
+.cta.lime{background:var(--lime);color:#111}
+.cta:disabled{opacity:.55;cursor:wait}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.lime{background:var(--lime);border-color:var(--lime);color:#111;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.link{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;cursor:pointer;font-size:13px}
+.msg{font-size:13px;margin-top:8px;min-height:18px}.msg:empty{min-height:0;margin:0}
+.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+details.more{border-top:1px dashed var(--line);padding-top:12px;margin-top:4px}
+details.more summary{cursor:pointer;font-size:13px;font-weight:500;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"+ "}details.more[open] summary::before{content:"− "}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+/* Resultado */
+.res{background:#111;color:#fff;border-radius:18px;padding:22px;margin-bottom:14px;scroll-margin-top:80px}
+.res .top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.res .kcal{font-size:clamp(44px,10vw,62px);font-weight:700;line-height:1;letter-spacing:-.04em;color:var(--lime)}
+.res .kcal small{font-size:16px;color:#cfcfcf;font-weight:500;letter-spacing:0;margin-left:4px}
+.res .sub{color:#cfcfcf;font-size:13px;margin-top:6px}
+.compare{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 0}
+.compare div{background:#1d1d1d;border-radius:12px;padding:10px 12px}
+.compare b{display:block;font-size:18px}.compare small{color:#aaa;font-size:11.5px}
+.compare .on{outline:2px solid var(--lime)}
+.macros{display:grid;gap:12px}
+.mac{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.mac .bar{height:10px;background:var(--soft);border-radius:99px;overflow:hidden}.mac .bar i{display:block;height:100%;border-radius:99px}
+.mac b{font-size:15px}.mac small{color:var(--muted);font-size:12px;display:block}
+.meals{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.meals span{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13px}
+.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.prod{display:block;border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;background:#fff;transition:border-color .15s}
+.prod:hover{border-color:var(--ink)}
+.prod b{display:block;font-size:14px}.prod small{color:var(--muted);font-size:12.5px;line-height:1.4;display:block;margin-top:4px}
+.prod .go{display:inline-block;margin-top:8px;font-size:12px;font-weight:600}
+.save{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--lime);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px}
+.save p{margin:0;font-size:13.5px;max-width:440px}.save b{font-size:16px;display:block}
+/* Panel */
+.hello{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 12px}
+.hello h2{margin:0}
+.stats{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.stat.dark{background:#111;color:#fff;border-color:#111}
+.stat .n{font-size:28px;font-weight:700;line-height:1.1;letter-spacing:-.02em}
+.stat.dark .n{color:var(--lime)}
+.stat small{display:block;font-size:12px;color:var(--muted)}.stat.dark small{color:#bdbdbd}
+.goal .track{position:relative;height:12px;background:var(--soft);border-radius:99px;margin:16px 0 8px;overflow:hidden}
+.goal .track i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#9bd22a,var(--lime));border-radius:99px}
+.goal .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.goal .ends b{color:var(--ink);font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:12px;background:var(--soft);padding:5px 10px;border-radius:999px}
+.chart{width:100%;height:auto;display:block;margin-top:6px}
+.hist{margin:10px 0 0;padding:0;list-style:none;font-size:13.5px;max-height:260px;overflow:auto}
+.hist li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.hist li:last-child{border-bottom:0}
+.hist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:8px}
+.hist .x:hover{background:var(--soft);color:var(--red)}
+.pos{color:var(--green);font-weight:600}.neg{color:var(--red);font-weight:600}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lvl{border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;background:#fff}
+.lvl b{display:block;font-size:20px}.lvl small{display:block;color:var(--muted);font-size:12px;margin:2px 0 10px}
+.lvl .bar{height:6px;background:var(--soft);border-radius:9px;overflow:hidden;margin-bottom:10px}.lvl .bar i{display:block;height:100%;background:var(--ink)}
+.coupon{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px dashed #cfcfcf;border-radius:12px;padding:12px 14px;margin-top:10px;background:#fff}
+.coupon b{font-size:16px;letter-spacing:.05em}.coupon small{display:block;color:var(--muted);font-size:12px}
+.coupon.used{opacity:.5}
+.rules{display:grid;gap:8px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.rules li{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;background:var(--soft);border-radius:10px}
+.rules li b{white-space:nowrap}
+.empty{text-align:center;color:var(--muted);padding:18px 10px;font-size:14px}
+.faq h3{margin-top:16px}.faq p{margin:0 0 6px;color:#333;font-size:14px}
+.note{font-size:12px;color:var(--muted);margin:18px 0 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;transition:.25s;background:#111;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;z-index:2147483001;pointer-events:none;max-width:min(92vw,420px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.skeleton{height:110px;border-radius:var(--radius);background:linear-gradient(90deg,#f0f0ee 0%,#f7f7f5 50%,#f0f0ee 100%);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:12px}
+@keyframes sk{to{background-position:-200% 0}}
+@media(max-width:560px){.row3{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.stats .stat.dark{grid-column:1/-1}.levels{grid-template-columns:1fr}.mac{grid-template-columns:90px 1fr auto}.compare b{font-size:16px}}
+</style>
+</head>
+<body data-page="calculadora">
+<main class="wrap">
+
+<span class="kicker">Gratis · Sin registro</span>
+<h1>Calculadora de calorías para ganar masa muscular o mantener tu peso</h1>
+<p class="lead">Llena tus datos y te decimos cuántas calorías comer al día y cuánta proteína, carbohidratos y grasa necesitas. Si creas tu cuenta, guardas tu meta, registras tu peso y ganas puntos para descuentos.</p>
+
+<!-- Formulario -->
+<form class="card" id="calc" novalidate>
+  <div class="field">
+    <span class="label">Sexo</span>
+    <div class="seg" role="radiogroup">
+      <input type="radio" name="sexo" id="sx-h" value="h" checked><label for="sx-h">Hombre</label>
+      <input type="radio" name="sexo" id="sx-m" value="m"><label for="sx-m">Mujer</label>
+    </div>
+  </div>
+  <div class="row3">
+    <div class="field"><label class="label" for="edad">Edad</label><div class="unit"><input class="input" id="edad" type="number" inputmode="numeric" min="15" max="90" placeholder="25" required><span>años</span></div></div>
+    <div class="field"><label class="label" for="peso">Peso</label><div class="unit"><input class="input" id="peso" type="number" inputmode="decimal" step="0.1" min="30" max="300" placeholder="70" required><span>kg</span></div></div>
+    <div class="field"><label class="label" for="estatura">Estatura</label><div class="unit"><input class="input" id="estatura" type="number" inputmode="numeric" min="120" max="230" placeholder="172" required><span>cm</span></div></div>
+  </div>
+  <div class="field">
+    <label class="label" for="actividad">Nivel de actividad</label>
+    <select class="input" id="actividad">
+      <option value="sedentario">Sedentario · trabajo sentado, sin entrenar</option>
+      <option value="ligero">Ligero · entrenas 1 a 3 días por semana</option>
+      <option value="moderado" selected>Moderado · entrenas 3 a 5 días por semana</option>
+      <option value="alto">Alto · entrenas 6 a 7 días por semana</option>
+      <option value="muy_alto">Muy alto · trabajo físico y además entrenas</option>
+    </select>
+  </div>
+  <div class="field">
+    <span class="label">Objetivo</span>
+    <div class="seg" role="radiogroup">
+      <input type="radio" name="objetivo" id="ob-g" value="ganar" checked><label for="ob-g">💪 Ganar masa<small>superávit</small></label>
+      <input type="radio" name="objetivo" id="ob-m" value="mantener"><label for="ob-m">⚖️ Mantener<small>mismo peso</small></label>
+    </div>
+  </div>
+  <div class="field" id="ritmoBox">
+    <span class="label">Ritmo de ganancia</span>
+    <div class="seg" role="radiogroup">
+      <input type="radio" name="ritmo" id="rt-s" value="suave" checked><label for="rt-s">Suave<small>+250 kcal · ~0,25 kg/sem</small></label>
+      <input type="radio" name="ritmo" id="rt-m" value="moderado"><label for="rt-m">Moderado<small>+450 kcal · ~0,45 kg/sem</small></label>
+    </div>
+    <p class="hint">Suave gana menos grasa. Moderado sirve si te cuesta subir de peso.</p>
+    <div class="field" style="margin:12px 0 0;max-width:220px"><label class="label" for="pesoMeta">Peso meta <small>(opcional)</small></label><div class="unit"><input class="input" id="pesoMeta" type="number" inputmode="decimal" step="0.1" min="30" max="300" placeholder="Ej: 75"><span>kg</span></div></div>
+  </div>
+  <details class="more" id="moreBox">
+    <summary>Sé mi % de grasa corporal (más preciso)</summary>
+    <div class="field" style="margin-top:12px;max-width:220px"><label class="label" for="grasa">% de grasa <small>(opcional)</small></label><div class="unit"><input class="input" id="grasa" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="18"><span>%</span></div></div>
+    <p class="hint">Con este dato usamos la fórmula Katch-McArdle, que tiene en cuenta tu masa muscular.</p>
+  </details>
+  <div class="msg err" id="calcMsg" role="alert"></div>
+  <button class="cta" type="submit" style="margin-top:12px">Calcular mis calorías</button>
+</form>
+
+<!-- Resultado -->
+<section id="result" hidden>
+  <div class="res" id="resBox">
+    <div class="top">
+      <div>
+        <div style="font-size:13px;color:#cfcfcf" id="resLabel">Para ganar masa muscular</div>
+        <div class="kcal"><span id="resKcal">0</span><small>kcal/día</small></div>
+      </div>
+      <div class="sub" id="resFormula"></div>
+    </div>
+    <div class="compare">
+      <div id="cmpMant"><small>Mantener</small><b id="vMant">0</b></div>
+      <div id="cmpSuave"><small>Ganar suave</small><b id="vSuave">0</b></div>
+      <div id="cmpMod"><small>Ganar moderado</small><b id="vMod">0</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tus macros al día</h2>
+    <div class="macros">
+      <div class="mac"><div><b>Proteína</b><small id="mPk"></small></div><div class="bar"><i id="mPb" style="background:var(--p)"></i></div><b id="mP">0 g</b></div>
+      <div class="mac"><div><b>Carbohidratos</b><small id="mCk"></small></div><div class="bar"><i id="mCb" style="background:var(--c)"></i></div><b id="mC">0 g</b></div>
+      <div class="mac"><div><b>Grasas</b><small id="mGk"></small></div><div class="bar"><i id="mGb" style="background:var(--g)"></i></div><b id="mG">0 g</b></div>
+    </div>
+    <div class="meals" id="meals"></div>
+  </div>
+
+  <div class="save" id="saveBox">
+    <div><b id="saveTitle">Guarda tu plan y gana puntos</b><p id="saveText">Crea tu cuenta gratis: guardas tu meta, registras tu peso cada semana y acumulas puntos que cambias por descuentos en SUPGO.</p></div>
+    <button class="btn dark" type="button" id="saveBtn" style="height:46px;padding:0 18px">Crear cuenta y guardar</button>
+  </div>
+
+  <div class="card">
+    <h2>Suplementos que te ayudan</h2>
+    <div class="prods" id="prods"></div>
+    <p class="hint" style="margin-top:12px">Los suplementos complementan tu alimentación; no la reemplazan.</p>
+  </div>
+</section>
+
+<!-- Panel con cuenta -->
+<section id="panel" hidden>
+  <div class="hello"><h2 id="helloName">Mi progreso</h2><a class="btn" href="/cuenta/">Mi cuenta</a></div>
+  <div id="panelBody"><div class="skeleton"></div><div class="skeleton"></div></div>
+</section>
+
+<!-- Contenido -->
+<section class="card faq" style="margin-top:22px">
+  <h2>Cómo funciona la calculadora</h2>
+  <h3>1. Metabolismo basal</h3>
+  <p>Son las calorías que tu cuerpo gasta en reposo. Usamos la fórmula Mifflin-St Jeor, la más precisa para la mayoría de personas. Si escribes tu % de grasa, usamos Katch-McArdle, que parte de tu masa magra.</p>
+  <h3>2. Calorías de mantenimiento</h3>
+  <p>El basal multiplicado por tu nivel de actividad (de 1,2 si eres sedentario a 1,9 si tienes trabajo físico y entrenas). Comiendo esto, tu peso se mantiene.</p>
+  <h3>3. Superávit para ganar masa</h3>
+  <p>Sumamos 250 o 450 kcal. Un superávit pequeño construye músculo con menos grasa que "comer de todo". Si en 2 o 3 semanas tu peso no sube, agrega 100 a 150 kcal.</p>
+  <h3>4. Macros</h3>
+  <p>Proteína: 2 g por kilo para ganar masa y 1,8 g para mantener. Grasas: 0,9 g por kilo. El resto de calorías van a carbohidratos, tu principal energía para entrenar.</p>
+  <h3>¿Cómo gano puntos?</h3>
+  <p>Con tu cuenta ganas puntos por completar tu perfil, crear tu meta, registrar tu peso cada semana, mantener rachas, cumplir tu meta y por cada compra entregada (1 punto por cada $1.000). Los cambias por cupones de descuento.</p>
+  <p class="note">Esta calculadora da un estimado para personas sanas. No reemplaza la valoración de un nutricionista o médico, sobre todo si tienes alguna condición de salud, estás en embarazo o eres menor de edad.</p>
+</section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="/componentes/cuenta.js?v=20261101-google"></script>
+<script>
+(function(){
+'use strict';
+var FN='https://vdxkknftyssjyfbdieqa.supabase.co/functions/v1/lift-progreso';
+var KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+var DRAFT='supgoCalcV1';
+var C=window.SupgoCuenta;
+var $=function(id){return document.getElementById(id)};
+var fmt=function(n){return Math.round(n).toLocaleString('es-CO')};
+var money=function(n){return '$'+Math.round(n).toLocaleString('es-CO')};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function radio(n){var x=document.querySelector('input[name="'+n+'"]:checked');return x?x.value:''}
+function setRadio(n,v){var x=document.querySelector('input[name="'+n+'"][value="'+v+'"]');if(x)x.checked=true}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},4200)}
+function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function write(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function today(){return new Date().toLocaleDateString('en-CA',{timeZone:'America/Bogota'})}
+function fdate(d){var t=new Date(String(d).slice(0,10)+'T12:00:00Z');return t.toLocaleDateString('es-CO',{day:'numeric',month:'short',timeZone:'UTC'})}
+
+/* ---------- Cálculo (igual que en la función lift-progreso) ---------- */
+var FACTOR={sedentario:1.2,ligero:1.375,moderado:1.55,alto:1.725,muy_alto:1.9};
+var SUP={suave:250,moderado:450};
+function plan(d,objetivo,ritmo){
+  var tmb=d.grasa!=null?370+21.6*d.peso*(1-d.grasa/100):10*d.peso+6.25*d.estatura-5*d.edad+(d.sexo==='h'?5:-161);
+  var mant=tmb*(FACTOR[d.actividad]||1.2);
+  var cal=Math.round((mant+(objetivo==='ganar'?SUP[ritmo]||250:0))/10)*10;
+  var prot=Math.round(d.peso*(objetivo==='ganar'?2:1.8)),gra=Math.round(d.peso*.9),carb=Math.max(0,Math.round((cal-prot*4-gra*9)/4));
+  return {tmb:Math.round(tmb),mantenimiento:Math.round(mant/10)*10,calorias:cal,proteina_g:prot,grasa_g:gra,carbos_g:carb,formula:d.grasa!=null?'Katch-McArdle':'Mifflin-St Jeor'};
+}
+function readForm(){
+  var g=$('grasa').value.trim(),pm=Number(String($('pesoMeta').value).replace(',','.'));
+  return {meta:pm>0?pm:null,sexo:radio('sexo'),edad:Number($('edad').value),peso:Number(String($('peso').value).replace(',','.')),estatura:Number($('estatura').value),actividad:$('actividad').value,objetivo:radio('objetivo'),ritmo:radio('ritmo'),grasa:g===''?null:Number(g.replace(',','.'))};
+}
+function validate(d){
+  if(!(d.edad>=15&&d.edad<=90))return 'Escribe una edad entre 15 y 90 años.';
+  if(!(d.peso>=30&&d.peso<=300))return 'Escribe tu peso en kilos (entre 30 y 300).';
+  if(!(d.estatura>=120&&d.estatura<=230))return 'Escribe tu estatura en centímetros (entre 120 y 230).';
+  if(d.grasa!=null&&!(d.grasa>=3&&d.grasa<=60))return 'El % de grasa debe estar entre 3 y 60, o déjalo vacío.';
+  if(d.objetivo==='ganar'&&d.meta!=null&&!(d.meta>d.peso))return 'Para ganar masa, el peso meta debe ser mayor a tu peso actual.';
+  return '';
+}
+function fillForm(d){
+  if(!d)return;setRadio('sexo',d.sexo);if(d.edad)$('edad').value=d.edad;if(d.peso)$('peso').value=d.peso;if(d.estatura)$('estatura').value=d.estatura;
+  if(d.actividad)$('actividad').value=d.actividad;if(d.objetivo)setRadio('objetivo',d.objetivo);if(d.ritmo)setRadio('ritmo',d.ritmo);
+  if(d.grasa!=null){$('grasa').value=d.grasa;$('moreBox').open=true}
+  if(d.meta)$('pesoMeta').value=d.meta;
+  syncRitmo();
+}
+function syncRitmo(){$('ritmoBox').hidden=radio('objetivo')!=='ganar'}
+document.querySelectorAll('input[name="objetivo"]').forEach(function(x){x.addEventListener('change',function(){syncRitmo();if(!$('result').hidden)show(readForm(),false)})});
+document.querySelectorAll('input[name="ritmo"]').forEach(function(x){x.addEventListener('change',function(){if(!$('result').hidden)show(readForm(),false)})});
+
+var last=null;
+function show(d,scroll){
+  var p=plan(d,d.objetivo,d.ritmo),m=plan(d,'mantener'),s=plan(d,'ganar','suave'),mo=plan(d,'ganar','moderado');
+  last={d:d,p:p};
+  $('resLabel').textContent=d.objetivo==='ganar'?'Para ganar masa muscular ('+(d.ritmo==='moderado'?'ritmo moderado':'ritmo suave')+')':'Para mantener tu peso';
+  $('resKcal').textContent=fmt(p.calorias);
+  $('resFormula').innerHTML='Basal: <b>'+fmt(p.tmb)+'</b> kcal<br>Fórmula: '+p.formula;
+  $('vMant').textContent=fmt(m.calorias);$('vSuave').textContent=fmt(s.calorias);$('vMod').textContent=fmt(mo.calorias);
+  $('cmpMant').className=d.objetivo==='mantener'?'on':'';$('cmpSuave').className=d.objetivo==='ganar'&&d.ritmo!=='moderado'?'on':'';$('cmpMod').className=d.objetivo==='ganar'&&d.ritmo==='moderado'?'on':'';
+  var kp=p.proteina_g*4,kc=p.carbos_g*4,kg=p.grasa_g*9,tot=kp+kc+kg||1;
+  $('mP').textContent=p.proteina_g+' g';$('mC').textContent=p.carbos_g+' g';$('mG').textContent=p.grasa_g+' g';
+  $('mPk').textContent=fmt(kp)+' kcal · '+Math.round(kp/tot*100)+'%';$('mCk').textContent=fmt(kc)+' kcal · '+Math.round(kc/tot*100)+'%';$('mGk').textContent=fmt(kg)+' kcal · '+Math.round(kg/tot*100)+'%';
+  $('mPb').style.width=(kp/tot*100)+'%';$('mCb').style.width=(kc/tot*100)+'%';$('mGb').style.width=(kg/tot*100)+'%';
+  var n=p.calorias>=3000?5:4;
+  $('meals').innerHTML='<span>🍽️ En '+n+' comidas: <b>~'+fmt(p.calorias/n)+' kcal</b> y <b>'+Math.round(p.proteina_g/n)+' g</b> de proteína cada una</span><span>💧 Agua: <b>'+(Math.round(d.peso*.035*10)/10).toLocaleString('es-CO')+' L</b> al día</span>';
+  products(d,p);
+  $('result').hidden=false;
+  paintSave();
+  write(DRAFT,d);
+  if(scroll)$('resBox').scrollIntoView({behavior:'smooth',block:'start'});
+  try{if(typeof gtag==='function')gtag('event','calculadora_calorias',{objetivo:d.objetivo})}catch(e){}
+}
+function products(d,p){
+  var list=[];
+  list.push({h:'/categorias/proteinas-whey/',t:'Proteína whey',s:'Te ayuda a llegar a tus '+p.proteina_g+' g de proteína. Un scoop aporta unos 24 g.'});
+  if(d.objetivo==='ganar'&&p.calorias>=2800)list.push({h:'/categorias/ganadores-de-masa/',t:'Ganadores de masa',s:'Si te cuesta comer '+fmt(p.calorias)+' kcal, un batido suma de 600 a 1.200 kcal fácil.'});
+  list.push({h:'/categorias/creatinas/',t:'Creatina',s:'La más estudiada para ganar fuerza y músculo. 3 a 5 g al día.'});
+  if(list.length<3)list.push({h:'/categorias/vitaminas-y-minerales/',t:'Vitaminas y minerales',s:'Para cubrir lo que a veces falta en la dieta.'});
+  $('prods').innerHTML=list.map(function(x){return '<a class="prod" href="'+x.h+'"><b>'+x.t+'</b><small>'+esc(x.s)+'</small><span class="go">Ver productos →</span></a>'}).join('');
+}
+$('calc').addEventListener('submit',function(e){
+  e.preventDefault();var d=readForm(),err=validate(d);$('calcMsg').textContent=err;if(err)return;show(d,true);
+});
+
+/* ---------- Guardar ---------- */
+function api(action,data){
+  var s=C&&C.get();if(!s)return Promise.reject(Object.assign(new Error('Entra a tu cuenta.'),{status:401}));
+  return fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(Object.assign({action:action,token:s.token},data||{}))})
+    .then(function(r){return r.json().catch(function(){return {}}).then(function(j){
+      if(r.status===401){C.logout();showPanel(false)}
+      if(!r.ok||!j.ok)throw Object.assign(new Error(j.error||'No pudimos conectar. Inténtalo de nuevo.'),{status:r.status});
+      return j})});
+}
+function birthFromAge(age){var t=new Date(today()+'T12:00:00Z');t.setUTCFullYear(t.getUTCFullYear()-age);t.setUTCDate(t.getUTCDate()-182);return t.toISOString().slice(0,10)}
+function ageFromBirth(b){var n=new Date(b+'T12:00:00Z'),h=new Date(today()+'T12:00:00Z'),a=h.getUTCFullYear()-n.getUTCFullYear();if(h.getUTCMonth()<n.getUTCMonth()||(h.getUTCMonth()===n.getUTCMonth()&&h.getUTCDate()<n.getUTCDate()))a--;return a}
+var state=null;
+function paintSave(){
+  var logged=!!(C&&C.get());
+  if(!logged){$('saveTitle').textContent='Guarda tu plan y gana puntos';$('saveText').textContent='Crea tu cuenta gratis: guardas tu meta, registras tu peso cada semana y acumulas puntos que cambias por descuentos en SUPGO.';$('saveBtn').textContent='Crear cuenta y guardar';return}
+  var has=state&&state.meta;
+  $('saveTitle').textContent=has?'¿Quieres cambiar tu plan?':'Guarda este plan como tu meta';
+  $('saveText').textContent=has?'Guardar este cálculo reemplaza tu meta actual con tus datos nuevos.':'Ganas puntos por completar tu perfil y crear tu primera meta.';
+  $('saveBtn').textContent=has?'Actualizar mi meta':'Guardar mi meta';
+}
+$('saveBtn').addEventListener('click',function(){
+  if(!last)return;
+  if(!(C&&C.get())){write(DRAFT,Object.assign({},last.d,{pendiente:true}));location.assign('/cuenta/?volver=/calculadora-calorias/');return}
+  saveFlow(last.d);
+});
+function saveFlow(d){
+  var metaPeso=null;
+  if(d.objetivo==='ganar'){
+    metaPeso=d.meta||Math.round((d.peso+(d.ritmo==='moderado'?5:3))*10)/10;
+    if(!(metaPeso>d.peso)){toast('El peso meta debe ser mayor a tu peso actual ('+d.peso+' kg).');$('pesoMeta').focus();return}
+    if(metaPeso>d.peso*1.3){toast('Esa meta es muy alta para un solo plan. Ponte una meta intermedia.');$('pesoMeta').focus();return}
+  }
+  $('saveBtn').disabled=true;
+  api('perfil-save',{perfil:{sexo:d.sexo,fecha_nacimiento:state&&state.perfil&&ageFromBirth(state.perfil.fecha_nacimiento)===d.edad?state.perfil.fecha_nacimiento:birthFromAge(d.edad),estatura_cm:d.estatura,actividad:d.actividad,grasa_pct:d.grasa==null?'':d.grasa,peso_kg:d.peso}})
+    .then(function(j){var av=j.avisos||[];return api('meta-save',{objetivo:d.objetivo,ritmo:d.ritmo,peso_meta:metaPeso}).then(function(k){k.avisos=av.concat(k.avisos||[]);return k})})
+    .then(function(j){write(DRAFT,d);render(j);$('panel').scrollIntoView({behavior:'smooth'});toast('Meta guardada ✓')})
+    .catch(function(e){toast(e.message)})
+    .then(function(){$('saveBtn').disabled=false});
+}
+
+/* ---------- Panel ---------- */
+function showPanel(on){$('panel').hidden=!on;paintSave()}
+function load(){
+  showPanel(true);
+  return api('load').then(function(j){
+    render(j);
+    var dr=read(DRAFT);
+    if(dr&&dr.pendiente){delete dr.pendiente;write(DRAFT,dr);fillForm(dr);show(dr,false);setTimeout(function(){saveFlow(dr)},300)}
+    else if(j.perfil&&j.registros.length&&!$('edad').value){
+      var p=j.perfil,m=j.meta;
+      fillForm({sexo:p.sexo,edad:ageFromBirth(p.fecha_nacimiento),peso:j.registros[0].peso_kg,estatura:p.estatura_cm,actividad:p.actividad,grasa:p.grasa_pct,objetivo:m?m.objetivo:'ganar',ritmo:m?m.ritmo:'suave',meta:m&&m.objetivo==='ganar'?Number(m.peso_meta):null});
+      show(readForm(),false);
+    }
+  }).catch(function(e){if(e.status!==401)$('panelBody').innerHTML='<div class="card empty">'+esc(e.message)+'</div>'});
+}
+function render(j){
+  state=j;paintSave();
+  (j.avisos||[]).forEach(function(a,i){setTimeout(function(){toast('🎉 '+a)},i*2600)});
+  var n=(j.cuenta.nombre||'').split(/\s+/)[0];
+  $('helloName').textContent=n?'Tu progreso, '+n:'Tu progreso';
+  var regs=j.registros||[],m=j.meta,saldo=j.puntos.saldo,ult=regs[0];
+  var h='';
+  h+='<div class="stats"><div class="stat dark"><small>Puntos SUPGO</small><div class="n">'+fmt(saldo)+'</div><small>'+nextLevel(saldo,j.niveles)+'</small></div>'
+    +'<div class="stat"><small>Peso actual</small><div class="n">'+(ult?String(ult.peso_kg).replace('.',',')+'<span style="font-size:14px"> kg</span>':'—')+'</div><small>'+(ult?fdate(ult.fecha):'Sin registros')+'</small></div>'
+    +'<div class="stat"><small>Racha</small><div class="n">'+j.racha+'<span style="font-size:14px"> sem</span></div><small>'+(j.racha?'¡Sigue así! 🔥':'Registra tu peso')+'</small></div></div>';
+  // Meta
+  if(m){
+    var ini=Number(m.peso_inicial),meta=Number(m.peso_meta),act=ult?ult.peso_kg:ini;
+    var pct=m.objetivo==='ganar'?Math.max(0,Math.min(100,(act-ini)/(meta-ini)*100)):100;
+    var dif=Math.round((act-ini)*10)/10;
+    h+='<div class="card goal"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h2 style="margin:0">'+(m.objetivo==='ganar'?'💪 Meta: llegar a '+String(meta).replace('.',',')+' kg':'⚖️ Meta: mantener '+String(meta).replace('.',',')+' kg')+'</h2><small style="color:var(--muted)">Desde el '+fdate(m.created_at)+(m.fecha_limite?' · hasta el '+fdate(m.fecha_limite):'')+'</small></div><button class="link" type="button" id="cancelMeta">Cancelar</button></div>';
+    if(m.objetivo==='ganar')h+='<div class="track"><i style="width:'+pct+'%"></i></div><div class="ends"><span>Inicio <b>'+String(ini).replace('.',',')+' kg</b></span><span><b>'+(dif>0?'+':'')+String(dif).replace('.',',')+' kg</b> · '+Math.round(pct)+'%</span><span>Meta <b>'+String(meta).replace('.',',')+' kg</b></span></div>';
+    else h+='<p style="font-size:13px;color:var(--muted);margin:10px 0 0">Mantente a ±1,5 kg durante 4 semanas con registros para cumplirla. Vas '+(dif>0?'+':'')+String(dif).replace('.',',')+' kg.</p>';
+    h+='<div class="chips"><span class="chip">🔥 <b>'+fmt(m.calorias)+'</b> kcal</span><span class="chip">🥩 '+m.proteina_g+' g proteína</span><span class="chip">🍚 '+m.carbos_g+' g carbos</span><span class="chip">🥑 '+m.grasa_g+' g grasas</span></div></div>';
+  }else{
+    h+='<div class="card empty">Aún no tienes una meta activa. Calcula arriba y toca <b>Guardar mi meta</b>.</div>';
+  }
+  // Registrar peso
+  h+='<div class="card"><h2>Registrar mi peso</h2><form id="wForm" novalidate><div class="row3"><div class="field"><label class="label" for="wFecha">Fecha</label><input class="input" id="wFecha" type="date" max="'+today()+'" value="'+today()+'"></div><div class="field"><label class="label" for="wPeso">Peso</label><div class="unit"><input class="input" id="wPeso" type="number" inputmode="decimal" step="0.1" min="30" max="300" placeholder="'+(ult?ult.peso_kg:'70')+'" required><span>kg</span></div></div><div class="field"><label class="label" for="wGrasa">% grasa <small>(opc.)</small></label><div class="unit"><input class="input" id="wGrasa" type="number" inputmode="decimal" step="0.1" min="3" max="60"><span>%</span></div></div></div><button class="cta" type="submit" id="wSave">Guardar peso</button><div class="msg" id="wMsg" role="alert"></div></form><p class="hint">Pésate el mismo día de la semana, en la mañana y en ayunas. Ganas '+j.reglas.pesoSemana+' puntos por semana.</p>';
+  if(regs.length>1)h+=chart(regs,m);
+  if(regs.length)h+='<ul class="hist">'+regs.slice(0,30).map(function(r,i){var prev=regs[i+1],d=prev?Math.round((r.peso_kg-prev.peso_kg)*10)/10:null;return '<li><span>'+fdate(r.fecha)+'</span><span><b>'+String(r.peso_kg).replace('.',',')+' kg</b>'+(d!=null&&d!==0?' <small class="'+(d>0?'pos':'neg')+'">'+(d>0?'+':'')+String(d).replace('.',',')+'</small>':'')+(r.grasa_pct!=null?' · '+String(r.grasa_pct).replace('.',',')+'%':'')+'</span><button class="x" type="button" data-del="'+r.id+'" aria-label="Borrar registro del '+fdate(r.fecha)+'">×</button></li>'}).join('')+'</ul>';
+  h+='</div>';
+  // Canjes
+  h+='<div class="card"><h2>Canjea tus puntos</h2><div class="levels">'+j.niveles.map(function(l){var ok=saldo>=l.puntos;return '<div class="lvl"><b>'+money(l.valor)+'</b><small>de descuento · '+fmt(l.puntos)+' pts</small><div class="bar"><i style="width:'+Math.min(100,saldo/l.puntos*100)+'%"></i></div><button class="btn '+(ok?'lime':'')+'" type="button" data-redeem="'+l.puntos+'" '+(ok?'':'disabled')+' style="width:100%">'+(ok?'Canjear':'Te faltan '+fmt(l.puntos-saldo))+'</button></div>'}).join('')+'</div><p class="hint">El cupón sirve para una compra de mínimo el doble de su valor y vence en 90 días.</p>';
+  if(j.canjes.length)h+=j.canjes.map(function(c){return '<div class="coupon'+(c.usado?' used':'')+'"><div><b>'+esc(c.codigo)+'</b><small>'+money(c.valor)+' de descuento · compra mínima '+money(c.minimo)+(c.usado?' · Usado':c.vence_en?' · vence '+fdate(c.vence_en):'')+'</small></div>'+(c.usado?'':'<button class="btn dark" type="button" data-copy="'+esc(c.codigo)+'">Copiar</button>')+'</div>'}).join('');
+  h+='</div>';
+  // Cómo ganar + historial
+  var r=j.reglas;
+  h+='<div class="card"><h2>Cómo ganar puntos</h2><ul class="rules"><li>Completar tu perfil<b>+'+r.perfil+'</b></li><li>Crear tu primera meta<b>+'+r.primeraMeta+'</b></li><li>Registrar tu peso (1 vez por semana)<b>+'+r.pesoSemana+'</b></li><li>Cada 4 semanas seguidas de racha<b>+'+r.racha4+'</b></li><li>Cumplir tu meta<b>+'+r.metaCumplida+'</b></li><li>Cada $1.000 en compras entregadas<b>+'+r.porMilPesos+'</b></li></ul>';
+  if(j.puntos.historial.length)h+='<h3 style="margin-top:18px">Historial</h3><ul class="hist">'+j.puntos.historial.map(function(x){return '<li><span>'+esc(x.motivo)+' <small style="color:var(--muted)">· '+fdate(x.created_at)+'</small></span><span class="'+(x.puntos>0?'pos':'neg')+'">'+(x.puntos>0?'+':'')+fmt(x.puntos)+'</span></li>'}).join('')+'</ul>';
+  h+='</div>';
+  $('panelBody').innerHTML=h;
+}
+function nextLevel(s,nv){for(var i=0;i<nv.length;i++)if(s<nv[i].puntos)return 'Te faltan '+fmt(nv[i].puntos-s)+' para '+money(nv[i].valor);return '¡Puedes canjear el mayor premio!'}
+function chart(regs,m){
+  var pts=regs.slice(0,26).slice().reverse(),W=640,H=180,pl=34,pr=10,pt=12,pb=24;
+  var vals=pts.map(function(r){return r.peso_kg});if(m)vals.push(Number(m.peso_meta));
+  var mn=Math.floor(Math.min.apply(null,vals)-1),mx=Math.ceil(Math.max.apply(null,vals)+1);
+  var x=function(i){return pl+(pts.length===1?0:i*(W-pl-pr)/(pts.length-1))},y=function(v){return pt+(mx-v)*(H-pt-pb)/(mx-mn||1)};
+  var line=pts.map(function(r,i){return (i?'L':'M')+x(i).toFixed(1)+' '+y(r.peso_kg).toFixed(1)}).join(' ');
+  var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Gráfica de tu peso">';
+  [mn,(mn+mx)/2,mx].forEach(function(v){s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#eee"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" font-size="11" text-anchor="end" fill="#888">'+Math.round(v)+'</text>'});
+  if(m){var ym=y(Number(m.peso_meta));s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+ym+'" y2="'+ym+'" stroke="#9bd22a" stroke-width="2" stroke-dasharray="6 5"/><text x="'+(W-pr)+'" y="'+(ym-6)+'" font-size="11" text-anchor="end" fill="#5b7d12" font-weight="600">Meta '+String(m.peso_meta).replace('.',',')+'</text>'}
+  s+='<path d="'+line+'" fill="none" stroke="#111" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  pts.forEach(function(r,i){s+='<circle cx="'+x(i)+'" cy="'+y(r.peso_kg)+'" r="3.5" fill="#111"><title>'+fdate(r.fecha)+': '+r.peso_kg+' kg</title></circle>'});
+  s+='<text x="'+pl+'" y="'+(H-6)+'" font-size="11" fill="#888">'+fdate(pts[0].fecha)+'</text><text x="'+(W-pr)+'" y="'+(H-6)+'" font-size="11" text-anchor="end" fill="#888">'+fdate(pts[pts.length-1].fecha)+'</text></svg>';
+  return s;
+}
+$('panelBody').addEventListener('submit',function(e){
+  if(e.target.id!=='wForm')return;e.preventDefault();
+  var p=Number(String($('wPeso').value).replace(',','.')),g=$('wGrasa').value.trim(),f=$('wFecha').value||today();
+  if(!(p>=30&&p<=300)){$('wMsg').className='msg err';$('wMsg').textContent='Escribe tu peso en kilos.';return}
+  $('wSave').disabled=true;
+  api('peso-save',{fecha:f,peso_kg:p,grasa_pct:g}).then(function(j){render(j);toast('Peso guardado ✓')}).catch(function(er){$('wMsg').className='msg err';$('wMsg').textContent=er.message;$('wSave').disabled=false});
+});
+$('panelBody').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.del){if(!confirm('¿Borrar este registro?'))return;api('peso-delete',{id:Number(b.dataset.del)}).then(render).catch(function(er){toast(er.message)})}
+  else if(b.dataset.redeem){var pts=Number(b.dataset.redeem);if(!confirm('¿Canjear '+fmt(pts)+' puntos por un cupón?'))return;b.disabled=true;api('canjear',{puntos:pts}).then(render).catch(function(er){toast(er.message);b.disabled=false})}
+  else if(b.dataset.copy){var t=b.dataset.copy;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Cupón copiado: úsalo al finalizar tu compra')}).catch(function(){prompt('Copia tu cupón:',t)})}
+  else if(b.id==='cancelMeta'){if(!confirm('¿Cancelar tu meta actual? Tus registros de peso se conservan.'))return;api('meta-cancel').then(render).catch(function(er){toast(er.message)})}
+});
+
+/* ---------- Inicio ---------- */
+var dr=read(DRAFT);if(dr&&!dr.pendiente){fillForm(dr)}else syncRitmo();
+if(C&&C.get())load();else{showPanel(false);if(dr&&dr.pendiente){fillForm(dr);show(dr,false)}}
+window.addEventListener('supgo-cuenta-change',function(){if(C.get()&&$('panel').hidden)load();else if(!C.get())showPanel(false)});
+})();
+</script>
+<script defer src="/componentes/header-loader.js?v=20261022-unificado"></script>
+</body>
+</html>
