@@ -363,22 +363,17 @@ function payCard(notice){
   var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
   var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+'</span>'+right+'</label><div class="panel"'+(on?'':' hidden')+'>'+panel+'</div></div>'};
   var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+'</div>';
-  var trPanel='<ol class="paySteps" style="margin-top:0"><li>Transfiere el <b>valor exacto</b> a la llave Bre-B o a la cuenta Bancolombia.</li><li>Adjunta aquí la foto o captura del comprobante.</li></ol>'+
-      '<div class="copyRow" style="background:#fff"><span><small>Valor a transferir</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
-      '<div class="copyRow" style="background:#fff"><span><small>Llave Bre-B (desde cualquier banco o Nequi)</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
-      '<div class="copyRow" style="background:#fff"><span><small>Bancolombia · Cuenta de ahorros</small><strong>366 550 234 31</strong></span><button type="button" data-copy="36655023431">Copiar cuenta</button></div>'+
-      '<div class="holder">Titular: Edwin Fernando Muñoz Tobon</div>'+
-      '<label class="pick" id="pickLabel"><input type="file" id="proof" accept="image/*,application/pdf"><span id="pickText">📎 Adjuntar comprobante</span></label>'+
-      '<a class="waLink" target="_blank" rel="noopener" href="'+wa('Hola, realicé la transferencia para el pedido #'+c.id+' por '+money(p.total)+'. Te comparto el comprobante.')+'">¿No puedes adjuntarlo? Envíalo por WhatsApp</a>';
+  var trPanel='<ol class="paySteps" style="margin-top:0"><li>Transfiere <b>'+money(p.total)+'</b> a esta llave Bre-B desde cualquier banco o Nequi.</li><li>Envíanos el comprobante por WhatsApp.</li></ol>'+
+      '<div class="copyRow" style="background:#fff"><span><small>Llave Bre-B · a nombre de Edwin Fernando Muñoz Tobon</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>';
   return '<div class="card pay"><h2>Pago</h2><p class="payHint">Todas las transacciones son seguras y están encriptadas.</p>'+
     (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
       opt('bold','Pago en línea','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+3</span></span>',boldPanel)+
-      opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+LOGO.banco+'</span>',trPanel)+
+      opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
     '</div>'+
-    '<div class="payBtnWrap">'+(sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<button class="cta" type="button" id="proofBtn" disabled>Enviar comprobante</button>')+
-    '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(sel==='bold'?'Pago procesado por Bold':'Revisamos tu comprobante y confirmamos el pago')+'</div></div></div>';
+    '<div class="payBtnWrap">'+(sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
+    '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(sel==='bold'?'Pago procesado por Bold':'Confirmamos tu pago apenas veamos el comprobante')+'</div></div></div>';
 }
 /* ---------- Acciones ---------- */
 function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando pago seguro…';$('payMsg').textContent='';
@@ -409,6 +404,7 @@ document.addEventListener('change',function(e){
 });
 document.addEventListener('click',function(e){var t=e.target.closest('button,a');if(!t)return;
   if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;linkState=null;linkChecked=true;notPaidNotice=false;clearTimeout(confirmTimer);confirmTimer=null;load(current.id,'',current.token).catch(function(){});return}
+  if(t.id==='waProof'&&current&&current.p.medio_pago_cliente!=='transferencia'){fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(current.id),token:current.token,medio:'transferencia'}).catch(function(){})}
   if(t.id==='boldBtn')bold(t);else if(t.id==='proofBtn')uploadProof(t);else if(t.id==='evidenceBtn')evidence(t);
   else if(t.hasAttribute('data-copy'))copy(t.getAttribute('data-copy'),t);
   else if(t.hasAttribute('data-help'))window.open(wa('Hola, sobre mi pedido #'+current.id+': '+HELP[t.getAttribute('data-help')]+'.\n\n'+orderUrl(current.id,current.token)),'_blank');
