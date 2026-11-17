@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mi pedido | SUPGO</title>
 <meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Consulta el estado de tu pedido SUPGO y págalo de forma segura.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SUPGO">
+<meta property="og:title" content="Tu pedido SUPGO">
+<meta property="og:description" content="Consulta el estado de tu pedido y págalo de forma segura.">
+<meta property="og:image" content="https://supgo.co/favicon.png">
 <meta name="theme-color" content="#ffffff">
 
 
@@ -239,7 +245,7 @@ function checkLink(){if(linkChecked||!current)return;linkChecked=true;linkState=
      render(window.__lastImg||{},window.__lastDisp)})}
 function stored(){try{return JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}')||{}}catch(e){return {}}}
 function fn(name,payload,isForm){return fetch(SB+'/functions/v1/'+name,{method:'POST',headers:isForm?{apikey:KEY}:{apikey:KEY,'Content-Type':'application/json'},body:isForm?payload:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'No se pudo completar la operación');return j})})}
-function orderUrl(id,token){return 'https://supgo.co/mi-pedido/?pedido='+encodeURIComponent(id)+(token?'&token='+encodeURIComponent(token):'')}
+function orderUrl(id,token){if(current&&current.code&&String(current.id)===String(id))return 'https://supgo.co/p/'+current.code;return 'https://supgo.co/mi-pedido/?pedido='+encodeURIComponent(id)+(token?'&token='+encodeURIComponent(token):'')}
 function wa(text){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(text)}
 function copy(text,btn,label){var done=function(){if(btn){var o=btn.textContent;btn.textContent='✓ Copiado';setTimeout(function(){btn.textContent=label||o},1600)}};
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(done,function(){prompt('Copia:',text)});else{prompt('Copia:',text)}}
@@ -269,7 +275,8 @@ function load(ref,phone,token,silent){
     current={p:p,id:id,token:p.token||token||'',phone:p.celular||phone||''};
     try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:id,pedido_id:id,phone:current.phone,token:current.token}))}catch(e){}
     if(current.token&&(q.get('token')!==current.token||q.get('pedido')!==id)){var u=new URL(location.href);u.search='?pedido='+encodeURIComponent(id)+'&token='+encodeURIComponent(current.token)+(q.get('nuevo')?'&nuevo=1':'');history.replaceState(null,'',u)}
-    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token)]).then(function(x){render(x[0],x[1])});
+    var code=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_enlace_corto',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}):Promise.resolve(null);
+    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code]).then(function(x){if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];render(x[0],x[1])});
   });
 }
 function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!ids.length)return Promise.resolve({});
