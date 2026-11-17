@@ -93,6 +93,10 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .waLink{display:block;text-align:center;font-size:13px;margin-top:12px;color:var(--ink)}
 .confirming{display:flex;gap:12px;align-items:flex-start}
 .confirming .spin{flex:0 0 auto;margin-top:3px}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.lb img{max-width:100%;max-height:100%;border-radius:12px;background:#fff;object-fit:contain}
+.lb button{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;font-size:20px;cursor:pointer}
+.sThumb img,.thumb{cursor:zoom-in}
 /* Checkout en dos columnas */
 #app.wide{max-width:1120px}
 .ck{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:0;align-items:start}
@@ -291,10 +295,10 @@ function load(ref,phone,token,silent){
     return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code]).then(function(x){if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];if(silent&&editingAddr){window.__lastImg=x[0];window.__lastDisp=x[1];return}render(x[0],x[1])});
   });
 }
-function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!ids.length)return Promise.resolve({});
+function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!items.length)return Promise.resolve({});
   // Primero la consulta con token (incluye productos privados); si falla, el catálogo público.
   var viaToken=token?fetch(SB+'/rest/v1/rpc/lift_pedido_imagenes',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:token})}).then(function(r){return r.ok?r.json():{}}).catch(function(){return {}}):Promise.resolve({});
-  return viaToken.then(function(m){m=m&&typeof m==='object'?m:{};if(ids.every(function(n){return m[String(n)]}))return m;return publicImages(ids).then(function(pm){Object.keys(pm).forEach(function(k){if(!m[k])m[k]=pm[k]});return m})})}
+  return viaToken.then(function(m){m=m&&typeof m==='object'?m:{};if(!ids.length||ids.every(function(n){return m[String(n)]}))return m;return publicImages(ids).then(function(pm){Object.keys(pm).forEach(function(k){if(!m[k])m[k]=pm[k]});return m})})}
 function publicImages(ids){
   return fetch(SB+'/rest/v1/lift_productos?select=id,imagen,product&id=in.('+ids.join(',')+')',{headers:{apikey:KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(rows){var m={};rows.forEach(function(x){var i=x.imagen||(x.product&&(x.product.image||x.product.imagen));if(/^https?:/.test(String(i||'')))m[String(x.id)]=i});return m}).catch(function(){return {}})}
 function dispatch(id,token){if(!token)return Promise.resolve({});
@@ -324,7 +328,7 @@ function render(img,disp){
   else if(canPay)ph+=payCard(notPaidNotice?'No se completó el pago en línea y no se hizo ningún cobro. Elige cómo quieres pagar:':'');
   h+=ph;
   if(s==='sin_disponibilidad')h+='<div class="card"><h2>¿Qué prefieres hacer?</h2><div class="choices">'+[['esperar','Esperar reposición'],['cambiar','Cambiar el producto'],['quitar','Quitar el producto'],['ayuda','Hablar con SUPGO']].map(function(x){return '<button type="button" data-help="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
-  var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
+  var items=(p.items||[]).map(function(i){var src=(img[String(i.producto_id)]||img['n:'+String(i.nombre||'')]),line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
     return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
   h+='<div class="card"><h2>Productos</h2>'+items+'<div class="totals">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span class="'+(Number(p.envio)?'':'free')+'">'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span class="free">− '+money(p.descuento)+'</span></div>':'')+'<div class="grand"><span>Total</span><span>'+money(p.total)+'</span></div></div></div>';
   if(editingAddr&&canEditAddr(p))h+='<div class="card"><h2>Cambiar dirección</h2>'+addrForm(p)+'</div>';else
@@ -354,7 +358,7 @@ function saveAddr(btn){var c=current,m=$('addrMsg');btn.disabled=true;btn.textCo
 function toastAddr(){var t=document.createElement('div');t.textContent='✓ Dirección actualizada';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:99';document.body.appendChild(t);setTimeout(function(){t.remove()},2200)}
 /* Diseño tipo checkout: izquierda datos + pago, derecha resumen (en celular, resumen plegable arriba). */
 function checkoutLayout(c,p,ph,img){
-  var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],qty=Number(i.cantidad||1),line=Number(i.total_linea)||Number(i.precio_unitario||0)*qty;var parts=String(i.nombre||'Producto').split(' · Sabor: ');
+  var items=(p.items||[]).map(function(i){var src=(img[String(i.producto_id)]||img['n:'+String(i.nombre||'')]),qty=Number(i.cantidad||1),line=Number(i.total_linea)||Number(i.precio_unitario||0)*qty;var parts=String(i.nombre||'Producto').split(' · Sabor: ');
     return '<div class="sItem"><div class="sThumb">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'')+'<span class="qty">'+qty+'</span></div><div class="sName">'+esc(parts[0])+(parts[1]?'<small>Sabor: '+esc(parts[1])+'</small>':'')+'</div><div class="sPrice">'+money(line)+'</div></div>'}).join('');
   var tot='<div class="sTot">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span>'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span>− '+money(p.descuento)+'</span></div>':'')+'<div class="sGrand"><span>Total</span><span><small>COP</small> '+money(p.total)+'</span></div></div>';
   var summary=items+tot;
@@ -437,7 +441,10 @@ document.addEventListener('change',function(e){
     if(f){l.classList.add('has');$('pickText').textContent='✓ '+(f.name.length>34?f.name.slice(0,31)+'…':f.name)+' · cambiar';b.disabled=false;$('proofMsg').textContent=''}
     else{l.classList.remove('has');$('pickText').textContent='📎 Adjuntar comprobante';b.disabled=true}}
 });
-document.addEventListener('click',function(e){var t=e.target.closest('button,a');if(!t)return;
+document.addEventListener('click',function(e){
+  var im=e.target.closest&&e.target.closest('.sThumb img,img.thumb');
+  if(im&&im.src){var lb=document.createElement('div');lb.className='lb';lb.innerHTML='<img alt=""><button type="button" aria-label="Cerrar">×</button>';lb.firstChild.src=im.src;lb.onclick=function(){lb.remove()};document.body.appendChild(lb);return}
+  var t=e.target.closest('button,a');if(!t)return;
   if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;linkState=null;linkChecked=true;notPaidNotice=false;clearTimeout(confirmTimer);confirmTimer=null;load(current.id,'',current.token).catch(function(){});return}
   if(t.id==='waProof'&&current&&current.p.medio_pago_cliente!=='transferencia'){fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(current.id),token:current.token,medio:'transferencia'}).catch(function(){})}
   if(t.id==='addrEdit'){editingAddr=true;render(window.__lastImg||{},window.__lastDisp);var i=$('aDir');if(i)i.focus();return}
