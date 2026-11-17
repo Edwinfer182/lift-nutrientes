@@ -175,6 +175,7 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .selected div{flex:1;min-width:0}
 .selected strong{display:block;font-size:14px}
 .selected small{color:#166534;font-size:12px}
+.payLink{display:grid;gap:4px;margin:6px 0 10px;text-align:left}.payLink small{color:var(--muted);font-size:12px}
 .addRow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
 .addRow .btn{flex:1;min-width:140px}
 .lineEdit{grid-column:1/-1;background:var(--soft);border-radius:12px;padding:10px;display:grid;gap:8px}
@@ -369,7 +370,8 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
               </div>
               <label class="field"><span>Descuento (opcional)</span><input class="input" id="desc" inputmode="numeric" placeholder="$ 0"></label>
               <div class="field"><span style="display:block;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:5px">Forma de pago</span>
-                <div class="seg" id="payMode"><button data-pay="pagado" class="on">Pagado</button><button data-pay="credito">Crédito</button><button data-pay="abono">Abono</button></div>
+                <div class="seg" id="payMode"><button data-pay="pagado" class="on">Pagado</button><button data-pay="porpagar">Por pagar</button><button data-pay="credito">Crédito</button><button data-pay="abono">Abono</button></div>
+                <p class="hint" id="payHint" hidden>El cliente recibe un enlace para pagar con Bold (tarjeta, PSE, Nequi, Bancolombia, Bre-B) o por transferencia.</p>
               </div>
               <div id="creditBox" hidden>
                 <div class="grid2">
@@ -1307,7 +1309,7 @@ function renderOptions(){
   $('shipManual').hidden=draft.deliv!=='domicilio'||draft.ship!=='manual';
   const auto=shippingAuto(),units=draft.lines.reduce((a,l)=>a+l.qty,0);
   $('shipHint').textContent=draft.deliv==='recoger'?'El cliente recoge en tienda: sin costo de envío.':draft.deliv==='otro'?'Entrega personalizada: '+(draft.delivName||'sin nombre')+' · '+(num(draft.delivPrice)?money(num(draft.delivPrice)):'gratis')+'.':draft.ship==='auto'?(!draft.client.ciudad?'Escribe la ciudad del cliente para calcular el envío.':draft.priceMode==='trainer'?'Precio entrenador: envío fijo de '+money(11000)+'.':auto?money(auto)+' para '+units+' unidad'+(units>1?'es':'')+' a '+draft.client.ciudad+'.':'Envío gratis para este pedido.'):'';
-  $('creditBox').hidden=draft.pay==='pagado';$('abonoWrap').hidden=draft.pay!=='abono';$('medioWrap').hidden=draft.pay!=='abono';
+  $('creditBox').hidden=draft.pay==='pagado'||draft.pay==='porpagar';$('payHint').hidden=draft.pay!=='porpagar';$('abonoWrap').hidden=draft.pay!=='abono';$('medioWrap').hidden=draft.pay!=='abono';
 }
 $('delivName').oninput=()=>{draft.delivName=$('delivName').value;saveDraft();renderSummary();$('shipHint').textContent='Entrega personalizada: '+(draft.delivName||'sin nombre')+' · '+(num(draft.delivPrice)?money(num(draft.delivPrice)):'gratis')+'.'};
 $('delivPrice').oninput=()=>{draft.delivPrice=num($('delivPrice').value);saveDraft();renderSummary()};
@@ -1315,13 +1317,14 @@ $('delivPrice').oninput=()=>{draft.delivPrice=num($('delivPrice').value);saveDra
 function renderSummary(){
   const t=totals(),c=draft.client;
   const missing=[!c.nombre.trim()&&'nombre',digits(c.celular).length<7&&'celular',!c.ciudad.trim()&&'ciudad',!c.direccion.trim()&&draft.deliv!=='recoger'&&'dirección',!draft.lines.length&&'productos'].filter(Boolean);
-  const saldo=draft.pay==='pagado'?0:Math.max(0,t.total-(draft.pay==='abono'?Math.min(t.total,num(draft.abono)):0));
+  const saldo=draft.pay==='pagado'||draft.pay==='porpagar'?0:Math.max(0,t.total-(draft.pay==='abono'?Math.min(t.total,num(draft.abono)):0));
   $('summary').innerHTML=`
     <div class="line"><span>Productos</span><b>${money(t.sub)}</b></div>
     ${t.desc?'<div class="line"><span>Descuento</span><b>− '+money(t.desc)+'</b></div>':''}
     <div class="line"><span>${draft.deliv==='recoger'?'Entrega (recoge en tienda)':draft.deliv==='otro'?esc(draft.delivName||'Entrega'):'Envío'}</span><b>${t.ship?money(t.ship):'Gratis'}</b></div>
     <div class="line total"><span>Total</span><span>${money(t.total)}</span></div>
     ${saldo?'<div class="line"><span>Saldo a crédito</span><b>'+money(saldo)+'</b></div>':''}
+    ${draft.pay==='porpagar'?'<div class="line"><span>Por pagar (enlace)</span><b>'+money(t.total)+'</b></div>':''}
     <button class="btn green block" id="saveOrder" ${missing.length?'disabled':''}>Guardar pedido</button>
     ${missing.length?'<div class="hint" style="color:#9ca3af;text-align:center">Falta: '+missing.join(', ')+'</div>':''}
     <button class="btn block" id="clearDraft" style="background:transparent;color:#9ca3af;border-color:#2f3136;height:38px;margin-top:2px">Empezar de nuevo</button>`;
@@ -1337,17 +1340,19 @@ function renderNew(){
 function delivLabel(){return draft.deliv==='recoger'?'Recoger en tienda':draft.deliv==='otro'?(draft.delivName||'Entrega personalizada'):'Envío a domicilio'}
 async function saveOrder(){
   const b=$('saveOrder'),c=draft.client,t=totals();
-  if(draft.pay!=='pagado'&&!draft.vence&&!confirm('No pusiste fecha de vencimiento del crédito. ¿Guardar así?'))return;
+  if((draft.pay==='credito'||draft.pay==='abono')&&!draft.vence&&!confirm('No pusiste fecha de vencimiento del crédito. ¿Guardar así?'))return;
   b.disabled=true;b.textContent='Guardando…';
   const abono=draft.pay==='abono'?Math.min(t.total,num(draft.abono)):0;
-  const origen=['admin','forma='+encodeURIComponent(draft.pay),'abono='+abono,'vence='+(draft.pay==='pagado'?'':(draft.vence||'')),'envio='+encodeURIComponent(draft.deliv==='recoger'?'recoger':draft.deliv==='otro'?'personalizado':draft.ship==='auto'?'automatico':draft.ship),'entrega='+encodeURIComponent(delivLabel()),'fecha='+(draft.fecha||today())].concat(draft.pay==='abono'&&draft.medio?['medio='+encodeURIComponent(draft.medio)]:[]).join('|');
+  const origen=['admin','forma='+encodeURIComponent(draft.pay),'abono='+abono,'vence='+(draft.pay==='pagado'||draft.pay==='porpagar'?'':(draft.vence||'')),'envio='+encodeURIComponent(draft.deliv==='recoger'?'recoger':draft.deliv==='otro'?'personalizado':draft.ship==='auto'?'automatico':draft.ship),'entrega='+encodeURIComponent(delivLabel()),'fecha='+(draft.fecha||today())].concat(draft.pay==='abono'&&draft.medio?['medio='+encodeURIComponent(draft.medio)]:[]).join('|');
   const items=draft.lines.map(l=>{const u=lineUnit(l),d=l.disc;return {producto_id:l.id||null,nombre:l.name+(l.flavor?' · Sabor: '+l.flavor:'')+(u<l.unit?' · Descuento '+(d.type==='percent'?num(d.value)+'%':money(l.unit-u))+(d.reason?' ('+d.reason+')':''):''),marca:l.brand||'',cantidad:l.qty,precio_unitario:u,total_linea:u*l.qty}});
   const notas=[draft.deliv!=='domicilio'?'Entrega: '+delivLabel():'',(c.notas||'').trim()].filter(Boolean).join(' · ');
   try{
     const r=await fn({action:'save-order',request_key:'panel-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),nombre:c.nombre.trim(),celular:digits(c.celular),direccion:c.direccion.trim()||(draft.deliv==='recoger'?'Recoge en tienda':''),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),notas,subtotal:t.sub,envio:t.ship,descuento:t.desc,total:t.total,origen,items});
     const id=Number(r.pedido_id);if(!id)throw new Error('No se recibió el número del pedido.');
+    /* Por pagar: el pedido queda con pago habilitado para que el cliente pague desde su enlace. */
+    let porPagarOk=true;if(draft.pay==='porpagar'){try{await rpc('por_pagar',{pedido_id:id})}catch(e){porPagarOk=false;console.warn('por_pagar',e)}}
     const imgs={};draft.lines.forEach(l=>{if(l.image&&l.id)imgs[l.id]=l.image});
-    const saved={id,token:r.token,nombre:c.nombre.trim(),celular:digits(c.celular),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),direccion:c.direccion.trim(),notas:(c.notas||'').trim(),envio:t.ship,descuento:t.desc,total:t.total,fecha:new Date().toISOString(),estado:'nuevo',badge:draft.pay==='pagado'?'PAGADO':'RECIBIDO',payLabel:draft.pay==='pagado'?'Pagado':draft.pay==='abono'?'Abono · debe '+money(Math.max(0,t.total-abono)):'Crédito',items:items.map(x=>Object.assign({image:imgs[x.producto_id]||''},x))};
+    const saved={id,token:r.token,nombre:c.nombre.trim(),celular:digits(c.celular),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),direccion:c.direccion.trim(),notas:(c.notas||'').trim(),envio:t.ship,descuento:t.desc,total:t.total,fecha:new Date().toISOString(),estado:draft.pay==='porpagar'&&porPagarOk?'pendiente_pago':'nuevo',porPagar:draft.pay==='porpagar',porPagarOk,badge:draft.pay==='pagado'?'PAGADO':draft.pay==='porpagar'?'POR PAGAR':'RECIBIDO',payLabel:draft.pay==='pagado'?'Pagado':draft.pay==='porpagar'?'Por pagar':draft.pay==='abono'?'Abono · debe '+money(Math.max(0,t.total-abono)):'Crédito',items:items.map(x=>Object.assign({image:imgs[x.producto_id]||''},x))};
     draft=blank();saveDraft();fillClient();
     showDone(saved);loadOrders();
   }catch(e){toast('No se guardó: '+e.message,{err:true});b.disabled=false;b.textContent='Guardar pedido'}
@@ -1355,11 +1360,14 @@ async function saveOrder(){
 function showDone(o){
   document.querySelectorAll('.toast').forEach(x=>x.remove());$('np').hidden=true;const d=$('done');d.hidden=false;
   const url=orderUrl(o.id,o.token),name=o.nombre.split(/\s+/)[0];
-  const text=`Hola ${name}, este es el resumen de tu pedido #${o.id} en SUPGO:\n\n${o.items.map(x=>x.cantidad+' × '+x.nombre).join('\n')}\n\nTotal: ${money(o.total)}\n\nPuedes consultarlo aquí:\n${url}`;
-  d.innerHTML=`<div class="ok">${I.check}</div><h2>Pedido #${o.id} guardado</h2><p>${esc(o.nombre)} · ${money(o.total)}</p>
-    <div class="btns"><a class="btn wa block" href="https://wa.me/${phoneWa(o.celular)}?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">${I.wa} Enviar por WhatsApp</a>
+  const lines=o.items.map(x=>x.cantidad+' × '+x.nombre).join('\n');
+  const text=o.porPagar?`Hola ${name} 👋 Tu pedido #${o.id} en SUPGO está listo:\n\n${lines}\n\nTotal a pagar: ${money(o.total)}\n\nPágalo aquí con tarjeta, PSE, Nequi, Bancolombia, Bre-B o transferencia:\n${url}\n\nApenas se confirme el pago, lo despachamos.`:`Hola ${name}, este es el resumen de tu pedido #${o.id} en SUPGO:\n\n${lines}\n\nTotal: ${money(o.total)}\n\nPuedes consultarlo aquí:\n${url}`;
+  d.innerHTML=`<div class="ok">${I.check}</div><h2>Pedido #${o.id} guardado</h2><p>${esc(o.nombre)} · ${money(o.total)}${o.porPagar?' · <b>Por pagar</b>':''}</p>
+    ${o.porPagar&&!o.porPagarOk?'<p class="hint" style="color:var(--red)">El pedido se guardó, pero no se pudo habilitar el pago. Cámbialo a “Pago habilitado” en Pedidos antes de enviar el enlace.</p>':''}
+    ${o.porPagar?'<div class="payLink"><small>Enlace de pago</small><input class="input" readonly value="'+esc(url)+'" onclick="this.select()"></div>':''}
+    <div class="btns"><a class="btn wa block" href="https://wa.me/${phoneWa(o.celular)}?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">${I.wa} ${o.porPagar?'Enviar enlace de pago por WhatsApp':'Enviar por WhatsApp'}</a>
     <button class="btn dark block" id="dShare">${I.share} Compartir pedido con datos</button>
-    <button class="btn block" id="dCopy">${I.link} Copiar enlace del pedido</button>
+    <button class="btn block" id="dCopy">${I.link} ${o.porPagar?'Copiar enlace de pago':'Copiar enlace del pedido'}</button>
     <button class="btn block" id="dView">Ver en pedidos</button>
     <button class="btn block" id="dNew">${I.plus} Crear otro pedido</button></div>`;
   $('dShare').onclick=e=>shareOrder(o,e.currentTarget);
