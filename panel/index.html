@@ -1127,7 +1127,9 @@ function loadCatalog(force){
     let privRows=[];
     try{const r=await fetch(SB+'/functions/v1/lift-catalog-admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'list-private',password:pass()})});
       const j=await r.json().catch(()=>({}));if(r.ok&&Array.isArray(j.products))privRows=j.products.filter(x=>x&&x.activo!==false).map(x=>({...x,__priv:true}))}catch(e){console.warn('Privados no cargados',e)}
-    const publicIds=new Set(pages.map(r=>String(r.id)));
+    /* Solo cuentan como públicos los que de verdad se muestran (no marcados como privados);
+       así un privado que también existe en lift_productos con __private no se pierde. */
+    const publicIds=new Set(pages.filter(r=>{const p=r.product||{};return !(p.__deleted||p.__private||p.adminOnly||p.hidden||p.oculto)}).map(r=>String(r.id)));
     catalog=pages.concat(privRows.filter(r=>!publicIds.has(String(r.id)))).map(r=>{const priv=!!r.__priv;const p=r.product||{};const name=String(p.name||p.nombre||'').trim();if(!name||p.__deleted||(!priv&&(p.__private||p.adminOnly))||p.hidden||p.oculto)return null;
       const flavors=(Array.isArray(p.flavors)?p.flavors:[]).map(x=>String(typeof x==='object'&&x?(x.name||x.nombre||''):x||'').trim()).filter(Boolean);
       return {id:r.id,name,brand:String(p.brand||p.marca||''),category:String(p.category||p.categoria||''),flavor:String(p.flavor||p.sabor||''),flavors,
