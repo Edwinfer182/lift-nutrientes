@@ -123,32 +123,37 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
  .mSum[open] summary span::after{content:' ▴'}
  .mSum summary b{color:var(--ink);font-size:16px}
  .mSum[open]{padding-bottom:14px}
- .brands{display:none}
+ .brands .x{display:none}
 }
 /* Selector de medio de pago (estilo checkout) */
-.payHint{font-size:13px;color:var(--muted);margin:0 0 10px}
-.opts{border:1px solid #d9d9d9;border-radius:12px;overflow:hidden;background:#fff}
+.payHint{font-size:13px;color:var(--muted);margin:-8px 0 12px}
+.ck .pay{border:0;background:none;padding:0;margin-top:22px}
+.ck .pay>h2{font-size:19px;margin:0 0 10px}
+.opts{border:1px solid #d9d9d9;border-radius:10px;overflow:hidden;background:#fff}
 .opt{border-top:1px solid #d9d9d9}
 .opt:first-child{border-top:0}
-.opt>label{display:flex;align-items:center;gap:12px;padding:15px 14px;cursor:pointer;margin:0}
-.opt input[type=radio]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:1.5px solid #9a9a9a;border-radius:50%;margin:0;flex:none;display:grid;place-items:center;background:#fff;cursor:pointer}
-.opt input[type=radio]:checked{border:6px solid var(--ink)}
-.opt.on{background:#f5f6ff}
-.opt.on>label{box-shadow:inset 0 0 0 1.5px var(--ink);border-radius:0}
-.opt:first-child.on>label{border-radius:12px 12px 0 0}
-.opt .ot{flex:1;min-width:0}
-.opt .ot b{display:block;font-size:14.5px;font-weight:600}
-.opt .ot small{display:block;font-size:12px;color:var(--muted);line-height:1.35}
-.brands{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:46%}
-.brands span{font-size:10px;font-weight:700;border:1px solid var(--line);border-radius:5px;padding:2px 5px;background:#fff;color:#333;white-space:nowrap}
-.panel{background:var(--soft);border-top:1px solid #d9d9d9;padding:14px;font-size:13px;color:#333}
-.panel .copyRow{margin-top:6px;padding:8px 12px}
+.opt>label{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;margin:0;min-height:52px}
+.opt input[type=radio]{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1px solid #9a9a9a;border-radius:50%;margin:0;flex:none;background:#fff;cursor:pointer}
+.opt input[type=radio]:checked{border:5.5px solid #1a56db}
+.opt.on>label{background:#f0f5ff;box-shadow:inset 0 0 0 1px #1a56db}
+.opt:first-child.on>label{border-radius:10px 10px 0 0}
+.opt:last-child.on>label{border-radius:0 0 10px 10px}
+.opt.on:last-child>label{border-radius:0}
+.opt .ot{flex:1;min-width:0;font-size:14px;font-weight:500}
+.brands{display:flex;gap:4px;align-items:center;flex-wrap:nowrap}
+.brands .x{display:flex;gap:4px}
+.lg{display:block;height:22px;width:auto;border-radius:4px}
+.more{font-size:11px;border:1px solid var(--line);border-radius:4px;height:22px;min-width:30px;display:grid;place-items:center;background:#fff;color:#1a56db;padding:0 4px}
+.panel{background:#f5f5f5;border-top:1px solid #d9d9d9;padding:14px;font-size:13px;color:#333}
+.panel .copyRow{margin-top:6px;padding:8px 12px;background:#fff}
 .panel .copyRow strong{font-size:14px}
-.panel .pick{min-height:44px;margin-top:10px}
+.panel .pick{min-height:42px;margin-top:10px}
 .panel[hidden]{display:none}
-.redir{display:flex;gap:12px;align-items:center;text-align:left}
+.redir{display:flex;gap:12px;align-items:center;text-align:left;color:#555}
 .redir svg{flex:none}
-.payBtnWrap{margin-top:14px}
+.allLogos{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.payBtnWrap{margin-top:16px}
+.payBtnWrap .cta{min-height:50px;border-radius:10px}
 .secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);margin-top:8px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .choices button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;text-align:left}
@@ -337,12 +342,21 @@ function confirmingCard(timedOut){
     '<a class="cta green" target="_blank" rel="noopener" href="'+wa('Hola, pagué en línea el pedido #'+current.id+' y aún no aparece confirmado.')+'">Escribir por WhatsApp</a>'+
     '<button class="cta light" type="button" id="retryPay" style="margin-top:10px">No alcancé a pagar, quiero intentarlo de nuevo</button></div>';
 }
+var LOGO={
+ visa:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#1434CB"/><text x="19" y="16" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" font-style="italic" fill="#fff">VISA</text></svg>',
+ mc:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#222"/><circle cx="15" cy="12" r="7" fill="#EB001B"/><circle cx="23" cy="12" r="7" fill="#F79E1B"/><path d="M19 6.3a7 7 0 0 1 0 11.4 7 7 0 0 1 0-11.4z" fill="#FF5F00"/></svg>',
+ amex:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#1F72CD"/><text x="19" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="#fff">AMEX</text></svg>',
+ pse:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#fff" stroke="#e3e3e3"/><circle cx="19" cy="12" r="9.5" fill="#0B4DA2"/><text x="19" y="14.6" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="700" fill="#fff">pse</text></svg>',
+ nequi:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#fff" stroke="#e3e3e3"/><rect x="8" y="6" width="3" height="3" fill="#E2007A"/><text x="20" y="17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#200020">N</text></svg>',
+ breb:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#fff" stroke="#e3e3e3"/><text x="19" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="800" fill="#4B1E7A">Bre-B</text></svg>',
+ banco:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#fff" stroke="#e3e3e3"/><g fill="#111"><path d="M12 7.5l14-2.5v3l-14 2.5z"/><path d="M12 12l14-2.5v3L12 15z"/><path d="M12 16.5l14-2.5v3L12 19.5z"/></g></svg>'
+};
 function payCard(notice){
   var c=current,p=c.p,ps=String(p.pago_estado||''),transfer=p.medio_pago_cliente==='transferencia'||ps==='pendiente_comprobante';
   var sel=payChoice||(transfer?'transferencia':'bold');
   var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
-  var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot"><b>'+title+'</b><small>'+sub+'</small></span>'+right+'</label><div class="panel"'+(on?'':' hidden')+'>'+panel+'</div></div>'};
-  var boldPanel='<div class="redir"><svg width="40" height="28" viewBox="0 0 40 28" fill="none" stroke="#555" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Después de hacer clic en <b>“Pagar ahora”</b>, serás redirigido a <b>Bold</b> para completar tu compra de forma segura con tarjeta, PSE, Nequi, Bancolombia o Bre-B.</span></div>';
+  var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+'</span>'+right+'</label><div class="panel"'+(on?'':' hidden')+'>'+panel+'</div></div>'};
+  var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+'</div>';
   var trPanel='<ol class="paySteps" style="margin-top:0"><li>Transfiere el <b>valor exacto</b> a la llave Bre-B o a la cuenta Bancolombia.</li><li>Adjunta aquí la foto o captura del comprobante.</li></ol>'+
       '<div class="copyRow" style="background:#fff"><span><small>Valor a transferir</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
       '<div class="copyRow" style="background:#fff"><span><small>Llave Bre-B (desde cualquier banco o Nequi)</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
@@ -354,10 +368,9 @@ function payCard(notice){
     (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
-      opt('bold','Pago en línea','Tarjeta crédito/débito, PSE, Nequi, Bancolombia o Bre-B','<span class="brands"><span>VISA</span><span>MC</span><span>PSE</span><span>Nequi</span></span>',boldPanel)+
-      opt('transferencia','Transferencia bancaria','Bre-B o Bancolombia · adjuntas el comprobante','<span class="brands"><span>Bre-B</span></span>',trPanel)+
+      opt('bold','Pago en línea','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+3</span></span>',boldPanel)+
+      opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+LOGO.banco+'</span>',trPanel)+
     '</div>'+
-    '<div class="total" style="margin:16px 0 0"><span>Total a pagar</span><b>'+money(p.total)+'</b></div>'+
     '<div class="payBtnWrap">'+(sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<button class="cta" type="button" id="proofBtn" disabled>Enviar comprobante</button>')+
     '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(sel==='bold'?'Pago procesado por Bold':'Revisamos tu comprobante y confirmamos el pago')+'</div></div></div>';
 }
