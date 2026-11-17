@@ -87,6 +87,28 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .waLink{display:block;text-align:center;font-size:13px;margin-top:12px;color:var(--ink)}
 .confirming{display:flex;gap:12px;align-items:flex-start}
 .confirming .spin{flex:0 0 auto;margin-top:3px}
+/* Selector de medio de pago (estilo checkout) */
+.payHint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.opts{border:1px solid #d9d9d9;border-radius:12px;overflow:hidden;background:#fff}
+.opt{border-top:1px solid #d9d9d9}
+.opt:first-child{border-top:0}
+.opt>label{display:flex;align-items:center;gap:12px;padding:15px 14px;cursor:pointer;margin:0}
+.opt input[type=radio]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:1.5px solid #9a9a9a;border-radius:50%;margin:0;flex:none;display:grid;place-items:center;background:#fff;cursor:pointer}
+.opt input[type=radio]:checked{border:6px solid var(--ink)}
+.opt.on{background:#f5f6ff}
+.opt.on>label{box-shadow:inset 0 0 0 1.5px var(--ink);border-radius:0}
+.opt:first-child.on>label{border-radius:12px 12px 0 0}
+.opt .ot{flex:1;min-width:0}
+.opt .ot b{display:block;font-size:14.5px;font-weight:600}
+.opt .ot small{display:block;font-size:12px;color:var(--muted);line-height:1.35}
+.brands{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:46%}
+.brands span{font-size:10px;font-weight:700;border:1px solid var(--line);border-radius:5px;padding:2px 5px;background:#fff;color:#333;white-space:nowrap}
+.panel{background:var(--soft);border-top:1px solid #d9d9d9;padding:14px;font-size:13px;color:#333}
+.panel[hidden]{display:none}
+.redir{display:flex;gap:12px;align-items:center;text-align:left}
+.redir svg{flex:none}
+.payBtnWrap{margin-top:14px}
+.secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);margin-top:8px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .choices button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;text-align:left}
 /* Productos y totales */
@@ -151,11 +173,22 @@ var current=null;
 /* ---------- Regreso desde Bold ----------
    Bold devuelve al cliente a ?pedido=..&token=..&pago=bold (y puede agregar bold-tx-status).
    Mientras el webhook confirma, no mostramos de nuevo el botón de pagar. */
-var BOLD_KEY='supgoBoldPendingV1',confirmTimer=null,confirmTries=0,CONFIRM_MAX=24;
+var BOLD_KEY='supgoBoldPendingV1',confirmTimer=null,confirmTries=0,CONFIRM_MAX=18;
 var boldTx=String(q.get('bold-tx-status')||'').toLowerCase();
 function boldPending(id){try{var x=JSON.parse(localStorage.getItem(BOLD_KEY)||'null');return !!(x&&String(x.id)===String(id)&&Date.now()-Number(x.t)<45*60*1000)}catch(e){return false}}
 function clearBoldPending(){try{localStorage.removeItem(BOLD_KEY)}catch(e){}}
 var boldReturn=q.get('pago')==='bold'||!!boldTx;
+/* Al volver de Bold preguntamos el estado real del enlace:
+   ACTIVE = el cliente no pagó (solo se devolvió) -> mostramos de nuevo las opciones de pago.
+   PROCESSING/PAID = hay un pago en curso -> esperamos la confirmación. */
+var linkState=null,linkChecked=false,boldApproved=/approv|success|aprob/.test(boldTx),payChoice=null,notPaidNotice=false;
+function checkLink(){if(linkChecked||!current)return;linkChecked=true;linkState='checking';
+  fn('lift-bold-pagos',{pedido_id:Number(current.id),token:current.token,accion:'consultar',ambiente:'production'})
+   .then(function(j){linkState=String(j.estado||'').toUpperCase()||'UNKNOWN'})
+   .catch(function(){linkState='UNKNOWN'})
+   .then(function(){if(!current)return;
+     if(!boldApproved&&['ACTIVE','SIN_LINK','REEMPLAZADO','EXPIRED','CANCELLED','REJECTED'].indexOf(linkState)>=0){clearBoldPending();boldReturn=false;boldTx='';notPaidNotice=true;clearTimeout(confirmTimer);confirmTimer=null}
+     render(window.__lastImg||{},window.__lastDisp)})}
 function stored(){try{return JSON.parse(localStorage.getItem('liftLastPublicOrder')||'{}')||{}}catch(e){return {}}}
 function fn(name,payload,isForm){return fetch(SB+'/functions/v1/'+name,{method:'POST',headers:isForm?{apikey:KEY}:{apikey:KEY,'Content-Type':'application/json'},body:isForm?payload:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'No se pudo completar la operación');return j})})}
 function orderUrl(id,token){return 'https://supgo.co/mi-pedido/?pedido='+encodeURIComponent(id)+(token?'&token='+encodeURIComponent(token):'')}
@@ -209,10 +242,14 @@ function render(img,disp){
   var canPay=s==='pendiente_pago'&&(!ps||['sin_pago','pendiente_comprobante','pendiente_transferencia','rechazado'].indexOf(ps)>=0);
   var rejected=/reject|fail|declin|cancel/.test(boldTx);
   if(!canPay){clearBoldPending();if(confirmTimer){clearTimeout(confirmTimer);confirmTimer=null}}
-  if(canPay&&rejected){clearBoldPending();h+='<div class="notice warn" style="margin-bottom:12px">Tu pago en línea no fue aprobado. No se hizo ningún cobro. Puedes intentarlo de nuevo o pagar por transferencia.</div>'+payCard()}
-  else if(canPay&&(boldReturn||boldPending(c.id))&&confirmTries<CONFIRM_MAX)h+=confirmingCard(false);
+  window.__lastImg=img;window.__lastDisp=disp;
+  var waiting=canPay&&!rejected&&(boldReturn||boldPending(c.id));
+  if(waiting&&!linkChecked)checkLink();
+  if(canPay&&rejected){clearBoldPending();h+=payCard('Tu pago en línea no fue aprobado. No se hizo ningún cobro. Puedes intentarlo de nuevo o elegir otro medio de pago.')}
+  else if(waiting&&linkState==='checking')h+='<div class="card pay"><div class="confirming"><span class="spin"></span><div><h2 style="margin:0 0 4px">Revisando tu pago…</h2><p class="lead" style="margin:0">Un momento, estamos consultando con Bold.</p></div></div></div>';
+  else if(waiting&&confirmTries<CONFIRM_MAX)h+=confirmingCard(false);
   else if(canPay&&(boldReturn||boldPending(c.id)))h+=confirmingCard(true);
-  else if(canPay)h+=payCard();
+  else if(canPay)h+=payCard(notPaidNotice?'No se completó el pago en línea y no se hizo ningún cobro. Elige cómo quieres pagar:':'');
   if(s==='sin_disponibilidad')h+='<div class="card"><h2>¿Qué prefieres hacer?</h2><div class="choices">'+[['esperar','Esperar reposición'],['cambiar','Cambiar el producto'],['quitar','Quitar el producto'],['ayuda','Hablar con SUPGO']].map(function(x){return '<button type="button" data-help="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
   var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
     return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
@@ -230,29 +267,36 @@ function confirmingCard(timedOut){
   if(!timedOut){
     clearTimeout(confirmTimer);
     confirmTimer=setTimeout(function(){confirmTries++;load(current.id,'',current.token,true).catch(function(){confirmTries++})},5000);
-    return '<div class="card pay"><div class="confirming"><span class="spin"></span><div><h2 style="margin:0 0 4px">Estamos confirmando tu pago</h2><p class="lead" style="margin:0">Bold nos está avisando del pago. Esto suele tardar unos segundos; esta página se actualiza sola. <b>No vuelvas a pagar.</b></p></div></div></div>';
+    return '<div class="card pay"><div class="confirming"><span class="spin"></span><div><h2 style="margin:0 0 4px">Estamos confirmando tu pago</h2><p class="lead" style="margin:0">Bold nos está avisando del pago. Esto suele tardar unos segundos; esta página se actualiza sola. <b>No vuelvas a pagar.</b></p></div></div><button class="cta light" type="button" id="retryPay" style="margin-top:14px">No pagué, quiero ver los medios de pago</button></div>';
   }
   return '<div class="card pay"><h2>Aún no recibimos la confirmación del pago</h2><p class="lead" style="margin:0 0 12px">Si ya pagaste, <b>no vuelvas a pagar</b>: a veces Bold tarda unos minutos. Escríbenos y lo revisamos.</p>'+
     '<a class="cta green" target="_blank" rel="noopener" href="'+wa('Hola, pagué en línea el pedido #'+current.id+' y aún no aparece confirmado.')+'">Escribir por WhatsApp</a>'+
     '<button class="cta light" type="button" id="retryPay" style="margin-top:10px">No alcancé a pagar, quiero intentarlo de nuevo</button></div>';
 }
-function payCard(){
-  var c=current,p=c.p,ps=String(p.pago_estado||''),transfer=p.medio_pago_cliente==='transferencia';
-  return '<div class="card pay"><h2>Paga tu pedido</h2><div class="total"><span>Total a pagar</span><b>'+money(p.total)+'</b></div>'+
-    (ps==='rechazado'?'<div class="notice warn" style="margin-bottom:12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
-    '<button class="cta" type="button" id="boldBtn">Pagar en línea</button><div class="methods">Tarjeta, PSE, Nequi, Bancolombia y Bre-B · pago seguro con Bold</div><div class="msg bad" id="payMsg"></div>'+
-    '<details class="alt" id="altPay"'+(transfer||ps==='pendiente_comprobante'?' open':'')+'><summary>Pagar por transferencia (Bre-B o Bancolombia)</summary>'+
-      '<ol class="paySteps"><li>Transfiere el <b>valor exacto</b> a la llave Bre-B o a la cuenta Bancolombia.</li><li>Adjunta aquí la foto o captura del comprobante.</li></ol>'+
-      '<div class="copyRow"><span><small>Valor a transferir</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
-      '<div class="copyRow"><span><small>Llave Bre-B (desde cualquier banco o Nequi)</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
-      '<div class="copyRow"><span><small>Bancolombia · Cuenta de ahorros</small><strong>366 550 234 31</strong></span><button type="button" data-copy="36655023431">Copiar cuenta</button></div>'+
+function payCard(notice){
+  var c=current,p=c.p,ps=String(p.pago_estado||''),transfer=p.medio_pago_cliente==='transferencia'||ps==='pendiente_comprobante';
+  var sel=payChoice||(transfer?'transferencia':'bold');
+  var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+  var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot"><b>'+title+'</b><small>'+sub+'</small></span>'+right+'</label><div class="panel"'+(on?'':' hidden')+'>'+panel+'</div></div>'};
+  var boldPanel='<div class="redir"><svg width="40" height="28" viewBox="0 0 40 28" fill="none" stroke="#555" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Después de hacer clic en <b>“Pagar ahora”</b>, serás redirigido a <b>Bold</b> para completar tu compra de forma segura con tarjeta, PSE, Nequi, Bancolombia o Bre-B.</span></div>';
+  var trPanel='<ol class="paySteps" style="margin-top:0"><li>Transfiere el <b>valor exacto</b> a la llave Bre-B o a la cuenta Bancolombia.</li><li>Adjunta aquí la foto o captura del comprobante.</li></ol>'+
+      '<div class="copyRow" style="background:#fff"><span><small>Valor a transferir</small><strong>'+money(p.total)+'</strong></span><button type="button" data-copy="'+Math.round(Number(p.total)||0)+'">Copiar valor</button></div>'+
+      '<div class="copyRow" style="background:#fff"><span><small>Llave Bre-B (desde cualquier banco o Nequi)</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>'+
+      '<div class="copyRow" style="background:#fff"><span><small>Bancolombia · Cuenta de ahorros</small><strong>366 550 234 31</strong></span><button type="button" data-copy="36655023431">Copiar cuenta</button></div>'+
       '<div class="holder">Titular: Edwin Fernando Muñoz Tobon</div>'+
       '<label class="pick" id="pickLabel"><input type="file" id="proof" accept="image/*,application/pdf"><span id="pickText">📎 Adjuntar comprobante</span></label>'+
-      '<button class="cta" type="button" id="proofBtn" style="margin-top:10px" disabled>Enviar comprobante</button><div class="msg" id="proofMsg"></div>'+
-      '<a class="waLink" target="_blank" rel="noopener" href="'+wa('Hola, realicé la transferencia para el pedido #'+c.id+' por '+money(p.total)+'. Te comparto el comprobante.')+'">¿No puedes adjuntarlo? Envíalo por WhatsApp</a>'+
-    '</details></div>';
+      '<a class="waLink" target="_blank" rel="noopener" href="'+wa('Hola, realicé la transferencia para el pedido #'+c.id+' por '+money(p.total)+'. Te comparto el comprobante.')+'">¿No puedes adjuntarlo? Envíalo por WhatsApp</a>';
+  return '<div class="card pay"><h2>Pago</h2><p class="payHint">Todas las transacciones son seguras y están encriptadas.</p>'+
+    (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
+    (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
+    '<div class="opts" id="payOpts">'+
+      opt('bold','Pago en línea','Tarjeta crédito/débito, PSE, Nequi, Bancolombia o Bre-B','<span class="brands"><span>VISA</span><span>MC</span><span>PSE</span><span>Nequi</span></span>',boldPanel)+
+      opt('transferencia','Transferencia bancaria','Bre-B o Bancolombia · adjuntas el comprobante','<span class="brands"><span>Bre-B</span></span>',trPanel)+
+    '</div>'+
+    '<div class="total" style="margin:16px 0 0"><span>Total a pagar</span><b>'+money(p.total)+'</b></div>'+
+    '<div class="payBtnWrap">'+(sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<button class="cta" type="button" id="proofBtn" disabled>Enviar comprobante</button>')+
+    '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(sel==='bold'?'Pago procesado por Bold':'Revisamos tu comprobante y confirmamos el pago')+'</div></div></div>';
 }
-
 /* ---------- Acciones ---------- */
 function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando pago seguro…';$('payMsg').textContent='';
   fn('lift-bold-pagos',{pedido_id:Number(c.id),token:c.token,accion:'crear',ambiente:'production'}).then(function(j){
@@ -260,7 +304,7 @@ function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando p
     try{gtag('event','add_payment_info',{payment_type:'bold',currency:'COP',value:Number(c.p.total)})}catch(e){}
     try{localStorage.setItem(BOLD_KEY,JSON.stringify({id:String(c.id),t:Date.now()}))}catch(e){}
     location.assign(j.url);
-  }).catch(function(e){btn.disabled=false;btn.textContent='Pagar en línea';$('payMsg').textContent='No pudimos abrir el pago en línea ('+e.message+'). Puedes pagar por transferencia aquí abajo.';$('altPay').open=true});
+  }).catch(function(e){btn.disabled=false;btn.textContent='Pagar ahora';$('payMsg').textContent='No pudimos abrir el pago en línea ('+e.message+'). Puedes intentarlo de nuevo o pagar por transferencia.'});
 }
 function uploadProof(btn){var c=current,f=$('proof').files[0],m=$('proofMsg');
   if(!f){m.textContent='Selecciona la imagen o PDF del comprobante.';m.className='msg bad';return}
@@ -275,12 +319,13 @@ function evidence(btn){var c=current,box=$('evidenceBox');if(box.innerHTML){box.
   btn.disabled=true;fn('lift-clientes',{action:'public-delivery-evidence-url',referencia:c.id,token:c.token,celular:c.phone}).then(function(j){box.innerHTML=j.url?'<img src="'+esc(j.url)+'" alt="Foto de la entrega">':'<p class="lead">La foto todavía no está disponible.</p>';btn.textContent='Ocultar foto'}).catch(function(e){box.innerHTML='<p class="msg bad">'+esc(e.message)+'</p>'}).then(function(){btn.disabled=false})}
 var HELP={esperar:'Quiero esperar reposición',cambiar:'Quiero cambiar el producto que no está disponible',quitar:'Quiero quitar del pedido el producto que no está disponible',ayuda:'Necesito ayuda con un producto sin disponibilidad'};
 document.addEventListener('change',function(e){
+  if(e.target&&e.target.name==='payMethod'){payChoice=e.target.value;render(window.__lastImg||{},window.__lastDisp);return}
   if(e.target&&e.target.id==='proof'){var f=e.target.files[0],l=$('pickLabel'),b=$('proofBtn');
     if(f){l.classList.add('has');$('pickText').textContent='✓ '+(f.name.length>34?f.name.slice(0,31)+'…':f.name)+' · cambiar';b.disabled=false;$('proofMsg').textContent=''}
     else{l.classList.remove('has');$('pickText').textContent='📎 Adjuntar comprobante';b.disabled=true}}
 });
 document.addEventListener('click',function(e){var t=e.target.closest('button,a');if(!t)return;
-  if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;load(current.id,'',current.token).catch(function(){});return}
+  if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;linkState=null;linkChecked=true;notPaidNotice=false;clearTimeout(confirmTimer);confirmTimer=null;load(current.id,'',current.token).catch(function(){});return}
   if(t.id==='boldBtn')bold(t);else if(t.id==='proofBtn')uploadProof(t);else if(t.id==='evidenceBtn')evidence(t);
   else if(t.hasAttribute('data-copy'))copy(t.getAttribute('data-copy'),t);
   else if(t.hasAttribute('data-help'))window.open(wa('Hola, sobre mi pedido #'+current.id+': '+HELP[t.getAttribute('data-help')]+'.\n\n'+orderUrl(current.id,current.token)),'_blank');
@@ -292,6 +337,7 @@ $('lookupForm').addEventListener('submit',function(e){e.preventDefault();var ref
   load(ref,phone,tok).catch(function(err){show('lookup');msg.textContent=/encontr/i.test(err.message)?'No encontramos un pedido con ese número y celular. Revisa los datos.':err.message})});
 
 /* ---------- Inicio ---------- */
+window.addEventListener('pageshow',function(e){if(e.persisted)location.reload()});
 var ref=(q.get('pedido')||'').replace(/\D/g,''),token=q.get('token')||'',x=stored();
 if(ref&&!token&&String(x.ref||x.pedido_id||'').replace(/\D/g,'')===ref&&x.token)token=x.token;
 if(ref&&token){load(ref,'',token).catch(function(e){$('ref').value=ref;$('lookupMsg').textContent='No pudimos abrir el pedido con este enlace. Consulta con tu celular.';show('lookup')})}
