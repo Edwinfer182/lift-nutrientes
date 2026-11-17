@@ -269,10 +269,14 @@ function load(ref,phone,token,silent){
     current={p:p,id:id,token:p.token||token||'',phone:p.celular||phone||''};
     try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:id,pedido_id:id,phone:current.phone,token:current.token}))}catch(e){}
     if(current.token&&(q.get('token')!==current.token||q.get('pedido')!==id)){var u=new URL(location.href);u.search='?pedido='+encodeURIComponent(id)+'&token='+encodeURIComponent(current.token)+(q.get('nuevo')?'&nuevo=1':'');history.replaceState(null,'',u)}
-    return Promise.all([images(p.items||[]),dispatch(id,current.token)]).then(function(x){render(x[0],x[1])});
+    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token)]).then(function(x){render(x[0],x[1])});
   });
 }
-function images(items){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!ids.length)return Promise.resolve({});
+function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!ids.length)return Promise.resolve({});
+  // Primero la consulta con token (incluye productos privados); si falla, el catálogo público.
+  var viaToken=token?fetch(SB+'/rest/v1/rpc/lift_pedido_imagenes',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:token})}).then(function(r){return r.ok?r.json():{}}).catch(function(){return {}}):Promise.resolve({});
+  return viaToken.then(function(m){m=m&&typeof m==='object'?m:{};if(ids.every(function(n){return m[String(n)]}))return m;return publicImages(ids).then(function(pm){Object.keys(pm).forEach(function(k){if(!m[k])m[k]=pm[k]});return m})})}
+function publicImages(ids){
   return fetch(SB+'/rest/v1/lift_productos?select=id,imagen,product&id=in.('+ids.join(',')+')',{headers:{apikey:KEY}}).then(function(r){return r.ok?r.json():[]}).then(function(rows){var m={};rows.forEach(function(x){var i=x.imagen||(x.product&&(x.product.image||x.product.imagen));if(/^https?:/.test(String(i||'')))m[String(x.id)]=i});return m}).catch(function(){return {}})}
 function dispatch(id,token){if(!token)return Promise.resolve({});
   return fetch(SB+'/rest/v1/rpc/lift_consultar_despacho',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:token})}).then(function(r){return r.ok?r.json():{}}).then(function(d){return d||{}}).catch(function(){return {}})}
