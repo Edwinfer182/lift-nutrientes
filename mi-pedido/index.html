@@ -106,6 +106,18 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .ckInfo .row{display:grid;grid-template-columns:90px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:14px}
 .ckInfo .row:first-child{border-top:0}
 .ckInfo small{color:var(--muted);font-size:13px}
+.ckInfo .row.addr{grid-template-columns:90px 1fr auto;align-items:start}
+.editLink{background:none;border:0;padding:0;color:#1a56db;text-decoration:underline;font-size:13px;cursor:pointer;white-space:nowrap}
+.addrForm{display:grid;gap:8px;padding:12px 0}
+.addrForm label{font-size:12px;color:var(--muted);display:grid;gap:4px}
+.addrForm input{width:100%;border:1px solid #d0d0d0;border-radius:8px;padding:10px 12px;font-size:14px;background:#fff}
+.addrForm input:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.12)}
+.addrBtns{display:flex;gap:8px;margin-top:4px}
+.addrBtns button{border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--ink)}
+.addrBtns .save{background:var(--ink);color:#fff}
+.addrBtns .cancel{background:#fff;color:var(--ink);border-color:var(--line)}
+.addrMsg{font-size:12px;min-height:16px}
+.addrMsg.bad{color:var(--red)}
 .sItem{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:8px 0}
 .sThumb{position:relative;width:64px;height:64px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .sThumb img{width:100%;height:100%;object-fit:contain;border-radius:10px}
@@ -276,7 +288,7 @@ function load(ref,phone,token,silent){
     try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:id,pedido_id:id,phone:current.phone,token:current.token}))}catch(e){}
     if(current.token&&(q.get('token')!==current.token||q.get('pedido')!==id)){var u=new URL(location.href);u.search='?pedido='+encodeURIComponent(id)+'&token='+encodeURIComponent(current.token)+(q.get('nuevo')?'&nuevo=1':'');history.replaceState(null,'',u)}
     var code=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_enlace_corto',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}):Promise.resolve(null);
-    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code]).then(function(x){if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];render(x[0],x[1])});
+    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code]).then(function(x){if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];if(silent&&editingAddr){window.__lastImg=x[0];window.__lastDisp=x[1];return}render(x[0],x[1])});
   });
 }
 function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!ids.length)return Promise.resolve({});
@@ -315,7 +327,8 @@ function render(img,disp){
   var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
     return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
   h+='<div class="card"><h2>Productos</h2>'+items+'<div class="totals">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span class="'+(Number(p.envio)?'':'free')+'">'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span class="free">− '+money(p.descuento)+'</span></div>':'')+'<div class="grand"><span>Total</span><span>'+money(p.total)+'</span></div></div></div>';
-  h+='<div class="card"><h2>Entrega</h2><div class="data"><div><small>Nombre</small>'+esc(p.nombre||'—')+'</div><div><small>Celular</small>'+esc(p.celular||'—')+'</div><div><small>Ciudad</small>'+esc(p.ciudad||'—')+'</div><div><small>Dirección</small>'+esc(p.direccion||'—')+'</div>'+(p.notas?'<div style="grid-column:1/-1"><small>Indicaciones</small>'+esc(p.notas)+'</div>':'')+'</div></div>';
+  if(editingAddr&&canEditAddr(p))h+='<div class="card"><h2>Cambiar dirección</h2>'+addrForm(p)+'</div>';else
+  h+='<div class="card"><h2 style="display:flex;justify-content:space-between;align-items:center">Entrega'+(canEditAddr(p)?'<button type="button" class="editLink" id="addrEdit">Cambiar dirección</button>':'')+'</h2><div class="data"><div><small>Nombre</small>'+esc(p.nombre||'—')+'</div><div><small>Celular</small>'+esc(p.celular||'—')+'</div><div><small>Ciudad</small>'+esc(p.ciudad||'—')+'</div><div><small>Dirección</small>'+esc(p.direccion||'—')+'</div>'+(p.notas?'<div style="grid-column:1/-1"><small>Indicaciones</small>'+esc(p.notas)+'</div>':'')+'</div></div>';
   if(p.tiene_evidencia_entrega)h+='<div class="card evidence"><div class="link"><h2 style="margin:0">📷 Foto de la entrega</h2><button class="ghost" type="button" id="evidenceBtn">Ver foto</button></div><div id="evidenceBox"></div></div>';
   if(c.token)h+='<div class="card"><h2>Enlace de tu pedido</h2><div class="link"><code>'+esc(orderUrl(c.id,c.token))+'</code><button class="ghost" type="button" data-copy="'+esc(orderUrl(c.id,c.token))+'">Copiar</button></div><p class="lead" style="margin:8px 0 0;font-size:12px">Guárdalo para volver a consultar tu pedido.</p></div>';
   h+='<a class="other" href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a><a class="other" href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a>';
@@ -326,6 +339,19 @@ function render(img,disp){
   clearTimeout(window.__verifTimer);
   if(s==='verificando_disponibilidad'&&(window.__verifTries=(window.__verifTries||0)+1)<=40)window.__verifTimer=setTimeout(function tick(){if(document.hidden){window.__verifTimer=setTimeout(tick,60000);return}load(c.id,'',c.token,true).catch(function(){})},60000);
 }
+var editingAddr=false;
+function canEditAddr(p){return String(p.pago_estado||'')!=='aprobado'&&['nuevo','verificando_disponibilidad','sin_disponibilidad','pendiente_pago'].indexOf(String(p.estado||''))>=0}
+function addrForm(p){return '<div class="addrForm" id="addrForm">'+
+  '<label>Dirección<input id="aDir" maxlength="200" autocomplete="street-address" value="'+esc(String(p.direccion||'').trim().replace(/,$/,''))+'"></label>'+
+  '<label>Ciudad<input id="aCiu" maxlength="80" autocomplete="address-level2" value="'+esc(p.ciudad||'')+'"></label>'+
+  '<label>Apto, barrio, indicaciones (opcional)<input id="aNot" maxlength="300" value="'+esc(String(p.notas||'').trim().replace(/,$/,''))+'"></label>'+
+  '<div class="addrBtns"><button type="button" class="save" id="addrSave">Guardar</button><button type="button" class="cancel" id="addrCancel">Cancelar</button></div><div class="addrMsg" id="addrMsg"></div></div>'}
+function saveAddr(btn){var c=current,m=$('addrMsg');btn.disabled=true;btn.textContent='Guardando…';m.textContent='';m.className='addrMsg';
+  fetch(SB+'/rest/v1/rpc/lift_pedido_cambiar_direccion',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(c.id),p_token:c.token,p_direccion:$('aDir').value,p_ciudad:$('aCiu').value,p_notas:$('aNot').value})})
+   .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw new Error(j.message||'No se pudo guardar');return j})})
+   .then(function(j){c.p.direccion=j.direccion;c.p.ciudad=j.ciudad;c.p.notas=j.notas;editingAddr=false;render(window.__lastImg||{},window.__lastDisp);toastAddr()})
+   .catch(function(e){btn.disabled=false;btn.textContent='Guardar';m.textContent=e.message;m.className='addrMsg bad'})}
+function toastAddr(){var t=document.createElement('div');t.textContent='✓ Dirección actualizada';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:99';document.body.appendChild(t);setTimeout(function(){t.remove()},2200)}
 /* Diseño tipo checkout: izquierda datos + pago, derecha resumen (en celular, resumen plegable arriba). */
 function checkoutLayout(c,p,ph,img){
   var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],qty=Number(i.cantidad||1),line=Number(i.total_linea)||Number(i.precio_unitario||0)*qty;var parts=String(i.nombre||'Producto').split(' · Sabor: ');
@@ -338,7 +364,7 @@ function checkoutLayout(c,p,ph,img){
     '<div class="ckHead"><h1>Pedido #'+esc(c.id)+'</h1><span class="badge">Pendiente de pago</span></div>'+
     '<details class="mSum"><summary><span>Mostrar resumen del pedido</span><b>'+money(p.total)+'</b></summary>'+summary+'</details>'+
     '<div class="card ckInfo"><div class="row"><small>Contacto</small><span>'+esc(p.nombre||'—')+(p.celular?' ('+esc(p.celular)+')':'')+'</span></div>'+
-     '<div class="row"><small>Enviar a</small><span>'+esc(addr||'—')+'</span></div>'+
+     (editingAddr?'<div class="row"><small>Enviar a</small>'+addrForm(p)+'</div>':'<div class="row'+(canEditAddr(p)?' addr':'')+'"><small>Enviar a</small><span>'+esc(addr||'—')+'</span>'+(canEditAddr(p)?'<button type="button" class="editLink" id="addrEdit">Cambiar</button>':'')+'</div>')+
      '<div class="row"><small>Envío</small><span><b>'+(Number(p.envio)?money(p.envio):'Gratis')+'</b></span></div></div>'+
     ph+
     '<div class="ckFoot"><a href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? WhatsApp</a>'+(c.token?'<button type="button" class="linkBtn" data-copy="'+esc(orderUrl(c.id,c.token))+'">Copiar enlace del pedido</button>':'')+'<a href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a></div>'+
@@ -414,6 +440,9 @@ document.addEventListener('change',function(e){
 document.addEventListener('click',function(e){var t=e.target.closest('button,a');if(!t)return;
   if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;linkState=null;linkChecked=true;notPaidNotice=false;clearTimeout(confirmTimer);confirmTimer=null;load(current.id,'',current.token).catch(function(){});return}
   if(t.id==='waProof'&&current&&current.p.medio_pago_cliente!=='transferencia'){fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(current.id),token:current.token,medio:'transferencia'}).catch(function(){})}
+  if(t.id==='addrEdit'){editingAddr=true;render(window.__lastImg||{},window.__lastDisp);var i=$('aDir');if(i)i.focus();return}
+  if(t.id==='addrCancel'){editingAddr=false;render(window.__lastImg||{},window.__lastDisp);return}
+  if(t.id==='addrSave'){saveAddr(t);return}
   if(t.id==='boldBtn')bold(t);else if(t.id==='proofBtn')uploadProof(t);else if(t.id==='evidenceBtn')evidence(t);
   else if(t.hasAttribute('data-copy'))copy(t.getAttribute('data-copy'),t);
   else if(t.hasAttribute('data-help'))window.open(wa('Hola, sobre mi pedido #'+current.id+': '+HELP[t.getAttribute('data-help')]+'.\n\n'+orderUrl(current.id,current.token)),'_blank');
