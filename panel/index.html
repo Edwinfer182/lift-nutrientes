@@ -175,6 +175,31 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .selected div{flex:1;min-width:0}
 .selected strong{display:block;font-size:14px}
 .selected small{color:#166534;font-size:12px}
+.addRow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+.addRow .btn{flex:1;min-width:140px}
+.lineEdit{grid-column:1/-1;background:var(--soft);border-radius:12px;padding:10px;display:grid;gap:8px}
+.lineEdit .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lineEdit label{display:grid;gap:4px;font-size:12px;color:var(--ink2)}
+.lineEdit .input,.lineEdit select{height:40px}
+.lineEdit select{border:1px solid #d6d8dc;border-radius:10px;padding:0 10px;background:#fff;font-size:14px}
+.lineEdit .acts{display:flex;gap:8px;justify-content:flex-end}
+.priceBtn{border:0;background:none;color:#2563eb;font-weight:600;font-size:13px;padding:2px 0;text-align:right;cursor:pointer}
+.priceBtn del{display:block;color:#9ca3af;font-weight:400;font-size:11px}
+.lineX{border:0;background:none;color:#9ca3af;font-size:18px;line-height:1;padding:2px 4px;cursor:pointer}
+.discTag{display:inline-block;margin-top:3px;background:#ecfdf5;color:#047857;border-radius:6px;padding:1px 6px;font-size:11px}
+.pick{display:grid;gap:0;margin-top:8px}
+.pickHead{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--soft)}
+.pickHead img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:var(--soft);flex:none}
+.pickHead strong{flex:1;font-size:13.5px;font-weight:600}
+.pickRow{display:flex;align-items:center;gap:10px;padding:9px 6px 9px 54px;font-size:13px;cursor:pointer;border-radius:8px}
+.pickRow:hover{background:var(--soft)}
+.pickRow input{width:18px;height:18px;accent-color:#111;flex:none}
+.pickRow span{flex:1}
+.pickRow b{font-weight:600;white-space:nowrap}
+.pickRow.single{padding-left:6px}
+.pickRow.single img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:var(--soft)}
+.pickFoot{position:sticky;bottom:0;background:#fff;display:flex;gap:8px;align-items:center;padding:12px 0 4px;border-top:1px solid var(--soft)}
+.pickFoot small{flex:1;color:var(--muted)}
 .cartLine{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--soft)}
 .cartLine:last-child{border-bottom:0}
 .cartLine img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:var(--soft)}
@@ -327,6 +352,7 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
               </div>
               <input class="input" id="pq" type="search" placeholder="Buscar producto, marca o sabor" aria-label="Buscar producto" autocomplete="off">
               <div class="results" id="pres"></div>
+              <div class="addRow"><button type="button" class="btn sm" id="pickBtn">+ Producto</button><button type="button" class="btn sm" id="customBtn">+ Artículo personalizado</button></div>
               <div id="cart" style="margin-top:8px"></div>
             </div>
           </div>
@@ -334,7 +360,9 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
           <div class="colR">
             <div class="box">
               <h2><i>3</i>Envío y pago</h2>
-              <div class="field"><span style="display:block;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:5px">Envío</span>
+              <div class="field"><span style="display:block;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:5px">Envío o entrega</span>
+                <div class="seg" id="delivMode" style="margin-bottom:8px"><button data-deliv="domicilio" class="on">Envío a domicilio</button><button data-deliv="recoger">Recoger en tienda</button><button data-deliv="otro">Personalizado</button></div>
+                <div id="delivCustom" class="grid2" style="margin-bottom:8px" hidden><input class="input" id="delivName" placeholder="Nombre (ej. Servientrega, Mensajero)"><input class="input" id="delivPrice" inputmode="numeric" placeholder="Valor $"></div>
                 <div class="seg" id="shipMode"><button data-ship="auto" class="on">Automático</button><button data-ship="gratis">Gratis</button><button data-ship="manual">Otro valor</button></div>
                 <input class="input" id="shipManual" inputmode="numeric" placeholder="Valor del envío" style="margin-top:8px" hidden>
                 <p class="hint" id="shipHint"></p>
@@ -1079,7 +1107,7 @@ function openDispatch(p){
 /* ===== Nuevo pedido ===== */
 let catalog=null,offers={},catLoading=null;
 const DRAFT='supgoPanelDraftV1';
-const blank=()=>({client:{id:null,nombre:'',celular:'',ciudad:'',departamento:'',direccion:'',notas:''},lines:[],priceMode:'public',ship:'auto',shipManual:0,desc:0,pay:'pagado',abono:0,medio:'',vence:'',fecha:today()});
+const blank=()=>({client:{id:null,nombre:'',celular:'',ciudad:'',departamento:'',direccion:'',notas:''},lines:[],priceMode:'public',deliv:'domicilio',delivName:'',delivPrice:0,ship:'auto',shipManual:0,desc:0,pay:'pagado',abono:0,medio:'',vence:'',fecha:today()});
 let draft=(()=>{try{const d=JSON.parse(localStorage.getItem(DRAFT)||'null');if(d&&d.client&&Array.isArray(d.lines))return {...blank(),...d}}catch(e){}return blank()})();
 function saveDraft(){try{localStorage.setItem(DRAFT,JSON.stringify(draft))}catch(e){}}
 
@@ -1138,25 +1166,97 @@ $('pres').onclick=e=>{
   if(p.flavors.length>1){const box=$('pres').querySelector('[data-flv="'+p.id+'"]');box.hidden=!box.hidden;box.innerHTML='<span class="hint" style="width:100%;margin:0">Elige el sabor:</span>'+p.flavors.map(x=>`<button data-pid="${p.id}" data-flavor="${esc(x)}">${esc(x)}</button>`).join('');return}
   addLine(p.id,'');
 };
-function addLine(id,flavor){
+$('customBtn').onclick=()=>{
+  const el=sheet(`<div class="sheetHead"><h2>Agregar artículo personalizado</h2><button class="btn sm" data-close>✕</button></div>
+   <div class="sec" style="display:grid;gap:10px">
+    <label class="field" style="margin:0"><span>Nombre del artículo</span><input class="input" id="ciName" placeholder="Ej. Shaker, producto por encargo"></label>
+    <div class="grid2"><label class="field" style="margin:0"><span>Precio</span><input class="input" id="ciPrice" inputmode="numeric" placeholder="$ 0"></label>
+    <label class="field" style="margin:0"><span>Cantidad</span><input class="input" id="ciQty" type="number" min="1" value="1"></label></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sm" data-close>Cancelar</button><button class="btn sm" id="ciAdd" style="background:#111;color:#fff">Agregar artículo</button></div></div>`);
+  const nm=el.querySelector('#ciName');setTimeout(()=>nm.focus(),50);
+  el.querySelector('#ciAdd').onclick=()=>{const name=nm.value.trim(),price=num(el.querySelector('#ciPrice').value),qty=Math.max(1,Math.min(999,parseInt(el.querySelector('#ciQty').value)||1));
+    if(!name){nm.focus();toast('Escribe el nombre del artículo',{err:true});return}
+    draft.lines.push({key:'custom::'+Date.now(),id:null,name,brand:'',flavor:'',image:'',qty,unit:price,custom:true,customItem:true});
+    saveDraft();closeSheet();renderNew();toast('Agregado: '+name,{ms:1600})};
+};
+/* Selector de productos estilo Shopify: grupos con sus presentaciones/sabores, varios a la vez. */
+let groupsCache=null;
+async function loadGroups(){if(groupsCache)return groupsCache;
+  try{const [g,v]=await Promise.all([fetch(SB+'/rest/v1/lift_producto_grupos?select=id,nombre,imagen,visible_publico&order=nombre.asc',{headers:{apikey:KEY}}).then(r=>r.ok?r.json():[]),
+    fetch(SB+'/rest/v1/lift_producto_variantes?select=grupo_id,producto_id,sabor,orden,activo&activo=eq.true&order=grupo_id.asc,orden.asc',{headers:{apikey:KEY}}).then(r=>r.ok?r.json():[])]);
+    const by=new Map();(v||[]).forEach(x=>{const k=String(x.grupo_id);if(!by.has(k))by.set(k,[]);by.get(k).push(x)});
+    groupsCache=(g||[]).map(x=>({...x,vars:by.get(String(x.id))||[]})).filter(x=>x.vars.length)}catch(e){groupsCache=[]}
+  return groupsCache}
+function pickEntries(){
+  const byId=new Map(catalog.map(p=>[p.id,p])),used=new Set(),out=[];
+  for(const g of groupsCache||[]){const rows=g.vars.map(v=>{const p=byId.get(Number(v.producto_id));if(!p)return null;used.add(p.id);return {id:p.id,flavor:'',label:v.sabor||p.flavor||p.name,p}}).filter(Boolean);
+    if(rows.length)out.push({title:g.nombre,image:g.imagen||rows[0].p.image,rows,key:norm(g.nombre+' '+rows.map(r=>r.label+' '+r.p.key).join(' '))})}
+  for(const p of catalog){if(used.has(p.id))continue;
+    const rows=p.flavors.length>1?p.flavors.map(f=>({id:p.id,flavor:f,label:f,p})):[{id:p.id,flavor:'',label:p.flavor||'',p}];
+    out.push({title:p.name,image:p.image,rows,single:rows.length===1,key:p.key})}
+  return out}
+$('pickBtn').onclick=async()=>{
+  const el=sheet(`<div class="sheetHead"><h2>Seleccionar productos</h2><button class="btn sm" data-close>✕</button></div>
+   <input class="input" id="pkQ" type="search" placeholder="Buscar productos, marca o sabor" style="margin-top:10px" autocomplete="off">
+   <div class="pick" id="pkList"><div class="hint">Cargando catálogo…</div></div>
+   <div class="pickFoot"><small id="pkCount">0 seleccionados</small><button class="btn sm" data-close>Cancelar</button><button class="btn sm" id="pkAdd" style="background:#111;color:#fff" disabled>Agregar</button></div>`);
+  const sel=new Map();
+  try{await Promise.all([loadCatalog(),loadGroups()])}catch(e){el.querySelector('#pkList').innerHTML='<div class="hint" style="color:var(--red)">'+esc(e.message)+'</div>';return}
+  const all=pickEntries(),inCart=new Set(draft.lines.map(l=>l.key));
+  const row=(r,single,image)=>{const k=r.id+'::'+(r.flavor||''),u=unitFor(r.p),had=inCart.has(k);
+    return `<label class="pickRow${single?' single':''}"><input type="checkbox" data-k="${esc(k)}" ${sel.has(k)?'checked':''}>${single?(image?'<img src="'+esc(image)+'" alt="" loading="lazy">':'<img alt="">'):''}
+      <span>${single?'<strong style="font-weight:600">'+esc(r.p.name)+'</strong> ':''}${esc(r.label||'')}${r.p.priv?' <small>🔒</small>':''}${had?' <small style="color:var(--muted)">· ya en el pedido</small>':''}</span><b>${money(u)}</b></label>`};
+  const draw=()=>{const q=norm(el.querySelector('#pkQ').value),toks=q.split(/\s+/).filter(Boolean);
+    const list=all.filter(x=>toks.every(t=>x.key.includes(t)));
+    el.querySelector('#pkList').innerHTML=(list.slice(0,60).map(x=>x.single?`<div style="border-top:1px solid var(--soft)">${row(x.rows[0],true,x.image)}</div>`:
+      `<div class="pickHead">${x.image?'<img src="'+esc(x.image)+'" alt="" loading="lazy">':'<img alt="">'}<strong>${esc(x.title)}</strong><small style="color:var(--muted)">${x.rows.length} opciones</small></div>${x.rows.map(r=>row(r,false)).join('')}`).join('')
+      ||'<div class="hint">No encontré productos.</div>')+(list.length>60?'<div class="hint">Mostrando 60 de '+list.length+'. Escribe para filtrar.</div>':'')};
+  const index=new Map();all.forEach(x=>x.rows.forEach(r=>index.set(r.id+'::'+(r.flavor||''),r)));
+  el.querySelector('#pkList').onchange=e=>{const k=e.target.dataset.k;if(!k)return;if(e.target.checked)sel.set(k,index.get(k));else sel.delete(k);
+    el.querySelector('#pkCount').textContent=sel.size+' seleccionado'+(sel.size===1?'':'s');el.querySelector('#pkAdd').disabled=!sel.size};
+  el.querySelector('#pkQ').oninput=draw;draw();setTimeout(()=>el.querySelector('#pkQ').focus(),50);
+  el.querySelector('#pkAdd').onclick=()=>{sel.forEach(r=>addLine(r.id,r.flavor,true));closeSheet();renderNew();toast(sel.size+' producto'+(sel.size===1?'':'s')+' agregado'+(sel.size===1?'':'s'),{ms:1600})};
+};
+function addLine(id,flavor,quiet){
   const p=catalog.find(x=>x.id===id);if(!p)return;
   const key=id+'::'+(flavor||'');const ex=draft.lines.find(l=>l.key===key);
   if(ex)ex.qty=Math.min(99,ex.qty+1);
   else draft.lines.push({key,id,name:p.name,brand:p.brand,flavor:flavor||'',image:p.image,qty:1,unit:unitFor(p),custom:false});
-  saveDraft();renderNew();toast('Agregado: '+p.name+(flavor?' · '+flavor:''),{ms:1600});
+  saveDraft();if(quiet)return;renderNew();toast('Agregado: '+p.name+(flavor?' · '+flavor:''),{ms:1600});
 }
+/* Precio efectivo de una línea: precio unitario menos su descuento (monto o %). */
+function lineDisc(l){const d=l.disc||{};const v=num(d.value);if(!v)return 0;return d.type==='percent'?Math.round(l.unit*Math.min(100,v)/100):Math.min(l.unit,v)}
+function lineUnit(l){return Math.max(0,l.unit-lineDisc(l))}
+let editLine=-1;
 function renderCart(){
   const box=$('cart');const units=draft.lines.reduce((a,l)=>a+l.qty,0);
   $('unitsLbl').textContent=units?units+' unidad'+(units>1?'es':''):'';
   if(!draft.lines.length){box.innerHTML='<div class="hint">Busca y agrega los productos del pedido.</div>';return}
-  box.innerHTML=draft.lines.map((l,i)=>`<div class="cartLine">
+  box.innerHTML=draft.lines.map((l,i)=>{const u=lineUnit(l),d=l.disc||{};return `<div class="cartLine">
     ${l.image?'<img src="'+esc(l.image)+'" alt="" width="44" height="44">':'<img alt="">'}
-    <div class="n">${esc(l.name)}<small>${esc([l.brand,l.flavor?'Sabor: '+l.flavor:''].filter(Boolean).join(' · '))}</small></div>
-    <div class="ctrl"><div class="qty"><button data-q="${i}" data-d="-1" aria-label="Quitar uno">−</button><span>${l.qty}</span><button data-q="${i}" data-d="1" aria-label="Agregar uno">+</button></div>
-    <input class="priceIn" data-price="${i}" inputmode="numeric" value="${money(l.unit)}" aria-label="Precio unitario"></div></div>`).join('');
+    <div class="n">${esc(l.name)}<small>${esc([l.customItem?'Artículo personalizado':l.brand,l.flavor?'Sabor: '+l.flavor:''].filter(Boolean).join(' · '))}</small>${u<l.unit?'<span class="discTag">Descuento '+(d.type==='percent'?num(d.value)+'%':money(lineDisc(l)))+(d.reason?' · '+esc(d.reason):'')+'</span>':''}</div>
+    <div class="ctrl"><div style="display:flex;gap:4px;align-items:center"><button class="priceBtn" data-edit="${i}" title="Editar precio y descuento">${u<l.unit?'<del>'+money(l.unit)+'</del>':''}${money(u)}</button><button class="lineX" data-del="${i}" aria-label="Quitar producto">×</button></div>
+    <div class="qty"><button data-q="${i}" data-d="-1" aria-label="Quitar uno">−</button><span>${l.qty}</span><button data-q="${i}" data-d="1" aria-label="Agregar uno">+</button></div>
+    <small style="color:var(--muted)">${money(u*l.qty)}</small></div>
+    ${editLine===i?`<div class="lineEdit" data-ed="${i}">
+      <label>Precio unitario<input class="input" data-f="unit" inputmode="numeric" value="${money(l.unit)}"></label>
+      <div class="row2"><label>Tipo de descuento<select data-f="type"><option value="amount"${d.type!=='percent'?' selected':''}>Monto ($)</option><option value="percent"${d.type==='percent'?' selected':''}>Porcentaje (%)</option></select></label>
+      <label>Valor del descuento (por unidad)<input class="input" data-f="value" inputmode="decimal" value="${d.value?(d.type==='percent'?num(d.value):money(d.value)):''}" placeholder="0"></label></div>
+      <label>Motivo del descuento <small style="color:var(--muted)">(lo ve el cliente)</small><input class="input" data-f="reason" value="${esc(d.reason||'')}" placeholder="Ej. Cliente frecuente"></label>
+      <div class="acts">${d.value?'<button type="button" class="btn sm" data-clear="'+i+'">Quitar descuento</button>':''}<button type="button" class="btn sm" data-done="${i}" style="background:#111;color:#fff">Listo</button></div></div>`:''}</div>`}).join('');
 }
-$('cart').onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const l=draft.lines[Number(b.dataset.q)];l.qty+=Number(b.dataset.d);if(l.qty<=0)draft.lines.splice(Number(b.dataset.q),1);saveDraft();renderNew()};
-$('cart').onchange=e=>{const i=e.target.dataset.price;if(i==null)return;const l=draft.lines[Number(i)];l.unit=num(e.target.value);l.custom=true;saveDraft();renderNew()};
+$('cart').onclick=e=>{
+  const ed=e.target.closest('[data-edit]');if(ed){const i=Number(ed.dataset.edit);editLine=editLine===i?-1:i;renderCart();const f=$('cart').querySelector('[data-ed] [data-f="value"]');if(f)f.focus();return}
+  const dn=e.target.closest('[data-done]');if(dn){commitLineEdit(Number(dn.dataset.done));editLine=-1;saveDraft();renderNew();return}
+  const cl=e.target.closest('[data-clear]');if(cl){const l=draft.lines[Number(cl.dataset.clear)];l.disc=null;editLine=-1;saveDraft();renderNew();return}
+  const dl=e.target.closest('[data-del]');if(dl){draft.lines.splice(Number(dl.dataset.del),1);editLine=-1;saveDraft();renderNew();return}
+  const b=e.target.closest('[data-q]');if(!b)return;const l=draft.lines[Number(b.dataset.q)];l.qty+=Number(b.dataset.d);if(l.qty<=0){draft.lines.splice(Number(b.dataset.q),1);editLine=-1}saveDraft();renderNew()};
+function commitLineEdit(i){const box=$('cart').querySelector('[data-ed="'+i+'"]'),l=draft.lines[i];if(!box||!l)return;
+  const g=f=>box.querySelector('[data-f="'+f+'"]').value;
+  const unit=num(g('unit'));if(unit!==l.unit){l.unit=unit;l.custom=true}
+  const type=g('type'),raw=String(g('value')).replace(',','.'),value=type==='percent'?Math.min(100,Math.max(0,parseFloat(raw.replace(/[^\d.]/g,''))||0)):num(raw);
+  l.disc=value?{type,value,reason:String(g('reason')).trim()}:null}
+$('cart').onkeydown=e=>{if(e.key==='Enter'){const ed=e.target.closest('[data-ed]');if(ed){e.preventDefault();commitLineEdit(Number(ed.dataset.ed));editLine=-1;saveDraft();renderNew()}}};
 $('cart').onfocusin=e=>{if(e.target.dataset.price!=null)e.target.select()};
 
 function shippingAuto(){
@@ -1167,8 +1267,8 @@ function shippingAuto(){
   return units===1?15000:units===2?12000:units===3?10000:0;
 }
 function totals(){
-  const sub=draft.lines.reduce((a,l)=>a+l.unit*l.qty,0);
-  const ship=draft.ship==='gratis'?0:draft.ship==='manual'?num(draft.shipManual):shippingAuto();
+  const sub=draft.lines.reduce((a,l)=>a+lineUnit(l)*l.qty,0);
+  const ship=draft.deliv==='recoger'?0:draft.deliv==='otro'?num(draft.delivPrice):draft.ship==='gratis'?0:draft.ship==='manual'?num(draft.shipManual):shippingAuto();
   const desc=Math.min(sub,num(draft.desc));
   return {sub,ship,desc,total:Math.max(0,sub-desc)+ship};
 }
@@ -1196,22 +1296,28 @@ $('cres').onclick=e=>{const b=e.target.closest('[data-pick]');if(!b)return;const
 function seg(id,attr,val,on){document.querySelectorAll('#'+id+' button').forEach(b=>{b.classList.toggle('on',b.dataset[attr]===val);b.onclick=()=>on(b.dataset[attr])})}
 function renderOptions(){
   seg('priceMode','mode',draft.priceMode,v=>{draft.priceMode=v;catalog&&draft.lines.forEach(l=>{if(!l.custom){const p=catalog.find(x=>x.id===l.id);if(p)l.unit=unitFor(p)}});saveDraft();renderNew();renderProducts()});
+  seg('delivMode','deliv',draft.deliv||'domicilio',v=>{draft.deliv=v;saveDraft();renderNew()});
+  $('delivCustom').hidden=draft.deliv!=='otro';$('shipMode').hidden=draft.deliv!=='domicilio';
+  if($('delivName').value!==(draft.delivName||''))$('delivName').value=draft.delivName||'';
+  if(num($('delivPrice').value)!==num(draft.delivPrice))$('delivPrice').value=draft.delivPrice?money(draft.delivPrice):'';
   seg('shipMode','ship',draft.ship,v=>{draft.ship=v;saveDraft();renderNew()});
   seg('payMode','pay',draft.pay,v=>{draft.pay=v;saveDraft();renderNew()});
-  $('shipManual').hidden=draft.ship!=='manual';
+  $('shipManual').hidden=draft.deliv!=='domicilio'||draft.ship!=='manual';
   const auto=shippingAuto(),units=draft.lines.reduce((a,l)=>a+l.qty,0);
-  $('shipHint').textContent=draft.ship==='auto'?(!draft.client.ciudad?'Escribe la ciudad del cliente para calcular el envío.':draft.priceMode==='trainer'?'Precio entrenador: envío fijo de '+money(11000)+'.':auto?money(auto)+' para '+units+' unidad'+(units>1?'es':'')+' a '+draft.client.ciudad+'.':'Envío gratis para este pedido.'):'';
+  $('shipHint').textContent=draft.deliv==='recoger'?'El cliente recoge en tienda: sin costo de envío.':draft.deliv==='otro'?'Entrega personalizada: '+(draft.delivName||'sin nombre')+' · '+(num(draft.delivPrice)?money(num(draft.delivPrice)):'gratis')+'.':draft.ship==='auto'?(!draft.client.ciudad?'Escribe la ciudad del cliente para calcular el envío.':draft.priceMode==='trainer'?'Precio entrenador: envío fijo de '+money(11000)+'.':auto?money(auto)+' para '+units+' unidad'+(units>1?'es':'')+' a '+draft.client.ciudad+'.':'Envío gratis para este pedido.'):'';
   $('creditBox').hidden=draft.pay==='pagado';$('abonoWrap').hidden=draft.pay!=='abono';$('medioWrap').hidden=draft.pay!=='abono';
 }
+$('delivName').oninput=()=>{draft.delivName=$('delivName').value;saveDraft();renderSummary();$('shipHint').textContent='Entrega personalizada: '+(draft.delivName||'sin nombre')+' · '+(num(draft.delivPrice)?money(num(draft.delivPrice)):'gratis')+'.'};
+$('delivPrice').oninput=()=>{draft.delivPrice=num($('delivPrice').value);saveDraft();renderSummary()};
 ['shipManual','desc','abono','medio','vence','fecha'].forEach(id=>{$(id).oninput=()=>{const k=id==='shipManual'?'shipManual':id;draft[k]=['shipManual','desc','abono'].includes(id)?num($(id).value):$(id).value;saveDraft();renderSummary();if(id==='shipManual')renderOptions()}});
 function renderSummary(){
   const t=totals(),c=draft.client;
-  const missing=[!c.nombre.trim()&&'nombre',digits(c.celular).length<7&&'celular',!c.ciudad.trim()&&'ciudad',!c.direccion.trim()&&'dirección',!draft.lines.length&&'productos'].filter(Boolean);
+  const missing=[!c.nombre.trim()&&'nombre',digits(c.celular).length<7&&'celular',!c.ciudad.trim()&&'ciudad',!c.direccion.trim()&&draft.deliv!=='recoger'&&'dirección',!draft.lines.length&&'productos'].filter(Boolean);
   const saldo=draft.pay==='pagado'?0:Math.max(0,t.total-(draft.pay==='abono'?Math.min(t.total,num(draft.abono)):0));
   $('summary').innerHTML=`
     <div class="line"><span>Productos</span><b>${money(t.sub)}</b></div>
     ${t.desc?'<div class="line"><span>Descuento</span><b>− '+money(t.desc)+'</b></div>':''}
-    <div class="line"><span>Envío</span><b>${t.ship?money(t.ship):'Gratis'}</b></div>
+    <div class="line"><span>${draft.deliv==='recoger'?'Entrega (recoge en tienda)':draft.deliv==='otro'?esc(draft.delivName||'Entrega'):'Envío'}</span><b>${t.ship?money(t.ship):'Gratis'}</b></div>
     <div class="line total"><span>Total</span><span>${money(t.total)}</span></div>
     ${saldo?'<div class="line"><span>Saldo a crédito</span><b>'+money(saldo)+'</b></div>':''}
     <button class="btn green block" id="saveOrder" ${missing.length?'disabled':''}>Guardar pedido</button>
@@ -1226,15 +1332,17 @@ function renderNew(){
   if($('shipManual').value!==String(draft.shipManual||''))$('shipManual').value=draft.shipManual||'';
   $('desc').value=draft.desc||'';$('abono').value=draft.abono||'';$('medio').value=draft.medio||'';$('vence').value=draft.vence||'';$('fecha').value=draft.fecha||today();
 }
+function delivLabel(){return draft.deliv==='recoger'?'Recoger en tienda':draft.deliv==='otro'?(draft.delivName||'Entrega personalizada'):'Envío a domicilio'}
 async function saveOrder(){
   const b=$('saveOrder'),c=draft.client,t=totals();
   if(draft.pay!=='pagado'&&!draft.vence&&!confirm('No pusiste fecha de vencimiento del crédito. ¿Guardar así?'))return;
   b.disabled=true;b.textContent='Guardando…';
   const abono=draft.pay==='abono'?Math.min(t.total,num(draft.abono)):0;
-  const origen=['admin','forma='+encodeURIComponent(draft.pay),'abono='+abono,'vence='+(draft.pay==='pagado'?'':(draft.vence||'')),'envio='+encodeURIComponent(draft.ship==='auto'?'automatico':draft.ship),'fecha='+(draft.fecha||today())].concat(draft.pay==='abono'&&draft.medio?['medio='+encodeURIComponent(draft.medio)]:[]).join('|');
-  const items=draft.lines.map(l=>({producto_id:l.id,nombre:l.name+(l.flavor?' · Sabor: '+l.flavor:''),marca:l.brand||'',cantidad:l.qty,precio_unitario:l.unit,total_linea:l.unit*l.qty}));
+  const origen=['admin','forma='+encodeURIComponent(draft.pay),'abono='+abono,'vence='+(draft.pay==='pagado'?'':(draft.vence||'')),'envio='+encodeURIComponent(draft.deliv==='recoger'?'recoger':draft.deliv==='otro'?'personalizado':draft.ship==='auto'?'automatico':draft.ship),'entrega='+encodeURIComponent(delivLabel()),'fecha='+(draft.fecha||today())].concat(draft.pay==='abono'&&draft.medio?['medio='+encodeURIComponent(draft.medio)]:[]).join('|');
+  const items=draft.lines.map(l=>{const u=lineUnit(l),d=l.disc;return {producto_id:l.id||null,nombre:l.name+(l.flavor?' · Sabor: '+l.flavor:'')+(u<l.unit?' · Descuento '+(d.type==='percent'?num(d.value)+'%':money(l.unit-u))+(d.reason?' ('+d.reason+')':''):''),marca:l.brand||'',cantidad:l.qty,precio_unitario:u,total_linea:u*l.qty}});
+  const notas=[draft.deliv!=='domicilio'?'Entrega: '+delivLabel():'',(c.notas||'').trim()].filter(Boolean).join(' · ');
   try{
-    const r=await fn({action:'save-order',request_key:'panel-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),nombre:c.nombre.trim(),celular:digits(c.celular),direccion:c.direccion.trim(),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),notas:(c.notas||'').trim(),subtotal:t.sub,envio:t.ship,descuento:t.desc,total:t.total,origen,items});
+    const r=await fn({action:'save-order',request_key:'panel-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),nombre:c.nombre.trim(),celular:digits(c.celular),direccion:c.direccion.trim()||(draft.deliv==='recoger'?'Recoge en tienda':''),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),notas,subtotal:t.sub,envio:t.ship,descuento:t.desc,total:t.total,origen,items});
     const id=Number(r.pedido_id);if(!id)throw new Error('No se recibió el número del pedido.');
     const imgs={};draft.lines.forEach(l=>{if(l.image&&l.id)imgs[l.id]=l.image});
     const saved={id,token:r.token,nombre:c.nombre.trim(),celular:digits(c.celular),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),direccion:c.direccion.trim(),notas:(c.notas||'').trim(),envio:t.ship,descuento:t.desc,total:t.total,fecha:new Date().toISOString(),estado:'nuevo',badge:draft.pay==='pagado'?'PAGADO':'RECIBIDO',payLabel:draft.pay==='pagado'?'Pagado':draft.pay==='abono'?'Abono · debe '+money(Math.max(0,t.total-abono)):'Crédito',items:items.map(x=>Object.assign({image:imgs[x.producto_id]||''},x))};
