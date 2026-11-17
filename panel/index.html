@@ -201,6 +201,13 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .pickRow.single img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:var(--soft)}
 .pickFoot{position:sticky;bottom:0;background:#fff;display:flex;gap:8px;align-items:center;padding:12px 0 4px;border-top:1px solid var(--soft)}
 .pickFoot small{flex:1;color:var(--muted)}
+.lineImg{position:relative;width:44px;height:44px;border-radius:8px;background:var(--soft);display:grid;place-items:center;cursor:pointer;overflow:hidden;outline:2px dashed transparent;outline-offset:1px;transition:outline-color .15s}
+.lineImg img{width:44px;height:44px;object-fit:contain}
+.lineImg .ph{font-size:18px;opacity:.6}
+.lineImgHint{position:absolute;inset:auto 0 0 0;background:rgba(17,17,17,.72);color:#fff;font-size:9px;text-align:center;padding:1px 0;opacity:0;transition:opacity .15s}
+.lineImg:hover .lineImgHint,.lineImg.over .lineImgHint,.lineImg.busy .lineImgHint{opacity:1}
+.lineImg.over{outline-color:#2563eb;background:#eff6ff}
+.lineImg.busy{opacity:.6;pointer-events:none}
 .cartLine{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--soft)}
 .cartLine:last-child{border-bottom:0}
 .cartLine img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:var(--soft)}
@@ -1237,7 +1244,7 @@ function renderCart(){
   $('unitsLbl').textContent=units?units+' unidad'+(units>1?'es':''):'';
   if(!draft.lines.length){box.innerHTML='<div class="hint">Busca y agrega los productos del pedido.</div>';return}
   box.innerHTML=draft.lines.map((l,i)=>{const u=lineUnit(l),d=l.disc||{};return `<div class="cartLine">
-    ${l.image?'<img src="'+esc(l.image)+'" alt="" width="44" height="44">':'<img alt="">'}
+    <label class="lineImg${l.uploading?' busy':''}" data-img="${i}" title="Arrastra una foto aquí o toca para cambiarla">${l.image?'<img src="'+esc(l.image)+'" alt="" width="44" height="44">':'<span class="ph">📷</span>'}<span class="lineImgHint">${l.uploading?'…':'Cambiar'}</span><input type="file" accept="image/*" data-imgfile="${i}" hidden></label>
     <div class="n">${esc(l.name)}<small>${esc([l.customItem?'Artículo personalizado':l.brand,l.flavor?'Sabor: '+l.flavor:''].filter(Boolean).join(' · '))}</small>${u<l.unit?'<span class="discTag">Descuento '+(d.type==='percent'?num(d.value)+'%':money(lineDisc(l)))+(d.reason?' · '+esc(d.reason):'')+'</span>':''}</div>
     <div class="ctrl"><div style="display:flex;gap:4px;align-items:center"><button class="priceBtn" data-edit="${i}" title="Editar precio y descuento">${u<l.unit?'<del>'+money(l.unit)+'</del>':''}${money(u)}</button><button class="lineX" data-del="${i}" aria-label="Quitar producto">×</button></div>
     <div class="qty"><button data-q="${i}" data-d="-1" aria-label="Quitar uno">−</button><span>${l.qty}</span><button data-q="${i}" data-d="1" aria-label="Agregar uno">+</button></div>
@@ -1260,6 +1267,41 @@ function commitLineEdit(i){const box=$('cart').querySelector('[data-ed="'+i+'"]'
   const unit=num(g('unit'));if(unit!==l.unit){l.unit=unit;l.custom=true}
   const type=g('type'),raw=String(g('value')).replace(',','.'),value=type==='percent'?Math.min(100,Math.max(0,parseFloat(raw.replace(/[^\d.]/g,''))||0)):num(raw);
   l.disc=value?{type,value,reason:String(g('reason')).trim()}:null}
+/* ---------- Cambiar la foto de una línea arrastrando una imagen (o tocándola) ----------
+   Productos del catálogo: la foto se sube a Supabase y queda guardada en el producto.
+   Artículos personalizados: la foto queda en este pedido. */
+const IMG_FN=SB+'/functions/v1/lift-catalogo-imagen',CAT_FN=SB+'/functions/v1/lift-catalog-admin';
+function compressImg(file){return new Promise((ok,ko)=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);let t=c.toDataURL('image/webp',.86);if(t.indexOf('data:image/webp')!==0)t=c.toDataURL('image/jpeg',.88);URL.revokeObjectURL(i.src);ok(t)};i.onerror=()=>{URL.revokeObjectURL(i.src);ko(new Error('No pude leer la imagen'))};i.src=URL.createObjectURL(file)})}
+async function catCall(body){const r=await fetch(CAT_FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...body,password:pass()})});const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||'Error '+r.status);return j}
+async function saveProductImage(id,url){
+  /* Lee el producto actual justo antes de guardar para no pisar otros cambios. */
+  const r=await fetch(SB+'/rest/v1/lift_productos?select=id,product&id=eq.'+Number(id),{headers:{apikey:KEY}});const pub=r.ok?(await r.json())[0]:null;
+  const priv=((await catCall({action:'list-private'})).products||[]).find(x=>Number(x.id)===Number(id));
+  if(!pub&&!priv)throw new Error('No encontré el producto en Supabase');
+  if(priv)await catCall({action:'save-private',product:{...(priv.product||{}),id:Number(id),image:url}});
+  if(pub&&!(pub.product&&pub.product.__deleted))await catCall({action:'save',product:{...(pub.product||{}),id:Number(id),image:url}});
+}
+async function setLineImage(i,file){
+  const l=draft.lines[i];if(!l||!file)return;
+  if(!/^image\//.test(file.type)){toast('Usa una imagen JPG, PNG o WebP',{err:true});return}
+  l.uploading=true;renderCart();
+  try{
+    const data=await compressImg(file),type=data.slice(5,data.indexOf(';'));
+    const r=await fetch(IMG_FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({password:pass(),data,type,producto_id:l.id?String(l.id):'pedido'})});
+    const j=await r.json().catch(()=>({}));if(!r.ok||!j.url)throw new Error(j.error||'Error '+r.status);
+    if(l.id){await saveProductImage(l.id,j.url);
+      draft.lines.forEach(x=>{if(x.id===l.id)x.image=j.url});const c=catalog&&catalog.find(x=>x.id===l.id);if(c)c.image=j.url;
+      toast('Foto guardada en el producto',{ms:1800})}
+    else{l.image=j.url;toast('Foto agregada al artículo',{ms:1600})}
+  }catch(e){toast('No se cambió la foto: '+e.message,{err:true})}
+  finally{l.uploading=false;saveDraft();renderCart()}
+}
+$('cart').addEventListener('dragover',e=>{const z=e.target.closest('[data-img]');if(!z)return;e.preventDefault();z.classList.add('over')});
+$('cart').addEventListener('dragleave',e=>{const z=e.target.closest('[data-img]');if(z)z.classList.remove('over')});
+$('cart').addEventListener('drop',e=>{const z=e.target.closest('[data-img]');if(!z)return;e.preventDefault();z.classList.remove('over');const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)setLineImage(Number(z.dataset.img),f)});
+$('cart').addEventListener('change',e=>{const n=e.target.dataset&&e.target.dataset.imgfile;if(n==null)return;const f=e.target.files[0];e.target.value='';if(f)setLineImage(Number(n),f)});
+/* Evita que soltar una foto fuera de la zona abra la imagen en el navegador. */
+['dragover','drop'].forEach(ev=>window.addEventListener(ev,e=>{if(e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files')&&!e.target.closest('[data-img]'))e.preventDefault()}));
 $('cart').onkeydown=e=>{if(e.key==='Enter'){const ed=e.target.closest('[data-ed]');if(ed){e.preventDefault();commitLineEdit(Number(ed.dataset.ed));editLine=-1;saveDraft();renderNew()}}};
 $('cart').onfocusin=e=>{if(e.target.dataset.price!=null)e.target.select()};
 
