@@ -349,12 +349,14 @@ function confirmingCard(timedOut){
     '<button class="cta light" type="button" id="retryPay" style="margin-top:10px">No alcancé a pagar, quiero intentarlo de nuevo</button></div>';
 }
 var LOGO={
- visa:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#1434CB"/><text x="19" y="16" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" font-style="italic" fill="#fff">VISA</text></svg>',
- mc:'<svg class="lg" viewBox="0 0 38 24"><rect width="38" height="24" rx="4" fill="#222"/><circle cx="15" cy="12" r="7" fill="#EB001B"/><circle cx="23" cy="12" r="7" fill="#F79E1B"/><path d="M19 6.3a7 7 0 0 1 0 11.4 7 7 0 0 1 0-11.4z" fill="#FF5F00"/></svg>',
+ visa:'<span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px" width="auto"></span>',
+ mc:'<span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px" width="auto"></span>',
  amex:'<span class="lgb"><img src="/mi-pedido/pagos/amex.png" alt="American Express" style="height:15px" width="auto"></span>',
  pse:'<span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px" width="auto"></span>',
  nequi:'<span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px" width="auto"></span>',
  breb:'<span class="lgb"><img src="/mi-pedido/pagos/breb.png" alt="Bre-B" style="height:12px" width="auto"></span>',
+ applepay:'<span class="lgb"><img src="/mi-pedido/pagos/applepay.png" alt="Apple Pay" style="height:15px" width="auto"></span>',
+ unclic:'<span class="lgb"><img src="/mi-pedido/pagos/unclic.png" alt="Pago a un clic" style="height:17px" width="auto"></span>',
  banco:'<span class="lgb"><img src="/mi-pedido/pagos/bancolombia.png" alt="Bancolombia" style="height:19px" width="auto"></span>'
 };
 function payCard(notice){
@@ -362,14 +364,14 @@ function payCard(notice){
   var sel=payChoice||(transfer?'transferencia':'bold');
   var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
   var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+'</span>'+right+'</label><div class="panel"'+(on?'':' hidden')+'>'+panel+'</div></div>'};
-  var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+'</div>';
+  var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.applepay+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+LOGO.unclic+'</div>';
   var trPanel='<ol class="paySteps" style="margin-top:0"><li>Transfiere <b>'+money(p.total)+'</b> a esta llave Bre-B desde cualquier banco o Nequi.</li><li>Envíanos el comprobante por WhatsApp.</li></ol>'+
       '<div class="copyRow" style="background:#fff"><span><small>Llave Bre-B · a nombre de Edwin Fernando Muñoz Tobon</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>';
   return '<div class="card pay"><h2>Pago</h2><p class="payHint">Todas las transacciones son seguras y están encriptadas.</p>'+
     (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
-      opt('bold','Pago en línea','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+3</span></span>',boldPanel)+
+      opt('bold','Pago en línea','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+5</span></span>',boldPanel)+
       opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
     '</div>'+
     '<div class="payBtnWrap">'+(sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
