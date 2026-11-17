@@ -87,6 +87,44 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .waLink{display:block;text-align:center;font-size:13px;margin-top:12px;color:var(--ink)}
 .confirming{display:flex;gap:12px;align-items:flex-start}
 .confirming .spin{flex:0 0 auto;margin-top:3px}
+/* Checkout en dos columnas */
+#app.wide{max-width:1120px}
+.ck{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:0;align-items:start}
+.ckMain{padding-right:40px}
+.ckSide{border-left:1px solid var(--line);padding-left:36px;min-height:100%;align-self:stretch}
+.ckSticky{position:sticky;top:84px;padding-top:6px}
+.ckHead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.ckHead h1{margin:0}
+.badge{font-size:12px;font-weight:600;background:var(--amber-soft);color:#6b4a00;border-radius:999px;padding:4px 10px}
+.ckInfo{padding:4px 18px}
+.ckInfo .row{display:grid;grid-template-columns:90px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:14px}
+.ckInfo .row:first-child{border-top:0}
+.ckInfo small{color:var(--muted);font-size:13px}
+.sItem{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:8px 0}
+.sThumb{position:relative;width:64px;height:64px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.sThumb img{width:100%;height:100%;object-fit:contain;border-radius:10px}
+.sThumb .qty{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 6px}
+.sName{font-size:14px;line-height:1.35}
+.sName small{display:block;color:var(--muted);font-size:12px}
+.sPrice{font-size:14px;white-space:nowrap}
+.sTot{margin-top:14px;font-size:14px}
+.sTot>div{display:flex;justify-content:space-between;padding:4px 0}
+.sTot .sGrand{font-size:19px;font-weight:700;padding-top:12px}
+.sGrand small{font-size:12px;font-weight:400;color:var(--muted)}
+.mSum{display:none}
+.ckFoot{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;margin:4px 0 20px}
+.ckFoot a,.linkBtn{color:var(--muted);text-decoration:underline;background:none;border:0;padding:0;cursor:pointer;font-size:13px}
+@media(max-width:860px){
+ .ck{grid-template-columns:1fr}.ckMain{padding-right:0}.ckSide{display:none}
+ .mSum{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:0 16px;margin-bottom:14px}
+ .mSum summary{display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer;font-size:14px;list-style:none;color:#1a56db}
+ .mSum summary::-webkit-details-marker{display:none}
+ .mSum summary span::after{content:' ▾'}
+ .mSum[open] summary span::after{content:' ▴'}
+ .mSum summary b{color:var(--ink);font-size:16px}
+ .mSum[open]{padding-bottom:14px}
+ .brands{display:none}
+}
 /* Selector de medio de pago (estilo checkout) */
 .payHint{font-size:13px;color:var(--muted);margin:0 0 10px}
 .opts{border:1px solid #d9d9d9;border-radius:12px;overflow:hidden;background:#fff}
@@ -104,6 +142,9 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .brands{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:46%}
 .brands span{font-size:10px;font-weight:700;border:1px solid var(--line);border-radius:5px;padding:2px 5px;background:#fff;color:#333;white-space:nowrap}
 .panel{background:var(--soft);border-top:1px solid #d9d9d9;padding:14px;font-size:13px;color:#333}
+.panel .copyRow{margin-top:6px;padding:8px 12px}
+.panel .copyRow strong{font-size:14px}
+.panel .pick{min-height:44px;margin-top:10px}
 .panel[hidden]{display:none}
 .redir{display:flex;gap:12px;align-items:center;text-align:left}
 .redir svg{flex:none}
@@ -244,12 +285,14 @@ function render(img,disp){
   if(!canPay){clearBoldPending();if(confirmTimer){clearTimeout(confirmTimer);confirmTimer=null}}
   window.__lastImg=img;window.__lastDisp=disp;
   var waiting=canPay&&!rejected&&(boldReturn||boldPending(c.id));
+  var ph='';
   if(waiting&&!linkChecked)checkLink();
-  if(canPay&&rejected){clearBoldPending();h+=payCard('Tu pago en línea no fue aprobado. No se hizo ningún cobro. Puedes intentarlo de nuevo o elegir otro medio de pago.')}
-  else if(waiting&&linkState==='checking')h+='<div class="card pay"><div class="confirming"><span class="spin"></span><div><h2 style="margin:0 0 4px">Revisando tu pago…</h2><p class="lead" style="margin:0">Un momento, estamos consultando con Bold.</p></div></div></div>';
-  else if(waiting&&confirmTries<CONFIRM_MAX)h+=confirmingCard(false);
-  else if(canPay&&(boldReturn||boldPending(c.id)))h+=confirmingCard(true);
-  else if(canPay)h+=payCard(notPaidNotice?'No se completó el pago en línea y no se hizo ningún cobro. Elige cómo quieres pagar:':'');
+  if(canPay&&rejected){clearBoldPending();ph+=payCard('Tu pago en línea no fue aprobado. No se hizo ningún cobro. Puedes intentarlo de nuevo o elegir otro medio de pago.')}
+  else if(waiting&&linkState==='checking')ph+='<div class="card pay"><div class="confirming"><span class="spin"></span><div><h2 style="margin:0 0 4px">Revisando tu pago…</h2><p class="lead" style="margin:0">Un momento, estamos consultando con Bold.</p></div></div></div>';
+  else if(waiting&&confirmTries<CONFIRM_MAX)ph+=confirmingCard(false);
+  else if(canPay&&(boldReturn||boldPending(c.id)))ph+=confirmingCard(true);
+  else if(canPay)ph+=payCard(notPaidNotice?'No se completó el pago en línea y no se hizo ningún cobro. Elige cómo quieres pagar:':'');
+  h+=ph;
   if(s==='sin_disponibilidad')h+='<div class="card"><h2>¿Qué prefieres hacer?</h2><div class="choices">'+[['esperar','Esperar reposición'],['cambiar','Cambiar el producto'],['quitar','Quitar el producto'],['ayuda','Hablar con SUPGO']].map(function(x){return '<button type="button" data-help="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
   var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
     return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
@@ -258,10 +301,31 @@ function render(img,disp){
   if(p.tiene_evidencia_entrega)h+='<div class="card evidence"><div class="link"><h2 style="margin:0">📷 Foto de la entrega</h2><button class="ghost" type="button" id="evidenceBtn">Ver foto</button></div><div id="evidenceBox"></div></div>';
   if(c.token)h+='<div class="card"><h2>Enlace de tu pedido</h2><div class="link"><code>'+esc(orderUrl(c.id,c.token))+'</code><button class="ghost" type="button" data-copy="'+esc(orderUrl(c.id,c.token))+'">Copiar</button></div><p class="lead" style="margin:8px 0 0;font-size:12px">Guárdalo para volver a consultar tu pedido.</p></div>';
   h+='<a class="other" href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? Escríbenos por WhatsApp</a><a class="other" href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a>';
+  if(canPay)h=checkoutLayout(c,p,ph,img);
+  $('app').classList.toggle('wide',!!canPay);
   $('order').innerHTML=h;show('order');
   // Mientras verificamos, la página se actualiza sola (cada minuto, hasta 40 min).
   clearTimeout(window.__verifTimer);
   if(s==='verificando_disponibilidad'&&(window.__verifTries=(window.__verifTries||0)+1)<=40)window.__verifTimer=setTimeout(function tick(){if(document.hidden){window.__verifTimer=setTimeout(tick,60000);return}load(c.id,'',c.token,true).catch(function(){})},60000);
+}
+/* Diseño tipo checkout: izquierda datos + pago, derecha resumen (en celular, resumen plegable arriba). */
+function checkoutLayout(c,p,ph,img){
+  var items=(p.items||[]).map(function(i){var src=img[String(i.producto_id)],qty=Number(i.cantidad||1),line=Number(i.total_linea)||Number(i.precio_unitario||0)*qty;var parts=String(i.nombre||'Producto').split(' · Sabor: ');
+    return '<div class="sItem"><div class="sThumb">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'')+'<span class="qty">'+qty+'</span></div><div class="sName">'+esc(parts[0])+(parts[1]?'<small>Sabor: '+esc(parts[1])+'</small>':'')+'</div><div class="sPrice">'+money(line)+'</div></div>'}).join('');
+  var tot='<div class="sTot">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span>'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span>− '+money(p.descuento)+'</span></div>':'')+'<div class="sGrand"><span>Total</span><span><small>COP</small> '+money(p.total)+'</span></div></div>';
+  var summary=items+tot;
+  var addr=[p.direccion,p.notas,p.ciudad].filter(Boolean).map(function(x){return String(x).trim().replace(/,$/,'')}).join(', ');
+  var h=(q.get('nuevo')?'<div class="success"><span style="font-size:22px">✓</span><div><b>¡Recibimos tu pedido!</b><span>Guarda esta página para seguir tu pedido.</span></div></div>':'')+
+   '<div class="ck"><div class="ckMain">'+
+    '<div class="ckHead"><h1>Pedido #'+esc(c.id)+'</h1><span class="badge">Pendiente de pago</span></div>'+
+    '<details class="mSum"><summary><span>Mostrar resumen del pedido</span><b>'+money(p.total)+'</b></summary>'+summary+'</details>'+
+    '<div class="card ckInfo"><div class="row"><small>Contacto</small><span>'+esc(p.nombre||'—')+(p.celular?' ('+esc(p.celular)+')':'')+'</span></div>'+
+     '<div class="row"><small>Enviar a</small><span>'+esc(addr||'—')+'</span></div>'+
+     '<div class="row"><small>Envío</small><span><b>'+(Number(p.envio)?money(p.envio):'Gratis')+'</b></span></div></div>'+
+    ph+
+    '<div class="ckFoot"><a href="https://wa.me/'+WA+'?text='+encodeURIComponent('Hola, tengo una pregunta sobre mi pedido #'+c.id)+'" target="_blank" rel="noopener">¿Dudas? WhatsApp</a>'+(c.token?'<button type="button" class="linkBtn" data-copy="'+esc(orderUrl(c.id,c.token))+'">Copiar enlace del pedido</button>':'')+'<a href="/mi-pedido/" id="otherOrder">Consultar otro pedido</a></div>'+
+   '</div><aside class="ckSide"><div class="ckSticky">'+summary+'</div></aside></div>';
+  return h;
 }
 function confirmingCard(timedOut){
   if(!timedOut){
