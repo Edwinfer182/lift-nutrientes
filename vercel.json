@@ -114,6 +114,10 @@
       "dest": "/api/pagina?ruta=guias/$1"
     },
     {
+      "src": "^/p/([A-Za-z0-9]{8})/?$",
+      "dest": "/api/p?c=$1"
+    },
+    {
       "src": "^/s/([A-Za-z0-9_-]{12})/?$",
       "dest": "/s/index.html"
     },

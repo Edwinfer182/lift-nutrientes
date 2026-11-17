@@ -475,7 +475,9 @@ function when(d){
 }
 const pass=()=>{try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}};
 function phoneWa(p){let n=digits(p);if(n.length===10)n='57'+n;return n}
-function orderUrl(id,token){const u=new URL('https://supgo.co/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
+function orderUrl(id,token,code){if(/^[A-Za-z0-9]{8}$/.test(String(code||'')))return 'https://supgo.co/p/'+code;const u=new URL('https://supgo.co/');u.searchParams.set('pedido',String(id));if(token)u.searchParams.set('token',String(token));return u.toString()}
+// Enlace corto supgo.co/p/CODIGO (con vista previa propia en WhatsApp). Si falla, el enlace largo.
+async function shortOrderUrl(id,token){try{const r=await fetch(SB+'/rest/v1/rpc/lift_pedido_enlace_corto',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:String(token||'')})});const c=r.ok?await r.json():null;return orderUrl(id,token,c)}catch(e){return orderUrl(id,token)}}
 async function copy(t){try{await navigator.clipboard.writeText(t);return true}catch(e){return false}}
 let toastT=0;
 function toast(msg,opt={}){
@@ -617,7 +619,7 @@ $('q').oninput=()=>{shown=40;renderOrders()};
 $('more').onclick=()=>{shown+=40;renderOrders()};
 
 function waMsg(p,follow){
-  const url=orderUrl(p.id,p.token_publico),name=String(p.nombre||'').trim().split(/\s+/)[0]||'';
+  const url=orderUrl(p.id,p.token_publico,p.codigo_corto),name=String(p.nombre||'').trim().split(/\s+/)[0]||'';
   const m={
     nuevo:'Recibimos tu pedido y estamos verificando la disponibilidad de los productos.',
     verificando_disponibilidad:'Recibimos tu pedido. Estamos verificando la disponibilidad de los productos para habilitar el pago.',
@@ -810,7 +812,7 @@ async function act(a,id,btn){
     if(a==='share')return shareOrder(orderForShare(p),btn);
     if(a==='review-link'){const u=reviewUrl(p.id,p.token_publico);toast(await copy(u)?'Enlace para calificar copiado':'Enlace: '+u);return}
     if(a==='wa-follow')return openWa(p,true);
-    if(a==='copy-client'){const u=orderUrl(p.id,p.token_publico);toast(await copy(u)?'Enlace del pedido copiado':'Copia el enlace: '+u);return}
+    if(a==='copy-client'){const u=orderUrl(p.id,p.token_publico,p.codigo_corto);toast(await copy(u)?'Enlace del pedido copiado':'Copia el enlace: '+u);return}
     if(a==='courier'){const j=await fn({action:'courier-link',pedido_id:p.id});const u=j.url_corta||('https://supgo.co/admin.html?entrega='+encodeURIComponent(j.token));const msg='Pedido #'+p.id+' · '+(p.nombre||'')+(p.ciudad?' · '+p.ciudad:'')+'\nCuando salgas toca «Ya salió» aquí:\n'+u;const ok=await copy(msg);toast(ok?'Mensaje para el proveedor copiado':'Enlace: '+u,{action:'WhatsApp',onAction:()=>window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener')});return}
     if(a==='avail-yes'||a==='avail-no'){
       const ok=a==='avail-yes';const r=await fn({action:'set-availability',pedido_id:p.id,disponible:ok});
@@ -1399,9 +1401,9 @@ async function saveOrder(){
     showDone(saved);loadOrders();
   }catch(e){toast('No se guardó: '+e.message,{err:true});b.disabled=false;b.textContent='Guardar pedido'}
 }
-function showDone(o){
+async function showDone(o){
   document.querySelectorAll('.toast').forEach(x=>x.remove());$('np').hidden=true;const d=$('done');d.hidden=false;
-  const url=orderUrl(o.id,o.token),name=o.nombre.split(/\s+/)[0];
+  const url=await shortOrderUrl(o.id,o.token),name=o.nombre.split(/\s+/)[0];
   const lines=o.items.map(x=>x.cantidad+' × '+x.nombre).join('\n');
   const text=o.porPagar?`Hola ${name} 👋 Tu pedido #${o.id} en SUPGO está listo:\n\n${lines}\n\nTotal a pagar: ${money(o.total)}\n\nPágalo aquí con tarjeta, PSE, Nequi, Bancolombia, Bre-B o transferencia:\n${url}\n\nApenas se confirme el pago, lo despachamos.`:`Hola ${name}, este es el resumen de tu pedido #${o.id} en SUPGO:\n\n${lines}\n\nTotal: ${money(o.total)}\n\nPuedes consultarlo aquí:\n${url}`;
   d.innerHTML=`<div class="ok">${I.check}</div><h2>Pedido #${o.id} guardado</h2><p>${esc(o.nombre)} · ${money(o.total)}${o.porPagar?' · <b>Por pagar</b>':''}</p>
