@@ -1,0 +1,5 @@
+-- Aplicada en Supabase el 2026-11-17: nueva acción 'por_pagar' en lift_pedidos_admin.
+-- Deja un pedido armado por el admin como pedido web sin pagar:
+-- estado_operativo='pendiente_pago', forma_pago='pendiente', pago_estado='sin_pago',
+-- para que el cliente pague desde su enlace (Mi pedido: Bold o transferencia).
+-- Ver la definición completa con: select pg_get_functiondef('public.lift_pedidos_admin(text,text,jsonb)'::regprocedure);
