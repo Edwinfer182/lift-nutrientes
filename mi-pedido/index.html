@@ -368,7 +368,7 @@ var LOGO={
 };
 function payCard(notice){
   var c=current,p=c.p,ps=String(p.pago_estado||''),transfer=p.medio_pago_cliente==='transferencia'||ps==='pendiente_comprobante';
-  var sel=payChoice||(transfer?'transferencia':'bold');
+  var sel=payChoice||'';
   var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
   var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+'</span>'+right+'</label><div class="panel"'+(on?'':' hidden')+'>'+panel+'</div></div>'};
   var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.applepay+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+LOGO.unclic+'</div>';
@@ -378,11 +378,11 @@ function payCard(notice){
     (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
-      opt('bold','Pago en línea','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+5</span></span>',boldPanel)+
       opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
+      opt('bold','Pago en línea','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+5</span></span>',boldPanel)+
     '</div>'+
-    '<div class="payBtnWrap">'+(sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
-    '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(sel==='bold'?'Pago procesado por Bold':'Confirmamos tu pago apenas veamos el comprobante')+'</div></div></div>';
+    '<div class="payBtnWrap">'+(!sel?'<button class="cta" type="button" disabled>Elige un medio de pago</button>':sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
+    '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(!sel?'Pago seguro':sel==='bold'?'Pago procesado por Bold':'Confirmamos tu pago apenas veamos el comprobante')+'</div></div></div>';
 }
 /* ---------- Acciones ---------- */
 function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando pago seguro…';$('payMsg').textContent='';
