@@ -77,7 +77,7 @@ canvas{width:100%;height:auto;border-radius:12px;background:#101410;box-shadow:0
    <button class="chip" data-q="nuevos">🆕 Recientes</button>
   </div>
   <input id="q" type="search" placeholder="Buscar producto, marca o sabor…" autocomplete="off">
-  <select id="cat"><option value="">Todas las categorías</option></select>
+  <select id="cat"><option value="">Todos los laboratorios</option></select>
   <div class="sel-bar" id="selbar"></div>
   <div id="list" role="listbox" aria-label="Productos"></div>
   <div class="muted">Toca para elegir. Varios productos = carrusel o lista de ofertas.</div>
@@ -158,7 +158,7 @@ async function load(){
  const base=x=>norm(x.brand)+'|'+norm(x.flavor&&norm(x.name).endsWith(norm(x.flavor))?x.name.slice(0,-x.flavor.length):x.name).replace(/[^a-z0-9]+/g,' ').trim();
  const fam=new Map();S.rows.forEach(x=>{const k=base(x);if(!fam.has(k))fam.set(k,[]);fam.get(k).push(x)});
  S.rows.forEach(x=>{const f=x.famSlug?S.rows.filter(y=>y.famSlug===x.famSlug):fam.get(base(x));x.sabores=f.length>1?[...new Set(f.map(y=>y.flavor).filter(Boolean))]:[]});
- const cats=[...new Set(S.rows.map(x=>x.cat).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'es'));
+ const cats=[...new Set(S.rows.map(x=>x.brand).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'es'));
  cats.forEach(c=>$('cat').add(new Option(c,c)));
  try{const r=await fetch(SB+'rpc/lift_control_resumen',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:pass()})});if(r.ok){const j=await r.json();S.top=(j.top_productos||[]).map(x=>String(x.id))}}catch(e){}
  renderList();restore();
@@ -167,7 +167,7 @@ async function load(){
 /* ---------- Lista ---------- */
 function renderList(){
  const q=norm($('q').value).split(/\s+/).filter(Boolean);let rows=S.rows;
- if(S.cat)rows=rows.filter(x=>x.cat===S.cat);
+ if(S.cat)rows=rows.filter(x=>x.brand===S.cat);
  if(S.filter==='ofertas')rows=rows.filter(x=>x.onOffer).sort((a,b)=>b.pct-a.pct);
  if(S.filter==='top')rows=S.top.map(id=>rows.find(x=>String(x.id)===id)).filter(Boolean);
  if(S.filter==='nuevos')rows=rows.slice().sort((a,b)=>String(b.updated).localeCompare(String(a.updated)));
