@@ -223,6 +223,15 @@ details.coupon[open] summary::after{content:"−"}
   .summary:not(.collapsed) .mobileToggle{border-bottom-left-radius:0;border-bottom-right-radius:0}
   .opt .brands .x{display:none}
 }
+
+/* Minimalista */
+.totals .volTip,.shipTip,.trust,#ctaNote,.sumHead h2{display:none!important}
+.sumHead{justify-content:flex-end;margin:0}
+.panel .copyRow small{font-size:11px;color:var(--muted)}
+.trMsg{margin:0}
+.acctBar,.acctBar.in{background:none;border:0;padding:0;margin:0 0 6px;color:var(--muted);justify-content:flex-end;gap:12px}
+.acctBar a{color:#1a56db}
+.badge{font-size:11px;padding:3px 8px;margin-top:6px}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -256,11 +265,11 @@ details.coupon[open] summary::after{content:"−"}
               <input class="input" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
               <span class="err">Escribe un correo válido. Ahí te avisamos del pedido.</span></label>
           </div>
-          <label class="check mailOk" id="c-recordatorio"><input type="checkbox" id="recordatorio"><span>Si no termino la compra, autorizo a SUPGO a enviarme hasta 2 recordatorios de mi carrito a este correo. Puedo darme de baja cuando quiera. <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">Ver política</a></span></label>
+          <label class="check mailOk" id="c-recordatorio"><input type="checkbox" id="recordatorio"><span>Recordarme mi carrito por correo (<a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">política</a>)</span></label>
           <div class="newAcct" id="newAcct" hidden>
             <div class="naIntro" id="naIntro">
-              <p><b>¿Quieres crear tu cuenta?</b> Sigues tus pedidos y la próxima compra se llena sola.</p>
-              <label class="check naAuth" id="naAuthBox"><input type="checkbox" id="naAuth"><span>Autorizo a SUPGO a tratar mis datos (correo, nombre y celular) para crear y gestionar mi cuenta, según la <a href="/tratamiento-de-datos/" target="_blank" rel="noopener">política de tratamiento de datos</a>.</span></label>
+              <p><b>Crear cuenta</b> para seguir tus pedidos.</p>
+              <label class="check naAuth" id="naAuthBox"><input type="checkbox" id="naAuth"><span>Acepto el <a href="/tratamiento-de-datos/" target="_blank" rel="noopener">tratamiento de datos</a> para mi cuenta</span></label>
               <div class="naBtns"><div class="naGw off" id="naGw"><div id="naGoogle" class="naGoogle off" hidden></div></div><button class="btn2" type="button" id="naStart">Crear cuenta con estos datos</button></div>
             </div>
             <div class="naCode" id="naCode" hidden>
@@ -300,8 +309,8 @@ details.coupon[open] summary::after{content:"−"}
           <div class="opts">
             <div class="opt" id="po-transferencia"><label><input type="radio" name="pago" value="transferencia"><span class="ot">Transferencia bancaria</span><span class="brands"><span class="lgb"><img src="/mi-pedido/pagos/breb.png" alt="Bre-B" style="height:12px"></span></span></label>
               <div class="panel" id="transferBox" hidden>
-                <ol class="paySteps"><li>Haz tu pedido.</li><li>Transfiere <b id="transferTotal">—</b> a esta llave Bre-B desde cualquier banco o Nequi.</li><li>Envíanos el comprobante por WhatsApp desde tu pedido.</li></ol>
-                <div class="copyRow"><span><small>Llave Bre-B · a nombre de Edwin Fernando Muñoz Tobon</small><br><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>
+                <p class="trMsg">Transfiere <b id="transferTotal">—</b> a esta llave y envía el comprobante por WhatsApp desde tu pedido.</p>
+                <div class="copyRow"><span><small>Bre-B · Edwin Fernando Muñoz Tobon</small><br><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>
                 <input type="file" id="proof" hidden><span id="pickLabel" hidden></span><span id="pickText" hidden></span>
               </div></div>
             <div class="opt" id="po-bold"><label><input type="radio" name="pago" value="bold"><span class="ot">Tarjeta crédito/débito, PSE y más</span><span class="brands"><span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px"></span><span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px"></span><span class="x"><span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px"></span></span><span class="more">+5</span></span></label>
@@ -314,8 +323,8 @@ details.coupon[open] summary::after{content:"−"}
           </div>
         </div>
         <div class="card">
-          <label class="check" id="c-datos"><input type="checkbox" id="datos" required><span>Autorizo el <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">tratamiento de mis datos personales</a> para gestionar mi pedido.</span></label>
-          <label class="check"><input type="checkbox" id="recordar" checked><span>Guardar mis datos en este dispositivo para la próxima compra.</span></label>
+          <label class="check" id="c-datos"><input type="checkbox" id="datos" required><span>Acepto el <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">tratamiento de datos</a></span></label>
+          <label class="check"><input type="checkbox" id="recordar" checked><span>Guardar mis datos para la próxima compra</span></label>
           <div class="desktopCta" id="payCta" style="margin-top:12px" hidden>
             <button class="cta" type="submit" id="submitDesktop"><span class="spin"></span><span class="ctaText">Hacer pedido</span></button>
             <p class="note" id="ctaNote">Te llevamos a la pasarela segura de Bold para pagar.</p>
@@ -707,8 +716,8 @@ function fillAccount(){
   var ref=C.refCode&&C.refCode();
   if(ref&&!$('cupon').value){$('cupon').value=ref;$('couponBox').open=true;$('couponMsg').textContent='Código de invitación listo. Escribe tu celular y toca Aplicar.';$('couponMsg').className='msg'}
   var s=C.get();
-  if(!s){bar.hidden=false;bar.className='acctBar';bar.innerHTML='<span>¿Ya tienes cuenta? Entra y tus datos se llenan solos.</span><a href="/cuenta/?volver=%2Fcheckout%2F">Entrar</a>';return}
-  bar.hidden=false;bar.className='acctBar in';bar.innerHTML='<span>Comprando como <b>'+esc(s.email)+'</b></span><a href="/cuenta/">Mi cuenta</a>';
+  if(!s){bar.hidden=false;bar.className='acctBar';bar.innerHTML='<span>¿Ya tienes cuenta?</span><a href="/cuenta/?volver=%2Fcheckout%2F">Iniciar sesión</a>';return}
+  bar.hidden=false;bar.className='acctBar in';bar.innerHTML='<span>'+esc(s.email)+'</span><a href="/cuenta/">Mi cuenta</a>';
   C.api('me').then(function(j){
     account=j;var c=j.cuenta||{};
     if(c.nombre)$('nombre').value=c.nombre;if(c.celular)$('celular').value=c.celular;if(c.email)$('email').value=c.email;
