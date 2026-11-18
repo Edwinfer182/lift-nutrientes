@@ -409,7 +409,7 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
               <label class="field"><span>Descuento (opcional)</span><input class="input" id="desc" inputmode="numeric" placeholder="$ 0"></label>
               <div class="field" id="payField"><span style="display:block;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:5px">Forma de pago</span>
                 <div class="seg" id="payMode"><button data-pay="pagado" class="on">Pagado</button><button data-pay="porpagar">Por pagar</button><button data-pay="credito">Crédito</button><button data-pay="abono">Abono</button></div>
-                <p class="hint" id="payHint" hidden>El cliente recibe un enlace para pagar con Bold (tarjeta, PSE, Nequi, Bancolombia, Bre-B) o por transferencia.</p>
+                <p class="hint" id="payHint" hidden>Se guarda como <b>borrador</b> (cotización) y le compartes el enlace de pago. Pasa a Pedidos cuando paga.</p>
               </div>
               <div id="creditBox" hidden>
                 <div class="grid2">
@@ -486,8 +486,11 @@ const ST={
 };
 const SELECT_STATES=[['verificando_disponibilidad','Verificando disponibilidad'],['pendiente_pago','Pago habilitado'],['preparando','Preparando'],['programado','Programado'],['en_ruta','En ruta'],['entregado','Entregado'],['cancelado','Cancelado']];
 const MAIL_STATES=['pendiente_pago','programado','en_ruta','entregado','cancelado'];
+/* Borrador (cotización estilo Shopify): pedido "por pagar" armado en el panel que aún no se paga. */
+const isDraft=p=>!!p.es_borrador&&String(p.estado_operativo||'')==='pendiente_pago';
 const FILTERS=[
   ['activos','Activos',p=>!['entregado','cancelado','sin_disponibilidad'].includes(st(p))],
+  ['borradores','Borradores',p=>isDraft(p)],
   ['revisar','Por revisar',p=>['nuevo','verificando_disponibilidad'].includes(st(p))],
   ['pagar','Por pagar',p=>st(p)==='pendiente_pago'],
   ['preparar','Preparar',p=>['preparando','programado'].includes(st(p))],
@@ -623,6 +626,7 @@ function itemsText(p,max=2){
 function nextActions(p){
   const s=st(p),pay=payInfo(p),id=p.id;
   if(s==='nuevo'||s==='verificando_disponibilidad')return `<button class="btn green" data-act="avail-yes" data-id="${id}">${I.check} Hay disponibilidad</button><button class="btn red" data-act="avail-no" data-id="${id}">Sin disponibilidad</button>`;
+  if(isDraft(p)&&!pay.proof)return `<button class="btn green" data-act="paid" data-id="${id}">${I.check} Marcar como pagado</button><button class="btn" data-act="draft-share" data-id="${id}">${I.share} Compartir enlace</button><button class="btn red" data-act="draft-del" data-id="${id}">Eliminar borrador</button>`;
   if(s==='pendiente_pago'){
     if(pay.proof)return `<button class="btn" data-act="proof" data-id="${id}">Ver comprobante</button><button class="btn green" data-act="pay-ok" data-id="${id}">${I.check} Aprobar</button><button class="btn red" data-act="pay-no" data-id="${id}">Rechazar</button>`;
     return `<button class="btn green" data-act="paid" data-id="${id}">${I.check} Marcar pagado</button><button class="btn" data-act="cod" data-id="${id}">Contraentrega</button>`;
@@ -640,7 +644,7 @@ function cardHtml(p){
       <div class="who"><strong>${esc(p.nombre||'Cliente')}</strong><small>#${p.id} · ${esc(when(p.fecha))}${p.ciudad?' · '+esc(p.ciudad):''}</small></div>
       <div class="amt"><strong>${money(p.total)}</strong>${Number(p.envio)>0?'<small>envío '+money(p.envio)+'</small>':''}</div>
     </div>
-    <div class="pills"><span class="pill ${s.c}">${esc(s.l)}</span><span class="pill ${pay.c}">${esc(pay.l)}</span>${p.despacho_tipo==='guia'&&p.despacho_guia?'<span class="pill">Guía '+esc(p.despacho_guia)+'</span>':''}</div>
+    <div class="pills">${isDraft(p)?'<span class="pill" style="background:#eef2ff;color:#3730a3">Borrador</span>':'<span class="pill '+s.c+'">'+esc(s.l)+'</span>'}<span class="pill ${pay.c}">${esc(pay.l)}</span>${p.despacho_tipo==='guia'&&p.despacho_guia?'<span class="pill">Guía '+esc(p.despacho_guia)+'</span>':''}</div>
     <div class="items">${itemsText(p)}</div>
     ${na?'<div class="next">'+na+'</div>':''}
     <div class="mini">
@@ -660,12 +664,12 @@ function renderOrders(){
   const q=norm($('q').value),qd=digits($('q').value);
   const match=p=>!q||norm(p.nombre).includes(q)||(qd.length>=3&&digits(p.celular).includes(qd))||String(p.id)===q.replace('#','')||norm(p.ciudad).includes(q);
   const base=orders.filter(match);
-  $('chips').innerHTML=FILTERS.map(([k,l,f])=>{const n=base.filter(f).length;return `<button class="chip${k===filter?' on':''}${(k==='revisar'||k==='pagar')&&n?' alert':''}" data-f="${k}" role="tab" aria-selected="${k===filter}">${l}<b>${n}</b></button>`}).join('');
-  const f=(FILTERS.find(x=>x[0]===filter)||FILTERS[0])[2];
+  $('chips').innerHTML=FILTERS.map(([k,l,f0])=>{const f=k==='borradores'?f0:(p=>!isDraft(p)&&f0(p));const n=base.filter(f).length;return `<button class="chip${k===filter?' on':''}${(k==='revisar'||k==='pagar')&&n?' alert':''}" data-f="${k}" role="tab" aria-selected="${k===filter}">${l}<b>${n}</b></button>`}).join('');
+  const f0=(FILTERS.find(x=>x[0]===filter)||FILTERS[0])[2],f=filter==='borradores'?f0:(p=>!isDraft(p)&&f0(p));
   const rows=base.filter(f);
   $('list').innerHTML=rows.length?rows.slice(0,shown).map(cardHtml).join(''):`<div class="empty">${q?'No hay pedidos que coincidan con la búsqueda.':'No hay pedidos en esta lista.'}</div>`;
   $('more').hidden=rows.length<=shown;
-  const pend=orders.filter(p=>['nuevo','verificando_disponibilidad'].includes(st(p))||payInfo(p).proof).length;
+  const pend=orders.filter(p=>!isDraft(p)&&(['nuevo','verificando_disponibilidad'].includes(st(p))||payInfo(p).proof)).length;
   $('navCount').hidden=!pend;$('navCount').textContent=pend;
 }
 $('chips').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;filter=b.dataset.f;shown=40;renderOrders()};
@@ -860,6 +864,8 @@ async function act(a,id,btn){
   try{
     busy(true);
     if(a==='open')return openDetail(id);
+    if(a==='draft-share')return shareDraft(p);
+    if(a==='draft-del'){if(!confirm('¿Eliminar el borrador #'+p.id+'? El enlace de pago dejará de funcionar.'))return;await rpc('estado',{pedido_id:p.id,estado:'cancelado'});patch(p.id,{estado_operativo:'cancelado'});closeSheet();renderOrders();toast('Borrador eliminado');return}
     if(a==='edit')return startEdit(p);
     if(a==='wa')return openWa(p,false);
     if(a==='charge-wa')return openChargeWa(p);
@@ -1111,7 +1117,7 @@ function openDetail(id){
   const items=(p.items||[]).map(x=>`<div class="line"><span>${esc(Number(x.cantidad||1)+' × '+(x.nombre||'Producto'))}${x.marca?' <small style="color:var(--muted)">· '+esc(x.marca)+'</small>':''}</span><b>${money(x.total_linea)}</b></div>`).join('');
   const dates=[['Creado',p.fecha],['Programado',p.fecha_programado],['En ruta',p.fecha_en_ruta],['Entregado',p.fecha_entregado],['Seguimiento',p.fecha_seguimiento]].filter(x=>x[1]).map(x=>`<div>${x[0]}: <b>${esc(when(x[1]))}</b></div>`).join('');
   const el=sheet(`
-    <div class="sheetHead"><h2>Pedido #${p.id}</h2><span class="pill ${s.c}">${esc(s.l)}</span><button class="iconBtn" style="background:#fff;color:#111;border-color:var(--line)" data-close aria-label="Cerrar">${I.x}</button></div>
+    <div class="sheetHead"><h2>${isDraft(p)?'Borrador':'Pedido'} #${p.id}</h2>${isDraft(p)?'<span class="pill" style="background:#eef2ff;color:#3730a3">Borrador</span><button class="btn sm" data-act="draft-share" data-id="'+p.id+'">'+I.share+' Compartir</button>':'<span class="pill '+s.c+'">'+esc(s.l)+'</span>'}<button class="iconBtn" style="background:#fff;color:#111;border-color:var(--line)" data-close aria-label="Cerrar">${I.x}</button></div>
     ${na?'<div class="sec"><div class="next">'+na+'</div></div>':''}
     <div class="sec"><h3>Cliente</h3>
       <div class="kv"><span>Nombre</span><b>${esc(p.nombre||'')}</b><span>Celular</span><a href="tel:${esc(digits(p.celular))}">${esc(p.celular||'')}</a><span>Ciudad</span><span style="color:var(--ink)">${esc(p.ciudad||'')}</span><span>Dirección</span><span style="color:var(--ink)">${esc(p.direccion||'')}</span>${p.notas?'<span>Notas</span><span style="color:var(--ink)">'+esc(p.notas)+'</span>':''}</div>
@@ -1511,29 +1517,35 @@ async function saveOrder(){
     /* Por pagar: el pedido queda con pago habilitado para que el cliente pague desde su enlace. */
     const lineImgs=draft.lines.filter(l=>!l.id&&/^https:\/\//.test(l.image||'')).map(l=>{const u=lineUnit(l),d=l.disc;return {nombre:l.name+(l.flavor?' · Sabor: '+l.flavor:'')+(u<l.unit?' · Descuento '+(d.type==='percent'?num(d.value)+'%':money(l.unit-u))+(d.reason?' ('+d.reason+')':''):''),imagen:l.image}});
     if(lineImgs.length){try{await fetch(SB+'/rest/v1/rpc/lift_pedido_set_imagenes',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_password:sessionStorage.getItem(PASS)||'',p_pedido_id:id,p_items:lineImgs})})}catch(e){console.warn('fotos',e)}}
-    let porPagarOk=true;if(draft.pay==='porpagar'){try{await rpc('por_pagar',{pedido_id:id})}catch(e){porPagarOk=false;console.warn('por_pagar',e)}}
+    let porPagarOk=true;if(draft.pay==='porpagar'){try{await rpc('por_pagar',{pedido_id:id,borrador:true})}catch(e){porPagarOk=false;console.warn('por_pagar',e)}}
     const imgs={};draft.lines.forEach(l=>{if(l.image&&l.id)imgs[l.id]=l.image});
     const saved={id,token:r.token,nombre:c.nombre.trim(),celular:digits(c.celular),ciudad:c.ciudad.trim(),departamento:(c.departamento||'').trim(),direccion:c.direccion.trim(),notas:(c.notas||'').trim(),envio:t.ship,descuento:t.desc,total:t.total,fecha:new Date().toISOString(),estado:draft.pay==='porpagar'&&porPagarOk?'pendiente_pago':'nuevo',porPagar:draft.pay==='porpagar',porPagarOk,badge:draft.pay==='pagado'?'PAGADO':draft.pay==='porpagar'?'POR PAGAR':'RECIBIDO',payLabel:draft.pay==='pagado'?'Pagado':draft.pay==='porpagar'?'Por pagar':draft.pay==='abono'?'Abono · debe '+money(Math.max(0,t.total-abono)):'Crédito',items:items.map(x=>Object.assign({image:imgs[x.producto_id]||''},x))};
     draft=blank();saveDraft();fillClient();
     showDone(saved);loadOrders();
   }catch(e){toast('No se guardó: '+e.message,{err:true});b.disabled=false;b.textContent='Guardar pedido'}
 }
+async function shareDraft(p){const url=orderUrl(p.id,p.token_publico,p.codigo_corto);
+  const text='Cotización SUPGO #'+p.id+' · '+money(p.total);
+  if(navigator.share){try{await navigator.share({title:text,text:text,url});return}catch(e){if(e&&e.name==='AbortError')return}}
+  toast(await copy(url)?'Enlace de pago copiado':'Enlace: '+url)}
 async function showDone(o){
   document.querySelectorAll('.toast').forEach(x=>x.remove());$('np').hidden=true;const d=$('done');d.hidden=false;
   const url=await shortOrderUrl(o.id,o.token),name=o.nombre.split(/\s+/)[0];
   const lines=o.items.map(x=>x.cantidad+' × '+x.nombre).join('\n');
   const text=o.porPagar?`Hola ${name} 👋 Tu pedido #${o.id} en SUPGO está listo:\n\n${lines}\n\nTotal a pagar: ${money(o.total)}\n\nPágalo aquí con tarjeta, PSE, Nequi, Bancolombia, Bre-B o transferencia:\n${url}\n\nApenas se confirme el pago, lo despachamos.`:`Hola ${name}, este es el resumen de tu pedido #${o.id} en SUPGO:\n\n${lines}\n\nTotal: ${money(o.total)}\n\nPuedes consultarlo aquí:\n${url}`;
-  d.innerHTML=`<div class="ok">${I.check}</div><h2>Pedido #${o.id} guardado</h2><p>${esc(o.nombre)} · ${money(o.total)}${o.porPagar?' · <b>Por pagar</b>':''}</p>
+  d.innerHTML=`<div class="ok">${I.check}</div><h2>${o.porPagar?'Borrador':'Pedido'} #${o.id} guardado</h2>${o.porPagar?'<p class="hint" style="margin:-4px 0 8px">Queda en <b>Borradores</b> y pasa a Pedidos cuando el cliente pague o lo marques como pagado.</p>':''}<p>${esc(o.nombre)} · ${money(o.total)}${o.porPagar?' · <b>Por pagar</b>':''}</p>
     ${o.porPagar&&!o.porPagarOk?'<p class="hint" style="color:var(--red)">El pedido se guardó, pero no se pudo habilitar el pago. Cámbialo a “Pago habilitado” en Pedidos antes de enviar el enlace.</p>':''}
     ${o.porPagar?'<div class="payLink"><small>Enlace de pago</small><input class="input" readonly value="'+esc(url)+'" onclick="this.select()"></div>':''}
     <div class="btns"><a class="btn wa block" href="https://wa.me/${phoneWa(o.celular)}?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">${I.wa} ${o.porPagar?'Enviar enlace de pago por WhatsApp':'Enviar por WhatsApp'}</a>
-    <button class="btn dark block" id="dShare">${I.share} Compartir pedido con datos</button>
+    ${o.porPagar?'<button class="btn dark block" id="dShareLink">'+I.share+' Compartir enlace</button>':''}
+    <button class="btn ${o.porPagar?'':'dark '}block" id="dShare">${I.share} Compartir pedido con datos</button>
     <button class="btn block" id="dCopy">${I.link} ${o.porPagar?'Copiar enlace de pago':'Copiar enlace del pedido'}</button>
     <button class="btn block" id="dView">Ver en pedidos</button>
     <button class="btn block" id="dNew">${I.plus} Crear otro pedido</button></div>`;
   $('dShare').onclick=e=>shareOrder(o,e.currentTarget);
+  if($('dShareLink'))$('dShareLink').onclick=async()=>{if(navigator.share){try{await navigator.share({title:'Cotización SUPGO #'+o.id,text:'Cotización SUPGO #'+o.id+' · '+money(o.total),url});return}catch(e){if(e&&e.name==='AbortError')return}}toast(await copy(url)?'Enlace copiado':'Enlace: '+url)};
   $('dCopy').onclick=async()=>toast(await copy(url)?'Enlace copiado':'Enlace: '+url);
-  $('dView').onclick=()=>{go('pedidos');filter='activos';$('q').value='#'+o.id;renderOrders()};
+  $('dView').onclick=()=>{go('pedidos');filter=o.porPagar?'borradores':'activos';$('q').value='#'+o.id;renderOrders()};
   $('dNew').onclick=()=>renderNew();
   window.scrollTo(0,0);
 }
