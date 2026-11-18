@@ -514,8 +514,8 @@
         '<ul class="sg-list"><li>Escríbenos y te confirmamos sabor, tamaño y existencias.</li><li>Te asesoramos para elegir según tu objetivo.</li><li>Recibes la confirmación de tu pedido y el seguimiento del envío.</li></ul><a class="sg-wa" href="' + esc(wa) + '" target="_blank" rel="noopener">Escribir por WhatsApp</a>') +
       item('envio', 'Envíos en Medellín y Colombia', 'Gratis en Medellín desde 3 unidades',
         '<p>El costo depende de las unidades del pedido.</p>' + (tabla || '') + (nota ? '<p class="sg-note">' + nota + '</p>' : '')) +
-      item('pago', 'Pagos seguros', 'Bold, PSE, Nequi, transferencia o contraentrega',
-        '<div class="sg-pays"><div><b>Pago en línea con Bold</b><span>Tarjeta, PSE, Nequi, Bancolombia y Bre-B</span></div><div><b>Transferencia</b><span>Llave Bre-B o cuenta Bancolombia</span></div><div><b>Efectivo contraentrega</b><span>Solo en Medellín</span></div></div>' +
+      item('pago', 'Pagos seguros', 'Tarjeta, PSE, Nequi o transferencia',
+        '<div class="sg-pays"><div><b>Pago en línea con Bold</b><span>Tarjeta, PSE, Nequi, Bancolombia y Bre-B</span></div><div><b>Transferencia</b><span>Llave Bre-B o cuenta Bancolombia</span></div></div>' +
         '<div class="sg-chips"><span>Tarjetas</span><span>PSE</span><span>Nequi</span><span>Bancolombia</span><span>Bre-B</span><span>Apple Pay</span></div>') +
       '</section>';
   }
