@@ -114,6 +114,10 @@
       "dest": "/api/pagina?ruta=guias/$1"
     },
     {
+      "src": "^/c/([A-Za-z0-9]{8})/?$",
+      "dest": "/borrador/index.html"
+    },
+    {
       "src": "^/p/([A-Za-z0-9]{8})/?$",
       "dest": "/api/p?c=$1"
     },

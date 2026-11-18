@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Finalizar compra | SUPGO</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Tu cotización SUPGO lista para pagar.">
+<meta property="og:title" content="Tu cotización SUPGO">
+<meta property="og:description" content="Completa tus datos y paga de forma segura.">
+<meta property="og:image" content="https://supgo.co/favicon.png">
+<link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
+<link rel="preconnect" href="https://vdxkknftyssjyfbdieqa.supabase.co" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111;--muted:#6b6b6b;--line:#e6e6e6;--soft:#f6f6f4;--red:#b42318;--radius:12px}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:#fafaf8;color:var(--ink);font:15px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+a{color:inherit}button,input{font:inherit;color:inherit}
+.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top .in{max-width:1120px;margin:0 auto;padding:0 18px;display:flex;align-items:center;min-height:60px}
+.logo{font-weight:700;font-size:20px;letter-spacing:-.04em;text-decoration:none}
+.back{margin-left:auto;font-size:13px;font-weight:500;text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff}
+main{max-width:1120px;margin:0 auto;padding:24px 18px 60px}
+.ck{display:grid;grid-template-columns:minmax(0,1fr) 400px;align-items:start}
+.ckMain{padding-right:40px}
+.ckSide{border-left:1px solid var(--line);padding-left:36px;align-self:stretch}
+.ckSticky{position:sticky;top:84px}
+h2{font-size:19px;margin:0 0 12px}
+.sec{margin-bottom:26px}
+.field{display:block;margin-bottom:10px}
+.input{width:100%;height:48px;border:1px solid #d6d6d6;border-radius:8px;padding:0 14px;background:#fff;font-size:16px}
+.input:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.12)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bad .input{border-color:var(--red)}
+.payHint{font-size:13px;color:var(--muted);margin:-6px 0 12px}
+.opts{border:1px solid #d9d9d9;border-radius:10px;background:#fff}
+.opt{border-top:1px solid #d9d9d9}.opt:first-child{border-top:0}
+.opt>label{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;min-height:52px}
+.opt:first-child>label{border-radius:10px 10px 0 0}.opt:last-child>label{border-radius:0 0 10px 10px}
+.opt input{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1px solid #9a9a9a;border-radius:50%;margin:0;flex:none;background:#fff}
+.opt input:checked{border:5.5px solid #1a56db}
+.opt.on>label{background:#f0f5ff;box-shadow:inset 0 0 0 1px #1a56db}
+.ot{flex:1;min-width:0;font-size:14px;font-weight:500}
+.logoRow{display:flex;gap:4px;margin-top:7px;flex-wrap:nowrap}
+.lgb{display:inline-flex;align-items:center;justify-content:center;height:24px;min-width:38px;padding:0 5px;background:#fff;border:1px solid #e3e3e3;border-radius:4px}
+.lgb img{display:block;width:auto}
+.more{font-size:11px;border:1px solid var(--line);border-radius:4px;height:24px;min-width:30px;display:grid;place-items:center;background:#fff;color:#1a56db;padding:0 4px;position:relative;cursor:pointer}
+.morePop{display:none;position:absolute;bottom:calc(100% + 8px);right:-4px;background:#111;border-radius:8px;padding:7px;gap:5px;z-index:40}
+.morePop::after{content:"";position:absolute;top:100%;right:14px;border:6px solid transparent;border-top-color:#111}
+.more.open .morePop{display:flex}@media (hover:hover){.more:hover .morePop{display:flex}}
+.cta{width:100%;height:52px;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;cursor:pointer;margin-top:16px}
+.cta.dim{background:#b9b9b9}.cta:disabled{opacity:.7}
+.chk{display:flex;gap:10px;align-items:center;font-size:13px;margin-top:16px;cursor:pointer}.chk input{width:18px;height:18px;accent-color:#111}.chk.bad{color:var(--red)}
+.err{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+.sItem{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:8px 0}
+.sThumb{position:relative;width:64px;height:64px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.sThumb img{width:100%;height:100%;object-fit:contain;border-radius:10px}
+.qty{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 6px}
+.sName{font-size:14px;line-height:1.35}.sName small{display:block;color:var(--muted);font-size:12px}
+.sPrice{font-size:14px;white-space:nowrap}
+.sTot{margin-top:14px;font-size:14px}.sTot>div{display:flex;justify-content:space-between;padding:4px 0}
+.sGrand{font-size:19px;font-weight:700;padding-top:12px!important}.sGrand small{font-size:12px;font-weight:400;color:var(--muted)}
+.muted{color:var(--muted);font-size:13px}
+.mSum{display:none}
+.msg{text-align:center;padding:60px 20px}
+@media(max-width:860px){
+ .ck{grid-template-columns:1fr}.ckMain{padding-right:0}.ckSide{display:none}
+ .mSum{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:0 16px;margin-bottom:18px}
+ .mSum summary{display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer;font-size:14px;list-style:none;color:#1a56db}
+ .mSum summary::-webkit-details-marker{display:none}
+ .mSum summary span::after{content:' ▾'}.mSum[open] summary span::after{content:' ▴'}
+ .mSum summary b{color:var(--ink);font-size:16px}.mSum[open] summary b{visibility:hidden}.mSum[open]{padding-bottom:14px}
+ .opt .logoRow .x{display:none}
+ .row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><a class="logo" href="/">SUPGO</a><a class="back" href="/">← Seguir comprando</a></div></header>
+<main id="app"><div class="msg muted">Cargando…</div></main>
+<datalist id="cities"></datalist>
+<script>
+(function(){
+'use strict';
+var SB='https://vdxkknftyssjyfbdieqa.supabase.co',KEY='sb_publishable_ECuhXuKIb85kj9fgdEjrAw_O7uNpZsh';
+var $=function(id){return document.getElementById(id)};
+var money=function(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Math.round(Number(n)||0))};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var norm=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim()};
+var LOCAL=['medellin','bello','itagui','envigado','sabaneta','la estrella'];
+var code=(location.pathname.match(/\/c\/([A-Za-z0-9]{8})/)||[])[1]||new URLSearchParams(location.search).get('c')||'';
+function rpc(name,body){return fetch(SB+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return null}).then(function(j){if(!r.ok)throw new Error((j&&(j.message||j.error))||'Error '+r.status);return j})})}
+function fn(name,body){return fetch(SB+'/functions/v1/'+name,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'No se pudo completar');return j})})}
+function img(n,h,alt){return '<span class="lgb"><img src="/mi-pedido/pagos/'+n+'.png" alt="'+alt+'" style="height:'+h+'px"></span>'}
+var q=null,pay='';
+function units(){return q.items.reduce(function(a,x){return a+Math.max(1,Number(x.cantidad)||1)},0)}
+function sub(){return q.items.reduce(function(a,x){return a+(Number(x.cantidad)||1)*(Number(x.precio_unitario)||0)},0)}
+function ship(){
+  if(q.envio_modo!=='auto')return {v:Number(q.envio)||0,known:true};
+  var c=norm($('ciudad')?$('ciudad').value:'');if(!c)return {v:0,known:false};
+  if(q.price_mode==='trainer')return {v:11000,known:true};
+  var n=units(),local=LOCAL.some(function(l){return new RegExp('(^|\\W)'+l+'(\\W|$)').test(c)});
+  return {v:local?(n===1?11000:n===2?7000:0):(n===1?15000:n===2?12000:n===3?10000:0),known:true};
+}
+function total(){var s=sub(),d=Math.min(Number(q.descuento)||0,s);return s-d+ship().v}
+function summaryHtml(){
+  var items=q.items.map(function(x){var src=x.imagen;return '<div class="sItem"><div class="sThumb">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'')+'<span class="qty">'+(Number(x.cantidad)||1)+'</span></div><div class="sName">'+esc(String(x.nombre||'').split(' · Sabor: ')[0])+(String(x.nombre||'').indexOf(' · Sabor: ')>0?'<small>Sabor: '+esc(String(x.nombre).split(' · Sabor: ')[1])+'</small>':'')+'</div><div class="sPrice">'+money((Number(x.cantidad)||1)*(Number(x.precio_unitario)||0))+'</div></div>'}).join('');
+  var sh=ship(),d=Math.min(Number(q.descuento)||0,sub());
+  return items+'<div class="sTot"><div><span>Subtotal · '+units()+' artículo'+(units()===1?'':'s')+'</span><span>'+money(sub())+'</span></div>'+(d?'<div><span>Descuento</span><span>− '+money(d)+'</span></div>':'')+
+    '<div><span>Envío</span><span>'+(!sh.known?'<span class="muted">Escribe tu ciudad</span>':sh.v?money(sh.v):'Gratis')+'</span></div><div class="sGrand"><span>Total</span><span><small>COP</small> '+money(total())+'</span></div></div>';
+}
+function paintSummary(){[].forEach.call(document.querySelectorAll('[data-sum]'),function(e){e.innerHTML=summaryHtml()});var t=$('mTotal');if(t)t.textContent=money(total())}
+function ready(){return $('nombre').value.trim().length>=3&&/^3\d{9}$/.test($('celular').value.replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''))&&$('ciudad').value.trim().length>=2&&$('direccion').value.trim().length>=5&&!!pay&&$('datos').checked&&(!$('email').value.trim()||/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('email').value.trim()))}
+function paintBtn(){$('payBtn').classList.toggle('dim',!ready())}
+function render(){
+  var bold='Tarjeta crédito/débito, PSE y más';
+  $('app').innerHTML='<div class="ck"><div class="ckMain">'+
+   '<details class="mSum"><summary><span>Mostrar resumen del pedido</span><b id="mTotal"></b></summary><div data-sum></div></details>'+
+   '<div class="sec"><h2>Contacto</h2>'+
+     '<label class="field" id="f-nombre"><input class="input" id="nombre" placeholder="Nombre completo" autocomplete="name"></label>'+
+     '<div class="row"><label class="field" id="f-celular"><input class="input" id="celular" type="tel" inputmode="tel" placeholder="Celular (WhatsApp)" autocomplete="tel"></label>'+
+     '<label class="field" id="f-email"><input class="input" id="email" type="email" inputmode="email" placeholder="Correo electrónico (opcional)" autocomplete="email"></label></div></div>'+
+   '<div class="sec"><h2>Entrega</h2>'+
+     '<label class="field" id="f-ciudad"><input class="input" id="ciudad" list="cities" placeholder="Ciudad o municipio" autocomplete="address-level2"></label>'+
+     '<label class="field" id="f-direccion"><input class="input" id="direccion" placeholder="Dirección" autocomplete="street-address"></label>'+
+     '<label class="field"><input class="input" id="notas" placeholder="Casa, apartamento, barrio (opcional)"></label></div>'+
+   '<div class="sec"><h2>Pago</h2><p class="payHint">Todas las transacciones son seguras y están encriptadas.</p><div class="opts">'+
+     '<div class="opt" data-o="transferencia"><label><input type="radio" name="pago" value="transferencia"><span class="ot">Transferencia bancaria</span>'+img('breb',12,'Bre-B')+'</label></div>'+
+     '<div class="opt" data-o="bold"><label><input type="radio" name="pago" value="bold"><span class="ot">'+bold+'<span class="logoRow">'+img('visa',11,'Visa')+img('mastercard',16,'Mastercard')+img('amex',15,'American Express')+'<span class="x" style="display:contents">'+img('pse',19,'PSE')+img('nequi',19,'Nequi')+'</span><span class="more">+4<span class="morePop">'+img('applepay',15,'Apple Pay')+img('bancolombia',19,'Bancolombia')+img('breb',12,'Bre-B')+img('unclic',17,'Pago a un clic')+'</span></span></span></span></label></div>'+
+   '</div><label class="chk" id="f-datos"><input type="checkbox" id="datos"> <span>Acepto el <a href="/tratamiento-de-datos/" target="_blank" rel="noopener">tratamiento de datos</a></span></label><button class="cta dim" type="button" id="payBtn">Pagar ahora</button><div class="err" id="err"></div></div>'+
+   '</div><aside class="ckSide"><div class="ckSticky" data-sum></div></aside></div>';
+  paintSummary();
+  $('app').addEventListener('input',function(e){if(e.target.id==='ciudad')paintSummary();var f=e.target.closest('.field');if(f)f.classList.remove('bad');paintBtn()});
+  $('app').addEventListener('change',function(e){if(e.target.name==='pago'){pay=e.target.value;[].forEach.call(document.querySelectorAll('.opt'),function(o){o.classList.toggle('on',o.dataset.o===pay)})}paintBtn()});
+  $('app').addEventListener('click',function(e){var m=e.target.closest('.more');if(m){e.preventDefault();m.classList.toggle('open')}});
+  $('payBtn').onclick=submit;
+}
+function submit(){
+  var bad=[],cel=$('celular').value.replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''),mail=$('email').value.trim();
+  if($('nombre').value.trim().length<3)bad.push('f-nombre');if(!/^3\d{9}$/.test(cel))bad.push('f-celular');
+  if(mail&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))bad.push('f-email');
+  if($('ciudad').value.trim().length<2)bad.push('f-ciudad');if($('direccion').value.trim().length<5)bad.push('f-direccion');
+  bad.forEach(function(id){$(id).classList.add('bad')});
+  if(bad.length){$('err').textContent='Revisa los campos marcados en rojo.';$(bad[0]).scrollIntoView({behavior:'smooth',block:'center'});return}
+  if(!pay){$('err').textContent='Elige cómo quieres pagar.';return}
+  if(!$('datos').checked){$('f-datos').classList.add('bad');$('err').textContent='Para continuar, acepta el tratamiento de datos.';return}
+  var b=$('payBtn');b.disabled=true;b.textContent='Procesando…';$('err').textContent='';
+  rpc('lift_borrador_convertir',{p_codigo:code,p_cliente:{nombre:$('nombre').value.trim(),celular:cel,email:mail,ciudad:$('ciudad').value.trim(),direccion:$('direccion').value.trim(),notas:$('notas').value.trim()}})
+  .then(function(r){
+    var dest='/mi-pedido/?pedido='+encodeURIComponent(r.pedido_id)+'&token='+encodeURIComponent(r.token);
+    try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:String(r.pedido_id),pedido_id:String(r.pedido_id),phone:cel,token:r.token}))}catch(e){}
+    if(pay==='transferencia')return fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(r.pedido_id),token:r.token,medio:'transferencia'}).catch(function(){}).then(function(){location.assign(dest)});
+    return fn('lift-bold-pagos',{pedido_id:Number(r.pedido_id),token:r.token,accion:'crear',ambiente:'production'}).then(function(j){
+      if(!j.url||!/^https:\/\/checkout\.bold\.co\//.test(j.url))throw new Error('No pudimos abrir el pago en línea');
+      try{localStorage.setItem('supgoBoldPendingV1',JSON.stringify({id:String(r.pedido_id),t:Date.now()}))}catch(e){}
+      location.assign(j.url);
+    }).catch(function(){location.assign(dest)});
+  }).catch(function(e){b.disabled=false;b.textContent='Pagar ahora';$('err').textContent=e.message});
+}
+function loadCities(){var base='https://raw.githubusercontent.com/proyecto26/colombia/master/';
+  Promise.all([fetch(base+'cities.json'),fetch(base+'departments.json')]).then(function(rs){return Promise.all([rs[0].json(),rs[1].json()])}).then(function(d){var dep={};(d[1].data||[]).forEach(function(x){dep[x.id]=x.name});
+    $('cities').innerHTML=(d[0].data||[]).map(function(c){return '<option value="'+esc(c.name)+'">'+esc(dep[c.departmentId]||'')+'</option>'}).join('')}).catch(function(){
+    $('cities').innerHTML=['Medellín','Bello','Itagüí','Envigado','Sabaneta','La Estrella','Rionegro','Bogotá D.C.','Cali','Barranquilla','Cartagena','Bucaramanga','Pereira','Manizales'].map(function(c){return '<option value="'+c+'">'}).join('')})}
+if(!/^[A-Za-z0-9]{8}$/.test(code)){$('app').innerHTML='<div class="msg"><h2>Enlace no válido</h2><p class="muted">Pídenos un nuevo enlace por WhatsApp.</p></div>';return}
+rpc('lift_borrador_ver',{p_codigo:code}).then(function(j){
+  if(!j||!j.items){$('app').innerHTML='<div class="msg"><h2>Esta cotización ya no está disponible</h2><p class="muted">Escríbenos por WhatsApp y te enviamos una nueva.</p><p><a href="https://wa.me/573137380766">Escribir por WhatsApp</a></p></div>';return}
+  if(j.pedido&&j.pedido.id){location.replace('/mi-pedido/?pedido='+encodeURIComponent(j.pedido.id)+'&token='+encodeURIComponent(j.pedido.token));return}
+  q=j;render();loadCities();
+}).catch(function(e){$('app').innerHTML='<div class="msg"><h2>No pudimos cargar la cotización</h2><p class="muted">'+esc(e.message)+'</p></div>'});
+})();
+</script>
+</body>
+</html>
