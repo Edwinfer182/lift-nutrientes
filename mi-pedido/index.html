@@ -108,6 +108,8 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .morePop .lgb{border-color:#111}
 .more.open .morePop{display:flex}
 @media (hover:hover){.more:hover .morePop{display:flex}}
+.dsc,.sName .dsc{display:block;color:#15803d!important;font-size:12px}
+.old{display:block;color:#9a9a9a;font-size:12px;font-weight:400}
 /* Checkout en dos columnas */
 #app.wide{max-width:1120px}
 .ck{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:0;align-items:start}
@@ -139,7 +141,7 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .sThumb .qty{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 6px}
 .sName{font-size:14px;line-height:1.35}
 .sName small{display:block;color:var(--muted);font-size:12px}
-.sPrice{font-size:14px;white-space:nowrap}
+.sPrice{font-size:14px;white-space:nowrap;text-align:right}
 .sTot{margin-top:14px;font-size:14px}
 .sTot>div{display:flex;justify-content:space-between;padding:4px 0}
 .sTot .sGrand{font-size:19px;font-weight:700;padding-top:12px}
@@ -303,7 +305,8 @@ function load(ref,phone,token,silent){
     try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:id,pedido_id:id,phone:current.phone,token:current.token}))}catch(e){}
     if(current.token&&(q.get('token')!==current.token||q.get('pedido')!==id)){var u=new URL(location.href);u.search='?pedido='+encodeURIComponent(id)+'&token='+encodeURIComponent(current.token)+(q.get('nuevo')?'&nuevo=1':'');history.replaceState(null,'',u)}
     var code=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_enlace_corto',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}):Promise.resolve(null);
-    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code]).then(function(x){if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];if(silent&&editingAddr){window.__lastImg=x[0];window.__lastDisp=x[1];return}render(x[0],x[1])});
+    var extra=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_lineas_extra',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():[]}).catch(function(){return []}):Promise.resolve([]);
+    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code,extra]).then(function(x){var em={};(Array.isArray(x[3])?x[3]:[]).forEach(function(e){em[String(e.nombre)]=e});current.extra=em;if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];if(silent&&editingAddr){window.__lastImg=x[0];window.__lastDisp=x[1];return}render(x[0],x[1])});
   });
 }
 function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!items.length)return Promise.resolve({});
@@ -339,8 +342,8 @@ function render(img,disp){
   else if(canPay)ph+=payCard(notPaidNotice?'No se completó el pago en línea y no se hizo ningún cobro. Elige cómo quieres pagar:':'');
   h+=ph;
   if(s==='sin_disponibilidad')h+='<div class="card"><h2>¿Qué prefieres hacer?</h2><div class="choices">'+[['esperar','Esperar reposición'],['cambiar','Cambiar el producto'],['quitar','Quitar el producto'],['ayuda','Hablar con SUPGO']].map(function(x){return '<button type="button" data-help="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
-  var items=(p.items||[]).map(function(i){var src=(img[String(i.producto_id)]||img['n:'+String(i.nombre||'')]),line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1);var parts=String(i.nombre||'Producto').split(' · Sabor: ');
-    return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div></div><div class="iprice">'+money(line)+'</div></div>'}).join('');
+  var items=(p.items||[]).map(function(i){var src=(img[String(i.producto_id)]||img['n:'+String(i.nombre||'')]),line=Number(i.total_linea)||Number(i.precio_unitario||0)*Number(i.cantidad||1),ex=(current.extra||{})[String(i.nombre||'')]||{},dd=lineDisc(i.nombre,i.precio_unitario,ex.precio_lista,ex.descuento_motivo),dh=discHtml(dd,Number(i.cantidad||1),line);var parts=dd.nombre.split(' · Sabor: ');
+    return '<div class="item">'+(src?'<img class="thumb" src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+'<div><p class="iname">'+esc(parts[0])+'</p><div class="imeta">'+(parts[1]?'Sabor: '+esc(parts[1])+' · ':'')+'Cantidad: '+Number(i.cantidad||1)+'</div>'+dh.name+'</div><div class="iprice">'+dh.price+'</div></div>'}).join('');
   h+='<div class="card"><h2>Productos</h2>'+items+'<div class="totals">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span class="'+(Number(p.envio)?'':'free')+'">'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span class="free">− '+money(p.descuento)+'</span></div>':'')+'<div class="grand"><span>Total</span><span>'+money(p.total)+'</span></div></div></div>';
   if(editingAddr&&canEditAddr(p))h+='<div class="card"><h2>Cambiar dirección</h2>'+addrForm(p)+'</div>';else
   h+='<div class="card"><h2 style="display:flex;justify-content:space-between;align-items:center">Entrega'+(canEditAddr(p)?'<button type="button" class="editLink" id="addrEdit">Cambiar dirección</button>':'')+'</h2><div class="data"><div><small>Nombre</small>'+esc(p.nombre||'—')+'</div><div><small>Celular</small>'+esc(p.celular||'—')+'</div><div><small>Ciudad</small>'+esc(p.ciudad||'—')+'</div><div><small>Dirección</small>'+esc(p.direccion||'—')+'</div>'+(p.notas?'<div style="grid-column:1/-1"><small>Indicaciones</small>'+esc(p.notas)+'</div>':'')+'</div></div>';
@@ -368,9 +371,15 @@ function saveAddr(btn){var c=current,m=$('addrMsg');btn.disabled=true;btn.textCo
    .catch(function(e){btn.disabled=false;btn.textContent='Guardar';m.textContent=e.message;m.className='addrMsg bad'})}
 function toastAddr(){var t=document.createElement('div');t.textContent='✓ Dirección actualizada';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:99';document.body.appendChild(t);setTimeout(function(){t.remove()},2200)}
 /* Diseño tipo checkout: izquierda datos + pago, derecha resumen (en celular, resumen plegable arriba). */
+/* Descuento por línea: precio antes del descuento (precio_lista) o texto viejo " · Descuento $X (motivo)" en el nombre. */
+function lineDisc(nombre,unit,lista,motivo){var n=String(nombre||''),m=n.match(/ · Descuento (\$ ?[\d.]+|\d+(?:[.,]\d+)?%)(?: \((.*)\))?$/);unit=Number(unit)||0;lista=Number(lista)||0;motivo=motivo||'';
+  if(m){n=n.slice(0,m.index);motivo=motivo||m[2]||'';if(!lista){if(/%$/.test(m[1])){var pc=parseFloat(m[1].replace(',','.'));if(pc>0&&pc<100)lista=Math.round(unit/(1-pc/100))}else lista=unit+Number(m[1].replace(/\D/g,''))}}
+  return {nombre:n,lista:lista>unit?lista:0,motivo:motivo}}
+function discHtml(d,qty,line){if(!d.lista)return {name:'',price:money(line)};var ahorro=(d.lista*qty)-line;
+  return {name:'<small class="dsc">Descuento −'+money(ahorro)+(d.motivo?' · '+esc(d.motivo):'')+'</small>',price:'<del class="old">'+money(d.lista*qty)+'</del>'+money(line)}}
 function checkoutLayout(c,p,ph,img){
-  var items=(p.items||[]).map(function(i){var src=(img[String(i.producto_id)]||img['n:'+String(i.nombre||'')]),qty=Number(i.cantidad||1),line=Number(i.total_linea)||Number(i.precio_unitario||0)*qty;var parts=String(i.nombre||'Producto').split(' · Sabor: ');
-    return '<div class="sItem"><div class="sThumb">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'')+'<span class="qty">'+qty+'</span></div><div class="sName">'+esc(parts[0])+(parts[1]?'<small>Sabor: '+esc(parts[1])+'</small>':'')+'</div><div class="sPrice">'+money(line)+'</div></div>'}).join('');
+  var items=(p.items||[]).map(function(i){var src=(img[String(i.producto_id)]||img['n:'+String(i.nombre||'')]),qty=Number(i.cantidad||1),line=Number(i.total_linea)||Number(i.precio_unitario||0)*qty,ex=(current.extra||{})[String(i.nombre||'')]||{},dd=lineDisc(i.nombre,i.precio_unitario,ex.precio_lista,ex.descuento_motivo),dh=discHtml(dd,qty,line);var parts=dd.nombre.split(' · Sabor: ');
+    return '<div class="sItem"><div class="sThumb">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'')+'<span class="qty">'+qty+'</span></div><div class="sName">'+esc(parts[0])+(parts[1]?'<small>Sabor: '+esc(parts[1])+'</small>':'')+dh.name+'</div><div class="sPrice">'+dh.price+'</div></div>'}).join('');
   var tot='<div class="sTot">'+(p.subtotal?'<div><span>Subtotal</span><span>'+money(p.subtotal)+'</span></div>':'')+'<div><span>Envío</span><span>'+(Number(p.envio)?money(p.envio):'Gratis')+'</span></div>'+(Number(p.descuento)?'<div><span>Descuento</span><span>− '+money(p.descuento)+'</span></div>':'')+'<div class="sGrand"><span>Total</span><span><small>COP</small> '+money(p.total)+'</span></div></div>';
   var summary=items+tot;
   var addr=[p.direccion,p.notas,p.ciudad].filter(Boolean).map(function(x){return String(x).trim().replace(/,$/,'')}).join(', ');
