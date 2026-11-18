@@ -51,6 +51,7 @@ h2{font-size:19px;margin:0 0 12px}
 .more.open .morePop{display:flex}@media (hover:hover){.more:hover .morePop{display:flex}}
 .cta{width:100%;height:52px;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;cursor:pointer;margin-top:16px}
 .cta.dim{background:#b9b9b9}.cta:disabled{opacity:.7}
+.secH{display:flex;justify-content:space-between;align-items:baseline}.secH a{color:#1a56db;font-size:14px}.secH span{font-size:13px;color:var(--muted)}
 .chk{display:flex;gap:10px;align-items:center;font-size:13px;margin-top:16px;cursor:pointer}.chk input{width:18px;height:18px;accent-color:#111}.chk.bad{color:var(--red)}
 .err{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
 .sItem{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:8px 0}
@@ -80,6 +81,7 @@ h2{font-size:19px;margin:0 0 12px}
 <header class="top"><div class="in"><a class="logo" href="/">SUPGO</a><a class="back" href="/">← Seguir comprando</a></div></header>
 <main id="app"><div class="msg muted">Cargando…</div></main>
 <datalist id="cities"></datalist>
+<script src="/componentes/cuenta.js?v=20261101-google"></script>
 <script>
 (function(){
 'use strict';
@@ -111,16 +113,17 @@ function summaryHtml(){
     '<div><span>Envío</span><span>'+(!sh.known?'<span class="muted">Escribe tu ciudad</span>':sh.v?money(sh.v):'Gratis')+'</span></div><div class="sGrand"><span>Total</span><span><small>COP</small> '+money(total())+'</span></div></div>';
 }
 function paintSummary(){[].forEach.call(document.querySelectorAll('[data-sum]'),function(e){e.innerHTML=summaryHtml()});var t=$('mTotal');if(t)t.textContent=money(total())}
-function ready(){return $('nombre').value.trim().length>=3&&/^3\d{9}$/.test($('celular').value.replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''))&&$('ciudad').value.trim().length>=2&&$('direccion').value.trim().length>=5&&!!pay&&$('datos').checked&&(!$('email').value.trim()||/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('email').value.trim()))}
+function ready(){return $('nombre').value.trim().length>=3&&/^3\d{9}$/.test($('celular').value.replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''))&&$('ciudad').value.trim().length>=2&&$('direccion').value.trim().length>=5&&!!pay&&$('datos').checked&&/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('email').value.trim())}
 function paintBtn(){$('payBtn').classList.toggle('dim',!ready())}
 function render(){
   var bold='Tarjeta crédito/débito, PSE y más';
   $('app').innerHTML='<div class="ck"><div class="ckMain">'+
    '<details class="mSum"><summary><span>Mostrar resumen del pedido</span><b id="mTotal"></b></summary><div data-sum></div></details>'+
-   '<div class="sec"><h2>Contacto</h2>'+
+   '<div class="sec"><div class="secH"><h2>Contacto</h2><span id="acct"><a href="/cuenta/?volver='+encodeURIComponent(location.pathname+location.search)+'">Iniciar sesión</a></span></div>'+
+     '<label class="field" id="f-email"><input class="input" id="email" type="email" inputmode="email" placeholder="Correo electrónico" autocomplete="email"></label>'+
+     '<label class="chk" style="margin:2px 0 14px"><input type="checkbox" id="novedades"> <span>Enviarme novedades y ofertas por correo electrónico</span></label>'+
      '<label class="field" id="f-nombre"><input class="input" id="nombre" placeholder="Nombre completo" autocomplete="name"></label>'+
-     '<div class="row"><label class="field" id="f-celular"><input class="input" id="celular" type="tel" inputmode="tel" placeholder="Celular (WhatsApp)" autocomplete="tel"></label>'+
-     '<label class="field" id="f-email"><input class="input" id="email" type="email" inputmode="email" placeholder="Correo electrónico (opcional)" autocomplete="email"></label></div></div>'+
+     '<label class="field" id="f-celular"><input class="input" id="celular" type="tel" inputmode="tel" placeholder="Celular (WhatsApp)" autocomplete="tel"></label></div>'+
    '<div class="sec"><h2>Entrega</h2>'+
      '<label class="field" id="f-ciudad"><input class="input" id="ciudad" list="cities" placeholder="Ciudad o municipio" autocomplete="address-level2"></label>'+
      '<label class="field" id="f-direccion"><input class="input" id="direccion" placeholder="Dirección" autocomplete="street-address"></label>'+
@@ -139,14 +142,14 @@ function render(){
 function submit(){
   var bad=[],cel=$('celular').value.replace(/\D/g,'').replace(/^57(?=3\d{9}$)/,''),mail=$('email').value.trim();
   if($('nombre').value.trim().length<3)bad.push('f-nombre');if(!/^3\d{9}$/.test(cel))bad.push('f-celular');
-  if(mail&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))bad.push('f-email');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))bad.push('f-email');
   if($('ciudad').value.trim().length<2)bad.push('f-ciudad');if($('direccion').value.trim().length<5)bad.push('f-direccion');
   bad.forEach(function(id){$(id).classList.add('bad')});
   if(bad.length){$('err').textContent='Revisa los campos marcados en rojo.';$(bad[0]).scrollIntoView({behavior:'smooth',block:'center'});return}
   if(!pay){$('err').textContent='Elige cómo quieres pagar.';return}
   if(!$('datos').checked){$('f-datos').classList.add('bad');$('err').textContent='Para continuar, acepta el tratamiento de datos.';return}
   var b=$('payBtn');b.disabled=true;b.textContent='Procesando…';$('err').textContent='';
-  rpc('lift_borrador_convertir',{p_codigo:code,p_cliente:{nombre:$('nombre').value.trim(),celular:cel,email:mail,ciudad:$('ciudad').value.trim(),direccion:$('direccion').value.trim(),notas:$('notas').value.trim()}})
+  rpc('lift_borrador_convertir',{p_codigo:code,p_cliente:{nombre:$('nombre').value.trim(),celular:cel,email:mail,ciudad:$('ciudad').value.trim(),direccion:$('direccion').value.trim(),notas:$('notas').value.trim(),novedades:$('novedades').checked}})
   .then(function(r){
     var dest='/mi-pedido/?pedido='+encodeURIComponent(r.pedido_id)+'&token='+encodeURIComponent(r.token);
     try{localStorage.setItem('liftLastPublicOrder',JSON.stringify({ref:String(r.pedido_id),pedido_id:String(r.pedido_id),phone:cel,token:r.token}))}catch(e){}
@@ -158,6 +161,13 @@ function submit(){
     }).catch(function(){location.assign(dest)});
   }).catch(function(e){b.disabled=false;b.textContent='Pagar ahora';$('err').textContent=e.message});
 }
+/* Si el cliente ya tiene cuenta (y sesión), se llenan sus datos. */
+function prefill(){var C=window.SupgoCuenta;if(!C||!C.get())return;var s=C.get();
+  $('acct').innerHTML=esc(s.email||'')+' · <a href="/cuenta/">Mi cuenta</a>';if(s.email)$('email').value=s.email;
+  C.api('me').then(function(r){var c=r.cuenta||{},d=(r.direcciones||[])[0];
+    if(c.email&&!$('email').value)$('email').value=c.email;if(c.nombre&&!$('nombre').value)$('nombre').value=c.nombre;if(c.celular&&!$('celular').value)$('celular').value=String(c.celular).slice(-10);
+    if(d){if(!$('ciudad').value)$('ciudad').value=d.ciudad||'';if(!$('direccion').value)$('direccion').value=d.direccion||'';if(!$('notas').value&&d.notas)$('notas').value=d.notas}
+    paintSummary();paintBtn()}).catch(function(){})}
 function loadCities(){var base='https://raw.githubusercontent.com/proyecto26/colombia/master/';
   Promise.all([fetch(base+'cities.json'),fetch(base+'departments.json')]).then(function(rs){return Promise.all([rs[0].json(),rs[1].json()])}).then(function(d){var dep={};(d[1].data||[]).forEach(function(x){dep[x.id]=x.name});
     $('cities').innerHTML=(d[0].data||[]).map(function(c){return '<option value="'+esc(c.name)+'">'+esc(dep[c.departmentId]||'')+'</option>'}).join('')}).catch(function(){
@@ -166,7 +176,7 @@ if(!/^[A-Za-z0-9]{8}$/.test(code)){$('app').innerHTML='<div class="msg"><h2>Enla
 rpc('lift_borrador_ver',{p_codigo:code}).then(function(j){
   if(!j||!j.items){$('app').innerHTML='<div class="msg"><h2>Esta cotización ya no está disponible</h2><p class="muted">Escríbenos por WhatsApp y te enviamos una nueva.</p><p><a href="https://wa.me/573137380766">Escribir por WhatsApp</a></p></div>';return}
   if(j.pedido&&j.pedido.id){location.replace('/mi-pedido/?pedido='+encodeURIComponent(j.pedido.id)+'&token='+encodeURIComponent(j.pedido.token));return}
-  q=j;render();loadCities();
+  q=j;render();loadCities();prefill();
 }).catch(function(e){$('app').innerHTML='<div class="msg"><h2>No pudimos cargar la cotización</h2><p class="muted">'+esc(e.message)+'</p></div>'});
 })();
 </script>

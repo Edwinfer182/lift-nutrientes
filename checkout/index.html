@@ -289,6 +289,7 @@ details.coupon[open] summary::after{content:"−"}
               <input class="input" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
               <span class="err">Escribe un correo válido. Ahí te avisamos del pedido.</span></label>
           </div>
+          <label class="check mailOk"><input type="checkbox" id="novedades"><span>Enviarme novedades y ofertas por correo electrónico</span></label>
           <label class="check mailOk" id="c-recordatorio"><input type="checkbox" id="recordatorio"><span>Recordarme mi carrito por correo (<a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">política</a>)</span></label>
           <div class="newAcct" id="newAcct" hidden>
             <div class="naIntro" id="naIntro">
@@ -625,6 +626,7 @@ function submit(ev){
     saveToAccount(p);
     var go=function(){location.assign(id?'/mi-pedido/?pedido='+encodeURIComponent(id)+(r.token?'&token='+encodeURIComponent(r.token):'')+'&nuevo=1':'https://supgo.co/?mi-pedido=1')};
     if(!id||!r.token){go();return}
+    if($('novedades')&&$('novedades').checked)fetch(SB+'/rest/v1/rpc/lift_cliente_novedades',{method:'POST',keepalive:true,headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:r.token,p_acepta:true})}).catch(function(){});
     var m=payMethod();
     if(m==='bold'){
       fnCall('lift-bold-pagos',{pedido_id:Number(id),token:r.token,accion:'crear',ambiente:'production'}).then(function(j){
