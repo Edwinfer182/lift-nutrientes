@@ -245,6 +245,16 @@ details.coupon[open] summary::after{content:"−"}
 
 .cta.dim{background:#b9b9b9;color:#fff}
 .logoRow{display:flex;gap:4px;flex-wrap:nowrap;margin-top:7px}
+
+.opts{overflow:visible}
+.opts>.opt:first-child>label{border-radius:10px 10px 0 0}
+.opts>.opt:last-child>label,.opts>.opt:last-child>.panel{border-radius:0 0 10px 10px}
+.more{position:relative;cursor:pointer;user-select:none}
+.morePop{display:none;position:absolute;bottom:calc(100% + 8px);right:-4px;background:#111;border-radius:8px;padding:7px;gap:5px;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.morePop::after{content:"";position:absolute;top:100%;right:14px;border:6px solid transparent;border-top-color:#111}
+.morePop .lgb{border-color:#111}
+.more.open .morePop{display:flex}
+@media (hover:hover){.more:hover .morePop{display:flex}}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -326,7 +336,7 @@ details.coupon[open] summary::after{content:"−"}
                 <span hidden id="transferTotal"></span>
                 <input type="file" id="proof" hidden><span id="pickLabel" hidden></span><span id="pickText" hidden></span>
               </div></div>
-            <div class="opt" id="po-bold"><label><input type="radio" name="pago" value="bold"><span class="ot">Tarjeta crédito/débito, PSE y más<span class="logoRow"><span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px"></span><span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px"></span><span class="lgb"><img src="/mi-pedido/pagos/amex.png" alt="American Express" style="height:15px"></span><span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px"></span><span class="more">+4</span></span></span></label>
+            <div class="opt" id="po-bold"><label><input type="radio" name="pago" value="bold"><span class="ot">Tarjeta crédito/débito, PSE y más<span class="logoRow"><span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px"></span><span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px"></span><span class="lgb"><img src="/mi-pedido/pagos/amex.png" alt="American Express" style="height:15px"></span><span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px"></span><span class="more" role="button" aria-label="Ver más medios de pago">+4<span class="morePop"><span class="lgb"><img src="/mi-pedido/pagos/applepay.png" alt="Apple Pay" style="height:15px"></span><span class="lgb"><img src="/mi-pedido/pagos/bancolombia.png" alt="Bancolombia" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/breb.png" alt="Bre-B" style="height:12px"></span><span class="lgb"><img src="/mi-pedido/pagos/unclic.png" alt="Pago a un clic" style="height:17px"></span></span></span></span></span></label>
               <div class="panel" id="boldBox" hidden></div></div>
             <div class="opt" id="po-efectivo" hidden><label><input type="radio" name="pago" value="efectivo"><span class="ot">Efectivo contraentrega</span><span class="brands"><span class="cashTag">Solo Medellín</span></span></label>
               <div class="panel" id="cashBox" hidden>Pagas en efectivo al recibir tu pedido.</div></div>
@@ -845,6 +855,10 @@ function start2(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
+</script>
+<script>
+/* "+4": muestra los demás logos en un recuadro negro (toque o pasar el mouse). */
+document.addEventListener('click',function(e){var m=e.target.closest&&e.target.closest('.more');document.querySelectorAll('.more.open').forEach(function(x){if(x!==m)x.classList.remove('open')});if(m){e.preventDefault();e.stopPropagation();m.classList.toggle('open')}},true);
 </script>
 </body>
 </html>
