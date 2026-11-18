@@ -15,7 +15,7 @@ const money=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO');
 const pw=()=>{try{return sessionStorage.getItem(PASS)||''}catch(e){return ''}};
 const title=s=>{s=String(s||'').trim();return s?s.charAt(0).toUpperCase()+s.slice(1):'Otros'};
 const fecha=d=>d.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
-const S={rows:[],offers:{},groups:new Map(),variants:new Map(),ver:'publico',cats:null,allCats:[],pdf:null,pdfInfo:null,estado:{},busy:false};
+const S={rows:[],privRows:[],allGroups:new Map(),variantsAll:new Map(),offers:{},groups:new Map(),variants:new Map(),ver:'publico',cats:null,allCats:[],pdf:null,pdfInfo:null,estado:{},busy:false};
 
 /* ---------- Datos ---------- */
 async function rest(path){const r=await fetch(SB+'/rest/v1/'+path,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});if(!r.ok)throw new Error('Supabase '+r.status);return r.json()}
@@ -31,29 +31,36 @@ function sync(s,t){const el=$('sync');el.className='sync '+s;el.querySelector('s
 async function load(){
   sync('load','Cargando productos…');
   try{
-    const [rows,off,grupos,vars,est]=await Promise.all([
+    const [rows,off,grupos,vars,est,privRes]=await Promise.all([
       allProducts(),
       rest('lift_catalog_config?select=valor&clave=eq.weekly_offers&limit=1').catch(()=>[]),
       rest('lift_producto_grupos?select=id,nombre,slug,marca,presentacion,imagen,categoria,visible_publico').catch(()=>[]),
       rest('lift_producto_variantes?select=grupo_id,producto_id,sabor,tamano,orden,activo&activo=eq.true').catch(()=>[]),
-      fn('estado').catch(e=>{if(/Clave/.test(e.message))throw e;return {estado:{}}})
+      fn('estado').catch(e=>{if(/Clave/.test(e.message))throw e;return {estado:{}}}),
+      fetch(SB+'/functions/v1/lift-catalog-admin',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'list-private',password:pw()})}).then(r=>r.ok?r.json():{}).catch(()=>({}))
     ]);
+
     let o=off&&off[0]&&off[0].valor||{};if(typeof o==='string'){try{o=JSON.parse(o)}catch(e){o={}}}
     S.offers=o&&typeof o==='object'?o:{};
     S.groups=new Map(grupos.filter(g=>g.visible_publico!==false).map(g=>[String(g.id),g]));
     S.variants=new Map();vars.forEach(v=>{if(S.groups.has(String(v.grupo_id)))S.variants.set(String(v.producto_id),v)});
     S.estado=est.estado||{};
     S.rows=rows.map(prep).filter(Boolean);
-    const cc={};S.rows.forEach(r=>{cc[r.cat]=(cc[r.cat]||0)+1});
+    /* Productos privados (solo admin): catálogo aparte. */
+    S.allGroups=new Map(grupos.map(g=>[String(g.id),g]));
+    S.variantsAll=new Map();vars.forEach(v=>{if(S.allGroups.has(String(v.grupo_id)))S.variantsAll.set(String(v.producto_id),v)});
+    S.privRows=((privRes&&privRes.products)||[]).filter(x=>x&&x.activo!==false).map(x=>prep(x,true)).filter(Boolean);
+    const cc={};S.rows.concat(S.privRows).forEach(r=>{cc[r.cat]=(cc[r.cat]||0)+1});
     S.allCats=Object.keys(cc).sort((a,b)=>a.localeCompare(b,'es')).map(c=>({c,n:cc[c]}));
-    sync('ok',S.rows.length+' productos visibles en la tienda');
+    sync('ok',S.rows.length+' productos públicos · '+S.privRows.length+' privados');
     renderLinks();summary();
   }catch(e){sync('err','Error');if(!/Clave/.test(e.message))toast(e.message,'err')}
 }
-function prep(r){
+function prep(r,priv){
   const p=r.product||{},name=String(p.name||r.nombre||'').trim(),brand=String(p.brand||r.marca||'').trim();
-  if(!r.activo||!name)return null;
-  if(yes(p.__deleted)||yes(p.__private)||yes(p.adminOnly)||yes(p.hidden)||yes(p.oculto)||p.visibility==='admin'||yes(p._checkoutOnly))return null;
+  if((!priv&&!r.activo)||!name)return null;
+  if(yes(p.__deleted)||yes(p.hidden)||yes(p.oculto)||yes(p._checkoutOnly))return null;
+  if(!priv&&(yes(p.__private)||yes(p.adminOnly)||p.visibility==='admin'))return null;
   if(/\s-\s*copia\s*$/i.test(name)||HIDE_BRANDS.includes(slug(brand)))return null;
   const price=Number(p.price)||0;if(!(price>0))return null;
   let fl=p.flavors;if(typeof fl==='string')fl=fl.split(/[,\n;|]/);fl=Array.isArray(fl)?fl.map(x=>String(typeof x==='object'&&x?(x.name||x.sabor||''):x).trim()).filter(Boolean):[];
@@ -67,16 +74,17 @@ function offerFor(id,regular){const o=S.offers[String(id)];if(!o||typeof o!=='ob
 /* ---------- Selección ---------- */
 function items(){
   const cats=S.cats,soloFoto=$('soloFoto').checked,soloOferta=$('soloOferta').checked,unir=$('unirSabores').checked,ent=S.ver==='entrenador';
-  let L=S.rows.filter(r=>(!cats||cats.has(r.cat)));
+  const priv=S.ver==='privado',src=priv?S.privRows:S.rows,VAR=priv?S.variantsAll:S.variants,GRP=priv?S.allGroups:S.groups;
+  let L=src.filter(r=>(!cats||cats.has(r.cat)));
   const shown=r=>ent?r.trainer:(r.offer||r.price);
   const out=[],byGroup=new Map();
   for(const r of L){
-    const v=unir&&S.variants.get(r.id);
+    const v=unir&&VAR.get(r.id);
     if(v){const k=String(v.grupo_id);if(!byGroup.has(k))byGroup.set(k,[]);byGroup.get(k).push({r,v});continue}
     out.push({name:r.name,brand:r.brand,cat:r.cat,pres:r.pres,flavors:r.flavors,img:r.img,slug:r.slug,price:shown(r),old:!ent&&r.offer?r.price:0,from:false});
   }
   byGroup.forEach((ms,k)=>{
-    const g=S.groups.get(k);ms.sort((a,b)=>(a.v.orden||0)-(b.v.orden||0));
+    const g=GRP.get(k);ms.sort((a,b)=>(a.v.orden||0)-(b.v.orden||0));
     const prices=ms.map(m=>shown(m.r)),min=Math.min(...prices),cheap=ms[prices.indexOf(min)].r;
     const fl=[...new Set(ms.map(m=>String(m.v.sabor||'').trim()||m.r.flavors[0]||'').filter(Boolean))],sizes=[...new Set(ms.map(m=>String(m.v.tamano||'').trim()).filter(Boolean))];
     out.push({name:String(g.nombre||cheap.name),brand:String(g.marca||cheap.brand),cat:cheap.cat,pres:sizes.length>1?sizes.join(' · '):String(g.presentacion||sizes[0]||cheap.pres||''),flavors:fl,
@@ -89,7 +97,7 @@ function items(){
   return R;
 }
 function summary(){
-  const L=items(),secs=new Set(L.map(x=>$('orden').value==='marca'?x.brand:x.cat)).size,pages=Math.max(1,Math.ceil((L.length+secs*1.5)/9))+1;
+  const L=items(),secs=new Set(L.map(x=>$('orden').value==='marca'?x.brand:x.cat)).size,pages=Math.max(1,Math.ceil((L.length+secs*2)/36))+1;
   $('sum').innerHTML=L.length?`<b>${L.length}</b> productos · <b>${secs}</b> ${$('orden').value==='marca'?'marcas':'categorías'} · unas <b>${pages}</b> páginas`+(L.length>400?'<br>Son muchos productos: generarlo puede tardar 1 o 2 minutos.':''):'No hay productos con estos filtros.';
   $('genBtn').disabled=!L.length;
   $('catBtn').textContent=!S.cats?'Todas':S.cats.size===1?[...S.cats][0]:S.cats.size+' categorías';
@@ -140,10 +148,10 @@ async function generate(){
   try{
     const {PDFDocument,StandardFonts,rgb,PDFName,PDFString}=PDFLib;
     const doc=await PDFDocument.create();
-    doc.setTitle('Catálogo SUPGO'+(S.ver==='entrenador'?' · Entrenador':''));doc.setAuthor('SUPGO');doc.setCreator('SUPGO CONTROL');doc.setLanguage('es-CO');
+    doc.setTitle('Catálogo SUPGO'+(S.ver==='entrenador'?' · Entrenador':S.ver==='privado'?' · Privado':''));doc.setAuthor('SUPGO');doc.setCreator('SUPGO CONTROL');doc.setLanguage('es-CO');
     const F=await doc.embedFont(StandardFonts.Helvetica),B=await doc.embedFont(StandardFonts.HelveticaBold);
     const INK=rgb(.043,.059,.047),LIME=rgb(.776,.957,.196),MUT=rgb(.42,.45,.42),LINE=rgb(.89,.91,.886),SOFT=rgb(.965,.97,.96),WHITE=rgb(1,1,1),RED=rgb(.78,.16,.16);
-    const W=595.28,H=841.89,M=28,G=10,COLS=3,CW=(W-2*M-(COLS-1)*G)/COLS,CH=224,IMGH=128,TOP=H-52,BOT=44;
+    const W=595.28,H=841.89,M=24,G=14,COLS=2,CW=(W-2*M-(COLS-1)*G)/COLS,CH=38,IMG=30,TOP=H-46,BOT=44;
 
     /* Fotos */
     const urls=[...new Set(L.map(x=>x.img).filter(Boolean))],imgs=new Map();
@@ -152,7 +160,7 @@ async function generate(){
     step(.82,'Armando páginas…');
     const emb=new Map();for(const [u,j] of imgs){try{emb.set(u,await doc.embedJpg(j.bytes))}catch(e){}}
 
-    const today=new Date(),dateTxt=fecha(today),ent=S.ver==='entrenador';
+    const today=new Date(),dateTxt=fecha(today),ent=S.ver==='entrenador',priv=S.ver==='privado';
     const link=(page,x,y,w,h,url)=>{const a=doc.context.register(doc.context.obj({Type:'Annot',Subtype:'Link',Rect:[x,y,x+w,y+h],Border:[0,0,0],A:{Type:'Action',S:'URI',URI:PDFString.of(url)}}));let arr=page.node.lookup(PDFName.of('Annots'));if(!arr){arr=doc.context.obj([]);page.node.set(PDFName.of('Annots'),arr)}arr.push(a)};
     const rr=(page,x,y,w,h,r,o)=>{const p=`M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;page.drawSvgPath(p,Object.assign({x,y:y+h},o))};
     const txt=(page,s,x,y,size,font,color)=>page.drawText(clean(s),{x,y,size,font,color});
@@ -165,8 +173,8 @@ async function generate(){
     cv.drawRectangle({x:M,y:H-120,width:60,height:6,color:LIME});
     txt(cv,'SUPGO',M,H-200,78,B,WHITE);
     txt(cv,'Catálogo de suplementos',M,H-240,24,F,WHITE);
-    rr(cv,M,H-300,ent?190:150,30,15,{color:LIME});
-    txt(cv,ent?'PRECIO ENTRENADOR':'PRECIO PÚBLICO',M+14,H-290,11,B,INK);
+    rr(cv,M,H-300,ent?190:priv?170:150,30,15,{color:LIME});
+    txt(cv,ent?'PRECIO ENTRENADOR':priv?'CATÁLOGO PRIVADO':'PRECIO PÚBLICO',M+14,H-290,11,B,INK);
     txt(cv,'Precios actualizados el '+dateTxt,M,H-335,12,F,rgb(.75,.79,.75));
     txt(cv,L.length+' productos · '+secs.length+($('orden').value==='marca'?' marcas':' categorías'),M,H-353,12,F,rgb(.75,.79,.75));
     let cy=H-410;txt(cv,$('orden').value==='marca'?'MARCAS':'CATEGORÍAS',M,cy,9,B,LIME);cy-=18;
@@ -183,7 +191,7 @@ async function generate(){
     let page=null,y=0,col=0,pn=1;
     const newPage=()=>{page=doc.addPage([W,H]);pn++;y=TOP;col=0;
       page.drawRectangle({x:0,y:H-34,width:W,height:34,color:INK});
-      txt(page,'SUPGO',M,H-22,12,B,LIME);txt(page,ent?'Catálogo · precio entrenador':'Catálogo',M+50,H-22,9,F,WHITE);
+      txt(page,'SUPGO',M,H-22,12,B,LIME);txt(page,ent?'Catálogo · precio entrenador':priv?'Catálogo privado':'Catálogo',M+50,H-22,9,F,WHITE);
       const d='Precios al '+dateTxt;txt(page,d,W-M-F.widthOfTextAtSize(clean(d),8.5),H-22,8.5,F,rgb(.75,.79,.75));
       page.drawLine({start:{x:M,y:BOT-10},end:{x:W-M,y:BOT-10},thickness:.6,color:LINE});
       txt(page,'Pide por WhatsApp '+WA_TXT+' · supgo.co',M,BOT-24,8,F,MUT);
@@ -191,36 +199,39 @@ async function generate(){
       link(page,M,BOT-30,200,16,'https://wa.me/'+WA);
     };
     let curSec=null;
+    /* Lista en dos columnas: foto pequeña, nombre, detalle y precio a la derecha. */
     for(const x of L){
       const s=secName(x);
       if(s!==curSec){
-        if(col!==0){y-=CH+G;col=0}
-        if(!page||y-28-CH<BOT)newPage();
-        page.drawRectangle({x:M,y:y-20,width:4,height:16,color:LIME});
-        txt(page,s,M+12,y-16,13,B,INK);
-        y-=30;curSec=s;
+        if(col!==0){y-=CH;col=0}
+        if(!page||y-24-CH<BOT)newPage();
+        y-=6;page.drawRectangle({x:M,y:y-15,width:W-2*M,height:18,color:SOFT});
+        page.drawRectangle({x:M,y:y-15,width:3,height:18,color:LIME});
+        txt(page,s,M+9,y-10,10,B,INK);
+        y-=22;curSec=s;
       }
-      if(!page||y-CH<BOT){newPage();txt(page,s+' (continuación)',M,y-12,9,B,MUT);y-=22}
-      const cx=M+col*(CW+G),top=y,cardY=top-CH;
-      rr(page,cx,cardY,CW,CH,10,{color:WHITE,borderColor:LINE,borderWidth:.8});
-      rr(page,cx+6,top-6-IMGH,CW-12,IMGH,7,{color:SOFT});
-      const im=x.img&&emb.get(x.img);
-      if(im){const bw=CW-24,bh=IMGH-12,k=Math.min(bw/im.width,bh/im.height),iw=im.width*k,ih=im.height*k;page.drawImage(im,{x:cx+6+(CW-12-iw)/2,y:top-6-IMGH+(IMGH-ih)/2,width:iw,height:ih})}
-      else{const ini=clean(x.brand||x.name).charAt(0).toUpperCase()||'S';txt(page,ini,cx+CW/2-B.widthOfTextAtSize(ini,36)/2,top-6-IMGH/2-12,36,B,LINE)}
-      if(x.old){const pct=Math.min(99,Math.round((1-x.price/x.old)*100)),lb='OFERTA'+(pct>0?' -'+pct+'%':''),bw=B.widthOfTextAtSize(lb,7.5)+14;rr(page,cx+11,top-26,bw,15,7.5,{color:LIME});txt(page,lb,cx+18,top-21.5,7.5,B,INK)}
-      let ty=top-IMGH-20;const tx=cx+10,tw=CW-20;
-      txt(page,wrap(String(x.brand).toUpperCase(),B,7,tw,1)[0]||'',tx,ty,7,B,MUT);ty-=12;
-      wrap(x.name,B,9.5,tw,2).forEach(l=>{txt(page,l,tx,ty,9.5,B,INK);ty-=11.5});
-      if(x.pres){txt(page,wrap(x.pres,F,7.8,tw,1)[0]||'',tx,ty,7.8,F,MUT);ty-=10}
-      if(x.flavors.length>1||(x.flavors.length===1&&!new RegExp(x.flavors[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i').test(x.name))){
-        wrap((x.flavors.length>1?'Sabores: ':'Sabor: ')+x.flavors.join(', '),F,7.2,tw,2).forEach(l=>{txt(page,l,tx,ty,7.2,F,MUT);ty-=9});
-      }
-      const py=cardY+12;let px=tx;
-      if(x.from){txt(page,'Desde',px,py+15,7,F,MUT)}
-      const ps=money(x.price);txt(page,ps,px,py,14,B,x.old?RED:INK);px+=B.widthOfTextAtSize(ps,14)+6;
-      if(x.old){const os=money(x.old),ow=F.widthOfTextAtSize(os,8.5);txt(page,os,px,py+1,8.5,F,MUT);page.drawLine({start:{x:px,y:py+4},end:{x:px+ow,y:py+4},thickness:.8,color:MUT})}
-      if(x.slug)link(page,cx,cardY,CW,CH,SITE+'/producto/'+x.slug+'/');
-      col++;if(col===COLS){col=0;y-=CH+G}
+      if(!page||y-CH<BOT){newPage();txt(page,s+' (continuación)',M,y-10,8,B,MUT);y-=18}
+      const cx=M+col*(CW+G),top=y,rowY=top-CH;
+      /* foto */
+      const im=x.img&&emb.get(x.img),ix=cx,iy=top-4-IMG;
+      rr(page,ix,iy,IMG,IMG,5,{color:WHITE,borderColor:LINE,borderWidth:.6});
+      if(im){const k=Math.min((IMG-4)/im.width,(IMG-4)/im.height),iw=im.width*k,ih=im.height*k;page.drawImage(im,{x:ix+(IMG-iw)/2,y:iy+(IMG-ih)/2,width:iw,height:ih})}
+      else{const ini=clean(x.brand||x.name).charAt(0).toUpperCase()||'S';txt(page,ini,ix+IMG/2-B.widthOfTextAtSize(ini,12)/2,iy+IMG/2-4,12,B,LINE)}
+      /* precio */
+      const ps=money(x.price),psW=B.widthOfTextAtSize(ps,10),px=cx+CW-psW;
+      txt(page,ps,px,top-14,10,B,x.old?RED:INK);
+      if(x.from){const d='desde',dw=F.widthOfTextAtSize(d,6.5);txt(page,d,cx+CW-dw,top-23,6.5,F,MUT)}
+      else if(x.old){const os=money(x.old),ow=F.widthOfTextAtSize(os,7);txt(page,os,cx+CW-ow,top-23,7,F,MUT);page.drawLine({start:{x:cx+CW-ow,y:top-20.5},end:{x:cx+CW,y:top-20.5},thickness:.6,color:MUT})}
+      /* texto */
+      const tx=cx+IMG+7,tw=CW-IMG-7-Math.max(psW,44)-8;
+      const nl=wrap(x.name,B,8.2,tw,2);let ty=top-11;
+      nl.forEach(l=>{txt(page,l,tx,ty,8.2,B,INK);ty-=9.5});
+      const det=[$('orden').value==='marca'?'':x.brand,x.pres,(x.flavors.length>1?x.flavors.length+' sabores: ':'')+(x.flavors.length>1?x.flavors.join(', '):'')].filter(Boolean).join(' · ');
+      if(det)txt(page,wrap(det,F,6.6,tw,1)[0]||'',tx,ty,6.6,F,MUT);
+      if(x.old){const lb='OFERTA';txt(page,lb,cx+CW-B.widthOfTextAtSize(lb,6),top-31,6,B,RED)}
+      page.drawLine({start:{x:cx,y:rowY+1},end:{x:cx+CW,y:rowY+1},thickness:.4,color:LINE});
+      if(x.slug&&!priv)link(page,cx,rowY,CW,CH,SITE+'/producto/'+x.slug+'/');
+      col++;if(col===COLS){col=0;y-=CH}
     }
     step(.95,'Guardando PDF…');
     const bytes=await doc.save();
@@ -229,9 +240,9 @@ async function generate(){
     S.pdf={blob,url:URL.createObjectURL(blob),ver:S.ver};
     S.pdfInfo={productos:L.length,paginas:doc.getPageCount(),bytes:bytes.length,sinFoto:L.filter(x=>x.img&&!emb.get(x.img)).length};
     step(1,'Listo');
-    $('resT').textContent='PDF listo · '+(S.ver==='entrenador'?'precio entrenador':'precio público');
+    $('resT').textContent='PDF listo · '+(S.ver==='entrenador'?'precio entrenador':S.ver==='privado'?'catálogo privado':'precio público');
     $('resS').textContent=S.pdfInfo.paginas+' páginas · '+S.pdfInfo.productos+' productos · '+(bytes.length/1048576).toFixed(1)+' MB'+(S.pdfInfo.sinFoto?' · '+S.pdfInfo.sinFoto+' fotos no cargaron':'');
-    $('pubBtn').textContent='🌐 Publicar en '+LINKS[S.ver].replace('https://','');
+    $('pubBtn').hidden=S.ver==='privado';if(LINKS[S.ver])$('pubBtn').textContent='🌐 Publicar en '+LINKS[S.ver].replace('https://','');
     $('result').hidden=false;$('prog').hidden=true;
   }catch(e){toast('No se pudo generar: '+(e.message||e),'err');$('prog').hidden=true}
   S.busy=false;$('genBtn').disabled=false;
@@ -269,7 +280,7 @@ $('catAll').onclick=()=>$('catList').querySelectorAll('input').forEach(i=>i.chec
 $('catNone').onclick=()=>$('catList').querySelectorAll('input').forEach(i=>i.checked=false);
 $('genBtn').onclick=generate;$('pubBtn').onclick=publish;
 $('viewBtn').onclick=()=>{if(S.pdf)window.open(S.pdf.url,'_blank')};
-$('dlBtn').onclick=()=>{if(!S.pdf)return;const a=document.createElement('a');a.href=S.pdf.url;a.download='catalogo-supgo'+(S.pdf.ver==='entrenador'?'-entrenador':'')+'.pdf';document.body.appendChild(a);a.click();a.remove()};
+$('dlBtn').onclick=()=>{if(!S.pdf)return;const a=document.createElement('a');a.href=S.pdf.url;a.download='catalogo-supgo'+(S.pdf.ver==='entrenador'?'-entrenador':S.pdf.ver==='privado'?'-privado':'')+'.pdf';document.body.appendChild(a);a.click();a.remove()};
 $('links').onclick=async e=>{const b=e.target.closest('[data-copy]');if(b&&await copy(b.dataset.copy))toast('Enlace copiado')};
 $('lockForm').onsubmit=async e=>{e.preventDefault();try{sessionStorage.setItem(PASS,$('lockPw').value)}catch(x){}$('lockErr').textContent='Verificando…';try{await fn('estado');$('lock').hidden=true;load()}catch(x){$('lockErr').textContent=/Clave/.test(x.message)?'Clave incorrecta':'Sin conexión'}};
 if(!pw())lock();else load();

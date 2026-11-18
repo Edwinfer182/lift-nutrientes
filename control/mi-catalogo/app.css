@@ -10,7 +10,7 @@ main{padding-top:16px;max-width:760px}
 .lk.off{background:#fff;color:var(--ink);border:1px dashed var(--line2);box-shadow:none}.lk.off small{color:var(--muted)}
 .panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px 18px 18px;box-shadow:var(--sh)}
 .panel h3{margin:16px 0 8px;font-size:13px;font-weight:800;letter-spacing:-.01em}.panel h3:first-child{margin-top:0}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .seg button{height:auto;min-height:58px;display:block;line-height:1.3;text-align:left;border:1.5px solid var(--line2);background:#fff;border-radius:14px;padding:10px 12px;font:inherit;cursor:pointer}
 .seg button b{display:block;font-size:14px}.seg button small{font-size:11.5px;color:var(--muted)}
 .seg button.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset;background:#f7faf3}
