@@ -695,8 +695,12 @@ function paintQuick(){
   var q=$('quickInfo'),on=!compactOff&&infoReady();
   q.hidden=!on;$('cardContacto').hidden=on;$('cardEntrega').hidden=on;if(!on)return;
   var notas=$('notas').value.trim(),city=state.city.name+(state.city.department?', '+state.city.department:'');
+  // Si la dirección guardada ya termina con la ciudad/departamento, no repetirlos.
+  var dir=$('direccion').value.trim(),parts=dir.split(',').map(function(x){return x.trim()}),drop=[norm(state.city.name),norm(state.city.department||''),'colombia'];
+  while(parts.length>1&&drop.indexOf(norm(parts[parts.length-1]))>=0)parts.pop();dir=parts.join(', ');
+  var acct=document.querySelector('#acctBar.in span');if(acct)acct.hidden=true;
   q.innerHTML='<div class="qr"><small>Contacto</small><div class="qv">'+esc($('nombre').value.trim())+' ('+esc($('celular').value.trim())+')<span>'+esc($('email').value.trim())+'</span></div><button type="button" data-qedit="nombre">Cambiar</button></div>'+
-    '<div class="qr"><small>Enviar a</small><div class="qv">'+esc($('direccion').value.trim())+(notas?', '+esc(notas):'')+'<span>'+esc(city)+'</span></div><button type="button" data-qedit="direccion">Cambiar</button></div>';
+    '<div class="qr"><small>Enviar a</small><div class="qv">'+esc(dir)+(notas?', '+esc(notas):'')+'<span>'+esc(city)+'</span></div><button type="button" data-qedit="direccion">Cambiar</button></div>';
 }
 function expandInfo(focusId){compactOff=true;paintQuick();var el=$(focusId);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){el.focus({preventScroll:true})},300)}}
 function fillRemembered(){
