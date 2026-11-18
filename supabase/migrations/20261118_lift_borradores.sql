@@ -1,0 +1,7 @@
+-- Borradores sin cliente (estilo Shopify): el admin arma productos, comparte supgo.co/c/CODIGO
+-- y el cliente llena sus datos; lift_borrador_convertir crea el pedido (pendiente_pago, es_borrador)
+-- con los precios guardados. Aplicada vía MCP (migración lift_borradores):
+--   tabla lift_borradores (RLS sin políticas)
+--   lift_envio_cotizacion(items, ciudad, price_mode)
+--   lift_borrador_guardar / lift_borrador_lista / lift_borrador_eliminar (con clave admin)
+--   lift_borrador_ver / lift_borrador_convertir (públicas, por código)
