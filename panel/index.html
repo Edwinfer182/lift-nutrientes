@@ -282,6 +282,43 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
   .toast{left:auto;right:24px;bottom:24px;max-width:440px}
   .results{max-height:440px}
 }
+
+/* ---------- Nuevo pedido compacto (estilo Shopify) ---------- */
+#vNuevo .np .colR{order:-1}
+#vNuevo .box{padding:14px 16px}
+#vNuevo .box h2{font-size:14.5px;margin:0 0 10px}
+#vNuevo .input{height:38px;font-size:14px;border-radius:9px}
+#vNuevo .field{margin:0 0 9px}
+#vNuevo .field>span{font-size:11.5px;margin:0 0 4px}
+#vNuevo .seg{border-radius:9px;padding:3px;gap:3px}
+#vNuevo .seg button{height:30px;font-size:12px;border-radius:7px}
+#vNuevo #priceMode{max-width:320px}
+#vNuevo .prodHead{flex-wrap:wrap}
+#vNuevo .prodHead small{margin-left:6px}
+#vNuevo .prodHead .addRow{margin:0 0 0 auto;flex-wrap:nowrap}
+#vNuevo .prodHead .addRow .btn{flex:none;min-width:0;height:32px;font-size:12.5px;padding:0 12px;border-radius:9px;background:#f1f2f4;border:0}
+#vNuevo .cartLine{padding:7px 0}
+#vNuevo .summary{background:#fff;color:#111;border:1px solid var(--line);padding:14px 16px;gap:4px}
+#vNuevo .summary .line{color:#4b5563;font-size:13.5px}
+#vNuevo .summary .line b{color:#111}
+#vNuevo .summary .line.total{color:#111;border-color:var(--line)}
+#vNuevo .summary .btn{height:42px;font-size:14px}
+#vNuevo .summary #clearDraft{background:transparent!important;color:#9ca3af!important;border-color:var(--line)!important;height:34px!important}
+#vNuevo .hint{font-size:11.5px}
+@media(min-width:900px){
+  #vNuevo .np{grid-template-columns:minmax(0,1fr) 340px;max-width:1240px;margin:0 auto;gap:16px}
+  #vNuevo .np .colR{order:0;position:sticky;top:20px}
+  #vNuevo .np .colL{gap:14px!important}
+  #vNuevo #boxPago{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}
+  #vNuevo #boxPago>h2,#vNuevo #boxPago>#creditBox{grid-column:1/-1}
+  #vNuevo .cartLine .ctrl{flex-direction:row;align-items:center;gap:14px}
+  #vNuevo .cartLine .ctrl>div:first-child{display:contents}
+  #vNuevo .cartLine .ctrl .priceBtn{order:1}
+  #vNuevo .cartLine .ctrl>:nth-child(2){order:2}
+  #vNuevo .cartLine .ctrl>:nth-child(3){order:3;min-width:84px;text-align:right;color:#111;font-weight:500}
+  #vNuevo .cartLine .ctrl .lineX{order:4}
+  #vNuevo .cartLine{padding:6px 0}
+}
 </style>
 </head>
 <body>
@@ -331,41 +368,19 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
       <section id="vNuevo" hidden>
         <div class="np" id="np">
           <div class="colL" style="display:grid;gap:12px">
-            <div class="box" id="boxCliente">
-              <h2><i>1</i>Cliente</h2>
-              <div id="clientSel"></div>
-              <div id="clientSearchWrap">
-                <input class="input" id="cq" type="search" placeholder="Buscar por celular o nombre" aria-label="Buscar cliente" autocomplete="off">
-                <div class="results" id="cres"></div>
-              </div>
-              <div id="clientForm" style="margin-top:10px">
-                <div class="grid2">
-                  <label class="field"><span>Nombre *</span><input class="input" id="cNombre" autocomplete="off"></label>
-                  <label class="field"><span>Celular *</span><input class="input" id="cCel" inputmode="tel" autocomplete="off"></label>
-                </div>
-                <label class="field"><span>Ciudad *</span><input class="input" id="cCiudad" list="cities" autocomplete="off"></label>
-                <input type="hidden" id="cDepto">
-                <label class="field"><span>Dirección *</span><input class="input" id="cDir" autocomplete="off"></label>
-                <label class="field" style="margin:0"><span>Indicaciones / notas</span><input class="input" id="cNotas" autocomplete="off"></label>
-              </div>
-            </div>
-
             <div class="box">
-              <h2><i>2</i>Productos <small id="unitsLbl"></small></h2>
+              <h2 class="prodHead">Productos <small id="unitsLbl"></small><div class="addRow"><button type="button" class="btn sm" id="pickBtn">+ Producto</button><button type="button" class="btn sm" id="customBtn">+ Artículo personalizado</button></div></h2>
               <div class="seg" id="priceMode" role="group" aria-label="Lista de precios" style="margin-bottom:10px">
                 <button data-mode="public" class="on">Precio público</button>
                 <button data-mode="trainer">Precio entrenador</button>
               </div>
-              <input class="input" id="pq" type="search" placeholder="Buscar producto, marca o sabor" aria-label="Buscar producto" autocomplete="off">
-              <div class="results" id="pres"></div>
-              <div class="addRow"><button type="button" class="btn sm" id="pickBtn">+ Producto</button><button type="button" class="btn sm" id="customBtn">+ Artículo personalizado</button></div>
+              <input class="input" id="pq" hidden type="search" placeholder="Buscar producto, marca o sabor" aria-label="Buscar producto" autocomplete="off">
+              <div class="results" id="pres" hidden></div>
+              
               <div id="cart" style="margin-top:8px"></div>
             </div>
-          </div>
-
-          <div class="colR">
-            <div class="box">
-              <h2><i>3</i>Envío y pago</h2>
+            <div class="box" id="boxPago">
+              <h2>Envío y pago</h2>
               <div class="field"><span style="display:block;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:5px">Envío o entrega</span>
                 <div class="seg" id="delivMode" style="margin-bottom:8px"><button data-deliv="domicilio" class="on">Envío a domicilio</button><button data-deliv="recoger">Recoger en tienda</button><button data-deliv="otro">Personalizado</button></div>
                 <div id="delivCustom" class="grid2" style="margin-bottom:8px" hidden><input class="input" id="delivName" placeholder="Nombre (ej. Servientrega, Mensajero)"><input class="input" id="delivPrice" inputmode="numeric" placeholder="Valor $"></div>
@@ -388,6 +403,28 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
               <label class="field" id="fechaField" style="margin:0"><span>Fecha del pedido</span><input class="input" id="fecha" type="date"></label>
             </div>
             <div class="summary" id="summary"></div>
+          </div>
+
+          <div class="colR">
+            <div class="box" id="boxCliente">
+              <h2>Cliente</h2>
+              <div id="clientSel"></div>
+              <div id="clientSearchWrap">
+                <input class="input" id="cq" type="search" placeholder="Buscar por celular o nombre" aria-label="Buscar cliente" autocomplete="off">
+                <div class="results" id="cres"></div>
+              </div>
+              <div id="clientForm" style="margin-top:10px">
+                <div class="grid2">
+                  <label class="field"><span>Nombre *</span><input class="input" id="cNombre" autocomplete="off"></label>
+                  <label class="field"><span>Celular *</span><input class="input" id="cCel" inputmode="tel" autocomplete="off"></label>
+                </div>
+                <label class="field"><span>Ciudad *</span><input class="input" id="cCiudad" list="cities" autocomplete="off"></label>
+                <input type="hidden" id="cDepto">
+                <label class="field"><span>Dirección *</span><input class="input" id="cDir" autocomplete="off"></label>
+                <label class="field" style="margin:0"><span>Indicaciones / notas</span><input class="input" id="cNotas" autocomplete="off"></label>
+              </div>
+            </div>
+
           </div>
         </div>
         <div class="box done" id="done" hidden></div>
