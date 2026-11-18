@@ -609,7 +609,7 @@ function quoteCard(q){const items=(q.items||[]).map(x=>Number(x.cantidad||1)+' �
   return `<article class="card"><div class="cardTop"><div class="who"><strong>Sin cliente</strong><small>${esc(when(q.created_at))} · enlace /c/${esc(q.codigo)}</small></div><div class="amt"><strong>${money(quoteTotal(q))}</strong>${q.envio_modo==='auto'?'<small>+ envío según ciudad</small>':''}</div></div>
     <div class="pills"><span class="pill" style="background:#eef2ff;color:#3730a3">Borrador</span><span class="pill">Esperando datos del cliente</span></div>
     <div class="items">${esc(items)}</div>
-    <div class="grid2"><button class="btn sm" data-qshare="${esc(q.codigo)}">${I.share} Compartir</button><button class="btn sm red" data-qdel="${esc(q.codigo)}">Eliminar</button></div></article>`}
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr"><button class="btn sm" data-qedit="${esc(q.codigo)}">✎ Editar</button><button class="btn sm" data-qshare="${esc(q.codigo)}">${I.share} Compartir</button><button class="btn sm red" data-qdel="${esc(q.codigo)}">Eliminar</button></div></article>`}
 async function shareQuote(code){const url=quoteUrl(code);
   if(navigator.share){try{await navigator.share({title:'Cotización SUPGO',text:'Tu cotización SUPGO',url});return}catch(e){if(e&&e.name==='AbortError')return}}
   toast(await copy(url)?'Enlace copiado':'Enlace: '+url)}
@@ -686,7 +686,8 @@ function renderOrders(){
   const pend=orders.filter(p=>!isDraft(p)&&(['nuevo','verificando_disponibilidad'].includes(st(p))||payInfo(p).proof)).length;
   $('navCount').hidden=!pend;$('navCount').textContent=pend;
 }
-$('list').addEventListener('click',async e=>{const s2=e.target.closest('[data-qshare]'),d2=e.target.closest('[data-qdel]');
+$('list').addEventListener('click',async e=>{const s2=e.target.closest('[data-qshare]'),d2=e.target.closest('[data-qdel]'),e2=e.target.closest('[data-qedit]');
+  if(e2){e.stopPropagation();const qq=quotes.find(x=>x.codigo===e2.dataset.qedit);if(qq)startQuoteEdit(qq);return}
   if(s2){e.stopPropagation();shareQuote(s2.dataset.qshare)}
   if(d2){e.stopPropagation();if(!confirm('¿Eliminar este borrador? El enlace dejará de funcionar.'))return;try{await quoteRpc('lift_borrador_eliminar',{p_codigo:d2.dataset.qdel});quotes=quotes.filter(x=>x.codigo!==d2.dataset.qdel);renderOrders();toast('Borrador eliminado')}catch(err){toast(err.message,{err:true})}}});
 $('chips').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;filter=b.dataset.f;shown=40;renderOrders()};
@@ -1466,8 +1467,9 @@ function renderSummary(){
     <button class="btn green block" id="saveOrder" ${missing.length?'disabled':''}>Guardar pedido</button>
     ${missing.length?'<div class="hint" style="color:#9ca3af;text-align:center">Falta: '+missing.join(', ')+'</div>':''}
     <button class="btn block" id="clearDraft" style="background:transparent;color:#9ca3af;border-color:#2f3136;height:38px;margin-top:2px">Empezar de nuevo</button>`;
-  if(!draft.editId&&draft.lines.length){const qb=document.createElement('button');qb.className='btn block';qb.id='saveQuote';qb.style.cssText='height:40px;margin-top:6px';qb.innerHTML=I.share+' Guardar borrador y compartir';qb.title='Sin datos del cliente: el cliente los llena al abrir el enlace';$('saveOrder').after(qb);qb.onclick=saveQuote}
+  if(!draft.editId&&!draft.quoteCode&&draft.lines.length){const qb=document.createElement('button');qb.className='btn block';qb.id='saveQuote';qb.style.cssText='height:40px;margin-top:6px';qb.innerHTML=I.share+' Guardar borrador y compartir';qb.title='Sin datos del cliente: el cliente los llena al abrir el enlace';$('saveOrder').after(qb);qb.onclick=saveQuote}
   $('saveOrder').onclick=saveOrder;if(draft.editId){$('saveOrder').textContent='Actualizar pedido #'+draft.editId;$('saveOrder').onclick=updateOrder;$('clearDraft').hidden=true}
+  if(draft.quoteCode){const b=$('saveOrder');b.textContent='Actualizar borrador';b.disabled=!draft.lines.length;b.onclick=updateQuote;$('clearDraft').hidden=true;const h=b.nextElementSibling;if(h&&h.classList.contains('hint'))h.hidden=true}
   $('clearDraft').onclick=()=>{if(draft.lines.length&&!confirm('¿Borrar este pedido en borrador?'))return;draft=blank();saveDraft();fillClient();renderNew()};
 }
 function renderNew(){
@@ -1498,16 +1500,37 @@ function startEdit(p){
   Promise.resolve(loadCatalog()).then(()=>{let ch=false;draft.lines.forEach(l=>{if(!l.image&&l.id&&catalog){const c=catalog.find(k=>k.id===l.id);if(c&&c.image){l.image=c.image;ch=true}}});if(ch){saveDraft();renderNew()}}).catch(()=>{});
   toast('Editando pedido #'+p.id,{ms:1800});
 }
+function startQuoteEdit(q){
+  if((draft.editId||draft.quoteCode)&&!confirm('Estás editando otro pedido o borrador. ¿Descartar esos cambios?'))return;
+  if(!draft.editId&&!draft.quoteCode){try{localStorage.setItem(DRAFT_BAK,JSON.stringify(draft))}catch(e){}}
+  const fixed=q.envio_modo!=='auto';
+  draft={...blank(),quoteCode:q.codigo,priceMode:q.price_mode||'public',
+    lines:(q.items||[]).map((x,i)=>{const c=catalog&&x.producto_id?catalog.find(k=>k.id===Number(x.producto_id)):null;return {key:'q'+i+'::'+(x.producto_id||'c'),id:x.producto_id?Number(x.producto_id):null,name:x.nombre||'Producto',brand:x.marca||'',flavor:'',image:x.imagen||(c?c.image:''),qty:Math.max(1,num(x.cantidad)||1),unit:num(x.precio_unitario),custom:true}}),
+    deliv:'domicilio',ship:fixed?(num(q.envio)?'manual':'gratis'):'auto',shipManual:num(q.envio),desc:num(q.descuento)};
+  saveDraft();closeSheet();go('nuevo');fillClient();renderNew();
+  Promise.resolve(loadCatalog()).then(()=>{let ch=false;draft.lines.forEach(l=>{if(!l.image&&l.id&&catalog){const c=catalog.find(k=>k.id===l.id);if(c&&c.image){l.image=c.image;ch=true}}});if(ch){saveDraft();renderNew()}}).catch(()=>{});
+  toast('Editando borrador · el cliente verá los cambios en su enlace',{ms:2200});
+}
+async function updateQuote(){
+  const b=$('saveOrder'),t=totals(),code=draft.quoteCode;b.disabled=true;b.textContent='Guardando…';
+  const items=draft.lines.map(l=>{const u=lineUnit(l),d=l.disc;return {producto_id:l.id||null,nombre:l.name+(l.flavor?' · Sabor: '+l.flavor:'')+(u<l.unit?' · Descuento '+(d.type==='percent'?num(d.value)+'%':money(l.unit-u))+(d.reason?' ('+d.reason+')':''):''),marca:l.brand||'',cantidad:l.qty,precio_unitario:u,imagen:/^https:\/\//.test(l.image||'')?l.image:''}});
+  const auto=draft.deliv==='domicilio'&&draft.ship==='auto';
+  try{const r=await quoteRpc('lift_borrador_guardar',{p_payload:{codigo:code,items,price_mode:draft.priceMode,envio_modo:auto?'auto':'fijo',envio:auto?0:t.ship,descuento:t.desc}});
+    if(r.codigo!==code)toast('El borrador ya se había convertido en pedido: se creó un borrador nuevo',{ms:3500});
+    cancelEdit();go('pedidos');filter='borradores';await loadOrders();toast('Borrador actualizado. El cliente ya ve los cambios.');
+  }catch(e){toast('No se actualizó: '+e.message,{err:true});b.disabled=false;b.textContent='Actualizar borrador'}
+}
 function cancelEdit(){let d=null;try{d=JSON.parse(localStorage.getItem(DRAFT_BAK)||'null');localStorage.removeItem(DRAFT_BAK)}catch(e){}
   draft=d&&d.client&&Array.isArray(d.lines)?{...blank(),...d}:blank();saveDraft();fillClient();renderNew()}
 function editUi(){
-  const on=!!draft.editId;
+  const on=!!draft.editId||!!draft.quoteCode,isQ=!!draft.quoteCode;
   let bar=$('editBar');
   if(on&&!bar){bar=document.createElement('div');bar.id='editBar';bar.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;background:#1e3a8a;color:#fff;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:14px';$('np').before(bar)}
-  if(bar){bar.hidden=!on;if(on){bar.innerHTML='<span>✎ Editando <b>pedido #'+draft.editId+'</b> · los cambios se guardan sobre el mismo pedido</span><button class="btn sm" id="editCancel" style="background:#fff;color:#111">Cancelar</button>';$('editCancel').onclick=()=>{if(confirm('¿Salir sin guardar los cambios del pedido #'+draft.editId+'?')){const id=draft.editId;cancelEdit();go('pedidos');openDetail(id)}}}}
+  if(bar){bar.hidden=!on;if(on){bar.innerHTML='<span>✎ Editando <b>'+(isQ?'borrador /c/'+esc(draft.quoteCode):'pedido #'+draft.editId)+'</b> · '+(isQ?'el cliente verá los cambios en su enlace':'los cambios se guardan sobre el mismo pedido')+'</span><button class="btn sm" id="editCancel" style="background:#fff;color:#111">Cancelar</button>';$('editCancel').onclick=()=>{if(isQ){if(confirm('¿Salir sin guardar los cambios del borrador?')){cancelEdit();go('pedidos');filter='borradores';renderOrders()}return}if(confirm('¿Salir sin guardar los cambios del pedido #'+draft.editId+'?')){const id=draft.editId;cancelEdit();go('pedidos');openDetail(id)}}}}
+  $('boxCliente').hidden=isQ;
   $('payField').hidden=on;$('fechaField').hidden=on;if(on){$('creditBox').hidden=true;$('payHint').hidden=true}
-  $('title').textContent=on?'Editar pedido #'+draft.editId:'Nuevo pedido';
-  const b=$('saveOrder');if(b&&on){b.textContent='Actualizar pedido #'+draft.editId;b.onclick=updateOrder}
+  $('title').textContent=isQ?'Editar borrador':on?'Editar pedido #'+draft.editId:'Nuevo pedido';
+  const b=$('saveOrder');if(b&&on){if(isQ){b.textContent='Actualizar borrador';b.disabled=!draft.lines.length;b.onclick=updateQuote}else{b.textContent='Actualizar pedido #'+draft.editId;b.onclick=updateOrder}}
 }
 async function updateOrder(){
   const b=$('saveOrder'),c=draft.client,t=totals(),id=draft.editId;
