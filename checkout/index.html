@@ -232,6 +232,14 @@ details.coupon[open] summary::after{content:"−"}
 .acctBar,.acctBar.in{background:none;border:0;padding:0;margin:0 0 6px;color:var(--muted);justify-content:flex-end;gap:12px}
 .acctBar a{color:#1a56db}
 .badge{font-size:11px;padding:3px 8px;margin-top:6px}
+
+.quickInfo{background:#fff;border:1px solid var(--line);border-radius:12px;padding:2px 16px;margin-bottom:28px}
+.quickInfo .qr{display:grid;grid-template-columns:78px 1fr auto;gap:10px;padding:12px 0;border-top:1px solid var(--line);font-size:14px;align-items:start}
+.quickInfo .qr:first-child{border-top:0}
+.quickInfo small{color:var(--muted);font-size:13px}
+.quickInfo .qv{line-height:1.4;overflow-wrap:anywhere}
+.quickInfo .qv span{display:block;color:var(--muted);font-size:13px}
+.quickInfo button{background:none;border:0;padding:0;color:#1a56db;text-decoration:underline;font-size:13px;cursor:pointer}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -252,7 +260,8 @@ details.coupon[open] summary::after{content:"−"}
       <div class="formError" id="formError" role="alert"></div>
       <form id="form" novalidate>
         <div class="acctBar" id="acctBar" hidden></div>
-        <div class="card">
+        <div class="quickInfo" id="quickInfo" hidden></div>
+        <div class="card" id="cardContacto">
           <h2>Contacto</h2>
           <label class="field" id="f-nombre"><span class="label">Nombre completo</span>
             <input class="input" id="nombre" name="nombre" autocomplete="name" required>
@@ -280,7 +289,7 @@ details.coupon[open] summary::after{content:"−"}
             <div class="msg" id="naMsg" aria-live="polite"></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card" id="cardEntrega">
           <h2>Entrega</h2>
           <div class="savedAddrs" id="savedAddrs" hidden></div>
           <label class="field" id="f-ciudad"><span class="label">Ciudad o municipio</span>
@@ -565,6 +574,7 @@ function requestKey(){
 function submit(ev){
   ev.preventDefault();if(state.sending)return;showError('');
   var bad=check();
+  if(bad.some(function(b){return b!=='c-datos'})&&!$('quickInfo').hidden){compactOff=true;paintQuick()}
   if(!okLines().length){showError('Tu carrito no tiene productos disponibles.');return}
   if(bad.length){var first=$(bad[0]);first.scrollIntoView({behavior:'smooth',block:'center'});var inp=first.querySelector('input');if(inp)setTimeout(function(){inp.focus({preventScroll:true})},300);
     showError(bad.length===1&&bad[0]==='c-datos'?'Para hacer el pedido debes autorizar el tratamiento de tus datos personales.':'Revisa los campos marcados en rojo.');return}
@@ -676,13 +686,26 @@ function recover(done){
 }
 
 /* ---------- Inicio ---------- */
+/* Datos ya conocidos (cuenta o guardados): se muestran como resumen, estilo Shopify. */
+var compactOff=false;
+function infoReady(){return $('nombre').value.trim().length>=3&&validPhone($('celular').value)&&/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('email').value.trim())&&!!state.city&&$('direccion').value.trim().length>=5&&($('f-documento').hidden||$('documento').value.trim().length>=5)}
+function paintQuick(){
+  var q=$('quickInfo'),on=!compactOff&&infoReady();
+  q.hidden=!on;$('cardContacto').hidden=on;$('cardEntrega').hidden=on;if(!on)return;
+  var notas=$('notas').value.trim(),city=state.city.name+(state.city.department?', '+state.city.department:'');
+  q.innerHTML='<div class="qr"><small>Contacto</small><div class="qv">'+esc($('nombre').value.trim())+' ('+esc($('celular').value.trim())+')<span>'+esc($('email').value.trim())+'</span></div><button type="button" data-qedit="nombre">Cambiar</button></div>'+
+    '<div class="qr"><small>Enviar a</small><div class="qv">'+esc($('direccion').value.trim())+(notas?', '+esc(notas):'')+'<span>'+esc(city)+'</span></div><button type="button" data-qedit="direccion">Cambiar</button></div>';
+}
+function expandInfo(focusId){compactOff=true;paintQuick();var el=$(focusId);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){el.focus({preventScroll:true})},300)}}
 function fillRemembered(){
   var d=json(REMEMBER,null);if(!d)return;
   if(d.nombre)$('nombre').value=d.nombre;if(d.celular)$('celular').value=d.celular;if(d.email)$('email').value=d.email;if(d.direccion)$('direccion').value=d.direccion;
   if(d.ciudad){state.city={name:d.ciudad,department:d.departamento||''};$('ciudad').value=d.ciudad+(d.departamento?' · '+d.departamento:'');updateCity()}
+  paintQuick();
 }
 function bind(){
   $('form').addEventListener('submit',submit);
+  $('quickInfo').addEventListener('click',function(e){var b=e.target.closest('button[data-qedit]');if(b)expandInfo(b.getAttribute('data-qedit'))});
   $('items').addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;var k=b.getAttribute('data-k'),d=Number(b.getAttribute('data-d'));var l=state.lines.filter(function(x){return x.key===k})[0];if(!l)return;setQty(k,d===0?0:Math.min(99,l.qty+d))});
   var city=$('ciudad'),list=$('cityList');
   city.addEventListener('input',citySuggest);
@@ -727,6 +750,7 @@ function fillAccount(){
       box.onclick=function(e){var b=e.target.closest('button[data-i]');if(b)useAddress(dirs[Number(b.dataset.i)],b)};
       if(!$('direccion').value.trim()||!state.city){var d=dirs.filter(function(a){return a.predeterminada})[0]||dirs[0];useAddress(d,box.querySelector('button[data-i="'+dirs.indexOf(d)+'"]'))}
     }
+    if(!compactOff)paintQuick();
   }).catch(function(){if(!C.get()){bar.className='acctBar';bar.innerHTML='<span>Tu sesión terminó.</span><a href="/cuenta/?volver=%2Fcheckout%2F">Entrar de nuevo</a>'}});
 }
 /* Crear cuenta con los datos que ya escribió en el checkout (código al correo). */
