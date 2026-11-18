@@ -343,10 +343,8 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
                   <label class="field"><span>Nombre *</span><input class="input" id="cNombre" autocomplete="off"></label>
                   <label class="field"><span>Celular *</span><input class="input" id="cCel" inputmode="tel" autocomplete="off"></label>
                 </div>
-                <div class="grid2">
-                  <label class="field"><span>Ciudad *</span><input class="input" id="cCiudad" list="cities" autocomplete="off"></label>
-                  <label class="field"><span>Departamento</span><input class="input" id="cDepto" autocomplete="off"></label>
-                </div>
+                <label class="field"><span>Ciudad *</span><input class="input" id="cCiudad" list="cities" autocomplete="off"></label>
+                <input type="hidden" id="cDepto">
                 <label class="field"><span>Dirección *</span><input class="input" id="cDir" autocomplete="off"></label>
                 <label class="field" style="margin:0"><span>Indicaciones / notas</span><input class="input" id="cNotas" autocomplete="off"></label>
               </div>
@@ -1329,7 +1327,7 @@ function renderClientSel(){
   if(c.id)$('changeClient').onclick=()=>{draft.client=blank().client;saveDraft();fillClient();renderNew();$('cq').focus()};
 }
 function fillClient(){const c=draft.client;$('cNombre').value=c.nombre||'';$('cCel').value=c.celular||'';$('cCiudad').value=c.ciudad||'';$('cDepto').value=c.departamento||'';$('cDir').value=c.direccion||'';$('cNotas').value=c.notas||''}
-[['cNombre','nombre'],['cCel','celular'],['cCiudad','ciudad'],['cDepto','departamento'],['cDir','direccion'],['cNotas','notas']].forEach(([id,k])=>{$(id).oninput=()=>{draft.client[k]=$(id).value;if(k==='ciudad'){const m=CITIES.find(x=>norm(x[0])===norm($(id).value));if(m&&!$('cDepto').value){$('cDepto').value=m[1];draft.client.departamento=m[1]}}saveDraft();renderSummary()}});
+[['cNombre','nombre'],['cCel','celular'],['cCiudad','ciudad'],['cDepto','departamento'],['cDir','direccion'],['cNotas','notas']].forEach(([id,k])=>{$(id).oninput=()=>{draft.client[k]=$(id).value;if(k==='ciudad'){const m=CITIES.find(x=>norm(x[0])===norm($(id).value));$('cDepto').value=m?m[1]:'';draft.client.departamento=m?m[1]:''}saveDraft();renderSummary()}});
 let cqT=0;
 $('cq').oninput=()=>{clearTimeout(cqT);const q=$('cq').value.trim();if(q.length<3){$('cres').innerHTML='';return}cqT=setTimeout(()=>findClient(q),350)};
 async function findClient(q){
