@@ -97,6 +97,7 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .lb img{max-width:100%;max-height:100%;border-radius:12px;background:#fff;object-fit:contain}
 .lb button{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;font-size:20px;cursor:pointer}
 .sThumb img,.thumb{cursor:zoom-in}
+.logoRow{display:flex;gap:4px;flex-wrap:nowrap;margin-top:7px}
 /* Checkout en dos columnas */
 #app.wide{max-width:1120px}
 .ck{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:0;align-items:start}
@@ -401,7 +402,7 @@ function payCard(notice){
   // Si el cliente ya eligió transferencia en el checkout, se abre directo con la llave.
   var sel=payChoice||(transfer?'transferencia':'');
   var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
-  var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+'</span>'+right+'</label><div class="panel"'+(on&&panel?'':' hidden')+'>'+panel+'</div></div>'};
+  var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+(sub?'<span class="logoRow">'+sub+'</span>':'')+'</span>'+right+'</label><div class="panel"'+(on&&panel?'':' hidden')+'>'+panel+'</div></div>'};
   var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.applepay+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+LOGO.unclic+'</div>';
   var chosenTr=p.medio_pago_cliente==='transferencia'||ps==='pendiente_comprobante';
   var trPanel=!chosenTr?'':'<ol class="paySteps" style="margin-top:0"><li>Transfiere <b>'+money(p.total)+'</b> a esta llave Bre-B desde cualquier banco o Nequi.</li><li>Envíanos el comprobante por WhatsApp.</li></ol>'+
@@ -411,7 +412,7 @@ function payCard(notice){
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
       opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
-      opt('bold','Tarjeta crédito/débito, PSE y más','',' <span class="brands">'+LOGO.visa+LOGO.mc+'<span class="x">'+LOGO.pse+LOGO.nequi+'</span><span class="more">+5</span></span>',boldPanel)+
+      opt('bold','Tarjeta crédito/débito, PSE y más',LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+'<span class="more">+4</span>','','')+
     '</div>'+
     '<div class="payBtnWrap">'+(!sel?'<button class="cta" type="button" disabled>Elige un medio de pago</button>':sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':!chosenTr?'<button class="cta" type="button" id="trConfirm">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
     '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(!sel?'Pago seguro':sel==='bold'?'Pago procesado por Bold':chosenTr?'Confirmamos tu pago apenas veamos el comprobante':'Pago seguro')+'</div></div></div>';

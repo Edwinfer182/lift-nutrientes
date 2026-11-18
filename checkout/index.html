@@ -244,6 +244,7 @@ details.coupon[open] summary::after{content:"−"}
 @media (max-width:900px){.summary:not(.collapsed) #totalMobile{visibility:hidden}}
 
 .cta.dim{background:#b9b9b9;color:#fff}
+.logoRow{display:flex;gap:4px;flex-wrap:nowrap;margin-top:7px}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -325,11 +326,8 @@ details.coupon[open] summary::after{content:"−"}
                 <span hidden id="transferTotal"></span>
                 <input type="file" id="proof" hidden><span id="pickLabel" hidden></span><span id="pickText" hidden></span>
               </div></div>
-            <div class="opt" id="po-bold"><label><input type="radio" name="pago" value="bold"><span class="ot">Tarjeta crédito/débito, PSE y más</span><span class="brands"><span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px"></span><span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px"></span><span class="x"><span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px"></span></span><span class="more">+5</span></span></label>
-              <div class="panel" id="boldBox" hidden>
-                <div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div>
-                <div class="allLogos"><span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px"></span><span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px"></span><span class="lgb"><img src="/mi-pedido/pagos/amex.png" alt="American Express" style="height:15px"></span><span class="lgb"><img src="/mi-pedido/pagos/applepay.png" alt="Apple Pay" style="height:15px"></span><span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/bancolombia.png" alt="Bancolombia" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/breb.png" alt="Bre-B" style="height:12px"></span><span class="lgb"><img src="/mi-pedido/pagos/unclic.png" alt="Pago a un clic" style="height:17px"></span></div>
-              </div></div>
+            <div class="opt" id="po-bold"><label><input type="radio" name="pago" value="bold"><span class="ot">Tarjeta crédito/débito, PSE y más<span class="logoRow"><span class="lgb"><img src="/mi-pedido/pagos/visa.png" alt="Visa" style="height:11px"></span><span class="lgb"><img src="/mi-pedido/pagos/mastercard.png" alt="Mastercard" style="height:16px"></span><span class="lgb"><img src="/mi-pedido/pagos/amex.png" alt="American Express" style="height:15px"></span><span class="lgb"><img src="/mi-pedido/pagos/pse.png" alt="PSE" style="height:19px"></span><span class="lgb"><img src="/mi-pedido/pagos/nequi.png" alt="Nequi" style="height:19px"></span><span class="more">+4</span></span></span></label>
+              <div class="panel" id="boldBox" hidden></div></div>
             <div class="opt" id="po-efectivo" hidden><label><input type="radio" name="pago" value="efectivo"><span class="ot">Efectivo contraentrega</span><span class="brands"><span class="cashTag">Solo Medellín</span></span></label>
               <div class="panel" id="cashBox" hidden>Pagas en efectivo al recibir tu pedido.</div></div>
           </div>
@@ -471,7 +469,7 @@ function renderPay(){
   if(cash.hidden&&payMethod()==='efectivo'){document.querySelector('input[name="pago"][value="efectivo"]').checked=false}
   var m=payMethod();
   ['bold','transferencia','efectivo'].forEach(function(k){$('po-'+k).classList.toggle('on',k===m)});
-  $('transferBox').hidden=true;$('boldBox').hidden=m!=='bold';$('cashBox').hidden=m!=='efectivo';
+  $('transferBox').hidden=true;$('boldBox').hidden=true;$('cashBox').hidden=m!=='efectivo';
   $('transferTotal').textContent=money(total());
   $('payCta').hidden=false;$('payCard').classList.remove('bad');paintCta();
   $('ctaNote').textContent=m==='bold'?'Te llevamos a la pasarela segura de Bold para pagar.':m==='transferencia'?'Verás tu pedido con la llave Bre-B y el botón para enviar el comprobante por WhatsApp.':'Pagas en efectivo al recibir. Te avisaremos por correo.';
