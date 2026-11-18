@@ -112,9 +112,9 @@ async function loadPdf(force){
 function provDocs(nombre){const d=S.pdf||{catalogos:[],enlaces:[]};return {files:d.catalogos.filter(x=>x.nombre===nombre).sort((a,b)=>String(b.actualizado_en).localeCompare(String(a.actualizado_en))),links:d.enlaces.filter(x=>x.nombre===nombre)}}
 function docsHTML(nombre){
   const {files,links}=provDocs(nombre);
-  const f=files.map(x=>{const old=Date.now()-new Date(x.actualizado_en)>60*864e5;return `<div class="file${old?' old':''}"><span class="fi">PDF</span><div class="fx"><b>${esc(x.archivo_nombre||'Catálogo.pdf')}</b><small>${old?'⚠️ ':''}Subido ${fdate(x.actualizado_en)} · ${ago(x.actualizado_en).toLowerCase()}</small></div><button data-open="${x.id}" data-n="${esc(nombre)}" title="Abrir">↗</button><button data-delpdf="${x.id}" data-n="${esc(nombre)}" title="Eliminar">🗑</button></div>`}).join('');
+  const f=files.map(x=>{const old=Date.now()-new Date(x.actualizado_en)>60*864e5;const isImg=/\.(jpe?g|png|webp|heic|heif)$/i.test(x.archivo_nombre||'');return `<div class="file${old?' old':''}"><span class="fi${isImg?' img':''}">${isImg?'IMG':'PDF'}</span><div class="fx"><b>${esc(x.archivo_nombre||'Catálogo.pdf')}</b><small>${old?'⚠️ ':''}Subido ${fdate(x.actualizado_en)} · ${ago(x.actualizado_en).toLowerCase()}</small></div><button data-open="${x.id}" data-n="${esc(nombre)}" title="Abrir">↗</button><button data-delpdf="${x.id}" data-n="${esc(nombre)}" title="Eliminar">🗑</button></div>`}).join('');
   const l=links.map(x=>`<div class="file link"><span class="fi">🔗</span><div class="fx"><b>${esc(x.titulo)}</b><small>${esc(x.url.replace(/^https:\/\//,'').slice(0,40))}</small></div><a class="btn" style="width:34px;height:34px;padding:0" href="${esc(x.url)}" target="_blank" rel="noopener">↗</a><button data-dellink="${x.id}" data-n="${esc(nombre)}" title="Quitar">🗑</button></div>`).join('');
-  return `<div class="files">${f+l||'<p class="upl">Sin catálogos todavía.</p>'}${S.uploading===nombre?'<p class="upl">Subiendo PDF…</p>':''}</div><div class="acts"><button class="btn" data-up="${esc(nombre)}">⬆ Subir PDF</button><button class="btn" data-addlink="${esc(nombre)}">🔗 Agregar enlace</button></div>`;
+  return `<div class="files">${f+l||'<p class="upl">Sin catálogos todavía.</p>'}${S.uploading===nombre?'<p class="upl">Subiendo…</p>':''}</div><div class="acts"><button class="btn" data-up="${esc(nombre)}">⬆ Subir PDF o imagen</button><button class="btn" data-addlink="${esc(nombre)}">🔗 Agregar enlace</button></div>`;
 }
 async function renderCatalogs(){
   if(!S.pdf){$('catList').innerHTML='<div class="skel"></div><div class="skel"></div>';await loadPdf()}
@@ -127,16 +127,22 @@ async function renderCatalogs(){
 async function renderProvCatalogs(p){if(!S.pdf){$('pCat').innerHTML='<div class="skel"></div>';await loadPdf()}if(S.open===p.id)$('pCat').innerHTML=docsHTML(p.nombre)}
 function refreshDocs(){if(S.section==='catalogos')renderCatalogs();const p=prov(S.open);if(p)renderProvCatalogs(p)}
 let upFor='';
-async function uploadPdf(nombre,file){
-  if(!file)return;if(file.size>25*1024*1024){toast('El PDF debe pesar menos de 25 MB','err');return}
-  S.uploading=nombre;refreshDocs();sync('busy');
+async function uploadPdf(nombre,files){
+  files=[...(files||[])].filter(Boolean);if(!files.length)return;
+  const ok=f=>/\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(f.name)||/^(application\/pdf|image\/)/.test(f.type);
+  const bad=files.find(f=>!ok(f));if(bad){toast('Solo PDF o imágenes (JPG, PNG, WebP): '+bad.name,'err');return}
+  const big=files.find(f=>f.size>20*1024*1024);if(big){toast('Cada archivo debe pesar menos de 20 MB','err');return}
+  S.uploading=nombre;refreshDocs();sync('busy');let n=0;
   try{
-    const u=await pdfCall({action:'upload',nombre,archivo_nombre:file.name.toLowerCase().endsWith('.pdf')?file.name:file.name+'.pdf'});
-    const put=await fetch(u.upload_url,{method:'PUT',headers:{'Content-Type':'application/pdf','x-upsert':'false'},body:file});
-    if(!put.ok)throw new Error('No se pudo subir el archivo');
-    await pdfCall({action:'save',nombre,path:u.path,archivo_nombre:file.name});
-    toast('Catálogo subido ✓');S.uploading='';await loadPdf(true);sync('ok');
-  }catch(e){S.uploading='';sync('err');toast(e.message,'err')}
+    for(const file of files){
+      let name=file.name;if(!/\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(name))name+=file.type==='application/pdf'?'.pdf':'.'+(file.type.split('/')[1]||'jpg');
+      const u=await pdfCall({action:'upload',nombre,archivo_nombre:name});
+      const put=await fetch(u.upload_url,{method:'PUT',headers:{'Content-Type':file.type||'application/octet-stream','x-upsert':'false'},body:file});
+      if(!put.ok)throw new Error('No se pudo subir '+file.name);
+      await pdfCall({action:'save',nombre,path:u.path,archivo_nombre:name});n++;
+    }
+    toast((n===1?'Archivo subido':n+' archivos subidos')+' ✓');S.uploading='';await loadPdf(true);sync('ok');
+  }catch(e){S.uploading='';sync('err');toast(e.message+(n?' ('+n+' sí se subieron)':''),'err');await loadPdf(true)}
   refreshDocs();
 }
 async function docsClick(e){
@@ -250,7 +256,7 @@ $('pHist').onclick=async e=>{const b=e.target.closest('[data-undo]');if(!b)retur
 $('d_save').onclick=()=>run(()=>call({action:'provider-update',id:S.open,nombre:$('d_nombre').value,celular:$('d_cel').value,notas:$('d_notas').value}),'Datos guardados ✓');
 $('d_arch').onclick=async()=>{const p=prov(S.open);if(!(await confirmDlg('¿Archivar a '+p.nombre+'?','Deja de aparecer en la lista. Si lo vuelves a crear con el mismo nombre, se reactiva con su historial.','Archivar')))return;const id=S.open;closeSheet();await run(()=>call({action:'provider-update',id,archivar:true}),'Proveedor archivado')};
 $('catList').onclick=docsClick;$('pCat').onclick=docsClick;
-$('pdfFile').onchange=e=>uploadPdf(upFor,e.target.files[0]);
+$('pdfFile').onchange=e=>uploadPdf(upFor,e.target.files);
 $('newProv').onclick=newProvider;$('fab').onclick=newProvider;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('dlg').hidden&&dlgResolve)dlgResolve(null);else if(S.open)closeSheet()}});
 $('lockForm').onsubmit=async e=>{e.preventDefault();const v=$('lockPw').value;try{sessionStorage.setItem(PASS,v)}catch(x){}$('lockErr').textContent='Verificando…';try{await call({action:'providers'});$('lock').hidden=true;load()}catch(x){$('lockErr').textContent=/Clave/.test(x.message)?'Clave incorrecta':'Sin conexión'}};
