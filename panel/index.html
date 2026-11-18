@@ -1460,7 +1460,7 @@ function renderSummary(){
   $('summary').innerHTML=`
     <div class="line"><span>Productos</span><b>${money(t.sub)}</b></div>
     ${t.desc?'<div class="line"><span>Descuento</span><b>− '+money(t.desc)+'</b></div>':''}
-    <div class="line"><span>${draft.deliv==='recoger'?'Entrega (recoge en tienda)':draft.deliv==='otro'?esc(draft.delivName||'Entrega'):'Envío'}</span><b>${t.ship?money(t.ship):'Gratis'}</b></div>
+    <div class="line"><span>${draft.deliv==='recoger'?'Entrega (recoge en tienda)':draft.deliv==='otro'?esc(draft.delivName||'Entrega'):'Envío'}</span><b>${t.ship?money(t.ship):(draft.deliv==='domicilio'&&draft.ship==='auto'&&!String(draft.client.ciudad||'').trim()?'<span style="font-weight:400;color:var(--muted)">Se calcula con la ciudad</span>':'Gratis')}</b></div>
     <div class="line total"><span>Total</span><span>${money(t.total)}</span></div>
     ${saldo?'<div class="line"><span>Saldo a crédito</span><b>'+money(saldo)+'</b></div>':''}
     ${draft.pay==='porpagar'?'<div class="line"><span>Por pagar (enlace)</span><b>'+money(t.total)+'</b></div>':''}
