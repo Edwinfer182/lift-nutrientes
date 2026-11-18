@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://vdxkknftyssjyfbdieqa.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#111;--ink2:#3b3f46;--muted:#6b7280;--line:#e6e7ea;--soft:#f5f6f7;--bg:#f3f4f6;--card:#fff;
@@ -22,7 +22,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 Poppins,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:inherit}
@@ -319,6 +319,24 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
   #vNuevo .cartLine .ctrl .lineX{order:4}
   #vNuevo .cartLine{padding:6px 0}
 }
+
+.pkBar{display:flex;gap:8px;margin-top:10px}
+.pkBar .input{flex:1;height:38px;font-size:14px}
+.pkBy{display:flex;align-items:center;gap:6px;border:1px solid #d6d8dc;border-radius:9px;padding:0 10px;font-size:13px;color:var(--muted);white-space:nowrap}
+.pkBy select{border:0;background:none;font:inherit;color:#111;outline:0;max-width:140px}
+.pkFilters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;align-items:center}
+.pkChipBtn{border:1px dashed #c9ccd1;background:#fff;border-radius:999px;height:28px;padding:0 12px;font-size:12.5px;cursor:pointer}
+.pkAddF{position:relative}
+.pkMenu{position:absolute;top:32px;left:0;z-index:5;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:6px;display:grid;min-width:170px}
+.pkMenu[hidden]{display:none}
+.pkMenu button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer}
+.pkMenu button:hover{background:var(--soft)}
+.pkChip{display:inline-flex;align-items:center;gap:4px;background:var(--soft);border-radius:999px;height:28px;padding:0 4px 0 12px;font-size:12.5px}
+.pkChip select{border:0;background:none;font:inherit;font-weight:500;max-width:160px;outline:0}
+.pkChip button{border:0;background:none;width:22px;height:22px;border-radius:50%;cursor:pointer;color:var(--muted)}
+.pickHead strong{font-weight:500!important}
+.pickRow b{font-weight:500!important}
+.pickRow.single strong{font-weight:500!important}
 </style>
 </head>
 <body>
@@ -1180,7 +1198,7 @@ function loadCatalog(force){
     const publicIds=new Set(pages.filter(r=>{const p=r.product||{};return !(p.__deleted||p.__private||p.adminOnly||p.hidden||p.oculto)}).map(r=>String(r.id)));
     catalog=pages.concat(privRows.filter(r=>!publicIds.has(String(r.id)))).map(r=>{const priv=!!r.__priv;const p=r.product||{};const name=String(p.name||p.nombre||'').trim();if(!name||p.__deleted||(!priv&&(p.__private||p.adminOnly))||p.hidden||p.oculto)return null;
       const flavors=(Array.isArray(p.flavors)?p.flavors:[]).map(x=>String(typeof x==='object'&&x?(x.name||x.nombre||''):x||'').trim()).filter(Boolean);
-      return {id:r.id,name,brand:String(p.brand||p.marca||''),category:String(p.category||p.categoria||''),flavor:String(p.flavor||p.sabor||''),flavors,
+      return {id:r.id,name,brand:String(p.brand||p.marca||''),category:String(p.category||p.categoria||''),supplier:String(p.supplier||p.proveedor||''),flavor:String(p.flavor||p.sabor||''),flavors,
         image:/^https?:\/\//.test(String(p.image||p.imagen||''))?String(p.image||p.imagen):'',price:Number(p.price||p.precio||0),trainer:Number(p.trainerPrice||0),priv,
         key:norm([name,p.brand||p.marca,p.category||p.categoria,p.flavor||p.sabor,flavors.join(' ')].join(' '))};
     }).filter(Boolean);
@@ -1247,7 +1265,8 @@ function pickEntries(){
   return out}
 $('pickBtn').onclick=async()=>{
   const el=sheet(`<div class="sheetHead"><h2>Seleccionar productos</h2><button class="btn sm" data-close>✕</button></div>
-   <input class="input" id="pkQ" type="search" placeholder="Buscar productos, marca o sabor" style="margin-top:10px" autocomplete="off">
+   <div class="pkBar"><input class="input" id="pkQ" type="search" placeholder="Buscar productos" autocomplete="off"><label class="pkBy">Buscar por <select id="pkBy"><option value="todo">Todo</option><option value="nombre">Nombre del producto</option><option value="marca">Laboratorio</option><option value="sabor">Sabor / variante</option><option value="id">ID del producto</option></select></label></div>
+   <div class="pkFilters" id="pkFilters"><div class="pkAddF"><button type="button" class="pkChipBtn" id="pkAddF">Agregar filtro +</button><div class="pkMenu" id="pkMenu" hidden><button type="button" data-f="marca">Laboratorio</button><button type="button" data-f="cat">Categoría</button><button type="button" data-f="prov">Proveedor</button><button type="button" data-f="tipo">Público / privado</button></div></div></div>
    <div class="pick" id="pkList"><div class="hint">Cargando catálogo…</div></div>
    <div class="pickFoot"><small id="pkCount">0 seleccionados</small><button class="btn sm" data-close>Cancelar</button><button class="btn sm" id="pkAdd" style="background:#111;color:#fff" disabled>Agregar</button></div>`);
   const sel=new Map();
@@ -1256,8 +1275,23 @@ $('pickBtn').onclick=async()=>{
   const row=(r,single,image)=>{const k=r.id+'::'+(r.flavor||''),u=unitFor(r.p),had=inCart.has(k);
     return `<label class="pickRow${single?' single':''}"><input type="checkbox" data-k="${esc(k)}" ${sel.has(k)?'checked':''}>${single?(image?'<img src="'+esc(image)+'" alt="" loading="lazy">':'<img alt="">'):''}
       <span>${single?'<strong style="font-weight:600">'+esc(r.p.name)+'</strong> ':''}${esc(r.label||'')}${r.p.priv?' <small>🔒</small>':''}${had?' <small style="color:var(--muted)">· ya en el pedido</small>':''}</span><b>${money(u)}</b></label>`};
-  const draw=()=>{const q=norm(el.querySelector('#pkQ').value),toks=q.split(/\s+/).filter(Boolean);
-    const list=all.filter(x=>toks.every(t=>x.key.includes(t)));
+  /* Filtros: laboratorio, categoría, proveedor y tipo (público/privado). */
+  const flt={};const FL={marca:'Laboratorio',cat:'Categoría',prov:'Proveedor',tipo:'Tipo'};
+  const valOf=(f,p)=>f==='marca'?p.brand:f==='cat'?p.category:f==='prov'?p.supplier:(p.priv?'Privado':'Público');
+  const optsOf=f=>[...new Set(catalog.map(p=>valOf(f,p)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+  const paintF=()=>{const box=el.querySelector('#pkFilters');box.querySelectorAll('.pkChip').forEach(x=>x.remove());
+    Object.keys(flt).forEach(f=>{const c=document.createElement('span');c.className='pkChip';c.innerHTML=FL[f]+': <select data-f="'+f+'"><option value="">Todos</option>'+optsOf(f).map(v=>'<option'+(flt[f]===v?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select><button type="button" data-rm="'+f+'" aria-label="Quitar filtro">×</button>';box.insertBefore(c,box.querySelector('.pkAddF'))});
+    el.querySelectorAll('#pkMenu [data-f]').forEach(b=>b.hidden=b.dataset.f in flt)};
+  el.querySelector('#pkAddF').onclick=e=>{e.stopPropagation();el.querySelector('#pkMenu').hidden=!el.querySelector('#pkMenu').hidden};
+  el.querySelector('#pkMenu').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;flt[b.dataset.f]='';el.querySelector('#pkMenu').hidden=true;paintF();const s2=el.querySelector('.pkChip select[data-f="'+b.dataset.f+'"]');if(s2)s2.focus()};
+  el.querySelector('#pkFilters').addEventListener('change',e=>{const s2=e.target.closest('select[data-f]');if(s2){flt[s2.dataset.f]=s2.value;draw()}});
+  el.querySelector('#pkFilters').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){delete flt[b.dataset.rm];paintF();draw()}});
+  el.addEventListener('click',e=>{if(!e.target.closest('.pkAddF'))el.querySelector('#pkMenu').hidden=true});
+  el.querySelector('#pkBy').onchange=()=>draw();
+  const passF=p=>Object.keys(flt).every(f=>!flt[f]||valOf(f,p)===flt[f]);
+  const draw=()=>{const q=norm(el.querySelector('#pkQ').value),toks=q.split(/\s+/).filter(Boolean),by=el.querySelector('#pkBy').value;
+    const hay=(x,r)=>by==='todo'?x.key+' '+norm(r.label||''):by==='nombre'?norm(x.title+' '+r.p.name):by==='marca'?norm(r.p.brand):by==='sabor'?norm(r.label||r.p.flavor||''):String(r.p.id);
+    const list=all.map(x=>{const rows=x.rows.filter(r=>passF(r.p)&&(!toks.length||(by==='id'?String(r.p.id)===q.trim():toks.every(t=>hay(x,r).includes(t)))));return rows.length?{...x,rows,single:x.single&&rows.length===1}:null}).filter(Boolean);
     el.querySelector('#pkList').innerHTML=(list.slice(0,60).map(x=>x.single?`<div style="border-top:1px solid var(--soft)">${row(x.rows[0],true,x.image)}</div>`:
       `<div class="pickHead">${x.image?'<img src="'+esc(x.image)+'" alt="" loading="lazy">':'<img alt="">'}<strong>${esc(x.title)}</strong><small style="color:var(--muted)">${x.rows.length} opciones</small></div>${x.rows.map(r=>row(r,false)).join('')}`).join('')
       ||'<div class="hint">No encontré productos.</div>')+(list.length>60?'<div class="hint">Mostrando 60 de '+list.length+'. Escribe para filtrar.</div>':'')};
