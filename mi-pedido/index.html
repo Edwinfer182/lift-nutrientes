@@ -98,6 +98,16 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .lb button{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;font-size:20px;cursor:pointer}
 .sThumb img,.thumb{cursor:zoom-in}
 .logoRow{display:flex;gap:4px;flex-wrap:nowrap;margin-top:7px}
+
+.opts{overflow:visible}
+.opts>.opt:first-child>label{border-radius:10px 10px 0 0}
+.opts>.opt:last-child>label,.opts>.opt:last-child>.panel{border-radius:0 0 10px 10px}
+.more{position:relative;cursor:pointer;user-select:none}
+.morePop{display:none;position:absolute;bottom:calc(100% + 8px);right:-4px;background:#111;border-radius:8px;padding:7px;gap:5px;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.morePop::after{content:"";position:absolute;top:100%;right:14px;border:6px solid transparent;border-top-color:#111}
+.morePop .lgb{border-color:#111}
+.more.open .morePop{display:flex}
+@media (hover:hover){.more:hover .morePop{display:flex}}
 /* Checkout en dos columnas */
 #app.wide{max-width:1120px}
 .ck{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:0;align-items:start}
@@ -412,7 +422,7 @@ function payCard(notice){
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
       opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
-      opt('bold','Tarjeta crédito/débito, PSE y más',LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+'<span class="more">+4</span>','','')+
+      opt('bold','Tarjeta crédito/débito, PSE y más',LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+'<span class="more" role="button" aria-label="Ver más medios de pago">+4<span class="morePop">'+LOGO.applepay+LOGO.banco+LOGO.breb+LOGO.unclic+'</span></span>','','')+
     '</div>'+
     '<div class="payBtnWrap">'+(!sel?'<button class="cta" type="button" disabled>Elige un medio de pago</button>':sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':!chosenTr?'<button class="cta" type="button" id="trConfirm">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
     '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(!sel?'Pago seguro':sel==='bold'?'Pago procesado por Bold':chosenTr?'Confirmamos tu pago apenas veamos el comprobante':'Pago seguro')+'</div></div></div>';
@@ -471,6 +481,10 @@ if(ref&&!token&&String(x.ref||x.pedido_id||'').replace(/\D/g,'')===ref&&x.token)
 if(ref&&token){load(ref,'',token).catch(function(e){$('ref').value=ref;$('lookupMsg').textContent='No pudimos abrir el pedido con este enlace. Consulta con tu celular.';show('lookup')})}
 else{$('ref').value=ref||String(x.ref||'').replace(/\D/g,'');$('phone').value=x.phone||'';show('lookup')}
 })();
+</script>
+<script>
+/* "+4": muestra los demás logos en un recuadro negro (toque o pasar el mouse). */
+document.addEventListener('click',function(e){var m=e.target.closest&&e.target.closest('.more');document.querySelectorAll('.more.open').forEach(function(x){if(x!==m)x.classList.remove('open')});if(m){e.preventDefault();e.stopPropagation();m.classList.toggle('open')}},true);
 </script>
 </body>
 </html>
