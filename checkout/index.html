@@ -242,6 +242,8 @@ details.coupon[open] summary::after{content:"−"}
 .quickInfo button{background:none;border:0;padding:0;color:#1a56db;text-decoration:underline;font-size:13px;cursor:pointer}
 
 @media (max-width:900px){.summary:not(.collapsed) #totalMobile{visibility:hidden}}
+
+.cta.dim{background:#b9b9b9;color:#fff}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -336,7 +338,7 @@ details.coupon[open] summary::after{content:"−"}
         <div class="card">
           <label class="check" id="c-datos"><input type="checkbox" id="datos" required><span>Acepto el <a href="/tratamiento-de-datos/?volver=%2Fcheckout%2F" target="_blank" rel="noopener">tratamiento de datos</a></span></label>
           <label class="check"><input type="checkbox" id="recordar" checked><span>Guardar mis datos para la próxima compra</span></label>
-          <div class="desktopCta" id="payCta" style="margin-top:12px" hidden>
+          <div class="desktopCta" id="payCta" style="margin-top:12px">
             <button class="cta" type="submit" id="submitDesktop"><span class="spin"></span><span class="ctaText">Hacer pedido</span></button>
             <p class="note" id="ctaNote">Te llevamos a la pasarela segura de Bold para pagar.</p>
           </div>
@@ -472,7 +474,7 @@ function renderPay(){
   ['bold','transferencia','efectivo'].forEach(function(k){$('po-'+k).classList.toggle('on',k===m)});
   $('transferBox').hidden=m!=='transferencia';$('boldBox').hidden=m!=='bold';$('cashBox').hidden=m!=='efectivo';
   $('transferTotal').textContent=money(total());
-  $('payCta').hidden=!m;$('payCard').classList.remove('bad');
+  $('payCta').hidden=false;$('payCard').classList.remove('bad');paintCta();
   $('ctaNote').textContent=m==='bold'?'Te llevamos a la pasarela segura de Bold para pagar.':m==='transferencia'?'Verás tu pedido con la llave Bre-B y el botón para enviar el comprobante por WhatsApp.':'Pagas en efectivo al recibir. Te avisaremos por correo.';
   if(!state.sending)['submitDesktop','submitMobile'].forEach(function(id){$(id).querySelector('.ctaText').textContent=ctaLabel()});
 }
@@ -520,7 +522,7 @@ function citySuggest(){
   list.innerHTML=res.length?res.map(function(c,i){return '<button type="button" role="option" data-i="'+i+'"'+(i===0?' class="on"':'')+'>'+esc(c.name)+' <small>· '+esc(c.department)+'</small></button>'}).join(''):'<div class="hint" style="padding:10px 12px">No encontramos esa ciudad. Revisa cómo está escrita.</div>';
   list._res=res;list.classList.add('open');$('ciudad').setAttribute('aria-expanded','true');
 }
-function pickCity(c){
+function pickCity(c){setTimeout(paintCta,0);
   state.city=c;$('ciudad').value=c.name+(c.department?' · '+c.department:'');
   $('cityList').classList.remove('open');$('ciudad').setAttribute('aria-expanded','false');
   $('f-ciudad').classList.remove('bad');updateCity();render();
@@ -552,6 +554,9 @@ function applyCoupon(){
 /* ---------- Validación ---------- */
 function digits(v){return String(v||'').replace(/\D/g,'')}
 function validPhone(v){var d=digits(v);if(/^57/.test(d)&&d.length===12)d=d.slice(2);return /^3\d{9}$/.test(d)||(String(v).trim().charAt(0)==='+'&&d.length>=8)}
+/* Botón siempre visible: apagado hasta que todo esté listo. */
+function formReady(){return !!payMethod()&&infoReady()&&$('datos').checked&&(payMethod()!=='efectivo'||canCash())}
+function paintCta(){var r=formReady();['submitDesktop','submitMobile'].forEach(function(id){var b=$(id);if(b)b.classList.toggle('dim',!r)})}
 function check(){
   var bad=[];
   function mark(id,ok){$(id).classList.toggle('bad',!ok);if(!ok)bad.push(id)}
@@ -711,6 +716,7 @@ function fillRemembered(){
 }
 function bind(){
   $('form').addEventListener('submit',submit);
+  $('form').addEventListener('input',paintCta);$('form').addEventListener('change',paintCta);
   $('quickInfo').addEventListener('click',function(e){var b=e.target.closest('button[data-qedit]');if(b)expandInfo(b.getAttribute('data-qedit'))});
   $('items').addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;var k=b.getAttribute('data-k'),d=Number(b.getAttribute('data-d'));var l=state.lines.filter(function(x){return x.key===k})[0];if(!l)return;setQty(k,d===0?0:Math.min(99,l.qty+d))});
   var city=$('ciudad'),list=$('cityList');
