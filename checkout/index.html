@@ -240,6 +240,8 @@ details.coupon[open] summary::after{content:"−"}
 .quickInfo .qv{line-height:1.4;overflow-wrap:anywhere}
 .quickInfo .qv span{display:block;color:var(--muted);font-size:13px}
 .quickInfo button{background:none;border:0;padding:0;color:#1a56db;text-decoration:underline;font-size:13px;cursor:pointer}
+
+@media (max-width:900px){.summary:not(.collapsed) #totalMobile{visibility:hidden}}
 </style>
 <!-- LIFT-FAVICON-SYNC -->
 <link rel="icon" type="image/png" href="https://supgo.co/favicon.png">
@@ -484,7 +486,7 @@ function render(){
     return '<div class="item'+(l.available?'':' unavailable')+'">'+
       (l.image?'<img class="thumb" src="'+esc(l.image)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<div class="thumb"></div>')+
       '<div><p class="iname">'+esc(l.name)+'</p>'+
-      (l.flavor?'<div class="imeta">Sabor: '+esc(l.flavor)+'</div>':(l.brand?'<div class="imeta">'+esc(l.brand)+'</div>':''))+
+      (l.flavor?'<div class="imeta">Sabor: '+esc(l.flavor)+'</div>':(l.brand&&!/^varias marcas$/i.test(l.brand)?'<div class="imeta">'+esc(l.brand)+'</div>':''))+
       (l.offer?'<span class="tag">OFERTA</span>':'')+
       (l.available?'<div><span class="qty"><button type="button" data-k="'+esc(l.key)+'" data-d="-1" aria-label="Quitar una unidad">−</button><span>'+l.qty+'</span><button type="button" data-k="'+esc(l.key)+'" data-d="1" aria-label="Agregar una unidad">+</button></span><button type="button" class="remove" data-k="'+esc(l.key)+'" data-d="0">Eliminar</button></div>':'<div class="imeta" style="color:var(--red)">No disponible · no se incluirá</div><button type="button" class="remove" data-k="'+esc(l.key)+'" data-d="0">Quitar</button>')+
       '</div><div class="iprice">'+(l.offer?'<del>'+money(l.regular*l.qty)+'</del>':'')+(l.price>0?money(l.price*l.qty):'—')+'</div></div>';
@@ -719,7 +721,7 @@ function bind(){
   $('cupon').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();applyCoupon()}});
   ['nombre','celular','email','direccion','documento'].forEach(function(id){$(id).addEventListener('input',function(){$('f-'+id).classList.remove('bad')})});
   $('datos').addEventListener('change',function(){$('c-datos').classList.remove('bad')});
-  $('toggleSummary').addEventListener('click',function(){var s=$('summary'),open=s.classList.toggle('collapsed');this.setAttribute('aria-expanded',String(!open))});
+  $('toggleSummary').addEventListener('click',function(){var s=$('summary'),closed=s.classList.toggle('collapsed');this.setAttribute('aria-expanded',String(!closed));var l=this.querySelector('.msLbl');if(l&&l.firstChild)l.firstChild.nodeValue=closed?'Mostrar resumen del pedido ':'Ocultar resumen del pedido '});
   window.addEventListener('storage',function(e){if(e.key===CART){buildLines();render()}});
   [].forEach.call(document.querySelectorAll('input[name="pago"]'),function(r){r.addEventListener('change',renderPay)});
   $('payCard').addEventListener('click',function(e){var b=e.target.closest('button[data-copy]');if(!b)return;e.preventDefault();var v=b.getAttribute('data-copy');copyText(v==='total'?String(Math.round(total())):v,b)});
