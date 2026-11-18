@@ -63,8 +63,9 @@ function sync(state,text){
   const el=$('sync');el.className='sync '+state;
   el.querySelector('span').textContent=text||(state==='ok'?'Sincronizado con Supabase':state==='busy'?'Guardando…':state==='err'?'Sin conexión':'Conectando…');
 }
-const saveProduct=p=>enqueue(()=>fn('lift-catalog-admin',{action:'save',product:clean(p)}));
-function clean(p){const o={...p};delete o._q;delete o._score;delete o._tips;return o}
+/* Los productos privados (Helixir, Sentyx…) viven en otra tabla: se guardan con save-private. */
+const saveProduct=p=>enqueue(()=>fn('lift-catalog-admin',{action:p._privTable?'save-private':'save',product:clean(p)}));
+function clean(p){const o={...p};delete o._q;delete o._score;delete o._tips;delete o._privTable;return o}
 const sig=p=>JSON.stringify(clean(p));
 // Configuración: siempre se lee la versión más reciente antes de guardar.
 function saveCfg(clave,mutate){
@@ -81,13 +82,18 @@ function saveCfg(clave,mutate){
 async function load(){
   sync('load');skeleton();
   try{
-    const [rows,cfg]=await Promise.all([
+    const [rows,cfg,privRes]=await Promise.all([
       (async()=>{let all=[],from=0;for(;;){const r=await fetch(SB+'/rest/v1/lift_productos?select=id,product,activo&order=id',{headers:{apikey:KEY,Authorization:'Bearer '+KEY,Range:from+'-'+(from+999)}});if(!r.ok)throw new Error('Supabase '+r.status);const b=await r.json();all=all.concat(b);if(b.length<1000)break;from+=1000}return all})(),
-      rest('lift_catalog_config?select=clave,valor&clave=in.(weekly_offers,admin_meta,categories_v1,laboratories_v1)')
+      rest('lift_catalog_config?select=clave,valor&clave=in.(weekly_offers,admin_meta,categories_v1,laboratories_v1)'),
+      fn('lift-catalog-admin',{action:'list-private'}).catch(()=>({products:[]}))
     ]);
     cfg.forEach(c=>{S.cfg[c.clave]=c.valor||{}});
     S.rows=rows;
     S.products=rows.filter(r=>r.activo!==false&&r.product&&!r.product.__deleted&&r.product.name).map(r=>({...r.product,id:Number(r.id)}));
+    const pubIds=new Set(S.products.filter(p=>!p.__private&&!p.adminOnly).map(p=>p.id));
+    const privs=((privRes&&privRes.products)||[]).filter(r=>r&&r.activo!==false&&r.product&&r.product.name&&!pubIds.has(Number(r.id))).map(r=>({...r.product,id:Number(r.id),__private:true,adminOnly:true,_privTable:true}));
+    const privIds=new Set(privs.map(p=>p.id));
+    S.products=S.products.filter(p=>!privIds.has(p.id)).concat(privs);
     S.byId=new Map(S.products.map(p=>[p.id,p]));
     S.products.forEach(score);
     sync('ok');
@@ -224,7 +230,7 @@ const short=s=>{s=String(s||'');return s.length>34?s.slice(0,32)+'…':s};
 function openSheet(id,isNew){
   let p;
   if(isNew){p={id:nextId(),name:'',brand:S.filters.lab||'',category:S.filters.cat||'',price:0,image:'',description:'',flavors:[],presentation:'',seo:{}};}
-  else{const src=S.byId.get(id);if(!src)return;p=JSON.parse(JSON.stringify(clean(src)));}
+  else{const src=S.byId.get(id);if(!src)return;p=JSON.parse(JSON.stringify(clean(src)));if(src._privTable)p._privTable=true;}
   score(p);
   const o=offerOf(p)||{};
   S.edit={p,isNew:!!isNew,orig:sig(p),out:isNew?false:isOut(p),outOrig:isNew?false:isOut(p),
@@ -382,7 +388,7 @@ async function deleteProduct(ids){
   ids=[...ids];
   const names=ids.slice(0,3).map(id=>short((S.byId.get(id)||{}).name)).join(', ')+(ids.length>3?' y '+(ids.length-3)+' más':'');
   if(!(await confirmDlg('¿Eliminar '+(ids.length===1?'este producto':ids.length+' productos')+'?',names+'. Dejarán de verse en la tienda.','Eliminar',true)))return false;
-  await progress('Eliminando',ids,async id=>{await enqueue(()=>fn('lift-catalog-admin',{action:'delete',id}));S.products=S.products.filter(p=>p.id!==id);S.byId.delete(id);S.sel.delete(id)});
+  await progress('Eliminando',ids,async id=>{const pp=S.byId.get(id);await enqueue(()=>fn('lift-catalog-admin',{action:pp&&pp._privTable?'delete-private':'delete',id}));S.products=S.products.filter(p=>p.id!==id);S.byId.delete(id);S.sel.delete(id)});
   renderInsights();renderProducts();toast('Eliminado ✓');return true;
 }
 function duplicate(){
