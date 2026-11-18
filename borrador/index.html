@@ -177,6 +177,8 @@ rpc('lift_borrador_ver',{p_codigo:code}).then(function(j){
   if(!j||!j.items){$('app').innerHTML='<div class="msg"><h2>Esta cotización ya no está disponible</h2><p class="muted">Escríbenos por WhatsApp y te enviamos una nueva.</p><p><a href="https://wa.me/573137380766">Escribir por WhatsApp</a></p></div>';return}
   if(j.pedido&&j.pedido.id){location.replace('/mi-pedido/?pedido='+encodeURIComponent(j.pedido.id)+'&token='+encodeURIComponent(j.pedido.token));return}
   q=j;render();loadCities();prefill();
+  /* Si el vendedor edita el borrador, el cliente ve los cambios al volver a la página. */
+  document.addEventListener('visibilitychange',function(){if(document.hidden)return;rpc('lift_borrador_ver',{p_codigo:code}).then(function(k){if(k&&k.pedido&&k.pedido.id){location.replace('/mi-pedido/?pedido='+encodeURIComponent(k.pedido.id)+'&token='+encodeURIComponent(k.pedido.token));return}if(k&&k.items){q=k;paintSummary();paintBtn()}}).catch(function(){})});
 }).catch(function(e){$('app').innerHTML='<div class="msg"><h2>No pudimos cargar la cotización</h2><p class="muted">'+esc(e.message)+'</p></div>'});
 })();
 </script>
