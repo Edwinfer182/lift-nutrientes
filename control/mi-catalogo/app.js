@@ -75,7 +75,8 @@ function offerFor(id,regular){const o=S.offers[String(id)];if(!o||typeof o!=='ob
 function items(){
   const cats=S.cats,soloFoto=$('soloFoto').checked,soloOferta=$('soloOferta').checked,unir=$('unirSabores').checked,ent=S.ver==='entrenador';
   const priv=S.ver==='privado',src=priv?S.privRows:S.rows,VAR=priv?S.variantsAll:S.variants,GRP=priv?S.allGroups:S.groups;
-  let L=src.filter(r=>(!cats||cats.has(r.cat)));
+  const fk=$('orden').value==='marca'?(r=>r.brand||'Sin laboratorio'):(r=>r.cat);
+  let L=src.filter(r=>(!cats||cats.has(fk(r))));
   const shown=r=>ent?r.trainer:(r.offer||r.price);
   const out=[],byGroup=new Map();
   for(const r of L){
@@ -98,9 +99,9 @@ function items(){
 }
 function summary(){
   const L=items(),secs=new Set(L.map(x=>$('orden').value==='marca'?x.brand:x.cat)).size,pages=Math.max(1,Math.ceil((L.length+secs*2)/36))+1;
-  $('sum').innerHTML=L.length?`<b>${L.length}</b> productos · <b>${secs}</b> ${$('orden').value==='marca'?'marcas':'categorías'} · unas <b>${pages}</b> páginas`+(L.length>400?'<br>Son muchos productos: generarlo puede tardar 1 o 2 minutos.':''):'No hay productos con estos filtros.';
+  $('sum').innerHTML=L.length?`<b>${L.length}</b> productos · <b>${secs}</b> ${$('orden').value==='marca'?'laboratorios':'categorías'} · unas <b>${pages}</b> páginas`+(L.length>400?'<br>Son muchos productos: generarlo puede tardar 1 o 2 minutos.':''):'No hay productos con estos filtros.';
   $('genBtn').disabled=!L.length;
-  $('catBtn').textContent=!S.cats?'Todas':S.cats.size===1?[...S.cats][0]:S.cats.size+' categorías';
+  const lab=$('orden').value==='marca';$('catLbl').textContent=lab?'Laboratorios':'Categorías';$('catBtn').textContent=!S.cats?(lab?'Todos':'Todas'):S.cats.size===1?[...S.cats][0]:S.cats.size+(lab?' laboratorios':' categorías');
 }
 function renderLinks(){
   $('links').innerHTML=['publico','entrenador'].map(v=>{
@@ -176,8 +177,8 @@ async function generate(){
     rr(cv,M,H-300,ent?190:priv?170:150,30,15,{color:LIME});
     txt(cv,ent?'PRECIO ENTRENADOR':priv?'CATÁLOGO PRIVADO':'PRECIO PÚBLICO',M+14,H-290,11,B,INK);
     txt(cv,'Precios actualizados el '+dateTxt,M,H-335,12,F,rgb(.75,.79,.75));
-    txt(cv,L.length+' productos · '+secs.length+($('orden').value==='marca'?' marcas':' categorías'),M,H-353,12,F,rgb(.75,.79,.75));
-    let cy=H-410;txt(cv,$('orden').value==='marca'?'MARCAS':'CATEGORÍAS',M,cy,9,B,LIME);cy-=18;
+    txt(cv,L.length+' productos · '+secs.length+($('orden').value==='marca'?' laboratorios':' categorías'),M,H-353,12,F,rgb(.75,.79,.75));
+    let cy=H-410;txt(cv,$('orden').value==='marca'?'LABORATORIOS':'CATEGORÍAS',M,cy,9,B,LIME);cy-=18;
     {const LH=13.5,rows=Math.floor((cy-150)/LH),ncol=Math.min(3,Math.max(2,Math.ceil(secs.length/rows))),colW=(W-2*M)/ncol,max=rows*ncol,list=secs.length>max?secs.slice(0,max-1):secs;
      list.forEach((s,i)=>{const cx=M+Math.floor(i/rows)*colW,yy=cy-(i%rows)*LH;txt(cv,wrap(s,F,9.5,colW-10,1)[0]||'',cx,yy,9.5,F,WHITE)});
      if(secs.length>max)txt(cv,'y '+(secs.length-max+1)+' más…',M+(ncol-1)*colW,cy-(rows-1)*LH,9.5,F,rgb(.75,.79,.75));}
@@ -265,16 +266,19 @@ async function publish(){
 function toast(m,k){const t=document.createElement('div');t.className='toast'+(k==='err'?' err':'');t.innerHTML='<span>'+esc(m)+'</span>';$('toasts').appendChild(t);while($('toasts').children.length>3)$('toasts').firstChild.remove();setTimeout(()=>t.remove(),4500)}
 function lock(m){$('lock').hidden=false;$('lockErr').textContent=m||'';setTimeout(()=>$('lockPw').focus(),50)}
 async function copy(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}a.remove();return ok}}
+function filterOpts(){const marca=$('orden').value==='marca',src=S.ver==='privado'?S.privRows:S.rows,cc={};src.forEach(r=>{const k=marca?(r.brand||'Sin laboratorio'):r.cat;cc[k]=(cc[k]||0)+1});return Object.keys(cc).sort((a,b)=>a.localeCompare(b,'es')).map(c=>({c,n:cc[c]}))}
 function openCats(){
-  $('catList').innerHTML=S.allCats.map(o=>`<label><input type="checkbox" value="${esc(o.c)}"${!S.cats||S.cats.has(o.c)?' checked':''}><span>${esc(o.c)}</span><small>${o.n}</small></label>`).join('');
+  const opts=filterOpts();document.querySelector('#catDlg h3').textContent=$('orden').value==='marca'?'Laboratorios':'Categorías';
+  $('catList').innerHTML=opts.map(o=>`<label><input type="checkbox" value="${esc(o.c)}"${!S.cats||S.cats.has(o.c)?' checked':''}><span>${esc(o.c)}</span><small>${o.n}</small></label>`).join('');
   $('catDlg').hidden=false;
 }
-function closeCats(){const sel=[...$('catList').querySelectorAll('input:checked')].map(i=>i.value);S.cats=sel.length===S.allCats.length?null:new Set(sel);$('catDlg').hidden=true;summary();invalidate()}
+function closeCats(){const sel=[...$('catList').querySelectorAll('input:checked')].map(i=>i.value);S.cats=!sel.length||sel.length===filterOpts().length?null:new Set(sel);$('catDlg').hidden=true;summary();invalidate()}
 function invalidate(){$('result').hidden=true}
 
 try{if(window.top!==window)document.documentElement.classList.add('embedded')}catch(e){document.documentElement.classList.add('embedded')}
-$('ver').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;S.ver=b.dataset.v;[...$('ver').children].forEach(x=>x.classList.toggle('on',x===b));summary();invalidate()};
-['orden','soloFoto','soloOferta','unirSabores'].forEach(id=>$(id).addEventListener('change',()=>{summary();invalidate()}));
+$('ver').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;if(S.ver!==b.dataset.v)S.cats=null;S.ver=b.dataset.v;[...$('ver').children].forEach(x=>x.classList.toggle('on',x===b));summary();invalidate()};
+$('orden').addEventListener('change',()=>{S.cats=null;summary();invalidate()});
+['soloFoto','soloOferta','unirSabores'].forEach(id=>$(id).addEventListener('change',()=>{summary();invalidate()}));
 $('catBtn').onclick=openCats;$('catOk').onclick=closeCats;
 $('catAll').onclick=()=>$('catList').querySelectorAll('input').forEach(i=>i.checked=true);
 $('catNone').onclick=()=>$('catList').querySelectorAll('input').forEach(i=>i.checked=false);
