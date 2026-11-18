@@ -1,0 +1,6 @@
+-- Nombres de producto sin MAYÚSCULA SOSTENIDA (aplicado vía MCP: lift_nombre_titulo, _ajustes, _trigger, _palabras, _v3).
+-- lift_nombre_titulo(text): pone en "Tipo Título" las palabras en mayúscula, respetando
+--   siglas (BCAA, GHK, ISO, HGH, NOW, CBUM…), códigos con números (AOD9604, ISO100), unidades (lb, mg, g, gr, ml)
+--   y palabras cortas (de, la, con, x) en minúscula. Palabras que ya tienen minúsculas no se tocan.
+-- Triggers BEFORE INSERT/UPDATE en lift_productos, lift_private_productos (product->>'name') y lift_producto_grupos (nombre).
+-- Se aplicó una vez a todos los productos existentes.
