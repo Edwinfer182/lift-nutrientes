@@ -363,7 +363,7 @@ details.coupon[open] summary::after{content:"−"}
         <ul class="trust">
           <li>🚚 <span><b>Medellín:</b> pedidos confirmados antes de las 2:00 p. m. pueden salir el mismo día hábil.</span></li>
           <li>📦 <span><b>Resto del país:</b> 1 día hábil a ciudades principales y 2 a 3 días a otras zonas.</span></li>
-          <li>💳 <span>Paga en línea con Bold (tarjeta, PSE, Nequi), por transferencia o en efectivo contraentrega en Medellín.</span></li>
+          <li>💳 <span>Paga en línea con tarjeta, PSE, Nequi o por transferencia.</span></li>
         </ul>
       </div>
     </aside>
@@ -472,7 +472,7 @@ function total(){var s=shipping();return Math.max(0,subtotal()-discount())+(s||0
 /* ---------- Medio de pago ---------- */
 var BOLD_KEY='supgoBoldPendingV1';
 function payMethod(){var r=document.querySelector('input[name="pago"]:checked');return r?r.value:''}
-function canCash(){return !!(state.city&&norm(state.city.name).indexOf('medellin')>=0)}
+function canCash(){return false} /* Contraentrega desactivada */
 function ctaLabel(){var m=payMethod();return m==='bold'||m==='transferencia'?'Pagar ahora':'Hacer pedido'}
 function renderPay(){
   var cash=$('po-efectivo');cash.hidden=!canCash();
