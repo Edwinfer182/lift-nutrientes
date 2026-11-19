@@ -1,13 +1,5 @@
 User-agent: *
-Allow: /
-Disallow: /panel/
-Disallow: /editor/
-Disallow: /e/
-Disallow: /resena/
-Disallow: /baja/
+Disallow: /
 
-# ChatGPT Search - OpenAI
-User-agent: OAI-SearchBot
-Allow: /
-
-Sitemap: https://supgo.co/sitemap.xml
+# Bloqueo global de rastreo solicitado para supgo.co.
+# Para retirar URLs ya indexadas, usar además noindex y Search Console.
