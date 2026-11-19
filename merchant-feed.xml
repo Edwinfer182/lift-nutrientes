@@ -11818,5 +11818,16 @@
       <g:condition>new</g:condition>
       <g:brand>Nutramerican Pharma</g:brand>
     </item>
+    <item>
+      <g:id>2000000004</g:id>
+      <g:title>Whey Protein Isolate 30 g 5 lb - Nutricost</g:title>
+      <g:description>Proteína aislada Nutricost 5 lb. La etiqueta de Chocolate indica 30 g de proteína por porción y 64 servicios.</g:description>
+      <g:link>https://supgo.co/productos/whey-protein-isolate-30-g-5-lb-nutricost-2000000004.html</g:link>
+      <g:image_link>https://vitaminfit.com.co/cdn/shop/products/NTC_WPI_MilkChocolate_5LB_Front1_1800x1800_4780b3e2-5c9b-428b-a6be-23ed3fd58b77.webp?v=1671486012&amp;width=2048</g:image_link>
+      <g:price>579000.00 COP</g:price>
+      <g:availability>in_stock</g:availability>
+      <g:condition>new</g:condition>
+      <g:brand>Nutricost</g:brand>
+    </item>
   </channel>
 </rss>
