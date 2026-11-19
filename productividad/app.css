@@ -227,3 +227,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0
 }
 /* Dentro de SUPGO CONTROL */
 .embedded .top{top:0}
+
+/* Reparto de la semana */
+.rep{margin-bottom:12px}
+.repTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;margin-bottom:6px}
+.repTop span{font-weight:700}.repTop small{font-weight:500;color:var(--muted);margin-left:4px}
+.repBar{position:relative;height:10px;border-radius:99px;background:#eef1ec;overflow:visible}
+.repBar i{display:block;height:100%;border-radius:99px;transition:width .5s}
+.repBar em{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px;opacity:.55}
+.rep.over .repTop span{color:var(--red)}
+.rep.low .repTop span{color:var(--amber)}
+.repAlert{margin:6px 0 0;padding:10px 12px;border-radius:12px;background:var(--amberBg);color:var(--amber);font-size:12.5px;font-weight:600}
+.repOk{margin:6px 0 0;padding:10px 12px;border-radius:12px;background:var(--greenBg);color:var(--green);font-size:12.5px;font-weight:600}

@@ -8,6 +8,13 @@ const OLD_IDS=['programar','postventa','prospectos','seguimientos','cotizaciones
 const AUTO={'' :'Manual',pedidos:'Pedidos creados',programados:'Pedidos programados',seguimientos:'Seguimientos de pedidos',cotizaciones:'Cotizaciones creadas',cotizaciones_seguidas:'Cotizaciones con seguimiento'};
 const COLORS=['#84cc16','#3b82f6','#f59e0b','#ec4899','#14b8a6','#8b5cf6','#ef4444','#0ea5e9'];
 const DOW=['D','L','M','M','J','V','S'];
+// Reparto ideal del tiempo semanal por categoría (porcentaje). El SEO avisa si pasa de SEO_MAX.
+const TARGETS=[['Ventas',40],['Contenido',25],['Entrenadores y recompra',20],['SEO y web',15]];
+const SEO_CAT='SEO y web',SEO_MAX=20;
+// Minutos estimados por actividad (para el reparto). Actividades nuevas usan el valor de su categoría.
+const MINUTOS={cotizaciones:40,seguimientos:30,programar:10,postventa:15,tiktok:45,estados:10,lotevideos:90,prospectos:30,recompra:20,distribuidores:90,indexar:90,blog:90,searchconsole:15,resultados:30};
+const MIN_CAT={'Ventas':20,'Contenido':30,'Entrenadores y recompra':30,'SEO y web':60};
+const mins=a=>a.minutos||MINUTOS[a.id]||MIN_CAT[a.categoria]||0;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO');
@@ -82,7 +89,7 @@ const catColor=c=>{const cats=[...new Set(acts().map(a=>a.categoria))];return CO
 
 /* ---------- Pintar ---------- */
 function render(){
-  renderPeople();renderDate();renderHero();renderCats();renderActs();renderKpis();renderTeam();renderWeek();renderHeat();
+  renderPeople();renderDate();renderHero();renderCats();renderActs();renderReparto();renderKpis();renderTeam();renderWeek();renderHeat();
   const n=day(S.fecha).nota||'';if(document.activeElement!==$('note'))$('note').value=n;
 }
 function renderPeople(){
@@ -127,6 +134,25 @@ function renderActs(){
 function kpi(label,v,prev,fmt,big){
   const d=v-prev,cls=d>0?'up':d<0?'down':'eq',arrow=d>0?'▲':d<0?'▼':'=';
   return `<div class="kpi${big?' big':''}"><span>${label}</span><b>${fmt(v)}</b><small class="${cls}">${arrow} ${d===0?'igual que ayer':fmt(Math.abs(d))+' vs. ayer'}</small></div>`;
+}
+function weekStart(f){return addDays(f,-((dow(f)+6)%7))}
+const hrs=m=>{m=Math.round(m);const h=Math.floor(m/60),r=m%60;return h?(h+' h'+(r?' '+r+' min':'')):r+' min'};
+function renderReparto(){
+  const start=weekStart(S.fecha),t=todayStr(),by={};let total=0,plan=0;
+  for(let i=0;i<7;i++){const f=addDays(start,i);
+    acts().forEach(a=>{const am=mins(a);if(!applies(a,f)||!am||!TARGETS.some(x=>x[0]===a.categoria))return;plan+=am;if(f>t)return;
+      const m=Math.min(1,val(a,f)/a.meta)*am;if(m>0){by[a.categoria]=(by[a.categoria]||0)+m;total+=m}})}
+  $('repRange').textContent=hrs(total)+' de '+hrs(plan);
+  if(!plan){$('reparto').innerHTML='<p class="muted">Usa las categorías Ventas, Contenido, Entrenadores y recompra, y SEO y web para ver el reparto.</p>';return}
+  const pct=c=>total?Math.round((by[c]||0)/total*100):0;
+  let html=TARGETS.map(([c,goal])=>{const p=pct(c),over=c===SEO_CAT?p>SEO_MAX:false,low=c!==SEO_CAT&&total>0&&p<goal-10;
+    return `<div class="rep${over?' over':low?' low':''}"><div class="repTop"><b>${esc(c)}</b><span>${p}% <small>meta ${goal}%</small></span></div><div class="repBar"><i style="width:${Math.min(100,p)}%;background:${catColor(c)}"></i><em style="left:${goal}%"></em></div></div>`}).join('');
+  const seo=pct(SEO_CAT),ventas=pct('Ventas');
+  if(total&&seo>SEO_MAX)html+=`<p class="repAlert">⚠️ Llevas ${seo}% de tu tiempo en SEO. La meta es 15%: pasa ese tiempo a ventas y contenido.</p>`;
+  else if(total&&ventas<30)html+=`<p class="repAlert">Le estás dedicando poco a Ventas (${ventas}%). Empieza el día por WhatsApp y seguimientos.</p>`;
+  else if(total)html+='<p class="repOk">✓ Vas bien repartido esta semana.</p>';
+  else html+='<p class="muted">Aún no hay actividades hechas esta semana.</p>';
+  $('reparto').innerHTML=html;
 }
 function renderKpis(){
   const m=S.metricas[S.fecha]||{},p=S.metricas[addDays(S.fecha,-1)]||{},n=x=>String(Math.round(x));
