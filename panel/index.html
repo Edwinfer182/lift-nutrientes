@@ -144,6 +144,11 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .line{display:flex;justify-content:space-between;gap:10px;font-size:13.5px}
 .line.total{font-weight:700;font-size:15px;border-top:1px solid var(--line);padding-top:7px;margin-top:3px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.codBlk{margin-top:12px;padding:12px;border:1px solid var(--line,#e5e7eb);border-radius:12px;background:#fafaf7}
+.codHd{font-weight:700;font-size:13px;margin-bottom:8px}
+.btn.codT.on{background:#111;color:#c6f432;border-color:#111}
+.btn.codOn{border-color:#111;font-weight:700}
+.codLegacy{display:block;margin:8px 0 0;padding:0;border:0;background:none;color:var(--muted,#6b7280);font-size:11.5px;text-decoration:underline;cursor:pointer}
 .statusSel{width:100%;height:44px;border:1px solid #d6d8dc;border-radius:12px;padding:0 12px;background:#fff;font-size:14px}
 .timeline{display:grid;gap:4px;font-size:12.5px;color:var(--ink2)}
 
@@ -551,6 +556,16 @@ async function rpc(action,payload={}){
   if(!r.ok){const m=(j&&(j.message||j.error))||'Error '+r.status;if(/clave incorrecta/i.test(m))logout(true);throw new Error(m)}
   return j;
 }
+/* Contra entrega por pedido (función lift-contraentrega) */
+const COD_FN=SB+'/functions/v1/lift-contraentrega';let codTope=300000;
+async function codApi(body){
+  const r=await fetch(COD_FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...body,password:pass()})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){const m=j.error||'Error '+r.status;if(/clave incorrecta/i.test(m))logout(true);throw new Error(m)}
+  if(j.tope)codTope=Number(j.tope);return j;
+}
+function codMerge(list){const m=new Map((list||[]).map(x=>[Number(x.id),x]));orders.forEach(o=>{const c=m.get(Number(o.id));if(c)Object.assign(o,{contraentrega_habilitada:!!c.contraentrega_habilitada,contraentrega_envio_previo:!!c.contraentrega_envio_previo,contraentrega_elegida:!!c.contraentrega_elegida})})}
+function codDue(p){const sp=Number(p.saldo_pendiente||0);if(sp>0)return sp;return p.contraentrega_elegida&&p.contraentrega_envio_previo&&Number(p.envio)>0?Number(p.total)-Number(p.envio):Number(p.total||0)}
 async function fn(body){
   const r=await fetch(FN,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({...body,password:pass()})});
   const j=await r.json().catch(()=>({}));
@@ -615,13 +630,14 @@ async function shareQuote(code){const url=quoteUrl(code);
   toast(await copy(url)?'Enlace copiado':'Enlace: '+url)}
 async function loadOrders(){
   if(loading)return;loading=true;$('refresh').classList.add('spin');
-  try{const [o,qs]=await Promise.all([rpc('list'),quoteRpc('lift_borrador_lista',{}).catch(()=>[])]);orders=o;quotes=Array.isArray(qs)?qs:[];renderOrders()}catch(e){toast(e.message,{err:true})}
+  try{const [o,qs,cod]=await Promise.all([rpc('list'),quoteRpc('lift_borrador_lista',{}).catch(()=>[]),codApi({action:'admin-list'}).catch(()=>null)]);orders=o;quotes=Array.isArray(qs)?qs:[];if(cod)codMerge(cod.pedidos);renderOrders()}catch(e){toast(e.message,{err:true})}
   finally{loading=false;$('refresh').classList.remove('spin')}
 }
 function payInfo(p){
   const ps=String(p.pago_estado||''),fm=String(p.forma_pago||''),saldo=Number(p.saldo_pendiente||0);
   if(ps==='aprobado')return {l:'Pagado',c:'green'};
-  if(ps==='contraentrega')return {l:'Contraentrega',c:''};
+  if(ps==='contraentrega')return {l:'Contraentrega · cobrar '+money(codDue(p)),c:'amber'};
+  if(p.contraentrega_elegida&&p.contraentrega_envio_previo&&Number(p.envio)>0&&!['aprobado','por_verificar'].includes(ps))return {l:'Contra entrega · falta pagar envío',c:'blue'};
   if(ps==='por_verificar')return {l:'Comprobante por revisar',c:'amber',proof:true};
   if(ps==='rechazado')return {l:'Pago rechazado',c:'red'};
   if(ps==='pendiente_comprobante'||ps==='pendiente_transferencia')return {l:'Esperando transferencia',c:'blue'};
@@ -642,7 +658,7 @@ function nextActions(p){
   if(isDraft(p)&&!pay.proof)return `<button class="btn green" data-act="paid" data-id="${id}">${I.check} Marcar como pagado</button><button class="btn" data-act="draft-share" data-id="${id}">${I.share} Compartir enlace</button><button class="btn red" data-act="draft-del" data-id="${id}">Eliminar borrador</button>`;
   if(s==='pendiente_pago'){
     if(pay.proof)return `<button class="btn" data-act="proof" data-id="${id}">Ver comprobante</button><button class="btn green" data-act="pay-ok" data-id="${id}">${I.check} Aprobar</button><button class="btn red" data-act="pay-no" data-id="${id}">Rechazar</button>`;
-    return `<button class="btn green" data-act="paid" data-id="${id}">${I.check} Marcar pagado</button><button class="btn" data-act="cod" data-id="${id}">Contraentrega</button>`;
+    return `<button class="btn green" data-act="paid" data-id="${id}">${I.check} Marcar pagado</button>`+(p.contraentrega_habilitada?`<button class="btn codOn" data-act="open" data-id="${id}">💵 Contra entrega activa</button>`:`<button class="btn" data-act="cod-on" data-id="${id}">💵 Permitir contra entrega</button>`);
   }
   if(s==='preparando')return `<button class="btn dark" data-act="dispatch" data-id="${id}">🚚 Despachar</button><button class="btn" data-act="set:programado" data-id="${id}">Programar</button>`;
   if(s==='programado')return `<button class="btn dark" data-act="dispatch" data-id="${id}">🚚 Despachar</button>`;
@@ -882,6 +898,16 @@ async function act(a,id,btn){
   try{
     busy(true);
     if(a==='open')return openDetail(id);
+    if(a==='cod-on'||a==='cod-t-habilitada'||a==='cod-t-envio_previo'){
+      const field=a==='cod-t-envio_previo'?'envio_previo':'habilitada';
+      const next=a==='cod-on'?true:!p['contraentrega_'+field];
+      if(field==='habilitada'&&!next&&p.contraentrega_elegida&&!confirm('El cliente ya eligió contra entrega. ¿Desactivarla de todas formas?'))return;
+      const r=await codApi({action:'admin-set',pedido_id:p.id,[field]:next});
+      const c=r.pedido||{};
+      patch(p.id,{contraentrega_habilitada:!!c.contraentrega_habilitada,contraentrega_envio_previo:!!c.contraentrega_envio_previo,contraentrega_elegida:!!c.contraentrega_elegida});
+      toast(field==='habilitada'?(next?(Number(p.total)>codTope?'Activada, pero el pedido supera '+money(codTope)+' y el cliente no la verá.':'Contra entrega permitida. El cliente la verá al pagar.'):'Contra entrega desactivada.'):(next?'El cliente pagará el envío antes.':'El cliente pagará todo en efectivo.'));return;
+    }
+    if(a==='cod'&&!confirm('Esto registra el pedido #'+p.id+' como efectivo contra entrega por el total, sin mostrarle condiciones al cliente ni cobrar el envío antes. ¿Continuar?'))return;
     if(a==='draft-share')return shareDraft(p);
     if(a==='draft-del'){if(!confirm('¿Eliminar el borrador #'+p.id+'? El enlace de pago dejará de funcionar.'))return;await rpc('estado',{pedido_id:p.id,estado:'cancelado'});patch(p.id,{estado_operativo:'cancelado'});closeSheet();renderOrders();toast('Borrador eliminado');return}
     if(a==='edit')return startEdit(p);
@@ -1129,6 +1155,19 @@ function sheet(html){
   return el;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+function codBlock(p){
+  const on=!!p.contraentrega_habilitada,pre=!!p.contraentrega_envio_previo,envio=Number(p.envio||0),total=Number(p.total||0),ps=String(p.pago_estado||'');
+  const over=total>codTope;
+  const state=!on?'Apagada: el cliente no ve la opción de contra entrega al pagar.'
+    :over?'⚠ El pedido supera '+money(codTope)+': el cliente no verá la opción.'
+    :ps==='contraentrega'?'✓ Contra entrega confirmada. Cobrar en efectivo al entregar: <b>'+money(codDue(p))+'</b>.'
+    :p.contraentrega_elegida?(pre&&envio>0?'⏳ El cliente eligió contra entrega y aceptó las condiciones. Falta que pague el envío ('+money(envio)+').':'✓ El cliente eligió contra entrega.')
+    :(pre&&envio>0?'Activa: el cliente paga el envío ('+money(envio)+') en línea y '+money(total-envio)+' en efectivo al recibir.':'Activa: el cliente paga todo ('+money(total)+') en efectivo al recibir.');
+  return `<div class="codBlk"><div class="codHd">💵 Contra entrega</div>
+    <div class="grid2"><button class="btn sm codT ${on?'on':''}" data-act="cod-t-habilitada" data-id="${p.id}">${on?'✓ Permitida':'Permitir contra entrega'}</button><button class="btn sm codT ${on&&pre?'on':''}" data-act="cod-t-envio_previo" data-id="${p.id}" ${on?'':'disabled'}>${pre?'✓ Cobrar envío antes':'Cobrar envío antes'}</button></div>
+    <p class="hint">${state}</p>
+    <button class="codLegacy" data-act="cod" data-id="${p.id}">Registrar efectivo directo, sin condiciones</button></div>`;
+}
 function openDetail(id){
   const p=byId(id);if(!p)return;openId=Number(id);
   const s=ST[st(p)]||{l:st(p),c:''},pay=payInfo(p),na=nextActions(p);
@@ -1150,7 +1189,8 @@ function openDetail(id){
       <div class="line total"><span>Total</span><span>${money(p.total)}</span></div></div>
     </div>
     <div class="sec"><h3>Pago</h3><div class="pills" style="margin-bottom:10px"><span class="pill ${pay.c}">${esc(pay.l)}</span>${p.medio_pago_cliente?'<span class="pill">Eligió: '+esc(p.medio_pago_cliente)+'</span>':''}</div>
-      <div class="grid2"><button class="btn sm" data-act="paid" data-id="${p.id}">Pagado</button><button class="btn sm" data-act="cod" data-id="${p.id}">Contraentrega</button><button class="btn sm" data-act="credit" data-id="${p.id}">Crédito</button>${p.comprobante_subido?'<button class="btn sm" data-act="proof" data-id="'+p.id+'">Ver comprobante</button>':''}</div>
+      <div class="grid2"><button class="btn sm" data-act="paid" data-id="${p.id}">Pagado</button><button class="btn sm" data-act="credit" data-id="${p.id}">Crédito</button>${p.comprobante_subido?'<button class="btn sm" data-act="proof" data-id="'+p.id+'">Ver comprobante</button>':''}</div>
+      ${codBlock(p)}
     </div>
     ${p.despacho_tipo?'<div class="sec"><h3>Despacho</h3><div class="kv"><span>Tipo</span><b>'+(p.despacho_tipo==='guia'?'Transportadora':'Mensajero local')+'</b>'+(p.despacho_guia?'<span>Guía</span><b>'+esc(p.despacho_transportadora||'')+' · '+esc(p.despacho_guia)+'</b>':'')+'</div></div>':''}
     <div class="sec"><h3>Estado</h3>
