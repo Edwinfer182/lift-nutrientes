@@ -1,0 +1,5 @@
+-- Aplicada en Supabase el 23/11/2026 (migraciones lift_contraentrega_por_pedido y lift_contraentrega_trigger_y_consulta).
+-- Columnas: contraentrega_habilitada, contraentrega_envio_previo, contraentrega_elegida, contraentrega_aceptada_at.
+-- lift_bold_confirmar_pago: con contra entrega + envío previo, el monto en línea esperado es el envío y el pedido queda 'contraentrega'.
+-- Trigger lift_pedidos_contraentrega_pago: al aprobar un comprobante de envío, deja el pedido 'contraentrega' con el saldo por cobrar.
+-- RPC lift_pedido_contraentrega(p_pedido_id, p_token): estado público de contra entrega del pedido.

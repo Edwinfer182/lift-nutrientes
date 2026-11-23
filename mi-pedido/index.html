@@ -76,6 +76,21 @@ h1{font-size:clamp(24px,4vw,30px);line-height:1.15;letter-spacing:-.035em;margin
 .methods{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
 .alt{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .alt summary{cursor:pointer;font-size:14px;font-weight:500}
+.codSplit{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.codSplit div{background:#f6f7f4;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.codSplit small{display:block;color:var(--muted);font-size:11.5px}
+.codSplit b{font-size:17px}
+.codNote{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.45}
+.cashTag{display:inline-block;font-size:11px;font-weight:600;background:#eef7e6;color:#2f6b12;border-radius:6px;padding:3px 7px}
+.codBack{display:block;margin:12px auto 0;background:none;border:0;text-decoration:underline;color:var(--muted);font-size:13px;cursor:pointer}
+.codModal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+.codBox{background:#fff;border-radius:16px;max-width:460px;width:100%;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25);max-height:92vh;overflow:auto}
+.codBox h2{margin:0 0 12px;font-size:19px}
+.codList{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:10px}
+.codList li{font-size:14px;line-height:1.45;background:#f8f9f6;border-radius:10px;padding:10px 12px}
+.codCheck{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:600;margin:0 0 14px;cursor:pointer}
+.codCheck input{width:20px;height:20px;flex:0 0 auto;margin-top:1px}
+.codBox .cta{margin-top:8px}
 .copyRow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--soft);border-radius:10px;padding:10px 12px;margin-top:10px}
 .copyRow small{display:block;color:var(--muted);font-size:11px}
 .copyRow strong{font-size:15px}
@@ -283,12 +298,15 @@ function copy(text,btn,label){var done=function(){if(btn){var o=btn.textContent;
 function stage(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
   if(s==='entregado')return 4;if(s==='en_ruta')return 3;if(s==='preparando'||s==='programado')return 2;
   if(s==='pendiente_pago'||['por_verificar','contraentrega','aprobado'].indexOf(ps)>=0)return 1;return 0}
+function cashDue(p){var sp=Number(p.saldo_pendiente||0);return sp>0?sp:Math.max(Number(p.total||0)-Number(p.abono_inicial||0),0)}
 function info(p){var s=String(p.estado||''),ps=String(p.pago_estado||'');
   if(s==='sin_disponibilidad')return {t:'Un producto no está disponible',d:'No realices el pago todavía. Puedes esperar reposición, cambiar el producto o quitarlo.',k:'bad'};
   if(s==='verificando_disponibilidad')return {t:'Verificando tus productos',d:'Estamos confirmando la disponibilidad con la bodega. Normalmente te confirmamos en máximo 30 minutos (8 a. m. a 8 p. m.). Te avisaremos por WhatsApp y correo, y aquí mismo aparecerá el botón para pagar. No se cobra nada todavía.'};
   if(s==='pendiente_pago'&&ps==='aprobado')return {t:'Pago aprobado',d:'Estamos alistando tu pedido.',k:'ok'};
   if(s==='pendiente_pago'&&ps==='por_verificar')return {t:'Verificando tu pago',d:'Recibimos tu comprobante y lo estamos revisando.'};
-  if(s==='pendiente_pago'&&ps==='contraentrega')return {t:'Pago contraentrega',d:'Pagarás en efectivo al recibir tu pedido.',k:'ok'};
+  if(s==='pendiente_pago'&&ps==='contraentrega')return {t:'Pago contra entrega',d:'Pagarás '+money(cashDue(p))+' en efectivo al recibir tu pedido. Ten el valor exacto: el mensajero puede no tener cambio.',k:'ok'};
+  if(ps==='contraentrega'&&(s==='preparando'||s==='programado'))return {t:'Estamos preparando tu pedido',d:(Number(p.abono_inicial)>0?'Recibimos el pago del envío. ':'')+'Pagarás '+money(cashDue(p))+' en efectivo al recibir. Ten el valor exacto y alguien en la dirección.',k:'ok'};
+  if(ps==='contraentrega'&&s==='en_ruta')return {t:'Tu pedido está en camino',d:'Ten listos '+money(cashDue(p))+' en efectivo y alguien en la dirección para recibir.',k:'ok'};
   if(s==='pendiente_pago')return {t:'Completa tu pago',d:'Paga tu pedido para que lo preparemos y despachemos.'};
   if(s==='preparando'||s==='programado')return {t:'Estamos preparando tu pedido',d:'Tu pago fue aprobado. El siguiente paso es el envío.',k:'ok'};
   if(s==='en_ruta')return {t:'Tu pedido está en camino',d:'Ya salió hacia la dirección registrada.',k:'ok'};
@@ -306,7 +324,8 @@ function load(ref,phone,token,silent){
     if(current.token&&(q.get('token')!==current.token||q.get('pedido')!==id)){var u=new URL(location.href);u.search='?pedido='+encodeURIComponent(id)+'&token='+encodeURIComponent(current.token)+(q.get('nuevo')?'&nuevo=1':'');history.replaceState(null,'',u)}
     var code=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_enlace_corto',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}):Promise.resolve(null);
     var extra=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_lineas_extra',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():[]}).catch(function(){return []}):Promise.resolve([]);
-    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code,extra]).then(function(x){var em={};(Array.isArray(x[3])?x[3]:[]).forEach(function(e){em[String(e.nombre)]=e});current.extra=em;if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];if(silent&&editingAddr){window.__lastImg=x[0];window.__lastDisp=x[1];return}render(x[0],x[1])});
+    var cod=current.token?fetch(SB+'/rest/v1/rpc/lift_pedido_contraentrega',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_pedido_id:Number(id),p_token:current.token})}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}):Promise.resolve(null);
+    return Promise.all([images(p.items||[],id,current.token),dispatch(id,current.token),code,extra,cod]).then(function(x){current.cod=x[4]&&typeof x[4]==='object'?x[4]:{};var em={};(Array.isArray(x[3])?x[3]:[]).forEach(function(e){em[String(e.nombre)]=e});current.extra=em;if(/^[A-Za-z0-9]{8}$/.test(String(x[2]||'')))current.code=x[2];if(silent&&editingAddr){window.__lastImg=x[0];window.__lastDisp=x[1];return}render(x[0],x[1])});
   });
 }
 function images(items,id,token){var ids=items.map(function(i){return Number(i.producto_id)}).filter(function(n){return n>0});if(!items.length)return Promise.resolve({});
@@ -423,18 +442,59 @@ function payCard(notice){
   var lock='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
   var opt=function(v,title,sub,right,panel){var on=sel===v;return '<div class="opt'+(on?' on':'')+'" data-opt="'+v+'"><label><input type="radio" name="payMethod" value="'+v+'"'+(on?' checked':'')+'><span class="ot">'+title+(sub?'<span class="logoRow">'+sub+'</span>':'')+'</span>'+right+'</label><div class="panel"'+(on&&panel?'':' hidden')+'>'+panel+'</div></div>'};
   var boldPanel='<div class="redir"><svg width="34" height="24" viewBox="0 0 40 28" fill="none" stroke="#777" stroke-width="1.5"><rect x="1" y="1" width="38" height="26" rx="3"/><path d="M1 8h38"/><path d="M24 18h10M28 14l6 4-6 4"/></svg><span>Al hacer clic en <b>Pagar ahora</b> te llevamos a <b>Bold</b> para pagar de forma segura.</span></div><div class="allLogos">'+LOGO.visa+LOGO.mc+LOGO.amex+LOGO.applepay+LOGO.pse+LOGO.nequi+LOGO.banco+LOGO.breb+LOGO.unclic+'</div>';
+  var cod=c.cod||{},codOn=!!cod.habilitada&&Number(p.total)<=Number(cod.tope||300000);
+  var codPrev=codOn&&!!cod.elegida&&!!cod.envio_previo&&Number(p.envio)>0,payAmt=codPrev?Number(p.envio):Number(p.total);
   var chosenTr=p.medio_pago_cliente==='transferencia'||ps==='pendiente_comprobante';
-  var trPanel=!chosenTr?'':'<ol class="paySteps" style="margin-top:0"><li>Transfiere <b>'+money(p.total)+'</b> a esta llave Bre-B desde cualquier banco o Nequi.</li><li>Envíanos el comprobante por WhatsApp.</li></ol>'+
+  var trPanel=!chosenTr?'':'<ol class="paySteps" style="margin-top:0"><li>Transfiere <b>'+money(payAmt)+'</b>'+(codPrev?' (solo el envío)':'')+' a esta llave Bre-B desde cualquier banco o Nequi.</li><li>Envíanos el comprobante por WhatsApp.</li></ol>'+
       '<div class="copyRow" style="background:#fff"><span><small>Llave Bre-B · a nombre de Edwin Fernando Muñoz Tobon</small><strong>@edwin4518</strong></span><button type="button" data-copy="@edwin4518">Copiar llave</button></div>';
+  var codSplit='<div class="codSplit"><div><small>Pagas ahora (envío)</small><b>'+money(p.envio)+'</b></div><div><small>Pagas al recibir, en efectivo</small><b>'+money(Number(p.total)-Number(p.envio))+'</b></div></div>';
+  var codPanel=!codOn?'':(cod.envio_previo&&Number(p.envio)>0?codSplit+'<p class="codNote">Para confirmar tu pedido pagas solo el envío por la plataforma. Los productos los pagas en efectivo cuando te llegan.</p>':'<p class="codNote">Pagas <b>'+money(p.total)+'</b> en efectivo cuando recibes tu pedido.</p>');
+  if(codPrev)return '<div class="card pay"><h2>Pago contra entrega</h2>'+codSplit+
+    '<p class="payHint" style="margin-top:12px">Paga el envío para confirmar tu pedido:</p>'+
+    (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
+    (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
+    '<div class="opts" id="payOpts">'+
+      opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
+      opt('bold','Tarjeta crédito/débito, PSE y más',LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi,'','')+
+    '</div>'+
+    '<div class="payBtnWrap">'+(!sel?'<button class="cta" type="button" disabled>Elige cómo pagar el envío</button>':sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar envío '+money(payAmt)+'</button>':!chosenTr?'<button class="cta" type="button" id="trConfirm">Pagar envío '+money(payAmt)+'</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del envío del pedido #'+c.id+' (contra entrega) por '+money(payAmt)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
+    '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div>'+
+    '<button type="button" class="linkBtn codBack" id="codCancel">Prefiero pagar todo en línea</button></div></div>';
   return '<div class="card pay"><h2>Pago</h2><p class="payHint">Todas las transacciones son seguras y están encriptadas.</p>'+
     (notice?'<div class="notice warn" style="margin:0 0 12px">'+esc(notice)+'</div>':'')+
     (ps==='rechazado'?'<div class="notice warn" style="margin:0 0 12px">Tu comprobante anterior no fue aprobado. Intenta de nuevo o escríbenos.</div>':'')+
     '<div class="opts" id="payOpts">'+
       opt('transferencia','Transferencia bancaria','',' <span class="brands">'+LOGO.breb+'</span>',trPanel)+
       opt('bold','Tarjeta crédito/débito, PSE y más',LOGO.visa+LOGO.mc+LOGO.amex+LOGO.pse+LOGO.nequi+'<span class="more" role="button" aria-label="Ver más medios de pago">+4<span class="morePop">'+LOGO.applepay+LOGO.banco+LOGO.breb+LOGO.unclic+'</span></span>','','')+
+      (codOn?opt('contraentrega','Contra entrega en efectivo','',' <span class="brands"><span class="cashTag">💵 Efectivo</span></span>',codPanel):'')+
     '</div>'+
-    '<div class="payBtnWrap">'+(!sel?'<button class="cta" type="button" disabled>Elige un medio de pago</button>':sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':!chosenTr?'<button class="cta" type="button" id="trConfirm">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
+    '<div class="payBtnWrap">'+(!sel?'<button class="cta" type="button" disabled>Elige un medio de pago</button>':sel==='contraentrega'?'<button class="cta" type="button" id="codBtn">Continuar con contra entrega</button>':sel==='bold'?'<button class="cta" type="button" id="boldBtn">Pagar ahora</button>':!chosenTr?'<button class="cta" type="button" id="trConfirm">Pagar ahora</button>':'<a class="cta green" id="waProof" target="_blank" rel="noopener" href="'+wa('Hola, hice la transferencia por Bre-B del pedido #'+c.id+' por '+money(p.total)+'. Te envío el comprobante.')+'">Enviar comprobante por WhatsApp</a>')+
     '<div class="msg bad" id="payMsg"></div><div class="msg" id="proofMsg"></div><div class="secure">'+lock+(!sel?'Pago seguro':sel==='bold'?'Pago procesado por Bold':chosenTr?'Confirmamos tu pago apenas veamos el comprobante':'Pago seguro')+'</div></div></div>';
+}
+/* ---------- Contra entrega ---------- */
+function codModal(){var c=current,p=c.p,cod=c.cod||{},prev=!!cod.envio_previo&&Number(p.envio)>0,cash=prev?Number(p.total)-Number(p.envio):Number(p.total);
+  var old=$('codModal');if(old)old.remove();
+  var d=document.createElement('div');d.id='codModal';d.className='codModal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','codTitle');
+  d.innerHTML='<div class="codBox"><h2 id="codTitle">Antes de confirmar, ten en cuenta</h2><ul class="codList">'+
+    '<li>🕒 Tu pedido puede llegar <b>en cualquier momento del día</b>. No manejamos hora fija de entrega.</li>'+
+    '<li>🏠 <b>Debe haber alguien en la dirección</b> para recibir y pagar.</li>'+
+    '<li>💵 Ten el valor exacto en efectivo: <b>'+money(cash)+'</b>. El mensajero puede no tener cambio.</li>'+
+    '<li>🔁 Si nadie recibe y la entrega falla, haremos un segundo intento, pero <b>ese nuevo envío tiene costo adicional</b>.</li>'+
+    (prev?'<li>🚚 Para confirmar el pedido pagas ahora <b>solo el envío ('+money(p.envio)+')</b> por la plataforma.</li>':'')+
+    '</ul><label class="codCheck"><input type="checkbox" id="codOk"> Leí y acepto las condiciones del pago contra entrega</label>'+
+    '<button type="button" class="cta" id="codAccept" disabled>'+(prev?'Aceptar y pagar el envío':'Confirmar pedido contra entrega')+'</button>'+
+    '<button type="button" class="cta light" id="codClose">Volver</button><div class="msg bad" id="codMsg"></div></div>';
+  d.addEventListener('click',function(e){if(e.target===d)d.remove()});
+  document.body.appendChild(d);
+  $('codOk').addEventListener('change',function(){$('codAccept').disabled=!this.checked});
+  $('codOk').focus();
+}
+function codAccept(btn){var c=current;if(!$('codOk')||!$('codOk').checked)return;btn.disabled=true;btn.textContent='Un momento…';
+  fn('lift-contraentrega',{action:'elegir',pedido_id:Number(c.id),token:c.token,acepta:true}).then(function(j){
+    var m=$('codModal');if(m)m.remove();payChoice='';
+    try{gtag('event','add_payment_info',{payment_type:'contraentrega',currency:'COP',value:Number(c.p.total)})}catch(e){}
+    return load(c.id,'',c.token,true).then(function(){window.scrollTo(0,0)});
+  }).catch(function(e){btn.disabled=false;btn.textContent='Intentar de nuevo';var m=$('codMsg');if(m)m.textContent=e.message});
 }
 /* ---------- Acciones ---------- */
 function bold(btn){var c=current;btn.disabled=true;btn.textContent='Preparando pago seguro…';$('payMsg').textContent='';
@@ -470,6 +530,10 @@ document.addEventListener('click',function(e){
   if(t.id==='retryPay'){clearBoldPending();boldReturn=false;boldTx='';confirmTries=0;linkState=null;linkChecked=true;notPaidNotice=false;clearTimeout(confirmTimer);confirmTimer=null;load(current.id,'',current.token).catch(function(){});return}
   if(t.id==='trConfirm'){t.disabled=true;t.textContent='Un momento…';fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(current.id),token:current.token,medio:'transferencia'}).then(function(){current.p.medio_pago_cliente='transferencia';payChoice='transferencia';render(window.__lastImg||{},window.__lastDisp)}).catch(function(e){t.disabled=false;t.textContent='Pagar ahora';var m=$('payMsg');if(m)m.textContent=e.message});return}
   if(t.id==='waProof'&&current&&current.p.medio_pago_cliente!=='transferencia'){fn('lift-clientes',{action:'public-select-payment',pedido_id:Number(current.id),token:current.token,medio:'transferencia'}).catch(function(){})}
+  if(t.id==='codBtn'){codModal();return}
+  if(t.id==='codClose'){var mm=$('codModal');if(mm)mm.remove();return}
+  if(t.id==='codAccept'){codAccept(t);return}
+  if(t.id==='codCancel'){t.disabled=true;fn('lift-contraentrega',{action:'cancelar',pedido_id:Number(current.id),token:current.token}).then(function(){payChoice='';return load(current.id,'',current.token,true)}).catch(function(e){t.disabled=false;var m=$('payMsg');if(m)m.textContent=e.message});return}
   if(t.id==='addrEdit'){editingAddr=true;render(window.__lastImg||{},window.__lastDisp);var i=$('aDir');if(i)i.focus();return}
   if(t.id==='addrCancel'){editingAddr=false;render(window.__lastImg||{},window.__lastDisp);return}
   if(t.id==='addrSave'){saveAddr(t);return}

@@ -892,6 +892,7 @@ localStorage se usa solo como caché/sesión/estado local de interfaz.
 .lcSteps{display:flex;margin-bottom:9px}.lcStep{flex:1;text-align:center;position:relative;font-size:7px;color:#888}.lcStep:not(:last-child):after{content:"";position:absolute;top:11px;left:58%;right:-42%;height:2px;background:#ddd}.lcDot{position:relative;z-index:1;width:23px;height:23px;border-radius:50%;background:#ddd;display:grid;place-items:center;margin:auto auto 3px;font-size:9px;font-weight:800}.lcStep.done .lcDot,.lcStep.active .lcDot{background:#16a34a;color:#fff}.lcStep.done:not(:last-child):after{background:#16a34a}
 .lcCompactDelivery{display:grid;grid-template-columns:1fr 1fr;gap:6px}.lcCompactDelivery button{height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font:700 8px Poppins,Arial}.lcCompactDelivery button.on{background:#111;color:#fff}.hideExtra{display:none}.lcActionGrid{display:grid!important;grid-template-columns:1fr .7fr 1fr;gap:6px}.lcActionGrid .lcBtn{min-height:37px!important;padding:5px!important;font-size:8px!important}
 .liftFlowControls{margin:8px 0;padding:9px;border:1px solid #e2e2e2;border-radius:10px;background:#fafafa}.liftFlowTitle{font-size:8px;font-weight:700;margin-bottom:5px}.liftFlowPay{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.liftFlowPay button{height:30px;border:1px solid #ddd;border-radius:7px;background:#fff;font:700 7px Poppins,Arial}.liftFlowPay button.on{background:#16a34a;color:#fff}.liftFlowProvider{display:grid;grid-template-columns:1fr 1.4fr;gap:5px;margin-top:6px}.liftFlowProvider select,.liftFlowProvider button{height:32px;border:1px solid #ddd;border-radius:7px;background:#fff;font:600 8px Poppins,Arial;padding:0 6px}.liftFlowProvider button{background:#111;color:#fff}
+.liftCod{margin-top:7px;padding-top:7px;border-top:1px dashed #ddd}.liftCod .liftFlowPay{grid-template-columns:1fr 1fr}.liftCod .liftFlowPay button.on{background:#111;color:#c6f432}.liftCod .liftFlowPay button[disabled]{opacity:.4}.liftCodState{font-size:8px;color:#555;margin-top:5px;line-height:1.4}.liftCodState b{color:#111}
 @media(max-width:520px){.lcInfoGrid{grid-template-columns:1.25fr 1fr}.liftFlowPay{grid-template-columns:1fr 1fr}.liftFlowProvider{grid-template-columns:1fr}}
 </style>
 
@@ -12470,6 +12471,34 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
    if(!document.body.classList.contains('liftAdminUnlocked'))return;
    let password='';try{password=sessionStorage.getItem(PASS)||''}catch(e){}if(!password)return;
    try{const j=await api({action:'admin-dispatch-list',password});window.__liftDispatchMap=new Map((j.pedidos||[]).map(p=>[String(p.id),p]));decorateAdmin()}catch(e){}
+   try{const k=await codApi({action:'admin-list',password});window.__liftCodTope=Number(k.tope||300000);window.__liftCodMap=new Map((k.pedidos||[]).map(p=>[String(p.id),p]));decorateAdmin()}catch(e){}
+ }
+ // Contra entrega por pedido (función lift-contraentrega).
+ async function codApi(data){const r=await fetch(FN.replace('lift-clientes','lift-contraentrega'),{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||('Error '+r.status));return j}
+ function codState(card,id){
+   const map=window.__liftCodMap;if(!map)return;const c=map.get(String(id));if(!c)return;
+   const controls=card.querySelector('.liftFlowControls');if(!controls)return;
+   let box=controls.querySelector('.liftCod');
+   if(!box){
+     box=document.createElement('div');box.className='liftCod';
+     box.innerHTML='<div class="liftFlowTitle">CONTRA ENTREGA</div><div class="liftFlowPay"><button data-cod="habilitada">💵 PERMITIR CONTRA ENTREGA</button><button data-cod="envio_previo">🚚 COBRAR ENVÍO ANTES</button></div><div class="liftCodState"></div>';
+     box.querySelectorAll('[data-cod]').forEach(btn=>btn.onclick=async()=>{
+       const cur=window.__liftCodMap.get(String(id))||{},field=btn.dataset.cod,next=!cur['contraentrega_'+field];
+       if(field==='habilitada'&&!next&&cur.contraentrega_elegida&&!confirm('El cliente ya eligió contra entrega. ¿Desactivarla de todas formas?'))return;
+       btn.disabled=true;
+       try{const j=await codApi({action:'admin-set',password:sessionStorage.getItem(PASS)||'',pedido_id:Number(id),[field]:next});window.__liftCodMap.set(String(id),j.pedido);codState(card,id)}
+       catch(e){alert(e.message)}finally{btn.disabled=false}
+     });
+     controls.appendChild(box);
+   }
+   const tope=window.__liftCodTope||300000,over=Number(c.total)>tope,paid=['aprobado','contraentrega'].includes(String(c.pago_estado||''));
+   box.querySelector('[data-cod="habilitada"]').classList.toggle('on',!!c.contraentrega_habilitada);
+   const pre=box.querySelector('[data-cod="envio_previo"]');pre.classList.toggle('on',!!c.contraentrega_envio_previo);pre.disabled=!c.contraentrega_habilitada;
+   const st=box.querySelector('.liftCodState'),envio=Number(c.envio||0),total=Number(c.total||0);
+   st.innerHTML=!c.contraentrega_habilitada?'Apagada: el cliente no ve la opción de contra entrega.'
+     :over?'⚠ El pedido supera el tope de '+money(tope)+': el cliente no verá la opción.'
+     :c.contraentrega_elegida?(String(c.pago_estado)==='contraentrega'?'✓ <b>Contra entrega confirmada.</b> Cobrar en efectivo: <b>'+money(c.contraentrega_envio_previo&&envio>0?total-envio:total)+'</b>':'⏳ El cliente eligió contra entrega. Falta que pague el envío ('+money(envio)+').')
+     :(c.contraentrega_envio_previo&&envio>0?'Activa: el cliente paga el envío ('+money(envio)+') en línea y '+money(total-envio)+' en efectivo.':'Activa: el cliente paga todo ('+money(total)+') en efectivo al recibir.')+(paid?' (El pedido ya tiene un pago registrado.)':'');
  }
  function decorateAdmin(){
    const map=window.__liftDispatchMap;if(!map)return;
@@ -12482,6 +12511,7 @@ body:not(.admin-mode) .lift-brand-share{display:none!important}
        controls.querySelector('.ask').onclick=()=>{try{const proveedorNombre=controls.querySelector('select').value;const proveedor=LIFT_PROVIDERS.find(x=>x.name===proveedorNombre);if(!proveedor?.phone)throw new Error('Este proveedor no tiene número de WhatsApp configurado.');const tituloPedido=String(card.querySelector('.liftOpsTop b')?.textContent||'');const nombreDesdeTarjeta=(tituloPedido.split('·').slice(1).join('·').trim());const nombreCompleto=String(p.nombre||p.cliente_nombre||p.nombre_cliente||nombreDesdeTarjeta||'').trim();const primerNombre=nombreCompleto.split(/\s+/)[0]||'cliente';const mensaje=`Hola, ¿cómo estás? ¿Me puedes actualizar sobre el estado del pedido de ${primerNombre}?`;let numero=String(proveedor.phone||'').replace(/\D/g,'');if(!numero)throw new Error('Este proveedor no tiene número de WhatsApp configurado.');if(numero.length===10)numero='57'+numero;window.open('https://wa.me/'+numero+'?text='+encodeURIComponent(mensaje),'_blank')}catch(e){alert(e.message)}};
        const at=card.querySelector('.liftOpsItems')||card.querySelector('.liftOpsTop');at?.insertAdjacentElement('afterend',controls);
      }
+     codState(card,m[1]);
      let box=card.querySelector('.liftDispatchBadge');if(!box){box=document.createElement('div');box.className='liftDispatchBadge';const items=card.querySelector('.liftOpsItems');(items||card.querySelector('.liftOpsTop'))?.insertAdjacentElement('afterend',box)}
      const info=payInfo(p),proof=Boolean(p.comprobante_path||p.pago_mensajero_path),delivery=Boolean(p.entrega_foto_path);
      box.innerHTML=`<span class="${info.kind}">${info.kind==='paid'?'✓ ':info.kind==='verify'?'⏳ ':'💵 '}${esc(info.title)}${info.amount?' · '+money(info.amount):''}</span>${proof?'<span class="proof">📎 Comprobante</span>':''}${delivery?'<span class="proof">📷 Evidencia entrega</span>':''}${p.entrega_tipo==='porteria'?'<span class="proof">📦 Portería</span>':''}`;
