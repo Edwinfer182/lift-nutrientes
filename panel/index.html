@@ -146,7 +146,7 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .codBlk{margin-top:12px;padding:12px;border:1px solid var(--line,#e5e7eb);border-radius:12px;background:#fafaf7}
 .codHd{font-weight:700;font-size:13px;margin-bottom:8px}
-.btn.codT.on{background:#111;color:#c6f432;border-color:#111}
+.btn.codT{transition:background .15s,color .15s}.btn.codT.on{background:#111;color:#c6f432;border-color:#111}.btn.codT:not(.on){background:#fff;color:#6b7280;border:1.5px dashed #c9ccc5}
 .btn.codOn{border-color:#111;font-weight:700}
 .codLegacy{display:block;margin:8px 0 0;padding:0;border:0;background:none;color:var(--muted,#6b7280);font-size:11.5px;text-decoration:underline;cursor:pointer}
 .statusSel{width:100%;height:44px;border:1px solid #d6d8dc;border-radius:12px;padding:0 12px;background:#fff;font-size:14px}
@@ -1147,7 +1147,7 @@ async function loadReviews(){
 let openId=0;
 function closeSheet(){document.querySelectorAll('.shade,.sheet').forEach(x=>x.remove());openId=0;document.body.style.overflow=''}
 function sheet(html){
-  closeSheet();
+  const keepId=openId;closeSheet();openId=keepId; /* closeSheet() borraba openId y el detalle no se refrescaba al cambiar datos */
   const sh=document.createElement('div');sh.className='shade';sh.onclick=closeSheet;
   const el=document.createElement('div');el.className='sheet';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.innerHTML=html;
   document.body.append(sh,el);document.body.style.overflow='hidden';
@@ -1164,7 +1164,7 @@ function codBlock(p){
     :p.contraentrega_elegida?(pre&&envio>0?'⏳ El cliente eligió contra entrega y aceptó las condiciones. Falta que pague el envío ('+money(envio)+').':'✓ El cliente eligió contra entrega.')
     :(pre&&envio>0?'Activa: el cliente paga el envío ('+money(envio)+') en línea y '+money(total-envio)+' en efectivo al recibir.':'Activa: el cliente paga todo ('+money(total)+') en efectivo al recibir.');
   return `<div class="codBlk"><div class="codHd">💵 Contra entrega</div>
-    <div class="grid2"><button class="btn sm codT ${on?'on':''}" data-act="cod-t-habilitada" data-id="${p.id}">${on?'✓ Permitida':'Permitir contra entrega'}</button><button class="btn sm codT ${on&&pre?'on':''}" data-act="cod-t-envio_previo" data-id="${p.id}" ${on?'':'disabled'}>${pre?'✓ Cobrar envío antes':'Cobrar envío antes'}</button></div>
+    <div class="grid2"><button class="btn sm codT ${on?'on':''}" data-act="cod-t-habilitada" data-id="${p.id}">${on?'✓ Contra entrega: SÍ':'Contra entrega: NO'}</button><button class="btn sm codT ${on&&pre?'on':''}" data-act="cod-t-envio_previo" data-id="${p.id}" ${on?'':'disabled'}>${on&&pre?'✓ Cobrar envío antes':'Cobrar envío antes: NO'}</button></div>
     <p class="hint">${state}</p>
     <button class="codLegacy" data-act="cod" data-id="${p.id}">Registrar efectivo directo, sin condiciones</button></div>`;
 }
