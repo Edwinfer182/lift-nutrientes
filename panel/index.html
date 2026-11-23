@@ -917,7 +917,9 @@ async function act(a,id,btn){
     if(a==='share')return shareOrder(orderForShare(p),btn);
     if(a==='review-link'){const u=reviewUrl(p.id,p.token_publico);toast(await copy(u)?'Enlace para calificar copiado':'Enlace: '+u);return}
     if(a==='wa-follow')return openWa(p,true);
-    if(a==='copy-client'){const u=orderUrl(p.id,p.token_publico,p.codigo_corto);toast(await copy(u)?'Enlace del pedido copiado':'Copia el enlace: '+u);return}
+    if(a==='copy-client'){const u=orderUrl(p.id,p.token_publico,p.codigo_corto);
+      const msg='👉 Ingresa aquí para completar tu compra:\n'+u+'\n\nEn el enlace:\n✅ Revisa tu dirección (toca *Cambiar* si está mal)\n✅ Revisa tus productos en *Mostrar resumen*\n✅ Elige tu medio de pago para continuar con tu pedido';
+      toast(await copy(msg)?'Enlace con indicaciones copiado':'Copia el enlace: '+u);return}
     if(a==='courier'){const j=await fn({action:'courier-link',pedido_id:p.id});const u=j.url_corta||('https://supgo.co/admin.html?entrega='+encodeURIComponent(j.token));const msg='Pedido #'+p.id+' · '+(p.nombre||'')+(p.ciudad?' · '+p.ciudad:'')+'\nCuando salgas toca «Ya salió» aquí:\n'+u;const ok=await copy(msg);toast(ok?'Mensaje para el proveedor copiado':'Enlace: '+u,{action:'WhatsApp',onAction:()=>window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener')});return}
     if(a==='avail-yes'||a==='avail-no'){
       const ok=a==='avail-yes';const r=await fn({action:'set-availability',pedido_id:p.id,disponible:ok});
